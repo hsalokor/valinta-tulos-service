@@ -9,7 +9,7 @@ Rajapinnan kautta voi valintatulosten lisäksi lisätä hakemuksen hakukohteelle
 
 Alkuvaiheessa rajapinta toteutetaan käyttäen tietovarastona sijoittelu-tietokantaa ja lisähauillle (jotka eivät sijoittelun piirissä) hakulomake-tietokantaa. Tavoitteena on jatkossa siirtää tulokset uuteen yhteiseen tietokantaan.
 
-## GET /valinta-tulos-service/haku/1.2.3.4/hakemus/5.6.7.8
+## GET /valinta-tulos-service/hakemus/1.2.3.4
 
 Palauttaa hakemuksen valintatuloksen.
 
@@ -17,11 +17,11 @@ Huom! Tämä ehdotettu tietomalli on suora kopio sijoittelu-servicen yhteenveto-
 
 ```json
 {
-  "hakemusOid": "1.2.246.562.11.00000441369",
+  "hakemusOid": "1.2.3.4",
   "hakutoiveet": [
     {
-      "hakukohdeOid": "1.2.246.562.5.72607738902",
-      "tarjoajaOid": "1.2.246.562.10.591352080610",
+      "hakukohdeOid": "2.3.4.5",
+      "tarjoajaOid": "3.4.5.6",
       "valintatila": "HYVAKSYTTY",
       "vastaanottotila": "ILMOITETTU",
       "ilmoittautumistila": null,
@@ -33,6 +33,6 @@ Huom! Tämä ehdotettu tietomalli on suora kopio sijoittelu-servicen yhteenveto-
 }
 ```
 
-## POST /valinta-tulos-service/haku/1.2.3.4/hakemus/5.6.7.8/hakukohde/2.3.4.5/vastaanotto/VASTAANOTTANUT
+## POST /valinta-tulos-service/hakemus/1.2.3.4/hakukohde/2.3.4.5/vastaanotto/VASTAANOTTANUT
 
 Tallentaa vastaanottotiedon.
