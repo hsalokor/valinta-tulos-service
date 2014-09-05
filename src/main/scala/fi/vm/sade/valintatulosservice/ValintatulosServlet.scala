@@ -4,6 +4,6 @@ import org.scalatra._
 
 class ValintatulosServlet extends ScalatraServlet {
   get("/") {
-    "valinta-tulos-service in the works"
+    "valinta-tulos-service"
   }
 }
