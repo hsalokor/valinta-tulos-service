@@ -21,16 +21,12 @@ object AppConfig extends Logging {
   }
 
   class Default extends AppConfig with ExternalProps {
-    def springConfiguration = new SijoitteluSpringContext.Default()
   }
 
   class LocalTestingWithTemplatedVars(val templateAttributesFile: String = System.getProperty("valintatulos.vars")) extends AppConfig with TemplatedProps {
-    def springConfiguration = new SijoitteluSpringContext.Default()
   }
 
   class Dev extends AppConfig with ExampleTemplatedProps {
-    def springConfiguration = new SijoitteluSpringContext.Dev()
-
     override def properties = super.properties +
       ("sijoittelu-service.mongodb.uri" -> "mongodb://localhost:27017") +
       ("sijoittelu-service.mongodb.dbname" -> "sijoittelu")
@@ -56,7 +52,6 @@ object AppConfig extends Logging {
 
 
   trait AppConfig {
-    def springConfiguration: SijoitteluSpringConfiguration
     lazy val springContext = new SijoitteluSpringContext(SijoitteluSpringContext.createApplicationContext(this))
 
     final def start {

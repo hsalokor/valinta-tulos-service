@@ -51,19 +51,6 @@ object SijoitteluSpringContext {
   class Default extends SijoitteluSpringConfiguration {
     val profile = "default"
   }
-
-  @Configuration
-  @ComponentScan(basePackages = Array("fi.vm.sade.haku"))
-  class Dev extends SijoitteluSpringConfiguration {
-    val profile = "dev"
-  }
-
-  @Configuration
-  @ComponentScan(basePackages = Array("fi.vm.sade.haku"))
-  class DevWithAuditLog extends SijoitteluSpringConfiguration {
-    val profile = "dev"
-  }
-
 }
 
 trait SijoitteluSpringConfiguration {
