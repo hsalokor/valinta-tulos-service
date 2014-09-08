@@ -1,19 +1,19 @@
 package fi.vm.sade.valintatulosservice
 
+import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 
-class ValintatulosServlet extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats {
+class ValintatulosServlet(implicit val appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats {
   get("/") {
     "valinta-tulos-service"
   }
 
-  get("/hakemus/:hakemusOid") {
+  get("/haku/:hakuOid/hakemus/:hakemusOid") {
     contentType = formats("json")
+    val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
-    Hakemuksentulos(hakemusOid, List(Hakutoiveentulos(
-    "2.3.4.5", "3.4.5.6", "HYVAKSYTTY", "ILMOITETTU", None, "EI_VASTAANOTETTAVISSA", Some(1), None
-    )))
+    ValintatulosService(appConfig).hakemuksentulos(hakuOid, hakemusOid)
   }
 
   notFound {

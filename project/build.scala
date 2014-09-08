@@ -44,16 +44,24 @@ object ValintaTulosServiceBuild extends Build {
         "org.scalatra" %% "scalatra-swagger" % ScalatraVersion,
         "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
         "junit" % "junit" % "4.11" % "test",
+        "com.typesafe" % "config" % "1.2.1",
         "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided",
         "org.apache.tomcat.embed" % "tomcat-embed-core"         % TomcatVersion % "container;test",
         "org.apache.tomcat.embed" % "tomcat-embed-logging-juli" % TomcatVersion % "container;test",
         "org.apache.tomcat.embed" % "tomcat-embed-jasper"       % TomcatVersion % "container;test",
         "org.json4s" %% "json4s-jackson" % "3.2.10",
         "org.json4s" %% "json4s-ext" % "3.2.10",
+        "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.4.1",
+        "org.scalatra.scalate" %% "scalate-core" % "1.7.0",
         "org.springframework" % "spring-jms" % SpringVersion, // <- patch for spring-core-3.1.3 transitive dep
         "org.springframework" % "spring-core" % SpringVersion,
         "org.springframework" % "spring-context" % SpringVersion,
-        "de.flapdoodle.embed" % "de.flapdoodle.embed.mongo" % "1.46.0"
+        "de.flapdoodle.embed" % "de.flapdoodle.embed.mongo" % "1.46.0",
+        "fi.vm.sade.sijoittelu" % "sijoittelu-tulos-service" % "1.0-SNAPSHOT" excludeAll(
+          ExclusionRule(organization = "org.json4s"),
+          ExclusionRule(organization = "com.wordnik")
+        ),
+        "com.google.guava" % "guava" % "15.0"
       ),
       artifactName <<= (name in (Compile, packageWar)) { projectName =>
         (config: ScalaVersion, module: ModuleID, artifact: Artifact) =>
