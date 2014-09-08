@@ -1,2 +1,4 @@
 ---
-mongodb.virkailija.uri: localhost
+mongodb_virkailija_auth:
+mongodb_virkailija_host: localhost
+mongodb_virkailija_port: 27017

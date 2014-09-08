@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
-import com.mongodb.MongoClient
+import com.mongodb.{MongoClientURI, WriteConcern, MongoClientOptions, MongoClient}
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
@@ -74,7 +74,9 @@ trait SijoitteluSpringConfiguration {
 class SijoitteluMongoConfiguration {
   @Bean
   def datastore( @Value("${sijoittelu-service.mongodb.dbname}") dbName: String, @Value("${sijoittelu-service.mongodb.uri}") dbUri: String) = {
-    val mongo = new MongoClient(dbUri)
-    new Morphia().createDatastore(mongo, dbName)
+    val options = new MongoClientOptions.Builder().writeConcern(WriteConcern.FSYNCED)
+    val mongoClientURI: MongoClientURI = new MongoClientURI(dbUri, options)
+    val mongoClient: MongoClient = new MongoClient(mongoClientURI)
+    new Morphia().createDatastore(mongoClient, dbName)
   }
 }

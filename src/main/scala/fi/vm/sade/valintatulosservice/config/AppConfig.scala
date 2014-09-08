@@ -30,6 +30,10 @@ object AppConfig extends Logging {
 
   class Dev extends AppConfig with ExampleTemplatedProps {
     def springConfiguration = new SijoitteluSpringContext.Dev()
+
+    override def properties = super.properties +
+      ("sijoittelu-service.mongodb.uri" -> "mongodb://localhost:27017") +
+      ("sijoittelu-service.mongodb.dbname" -> "sijoittelu")
   }
 
   trait ExternalProps {

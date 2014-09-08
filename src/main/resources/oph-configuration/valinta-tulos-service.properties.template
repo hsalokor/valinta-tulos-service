@@ -5,12 +5,13 @@
 # joka asettaa Tomcatin ympäristökohtaiset arvot.
 #
 
+mongodb.virkailija.uri=mongodb://{{mongodb_virkailija_auth}}@{{mongodb_virkailija_host}}:{{mongodb_virkailija_port}}
 
 #VALINTALASKENTA-SERVICE
 valintalaskenta-laskenta-service.mongodb.dbname=valintalaskentadb
-valintalaskenta-laskenta-service.mongodb.uri={{mongodb.virkailija.uri}}
+valintalaskenta-laskenta-service.mongodb.uri=${mongodb.virkailija.uri}
 
 
 #SIJOITTELU-SERVICE
 sijoittelu-service.mongodb.dbname=sijoitteludb
-sijoittelu-service.mongodb.uri={{mongodb.virkailija.uri}}
+sijoittelu-service.mongodb.uri=${mongodb.virkailija.uri}
