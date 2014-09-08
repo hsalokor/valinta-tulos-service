@@ -8,9 +8,9 @@
 
 #VALINTALASKENTA-SERVICE
 valintalaskenta-laskenta-service.mongodb.dbname=valintalaskentadb
-valintalaskenta-laskenta-service.mongodb.uri=${mongodb.virkailija.uri}/${valintalaskenta-laskenta-service.mongodb.dbname}
+valintalaskenta-laskenta-service.mongodb.uri={{mongodb.virkailija.uri}}
 
 
 #SIJOITTELU-SERVICE
 sijoittelu-service.mongodb.dbname=sijoitteludb
-sijoittelu-service.mongodb.uri=${mongodb.virkailija.uri}/${sijoittelu-service.mongodb.dbname}
+sijoittelu-service.mongodb.uri={{mongodb.virkailija.uri}}

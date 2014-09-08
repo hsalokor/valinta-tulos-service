@@ -5,6 +5,7 @@ import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import org.mongodb.morphia.{Datastore, Morphia}
+import org.springframework.beans.factory.annotation.{Value, Autowired}
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation._
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer
@@ -44,16 +45,11 @@ object SijoitteluSpringContext {
   @Configuration
   @ComponentScan(basePackages = Array(
     "fi.vm.sade.sijoittelu.tulos.service",
-    "fi.vm.sade.sijoittelu.tulos.dao"))
+    "fi.vm.sade.sijoittelu.tulos.dao",
+    "fi.vm.sade.valintatulosservice.sijoittelu.spring"))
+  @Import(Array(classOf[SijoitteluMongoConfiguration]))
   class Default extends SijoitteluSpringConfiguration {
     val profile = "default"
-
-    @Bean
-    def datastore: Datastore = {
-      // TODO: use actual mongo configuration
-      val mongo = new MongoClient("localhost")
-      new Morphia().createDatastore(mongo, "sijoittelu")
-    }
   }
 
   @Configuration
@@ -72,4 +68,13 @@ object SijoitteluSpringContext {
 
 trait SijoitteluSpringConfiguration {
   def profile: String // <- should be able to get from annotation
+}
+
+@Configuration
+class SijoitteluMongoConfiguration {
+  @Bean
+  def datastore( @Value("${sijoittelu-service.mongodb.dbname}") dbName: String, @Value("${sijoittelu-service.mongodb.uri}") dbUri: String) = {
+    val mongo = new MongoClient(dbUri)
+    new Morphia().createDatastore(mongo, dbName)
+  }
 }

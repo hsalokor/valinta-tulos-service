@@ -22,16 +22,6 @@ object ApplicationSettings extends Logging {
 }
 
 case class ApplicationSettings(config: Config) {
-  val environment = getStringWithDefault("environment", "default")
-
-  def getStringWithDefault(path: String, default: String) = {
-    try {
-      config.getString(path)
-    } catch {
-      case _ :ConfigException.Missing | _ :ConfigException.Null => default
-    }
-  }
-
   def toProperties = {
     val keys = config.entrySet().toList.map(_.getKey)
     keys.map { key =>
