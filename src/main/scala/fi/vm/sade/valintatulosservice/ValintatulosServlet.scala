@@ -5,6 +5,8 @@ import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 
 class ValintatulosServlet(implicit val appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats {
+  val valintatulosService: ValintatulosService = ValintatulosService(appConfig)
+
   get("/") {
     "valinta-tulos-service"
   }
@@ -13,7 +15,7 @@ class ValintatulosServlet(implicit val appConfig: AppConfig) extends ScalatraSer
     contentType = formats("json")
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
-    ValintatulosService(appConfig).hakemuksentulos(hakuOid, hakemusOid)
+    valintatulosService.hakemuksentulos(hakuOid, hakemusOid)
   }
 
   notFound {
