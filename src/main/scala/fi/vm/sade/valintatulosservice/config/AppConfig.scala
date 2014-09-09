@@ -1,12 +1,12 @@
 package fi.vm.sade.valintatulosservice.config
 
 import com.typesafe.config.Config
+import fi.vm.sade.sijoittelu.tulos.testfixtures.FixtureImporter
 import fi.vm.sade.valintatulosservice.Logging
-import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluSpringConfiguration, SijoitteluSpringContext}
-
+import fi.vm.sade.valintatulosservice.mongo.{EmbeddedMongo, MongoServer}
+import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluSpringContext
 
 object AppConfig extends Logging {
-
   def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
 
   def fromSystemProperty: AppConfig = {
@@ -16,19 +16,56 @@ object AppConfig extends Logging {
       case "default" => new Default
       case "templated" => new LocalTestingWithTemplatedVars
       case "dev" => new Dev
+      case "it" => new IT
       case name => throw new IllegalArgumentException("Unknown value for valintatulos.profile: " + name);
     }
   }
 
+  /**
+   * Default profile, uses ~/oph-configuration/valinta-tulos-service.properties
+   */
   class Default extends AppConfig with ExternalProps {
   }
 
+  /**
+   * Templated profile, uses config template with vars file located by system property valintatulos.vars
+   */
   class LocalTestingWithTemplatedVars(val templateAttributesFile: String = System.getProperty("valintatulos.vars")) extends AppConfig with TemplatedProps {
   }
 
+  /**
+   * Dev profile, uses local mongo db
+   */
   class Dev extends AppConfig with ExampleTemplatedProps {
     override def properties = super.properties +
       ("sijoittelu-service.mongodb.uri" -> "mongodb://localhost:27017") +
+      ("sijoittelu-service.mongodb.dbname" -> "sijoittelu")
+  }
+
+  /**
+   * IT profile, uses embedded mongo
+   */
+  class IT extends ExampleTemplatedProps {
+
+    private var mongo: Option[MongoServer] = None
+
+    override def start {
+      mongo = EmbeddedMongo.start
+      try {
+        FixtureImporter.importFixtures(springContext.database)
+      } catch {
+        case e: Exception =>
+          stop
+          throw e
+      }
+    }
+    override def stop {
+      mongo.foreach(_.stop)
+      mongo = None
+    }
+
+    override def properties = super.properties +
+      ("sijoittelu-service.mongodb.uri" -> "mongodb://localhost:28018") +
       ("sijoittelu-service.mongodb.dbname" -> "sijoittelu")
   }
 
@@ -47,17 +84,12 @@ object AppConfig extends Logging {
     def templateAttributesFile: String
   }
 
-  trait StubbedExternalDeps {
-  }
-
-
   trait AppConfig {
     lazy val springContext = new SijoitteluSpringContext(SijoitteluSpringContext.createApplicationContext(this))
 
-    final def start {
-    }
-    final def stop {
-    }
+    def start {}
+    def stop {}
+
     def withConfig[T](f: (AppConfig => T)): T = {
       start
       try {
@@ -66,7 +98,6 @@ object AppConfig extends Logging {
         stop
       }
     }
-
 
     def settings: ApplicationSettings
 

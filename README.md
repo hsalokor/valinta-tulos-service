@@ -75,15 +75,17 @@ Aja TomcatRunner-luokka.
 Sovellus tukee eri profiileita. Profiili määritellään `valintatulos.profile` system propertyllä, esim `-Dvalintatulos.profile=dev`.
 Profiili määrittää lähinnä, mistä propertyt haetaan, mutta sen avulla myös voidaan mockata palveluita. Ks `AppConfig.scala`.
 
+### it-profiili
+
+Käytetään embedded mongoa, johon syötetään fixtuuridataa. Tätä käytetään myös automaattisissa testeissä kuten `ValintaTulosServletSpec`.
+
 ### dev-profiili
 
-Näillä asetuksilla käytetään mockattuja ulkoisia järjestelmiä. kehityskäyttöön soveltuvat arvot ovat `dev.conf` tiedostossa versionhallinnassa.
+Näillä asetuksilla käytetään lokaalia mongo-kantaa.
 
 ### default-profiili
 
-Oletusasetuksilla käytetään ulkoista konfiguraatiotiedostoa `valinta-tulos-service.properties`. `valinta-tulos-service.properties` tiedoston etsintäjärjestys:
-`valinta-tulos-service.configFile` system property  - kehityksessä IDE:stä käytettävä tapa, jos haluaa ajaa eri asetuksilla serveriä
-`~/oph-configuration/valinta-tulos-service.properties` - sovelluspalvelimilla  käytettävä tapa
+Oletusasetuksilla käytetään ulkoista konfiguraatiotiedostoa `~/oph-configuration/valinta-tulos-service.properties`.
 
 ### templated-profiili
 

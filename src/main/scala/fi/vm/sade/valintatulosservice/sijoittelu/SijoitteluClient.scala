@@ -9,7 +9,7 @@ import fi.vm.sade.valintatulosservice.{Hakemuksentulos, Hakutoiveentulos, Valint
 case class SijoitteluClient()(implicit appConfig: AppConfig) extends ValintatulosService {
   import scala.collection.JavaConversions._
 
-  val raportointiService = appConfig.springContext.raportointiService
+  lazy val raportointiService = appConfig.springContext.raportointiService
 
   override def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
     optionalToOption(raportointiService.latestSijoitteluAjoForHaku(hakuOid)).flatMap { sijoitteluAjo =>

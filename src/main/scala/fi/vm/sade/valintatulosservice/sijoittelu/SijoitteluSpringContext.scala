@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
-import com.mongodb.{MongoClientURI, WriteConcern, MongoClientOptions, MongoClient}
+import com.mongodb._
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
@@ -14,6 +14,7 @@ import org.springframework.core.env.{MapPropertySource, MutablePropertySources}
 import scala.collection.JavaConversions._
 
 class SijoitteluSpringContext(context: ApplicationContext) {
+  def database = context.getBean(classOf[DB])
   def raportointiService = context.getBean(classOf[RaportointiService])
 }
 
@@ -60,10 +61,20 @@ trait SijoitteluSpringConfiguration {
 @Configuration
 class SijoitteluMongoConfiguration {
   @Bean
-  def datastore( @Value("${sijoittelu-service.mongodb.dbname}") dbName: String, @Value("${sijoittelu-service.mongodb.uri}") dbUri: String) = {
+  def datastore(@Value("${sijoittelu-service.mongodb.dbname}") dbName: String, @Value("${sijoittelu-service.mongodb.uri}") dbUri: String): Datastore = {
+    val mongoClient: MongoClient = createMongoClient(dbUri)
+    new Morphia().createDatastore(mongoClient, dbName)
+  }
+
+  @Bean
+  def database(@Value("${sijoittelu-service.mongodb.dbname}") dbName: String, @Value("${sijoittelu-service.mongodb.uri}") dbUri: String): DB = {
+    createMongoClient(dbUri).getDB(dbName)
+  }
+
+  private def createMongoClient(dbUri: String): MongoClient = {
     val options = new MongoClientOptions.Builder().writeConcern(WriteConcern.FSYNCED)
     val mongoClientURI: MongoClientURI = new MongoClientURI(dbUri, options)
     val mongoClient: MongoClient = new MongoClient(mongoClientURI)
-    new Morphia().createDatastore(mongoClient, dbName)
+    mongoClient
   }
 }
