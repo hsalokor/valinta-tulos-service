@@ -17,7 +17,7 @@ object ValintatulosService {
 class MockValintatulosService extends ValintatulosService {
   override def hakemuksentulos(hakuOid: String, hakemusOid: String) = {
     Some(Hakemuksentulos(hakemusOid, List(Hakutoiveentulos(
-      "2.3.4.5", "3.4.5.6", "HYVAKSYTTY", "ILMOITETTU", None, "EI_VASTAANOTETTAVISSA", Some(1), None
+      "2.3.4.5", "3.4.5.6", "HYVAKSYTTY", Some("ILMOITETTU"), None, "EI_VASTAANOTETTAVISSA", Some(1), None
     ))))
   }
 }

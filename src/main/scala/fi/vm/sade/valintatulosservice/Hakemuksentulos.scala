@@ -5,7 +5,7 @@ case class Hakemuksentulos(hakemusOid: String, hakutoiveet: List[Hakutoiveentulo
 case class Hakutoiveentulos(hakukohdeOid: String,
                             tarjoajaOid: String,
                             valintatila: String,
-                            vastaanottotila: String,
+                            vastaanottotila: Option[String],
                             ilmoittautumistila: Option[String],
                             vastaanotettavuustila: String,
                             jonosija: Option[Int],

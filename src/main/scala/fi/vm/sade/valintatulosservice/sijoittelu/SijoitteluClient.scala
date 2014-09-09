@@ -17,8 +17,8 @@ case class SijoitteluClient()(implicit appConfig: AppConfig) extends Valintatulo
         val yhteenveto = YhteenvetoService.yhteenveto(hakijaDto)
         Hakemuksentulos(hakemusOid, yhteenveto.hakutoiveet.toList.map { hakutoiveDto =>
           Hakutoiveentulos(hakutoiveDto.hakukohdeOid, hakutoiveDto.tarjoajaOid,
-            hakutoiveDto.valintatila.toString, hakutoiveDto.vastaanottotila.toString, Option(hakutoiveDto.ilmoittautumistila).map(_.toString),
-            hakutoiveDto.vastaanotettavuustila.toString, Option(hakutoiveDto.jonosija), Option(hakutoiveDto.varasijanumero)
+            hakutoiveDto.valintatila.toString, Option(hakutoiveDto.vastaanottotila).map(_.toString), Option(hakutoiveDto.ilmoittautumistila).map(_.toString),
+            hakutoiveDto.vastaanotettavuustila.toString, Option(hakutoiveDto.jonosija), Option(hakutoiveDto.varasijanumero).map(_.toInt)
           )
         })
       }
