@@ -53,6 +53,7 @@ object ValintaTulosServiceBuild extends Build {
         "org.json4s" %% "json4s-ext" % "3.2.10",
         "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.4.1",
         "org.scalatra.scalate" %% "scalate-core" % "1.7.0",
+        "com.sun.jersey" % "jersey-client" % "1.17.1", // <- patch for transitive dependency problem
         "org.springframework" % "spring-jms" % SpringVersion, // <- patch for spring-core-3.1.3 transitive dep
         "org.springframework" % "spring-core" % SpringVersion,
         "org.springframework" % "spring-context" % SpringVersion,
