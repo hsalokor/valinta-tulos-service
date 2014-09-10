@@ -69,7 +69,8 @@ object ValintaTulosServiceBuild extends Build {
           ExclusionRule(organization = "cglib")
         ),
         "fi.vm.sade.valintaperusteet" % "valintaperusteet" % "1.0-SNAPSHOT",
-        "com.google.guava" % "guava" % "15.0"
+        "com.google.guava" % "guava" % "15.0",
+        "org.mongodb" %% "casbah" % "2.7.2"
       ),
       artifactName <<= (name in (Compile, packageWar)) { projectName =>
         (config: ScalaVersion, module: ModuleID, artifact: Artifact) =>

@@ -6,6 +6,7 @@
 #
 
 mongodb.virkailija.uri=mongodb://{{mongodb_virkailija_auth}}@{{mongodb_virkailija_host}}:{{mongodb_virkailija_port}}
+mongodb.hakemus.uri=mongodb://{{mongodb_hakemus_auth}}@{{mongodb_hakemus_host}}:{{mongodb_hakemus_port}}
 
 #VALINTALASKENTA-SERVICE
 valintalaskenta-laskenta-service.mongodb.dbname=valintalaskentadb
@@ -15,3 +16,8 @@ valintalaskenta-laskenta-service.mongodb.uri=${mongodb.virkailija.uri}
 #SIJOITTELU-SERVICE
 sijoittelu-service.mongodb.dbname=sijoitteludb
 sijoittelu-service.mongodb.uri=${mongodb.virkailija.uri}
+
+# HAKEMUKSET
+hakemus.mongodb.dbname=hakulomake
+hakemus.mongodb.uri=mongodb://localhost:27017
+hakemus.mongodb.collection=application

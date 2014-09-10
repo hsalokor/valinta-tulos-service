@@ -106,3 +106,5 @@ object AppConfig extends Logging {
 }
 
 case class RemoteApplicationConfig(url: String, username: String, password: String, ticketConsumerPath: String, config: Config)
+
+case class MongoConfig(url: String, dbname: String, collection: String)

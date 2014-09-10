@@ -22,6 +22,17 @@ object ApplicationSettings extends Logging {
 }
 
 case class ApplicationSettings(config: Config) {
+
+  val hakemusMongoConfig = getMongoConfig(config.getConfig("hakemus.mongodb"))
+
+  private def getMongoConfig(config: Config) = {
+    MongoConfig(
+      config.getString("uri"),
+      config.getString("dbname"),
+      config.getString("collection")
+    )
+  }
+
   def toProperties = {
     val keys = config.entrySet().toList.map(_.getKey)
     keys.map { key =>
