@@ -24,7 +24,7 @@ object ValintaTulosServiceBuild extends Build {
       name := Name,
       version := Version,
       scalaVersion := ScalaVersion,
-      javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
+      javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
       scalacOptions ++= Seq("-target:jvm-1.7", "-deprecation"),
       resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository",
       resolvers += Classpaths.typesafeReleases,
@@ -53,16 +53,22 @@ object ValintaTulosServiceBuild extends Build {
         "org.json4s" %% "json4s-ext" % "3.2.10",
         "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.4.1",
         "org.scalatra.scalate" %% "scalate-core" % "1.7.0",
-        "com.sun.jersey" % "jersey-client" % "1.17.1", // <- patch for transitive dependency problem
-        "com.sun.jersey" % "jersey-core" % "1.17.1", // <- patch for transitive dependency problem
         "org.springframework" % "spring-jms" % SpringVersion, // <- patch for spring-core-3.1.3 transitive dep
         "org.springframework" % "spring-core" % SpringVersion,
         "org.springframework" % "spring-context" % SpringVersion,
         "de.flapdoodle.embed" % "de.flapdoodle.embed.mongo" % "1.46.0",
+        "org.mongodb" % "mongo-java-driver" % "2.12.3",
+        "org.mongodb.morphia" % "morphia" % "0.108",
         "fi.vm.sade.sijoittelu" % "sijoittelu-tulos-service" % "1.0-SNAPSHOT" excludeAll(
           ExclusionRule(organization = "org.json4s"),
-          ExclusionRule(organization = "com.wordnik")
+          ExclusionRule(organization = "org.mongodb"),
+          ExclusionRule(organization = "org.mongodb.morphia"),
+          ExclusionRule(organization = "com.wordnik"),
+          ExclusionRule(organization = "com.sun.jersey"),
+          ExclusionRule(organization = "com.thoughtworks.proxytoys"),
+          ExclusionRule(organization = "cglib")
         ),
+        "fi.vm.sade.valintaperusteet" % "valintaperusteet" % "1.0-SNAPSHOT",
         "com.google.guava" % "guava" % "15.0"
       ),
       artifactName <<= (name in (Compile, packageWar)) { projectName =>
