@@ -1,9 +1,9 @@
-package fi.vm.sade.valintatulosservice
+package fi.vm.sade.valintatulosservice.domain
 
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila.Ilmoittautumistila
 import fi.vm.sade.valintatulosservice.domain.Valintatila.Valintatila
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 
 case class Hakemuksentulos(hakemusOid: String, hakutoiveet: List[Hakutoiveentulos])
 

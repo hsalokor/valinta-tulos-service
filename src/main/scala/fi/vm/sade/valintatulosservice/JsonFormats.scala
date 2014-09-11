@@ -14,6 +14,3 @@ object JsonFormats {
 trait JsonFormats {
   implicit val jsonFormats: Formats = JsonFormats.jsonFormats
 }
-
-
-

@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.domain.Hakemuksentulos
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluClient
 
 trait ValintatulosService {

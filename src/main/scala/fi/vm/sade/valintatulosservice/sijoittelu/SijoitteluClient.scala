@@ -4,8 +4,8 @@ import java.util.Optional
 
 import fi.vm.sade.sijoittelu.tulos.service.YhteenvetoService
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.{Valintatila, Vastaanotettavuustila, Ilmoittautumistila, Vastaanottotila}
-import fi.vm.sade.valintatulosservice.{Hakemuksentulos, Hakutoiveentulos, ValintatulosService}
+import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.ValintatulosService
 
 case class SijoitteluClient()(implicit appConfig: AppConfig) extends ValintatulosService {
   import scala.collection.JavaConversions._
