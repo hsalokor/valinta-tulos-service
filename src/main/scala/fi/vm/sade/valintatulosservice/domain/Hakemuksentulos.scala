@@ -1,5 +1,7 @@
 package fi.vm.sade.valintatulosservice.domain
 
+import java.util.Date
+
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila.Ilmoittautumistila
 import fi.vm.sade.valintatulosservice.domain.Valintatila.Valintatila
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
@@ -14,5 +16,7 @@ case class Hakutoiveentulos(hakukohdeOid: String,
                             ilmoittautumistila: Ilmoittautumistila,
                             vastaanotettavuustila: Vastaanotettavuustila,
                             jonosija: Option[Int],
+                            varasijojaKaytetaanAlkaen: Option[Date],
+                            varasijojaTaytetaanAsti: Option[Date],
                             varasijanumero: Option[Int]
                             )

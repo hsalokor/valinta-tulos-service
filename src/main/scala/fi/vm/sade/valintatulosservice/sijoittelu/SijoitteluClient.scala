@@ -24,6 +24,8 @@ case class SijoitteluClient()(implicit appConfig: AppConfig) extends Valintatulo
             Ilmoittautumistila.withName(hakutoiveDto.ilmoittautumistila.toString),
             Vastaanotettavuustila.withName(hakutoiveDto.vastaanotettavuustila.toString),
             Option(hakutoiveDto.jonosija),
+            Option(hakutoiveDto.varasijojaKaytetaanAlkaen),
+            Option(hakutoiveDto.varasijojaTaytetaanAsti),
             Option(hakutoiveDto.varasijanumero).map(_.toInt)
           )
         })
