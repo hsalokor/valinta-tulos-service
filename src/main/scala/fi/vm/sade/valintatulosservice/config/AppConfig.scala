@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice.config
 import com.typesafe.config.Config
 import fi.vm.sade.sijoittelu.tulos.testfixtures.FixtureImporter
 import fi.vm.sade.valintatulosservice.Logging
+import fi.vm.sade.valintatulosservice.fixtures.HakemusFixtureImporter
 import fi.vm.sade.valintatulosservice.mongo.{EmbeddedMongo, MongoServer}
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluSpringContext
 
@@ -40,6 +41,8 @@ object AppConfig extends Logging {
     override def properties = super.properties +
       ("sijoittelu-service.mongodb.uri" -> "mongodb://localhost:27017") +
       ("sijoittelu-service.mongodb.dbname" -> "sijoittelu")
+
+    override lazy val settings = loadSettings.withOverride(("hakemus.mongodb.uri", "mongodb://localhost:27017"))
   }
 
   /**
@@ -53,6 +56,7 @@ object AppConfig extends Logging {
       mongo = EmbeddedMongo.start
       try {
         FixtureImporter.importFixtures(springContext.database)
+        HakemusFixtureImporter.importData(settings.hakemusMongoConfig)
       } catch {
         case e: Exception =>
           stop
@@ -63,6 +67,8 @@ object AppConfig extends Logging {
       mongo.foreach(_.stop)
       mongo = None
     }
+
+    override lazy val settings = loadSettings.withOverride(("hakemus.mongodb.uri", "mongodb://localhost:28018"))
 
     override def properties = super.properties +
       ("sijoittelu-service.mongodb.uri" -> "mongodb://localhost:28018") +
@@ -80,7 +86,8 @@ object AppConfig extends Logging {
 
   trait TemplatedProps {
     logger.info("Using template variables from " + templateAttributesFile)
-    lazy val settings = ConfigTemplateProcessor.createSettings(templateAttributesFile)
+    lazy val settings = loadSettings
+    def loadSettings = ConfigTemplateProcessor.createSettings(templateAttributesFile)
     def templateAttributesFile: String
   }
 

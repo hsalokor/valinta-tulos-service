@@ -1,21 +1,17 @@
 package fi.vm.sade.valintatulosservice.hakemus
 
-import com.mongodb.casbah
 import com.mongodb.casbah.Imports._
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.config.MongoConfig
+import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 
 class HakemusRepository()(implicit appConfig: AppConfig) {
 
-  val applicationCollection: casbah.MongoCollection = {
-    val mongoConfig: MongoConfig = appConfig.settings.hakemusMongoConfig
-    MongoClient(MongoClientURI(mongoConfig.url))(mongoConfig.dbname)(mongoConfig.collection)
-  }
+  val application = MongoFactory.createCollection(appConfig.settings.hakemusMongoConfig)
 
   def findHakutoiveOids(hakemusOid: String): Option[List[String]] = {
     val query = MongoDBObject("oid" -> hakemusOid)
     val fields = MongoDBObject("answers.hakutoiveet" -> 1)
-    val res = applicationCollection.findOne(query, fields)
+    val res = application.findOne(query, fields)
     res.flatMap { result =>
       result.getAs[MongoDBObject]("answers").flatMap { answers =>
         answers.getAs[MongoDBObject]("hakutoiveet").map { hakutoiveet =>
@@ -26,4 +22,5 @@ class HakemusRepository()(implicit appConfig: AppConfig) {
       }
     }
   }
+
 }
