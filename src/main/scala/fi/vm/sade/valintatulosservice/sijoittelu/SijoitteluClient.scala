@@ -4,7 +4,7 @@ import java.util.Optional
 
 import fi.vm.sade.sijoittelu.tulos.service.YhteenvetoService
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.{Ilmoittautumistila, Vastaanottotila}
+import fi.vm.sade.valintatulosservice.domain.{Valintatila, Vastaanotettavuustila, Ilmoittautumistila, Vastaanottotila}
 import fi.vm.sade.valintatulosservice.{Hakemuksentulos, Hakutoiveentulos, ValintatulosService}
 
 case class SijoitteluClient()(implicit appConfig: AppConfig) extends ValintatulosService {
@@ -19,10 +19,10 @@ case class SijoitteluClient()(implicit appConfig: AppConfig) extends Valintatulo
         Hakemuksentulos(hakemusOid, yhteenveto.hakutoiveet.toList.map { hakutoiveDto =>
           Hakutoiveentulos(hakutoiveDto.hakukohdeOid,
             hakutoiveDto.tarjoajaOid,
-            hakutoiveDto.valintatila.toString,
+            Valintatila.withName(hakutoiveDto.valintatila.toString),
             Vastaanottotila.withName(hakutoiveDto.vastaanottotila.toString),
             Ilmoittautumistila.withName(hakutoiveDto.ilmoittautumistila.toString),
-            hakutoiveDto.vastaanotettavuustila.toString,
+            Vastaanotettavuustila.withName(hakutoiveDto.vastaanotettavuustila.toString),
             Option(hakutoiveDto.jonosija),
             Option(hakutoiveDto.varasijanumero).map(_.toInt)
           )
