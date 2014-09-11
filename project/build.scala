@@ -57,7 +57,7 @@ object ValintaTulosServiceBuild extends Build {
         "org.springframework" % "spring-core" % SpringVersion,
         "org.springframework" % "spring-context" % SpringVersion,
         "de.flapdoodle.embed" % "de.flapdoodle.embed.mongo" % "1.46.0",
-        "org.mongodb" % "mongo-java-driver" % "2.12.3",
+        "org.mongodb" %% "casbah" % "2.7.3",
         "org.mongodb.morphia" % "morphia" % "0.108",
         "fi.vm.sade.sijoittelu" % "sijoittelu-tulos-service" % "1.0-SNAPSHOT" excludeAll(
           ExclusionRule(organization = "org.json4s"),
@@ -69,8 +69,7 @@ object ValintaTulosServiceBuild extends Build {
           ExclusionRule(organization = "cglib")
         ),
         "fi.vm.sade.valintaperusteet" % "valintaperusteet" % "1.0-SNAPSHOT",
-        "com.google.guava" % "guava" % "15.0",
-        "org.mongodb" %% "casbah" % "2.7.2"
+        "com.google.guava" % "guava" % "15.0"
       ),
       artifactName <<= (name in (Compile, packageWar)) { projectName =>
         (config: ScalaVersion, module: ModuleID, artifact: Artifact) =>
