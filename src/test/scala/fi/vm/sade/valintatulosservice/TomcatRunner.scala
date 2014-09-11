@@ -11,7 +11,7 @@ object TomcatRunner extends App {
   val tomcat = new Tomcat()
   val webappDirLocation = "src/main/webapp/"
 
-  tomcat.setPort(8080)
+  tomcat.setPort(8097)
   tomcat.addWebapp("/valinta-tulos-service", new File(webappDirLocation).getAbsolutePath())
 
   tomcat.start()
