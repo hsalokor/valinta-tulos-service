@@ -3,11 +3,11 @@ valinta-tulos-service
 
 Valintatuloksien REST-rajapinta, DRAFT
 
-Tavoitteena luoda kaikkien hakujen valintatuloksille yhteinen rajapinta. 
+Tavoitteena luoda kaikkien hakujen valintatuloksille yhteinen rajapinta.
 
 Rajapinnan kautta voi valintatulosten lisäksi lisätä hakemuksen hakukohteelle vastaanottotieto.
 
-Alkuvaiheessa rajapinta toteutetaan käyttäen tietovarastona sijoittelu-tietokantaa ja lisähauillle (jotka eivät sijoittelun piirissä) hakulomake-tietokantaa. Tavoitteena on jatkossa siirtää tulokset uuteen yhteiseen tietokantaan.
+Alkuvaiheessa rajapinta toteutetaan käyttäen tietovarastona sijoittelu-tietokantaa. Tavoitteena on jatkossa siirtää tulokset uuteen yhteiseen tietokantaan.
 
 ## GET /valinta-tulos-service/haku/0.1.2.3/hakemus/1.2.3.4
 
