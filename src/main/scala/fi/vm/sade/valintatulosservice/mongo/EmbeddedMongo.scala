@@ -8,7 +8,7 @@ import de.flapdoodle.embed.process.runtime.Network
 import fi.vm.sade.valintatulosservice.tcp.PortChecker
 
 object EmbeddedMongo {
-  val port = 28018
+  val port = 28019
 
   def start = {
     if (PortChecker.isFreeLocalPort(port)) {
