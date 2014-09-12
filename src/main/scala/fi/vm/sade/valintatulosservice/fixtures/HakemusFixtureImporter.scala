@@ -9,5 +9,7 @@ object HakemusFixtureImporter {
   def importData(config: MongoConfig) = {
     val db = MongoFactory.createDB(config)
     MongoMockData.insertData(db.underlying, MongoMockData.readJson("fixtures/hakemus/00000878229.json"))
+    MongoMockData.insertData(db.underlying, MongoMockData.readJson("fixtures/hakemus/00000441369.json"))
+
   }
 }

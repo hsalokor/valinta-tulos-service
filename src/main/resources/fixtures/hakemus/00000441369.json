@@ -2,7 +2,7 @@
     "application": [
         {
             "_id": {
-                "$oid": "53fc2422e4b083a7bd2aa2ba"
+                "$oid": "53fc2422e4b083a7bd2aa2bb"
             },
             "type": "Application",
             "applicationSystemId": "1.2.246.562.29.92478804245",
@@ -47,7 +47,7 @@
                     "preference4-Koulutus-id-vocational": "",
                     "preference3-Koulutus-id": "",
                     "preference5-Koulutus-id-lang": "",
-                    "preference1-Opetuspiste-id": "1.2.246.562.10.83122281013",
+                    "preference1-Opetuspiste-id": "1.2.246.562.10.591352080610",
                     "preference2-Koulutus-educationDegree": "",
                     "preference1-Koulutus-id-sora": "false",
                     "preference5-Koulutus-id-sora": "",
@@ -87,7 +87,7 @@
                     "preference6-Koulutus-id": "",
                     "preference5-Koulutus-id-attachmentgroups": "",
                     "preference2-Koulutus-id-vocational": "",
-                    "preference1-Koulutus-id": "1.2.246.562.20.83060182827",
+                    "preference1-Koulutus-id": "1.2.246.562.5.72607738902",
                     "preference3-Koulutus-id-sora": "",
                     "preference4-Koulutus-id": "",
                     "preference2-Koulutus-id-lang": "",
@@ -111,7 +111,7 @@
                     "aiempitutkinto": "false"
                 }
             },
-            "oid": "1.2.246.562.11.00000878229",
+            "oid": "1.2.246.562.11.00000441369",
             "state": "INCOMPLETE",
             "phaseId": "koulutustausta",
             "personOid": "1.2.246.562.24.14229104472",
