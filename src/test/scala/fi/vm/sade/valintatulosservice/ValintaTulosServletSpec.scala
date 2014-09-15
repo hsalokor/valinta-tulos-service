@@ -2,11 +2,14 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.domain.{Vastaanottotila, Hakemuksentulos}
 import org.scalatra.test.specs2.MutableScalatraSpec
 import org.specs2.specification.{Step, Fragments}
+import org.json4s.jackson.Serialization
 
 class ValintaTulosServletSpec extends MutableScalatraSpec {
   implicit val appConfig: AppConfig = new AppConfig.IT
+  implicit val formats = JsonFormats.jsonFormats
 
   "GET /haku/:hakuId/hakemus/:hakemusId" should {
     "palauttaa valintatulokset" in {
@@ -21,6 +24,11 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
       post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
         """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"VASTAANOTTANUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
         status must_== 200
+
+        get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
+          val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
+          tulos.hakutoiveet.head.vastaanottotila must_== Vastaanottotila.vastaanottanut
+        }
       }
     }
   }

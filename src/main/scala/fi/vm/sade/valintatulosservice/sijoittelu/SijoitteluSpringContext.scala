@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 
 import com.mongodb._
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
+import fi.vm.sade.sijoittelu.tulos.service.VastaanottoService
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import org.mongodb.morphia.{Datastore, Morphia}
@@ -15,7 +16,8 @@ import scala.collection.JavaConversions._
 
 class SijoitteluSpringContext(context: ApplicationContext) {
   def database = context.getBean(classOf[DB])
-  def raportointiService = context.getBean(classOf[RaportointiService])
+  lazy val raportointiService = context.getBean(classOf[RaportointiService])
+  lazy val vastaanottoService = context.getBean(classOf[VastaanottoService])
 }
 
 object SijoitteluSpringContext {

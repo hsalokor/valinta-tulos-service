@@ -9,6 +9,7 @@ import org.scalatra.json.JacksonJsonSupport
 
 class ValintatulosServlet(implicit val appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats {
   val valintatulosService: ValintatulosService = new ValintatulosService()
+  val vastaanottoService: VastaanottoService = new VastaanottoService()
 
   get("/") {
     "valinta-tulos-service"
@@ -21,13 +22,12 @@ class ValintatulosServlet(implicit val appConfig: AppConfig) extends ScalatraSer
     valintatulosService.hakemuksentulos(hakuOid, hakemusOid)
   }
 
-  // POST vastaanottotila = vastaanottanut/ehdollisesti_vastaanottanut/perunut
   post("/haku/:hakuOid/hakemus/:hakemusOid/vastaanota") {
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
     val vastaanotto = parsedBody.extract[Vastaanotto]
 
-    // TODO: käsittele
+    vastaanottoService.vastaanota(hakuOid, hakemusOid, vastaanotto.hakukohdeOid, vastaanotto.tila, vastaanotto.muokkaaja, vastaanotto.selite)
   }
 
   notFound {
