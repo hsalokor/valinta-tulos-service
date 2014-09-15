@@ -22,7 +22,6 @@ object ApplicationSettings extends Logging {
 }
 
 case class ApplicationSettings(config: Config) {
-
   val hakemusMongoConfig = getMongoConfig(config.getConfig("hakemus.mongodb"))
 
   def withOverride(keyValuePair : (String, String)) = {

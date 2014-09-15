@@ -3,13 +3,15 @@ package fi.vm.sade.valintatulosservice
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.{Vastaanotto, Vastaanottotila}
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
+import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluClient
+import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import org.json4s.JValue
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 
 class ValintatulosServlet(implicit val appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats {
-  val valintatulosService: ValintatulosService = new ValintatulosService()
-  val vastaanottoService: VastaanottoService = new VastaanottoService()
+  lazy val valintatulosService: ValintatulosService = new ValintatulosService(appConfig.sijoitteluContext, new HakemusRepository())
+  lazy val vastaanottoService: VastaanottoService = new VastaanottoService(appConfig.sijoitteluContext)
 
   get("/") {
     "valinta-tulos-service"

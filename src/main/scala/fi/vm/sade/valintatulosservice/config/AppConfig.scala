@@ -55,7 +55,7 @@ object AppConfig extends Logging {
     override def start {
       mongo = EmbeddedMongo.start
       try {
-        FixtureImporter.importFixtures(springContext.database)
+        FixtureImporter.importFixtures(sijoitteluContext.database)
         HakemusFixtureImporter.importData(settings.hakemusMongoConfig)
       } catch {
         case e: Exception =>
@@ -92,7 +92,7 @@ object AppConfig extends Logging {
   }
 
   trait AppConfig {
-    lazy val springContext = new SijoitteluSpringContext(SijoitteluSpringContext.createApplicationContext(this))
+    lazy val sijoitteluContext = new SijoitteluSpringContext(SijoitteluSpringContext.createApplicationContext(this))
 
     def start {}
     def stop {}

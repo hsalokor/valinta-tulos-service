@@ -2,14 +2,12 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 
 import java.util.Optional
 
-import fi.vm.sade.sijoittelu.tulos.service.YhteenvetoService
+import fi.vm.sade.sijoittelu.tulos.service.{RaportointiService, YhteenvetoService}
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 
-case class SijoitteluClient()(implicit appConfig: AppConfig) {
+case class SijoitteluClient(raportointiService: RaportointiService) {
   import scala.collection.JavaConversions._
-
-  lazy val raportointiService = appConfig.springContext.raportointiService
 
   def sijoittelunTulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
     optionalToOption(raportointiService.latestSijoitteluAjoForHaku(hakuOid)).flatMap { sijoitteluAjo =>

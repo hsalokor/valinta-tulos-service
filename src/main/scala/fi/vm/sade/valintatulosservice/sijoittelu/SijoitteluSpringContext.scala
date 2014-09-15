@@ -16,8 +16,8 @@ import scala.collection.JavaConversions._
 
 class SijoitteluSpringContext(context: ApplicationContext) {
   def database = context.getBean(classOf[DB])
-  lazy val raportointiService = context.getBean(classOf[RaportointiService])
   lazy val vastaanottoService = context.getBean(classOf[VastaanottoService])
+  lazy val sijoitteluClient = SijoitteluClient(context.getBean(classOf[RaportointiService]))
 }
 
 object SijoitteluSpringContext {
