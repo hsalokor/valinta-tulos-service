@@ -15,6 +15,16 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
       }
     }
   }
+
+  "POST /haku:hakuId/hakemus/:hakemusId/vastaanota" should {
+    "vastaanottaa opiskelupaikan" in {
+      post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
+        """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"VASTAANOTTANUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
+        status must_== 200
+      }
+    }
+  }
+
   addServlet(new ValintatulosServlet(), "/*")
   override def map(fs: => Fragments) = {
     Step(appConfig.start) ^ super.map(fs)
