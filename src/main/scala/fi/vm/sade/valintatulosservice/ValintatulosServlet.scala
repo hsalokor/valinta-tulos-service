@@ -1,11 +1,8 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.{Vastaanotto, Vastaanottotila}
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
-import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluClient
+import fi.vm.sade.valintatulosservice.domain.Vastaanotto
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
-import org.json4s.JValue
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 
@@ -29,7 +26,7 @@ class ValintatulosServlet(implicit val appConfig: AppConfig) extends ScalatraSer
     val hakemusOid = params("hakemusOid")
     val vastaanotto = parsedBody.extract[Vastaanotto]
 
-    vastaanottoService.vastaanota(hakuOid, hakemusOid, vastaanotto.hakukohdeOid, vastaanotto.tila, vastaanotto.muokkaaja, vastaanotto.selite)
+    vastaanottoService.vastaanota(hakuOid, hakemusOid, vastaanotto)
   }
 
   notFound {
