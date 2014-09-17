@@ -13,6 +13,8 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
 
     hakemus.map { h =>
       val tulokset = h.toiveet.map { toive =>
+
+
         sijoitteluTulos.hakutoiveet.find { t =>
           t.hakukohdeOid == toive.oid
         }.getOrElse(createKesken(toive.oid, toive.tarjoajaOid))
