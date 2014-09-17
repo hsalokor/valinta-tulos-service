@@ -13,13 +13,24 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
 
     hakemus.map { h =>
       val tulokset = h.toiveet.map { toive =>
-
-
         sijoitteluTulos.hakutoiveet.find { t =>
           t.hakukohdeOid == toive.oid
         }.getOrElse(createKesken(toive.oid, toive.tarjoajaOid))
       }
-      Hakemuksentulos(h.oid, tulokset)
+      Hakemuksentulos(h.oid, peruHyvaksyttyaAlemmat(tulokset))
+    }
+  }
+
+  private def peruHyvaksyttyaAlemmat(tulokset: List[Hakutoiveentulos]) = {
+    val firstHyvaksytty = tulokset.indexWhere(_.valintatila == Valintatila.hyväksytty)
+    tulokset.zipWithIndex.map {
+      case (tulos, index) => {
+        if(firstHyvaksytty > -1 && index > firstHyvaksytty && tulos.valintatila == Valintatila.kesken) {
+          tulos.copy(valintatila = Valintatila.peruuntunut)
+        } else {
+          tulos
+        }
+      }
     }
   }
 
