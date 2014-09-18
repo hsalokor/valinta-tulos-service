@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice.config
 
 import com.typesafe.config.Config
-import fi.vm.sade.sijoittelu.tulos.testfixtures.FixtureImporter
+import fi.vm.sade.sijoittelu.tulos.testfixtures.{FixtureImporter => SijoitteluFixtureImporter}
 import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.fixtures.HakemusFixtureImporter
 import fi.vm.sade.valintatulosservice.mongo.{EmbeddedMongo, MongoServer}
@@ -55,8 +55,8 @@ object AppConfig extends Logging {
     override def start {
       mongo = EmbeddedMongo.start
       try {
-        FixtureImporter.importFixtures(sijoitteluContext.database)
-        new HakemusFixtureImporter(this).importData
+        SijoitteluFixtureImporter.importFixture(sijoitteluContext.database, "hyvaksytty-ilmoitettu.json")
+        new HakemusFixtureImporter(settings.hakemusMongoConfig).importData
       } catch {
         case e: Exception =>
           stop

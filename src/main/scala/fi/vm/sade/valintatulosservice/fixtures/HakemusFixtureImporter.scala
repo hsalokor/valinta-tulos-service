@@ -2,12 +2,11 @@ package fi.vm.sade.valintatulosservice.fixtures
 
 import com.mongodb.BasicDBObject
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.config.MongoConfig
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 
-class HakemusFixtureImporter(config: AppConfig) {
-  lazy val db = MongoFactory.createDB(config.settings.hakemusMongoConfig)
+class HakemusFixtureImporter(config: MongoConfig) {
+  lazy val db = MongoFactory.createDB(config)
 
   def clear = {
     db.getCollection("application").remove(new BasicDBObject())
