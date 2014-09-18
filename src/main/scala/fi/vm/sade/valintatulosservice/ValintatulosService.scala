@@ -17,16 +17,21 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
           t.hakukohdeOid == toive.oid
         }.getOrElse(createKesken(toive.oid, toive.tarjoajaOid))
       }
-      Hakemuksentulos(h.oid, peruHyvaksyttyaAlemmat(tulokset))
+      Hakemuksentulos(h.oid, käsitteleKeskeneräiset(tulokset))
     }
   }
 
-  private def peruHyvaksyttyaAlemmat(tulokset: List[Hakutoiveentulos]) = {
+  private def käsitteleKeskeneräiset(tulokset: List[Hakutoiveentulos]) = {
     val firstHyvaksytty = tulokset.indexWhere(_.valintatila == Valintatila.hyväksytty)
+    val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
     tulokset.zipWithIndex.map {
       case (tulos, index) => {
         if(firstHyvaksytty > -1 && index > firstHyvaksytty && tulos.valintatila == Valintatila.kesken) {
+          // hyväksyttyä myöhemmät "kesken" -hakutoiveet peruuntuvat
           tulos.copy(valintatila = Valintatila.peruuntunut)
+        } else if(firstKesken > -1 && index > firstKesken && tulos.valintatila == Valintatila.hyväksytty) {
+          // "kesken" tulosta alemmat "hyväksytty" -hakutoiveet merkitään keskeneräisiksi
+          tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanottavissa)
         } else {
           tulos
         }

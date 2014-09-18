@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Vastaanottotila, Vastaanotettavuustila, Valintatila}
+import fi.vm.sade.valintatulosservice.fixtures.HakemusFixtureImporter
 import org.json4s.jackson.Serialization
 import org.scalatra.test.specs2.MutableScalatraSpec
 import org.specs2.specification.{Fragments, Step}
@@ -10,6 +11,7 @@ import org.specs2.specification.{Fragments, Step}
 class ValintaTulosServletSpec extends MutableScalatraSpec {
   implicit val appConfig: AppConfig = new AppConfig.IT
   implicit val formats = JsonFormats.jsonFormats
+  sequential
 
   "GET /haku/:hakuId/hakemus/:hakemusId" should {
     "palauttaa valintatulokset" in {
@@ -18,30 +20,43 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
       }
     }
     "sijoittelusta puuttuvat hakutoiveet" in {
-      "ovat KESKEN" in {
+      "merkitään tilaan KESKEN" in {
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441370") {
           status must_== 200
           val tulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.size must_== 2
-          val hyvaksytty = tulos.hakutoiveet.head
-          val peruuntunut = tulos.hakutoiveet.last
-          hyvaksytty.valintatila must_== Valintatila.kesken
-          hyvaksytty.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
-          peruuntunut.valintatila must_== Valintatila.kesken
-          peruuntunut.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          val puuttuva1 = tulos.hakutoiveet.head
+          val puuttuva2 = tulos.hakutoiveet.last
+          puuttuva1.valintatila must_== Valintatila.kesken
+          puuttuva1.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          puuttuva2.valintatila must_== Valintatila.kesken
+          puuttuva2.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
         }
       }
 
-      "hyväksyttyä hakutoivetta alemmat merkitään peruuntuneiksi" in {
+      "hyväksyttyä hakutoivetta alemmat puuttuvat merkitään tilaan PERUUNTUNUT" in {
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
           val tulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.size must_== 2
           val hyvaksytty = tulos.hakutoiveet.head
-          val peruuntunut = tulos.hakutoiveet.last
+          val puuttuva = tulos.hakutoiveet.last
           hyvaksytty.valintatila must_== Valintatila.hyväksytty
           hyvaksytty.vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
-          peruuntunut.valintatila must_== Valintatila.peruuntunut
-          peruuntunut.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          puuttuva.valintatila must_== Valintatila.peruuntunut
+          puuttuva.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+        }
+      }
+
+      "jos hyväksyttyä hakutoivetta ylempi puuttuu, merkitään hyväksytty hakutoive tilaan KESKEN" in {
+        new HakemusFixtureImporter(appConfig).clear.importData("fixtures/hakemus/00000441369-flipped.json")
+        get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
+          val tulos = Serialization.read[Hakemuksentulos](body)
+          val puuttuva = tulos.hakutoiveet.head
+          val hyvaksytty = tulos.hakutoiveet.last
+          puuttuva.valintatila must_== Valintatila.kesken
+          puuttuva.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          hyvaksytty.valintatila must_== Valintatila.kesken
+          hyvaksytty.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
         }
       }
     }
@@ -57,6 +72,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
 
   "POST /haku:hakuId/hakemus/:hakemusId/vastaanota" should {
     "vastaanottaa opiskelupaikan" in {
+      new HakemusFixtureImporter(appConfig).clear.importData("fixtures/hakemus/00000441369.json")
       post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
         """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"VASTAANOTTANUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
         status must_== 200

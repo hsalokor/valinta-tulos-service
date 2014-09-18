@@ -56,7 +56,7 @@ object AppConfig extends Logging {
       mongo = EmbeddedMongo.start
       try {
         FixtureImporter.importFixtures(sijoitteluContext.database)
-        HakemusFixtureImporter.importData(settings.hakemusMongoConfig)
+        new HakemusFixtureImporter(this).importData
       } catch {
         case e: Exception =>
           stop
