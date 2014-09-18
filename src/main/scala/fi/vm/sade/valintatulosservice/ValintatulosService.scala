@@ -16,11 +16,11 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
           t.hakukohdeOid == toive.oid
         }.getOrElse(createKesken(toive.oid, toive.tarjoajaOid))
       }
-      Hakemuksentulos(h.oid, käsitteleKeskeneräiset(tulokset))
+      Hakemuksentulos(h.oid, kasitteleKeskenEraiset(tulokset))
     }
   }
 
-  private def käsitteleKeskeneräiset(tulokset: List[Hakutoiveentulos]) = {
+  private def kasitteleKeskenEraiset(tulokset: List[Hakutoiveentulos]) = {
     val firstHyvaksytty = tulokset.indexWhere(_.valintatila == Valintatila.hyväksytty)
     val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
     tulokset.zipWithIndex.map {
