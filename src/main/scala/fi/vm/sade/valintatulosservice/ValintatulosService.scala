@@ -1,9 +1,8 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
-import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluSpringContext, SijoitteluClient}
+import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluSpringContext
 
 class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hakemusRepository: HakemusRepository) {
 
