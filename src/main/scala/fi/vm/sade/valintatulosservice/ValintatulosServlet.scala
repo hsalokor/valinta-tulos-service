@@ -18,7 +18,12 @@ class ValintatulosServlet(implicit val appConfig: AppConfig) extends ScalatraSer
     contentType = formats("json")
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
-    valintatulosService.hakemuksentulos(hakuOid, hakemusOid)
+    valintatulosService.hakemuksentulos(hakuOid, hakemusOid) match {
+      case Some(tulos) => tulos
+      case _ =>
+        response.setStatus(404)
+        "Not found"
+    }
   }
 
   post("/haku/:hakuOid/hakemus/:hakemusOid/vastaanota") {

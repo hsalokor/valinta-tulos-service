@@ -18,6 +18,20 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
       }
     }
     "sijoittelusta puuttuvat hakutoiveet" in {
+      "ovat KESKEN" in {
+        get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441370") {
+          status must_== 200
+          val tulos = Serialization.read[Hakemuksentulos](body)
+          tulos.hakutoiveet.size must_== 2
+          val hyvaksytty = tulos.hakutoiveet.head
+          val peruuntunut = tulos.hakutoiveet.last
+          hyvaksytty.valintatila must_== Valintatila.kesken
+          hyvaksytty.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          peruuntunut.valintatila must_== Valintatila.kesken
+          peruuntunut.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+        }
+      }
+
       "hyväksyttyä hakutoivetta alemmat merkitään peruuntuneiksi" in {
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
           val tulos = Serialization.read[Hakemuksentulos](body)
@@ -28,6 +42,14 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
           hyvaksytty.vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
           peruuntunut.valintatila must_== Valintatila.peruuntunut
           peruuntunut.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+        }
+      }
+    }
+    "kun hakemusta ei löydy" in {
+      "404" in {
+        get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.LOLLERSTRÖM") {
+          status must_== 404
+          body must_== "Not found"
         }
       }
     }
