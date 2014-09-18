@@ -21,11 +21,13 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
   }
 
   private def kasitteleKeskenEraiset(tulokset: List[Hakutoiveentulos]) = {
-    val firstHyvaksytty = tulokset.indexWhere(_.valintatila == Valintatila.hyväksytty)
+    val firstFinished = tulokset.indexWhere { t =>
+      t.valintatila == Valintatila.hyväksytty || t.valintatila == Valintatila.perunut || t.valintatila == Valintatila.peruutettu || t.valintatila == Valintatila.peruuntunut
+    }
     val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
     tulokset.zipWithIndex.map {
       case (tulos, index) => {
-        if(firstHyvaksytty > -1 && index > firstHyvaksytty && tulos.valintatila == Valintatila.kesken) {
+        if(firstFinished > -1 && index > firstFinished && tulos.valintatila == Valintatila.kesken) {
           // hyväksyttyä myöhemmät "kesken" -hakutoiveet peruuntuvat
           tulos.copy(valintatila = Valintatila.peruuntunut)
         } else if(firstKesken > -1 && index > firstKesken && tulos.valintatila == Valintatila.hyväksytty) {
