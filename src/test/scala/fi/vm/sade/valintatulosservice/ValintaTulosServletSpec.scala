@@ -2,11 +2,13 @@ package fi.vm.sade.valintatulosservice
 
 import java.text.SimpleDateFormat
 
+import fi.vm.sade.sijoittelu.tulos.testfixtures.FixtureImporter
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Vastaanottotila, Vastaanotettavuustila, Valintatila}
 import fi.vm.sade.valintatulosservice.fixtures.HakemusFixtureImporter
+import fi.vm.sade.sijoittelu.tulos.testfixtures.{FixtureImporter => SijoitteluFixtureImporter}
 import org.joda.time.DateTimeUtils
 import org.json4s.jackson.Serialization
 import org.scalatra.test.specs2.MutableScalatraSpec
@@ -90,8 +92,21 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
       }
     }
 
+    "peruu opiskelupaikan" in {
+      hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369.json")
+      SijoitteluFixtureImporter.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ilmoitettu.json")
+      post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
+        """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"PERUNUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
+        status must_== 200
+
+        get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
+          val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
+          tulos.hakutoiveet.head.vastaanottotila.toString must_== "PERUNUT"
+        }
+      }
+    }
+
     "vastaanottaa ehdollisesti" in {
-      import fi.vm.sade.sijoittelu.tulos.testfixtures.{FixtureImporter => SijoitteluFixtureImporter}
       hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369.json")
       SijoitteluFixtureImporter.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ylempi-varalla.json")
       withFixedDate("15.8.2014") {
