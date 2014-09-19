@@ -99,7 +99,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
           val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.head.vastaanottotila must_== Vastaanottotila.vastaanottanut
           tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.isDefined must beTrue
-          tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 1000)
+          tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 2000)
         }
       }
     }
@@ -115,7 +115,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
           val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.head.vastaanottotila.toString must_== "PERUNUT"
           tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.isDefined must beTrue
-          tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 1000)
+          tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 2000)
         }
       }
     }
@@ -135,7 +135,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
             tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.isDefined must beFalse
             tulos.hakutoiveet.last.vastaanottotila.toString must_== "EHDOLLISESTI_VASTAANOTTANUT"
             tulos.hakutoiveet.last.viimeisinVastaanottotilanMuutos.isDefined must beTrue
-            tulos.hakutoiveet.last.viimeisinVastaanottotilanMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 1000)
+            tulos.hakutoiveet.last.viimeisinVastaanottotilanMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 2000)
           }
         }
       }
