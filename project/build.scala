@@ -10,11 +10,15 @@ object ValintaTulosServiceBuild extends Build {
   val Organization = "fi.vm.sade"
   val Name = "valinta-tulos-service"
   val Version = "0.1.0-SNAPSHOT"
+  val JavaVersion = "1.8"
   val ScalaVersion = "2.11.1"
   val ScalatraVersion = "2.3.0.RC3"
   val TomcatVersion = "7.0.22"
   val SpringVersion = "3.2.9.RELEASE"
 
+  if(!System.getProperty("java.version").startsWith(JavaVersion)) {
+    throw new IllegalStateException("Wrong java version (required " + JavaVersion + "): " + System.getProperty("java.version"))
+  }
   lazy val project = Project (
     "valinta-tulos-service",
     file("."),
@@ -24,7 +28,7 @@ object ValintaTulosServiceBuild extends Build {
       name := Name,
       version := Version,
       scalaVersion := ScalaVersion,
-      javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
+      javacOptions ++= Seq("-source", JavaVersion, "-target", JavaVersion),
       scalacOptions ++= Seq("-target:jvm-1.7", "-deprecation"),
       resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository",
       resolvers += Classpaths.typesafeReleases,
