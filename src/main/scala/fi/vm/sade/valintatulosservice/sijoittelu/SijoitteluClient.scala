@@ -14,17 +14,31 @@ case class SijoitteluClient(raportointiService: RaportointiService) {
       Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)).map { hakijaDto =>
         val yhteenveto = YhteenvetoService.yhteenveto(hakijaDto)
         Hakemuksentulos(hakemusOid, yhteenveto.hakutoiveet.toList.map { hakutoiveDto =>
-          Hakutoiveentulos(hakutoiveDto.hakukohdeOid,
-            hakutoiveDto.tarjoajaOid,
-            Valintatila.withName(hakutoiveDto.valintatila.toString),
-            Vastaanottotila.withName(hakutoiveDto.vastaanottotila.toString),
-            Ilmoittautumistila.withName(hakutoiveDto.ilmoittautumistila.toString),
-            Vastaanotettavuustila.withName(hakutoiveDto.vastaanotettavuustila.toString),
-            Option(hakutoiveDto.jonosija),
-            Option(hakutoiveDto.varasijojaKaytetaanAlkaen),
-            Option(hakutoiveDto.varasijojaTaytetaanAsti),
-            Option(hakutoiveDto.varasijanumero).map(_.toInt)
-          )
+          if (hakutoiveDto.julkaistavissa) {
+            Hakutoiveentulos(hakutoiveDto.hakukohdeOid,
+              hakutoiveDto.tarjoajaOid,
+              Valintatila.withName(hakutoiveDto.valintatila.toString),
+              Vastaanottotila.withName(hakutoiveDto.vastaanottotila.toString),
+              Ilmoittautumistila.withName(hakutoiveDto.ilmoittautumistila.toString),
+              Vastaanotettavuustila.withName(hakutoiveDto.vastaanotettavuustila.toString),
+              Option(hakutoiveDto.jonosija),
+              Option(hakutoiveDto.varasijojaKaytetaanAlkaen),
+              Option(hakutoiveDto.varasijojaTaytetaanAsti),
+              Option(hakutoiveDto.varasijanumero).map(_.toInt)
+            )
+          } else {
+            Hakutoiveentulos(hakutoiveDto.hakukohdeOid,
+              hakutoiveDto.tarjoajaOid,
+              Valintatila.kesken,
+              Vastaanottotila.withName(hakutoiveDto.vastaanottotila.toString),
+              Ilmoittautumistila.withName(hakutoiveDto.ilmoittautumistila.toString),
+              Vastaanotettavuustila.ei_vastaanottavissa,
+              None,
+              Option(hakutoiveDto.varasijojaKaytetaanAlkaen),
+              Option(hakutoiveDto.varasijojaTaytetaanAsti),
+              None
+            )
+          }
         })
       }
     }

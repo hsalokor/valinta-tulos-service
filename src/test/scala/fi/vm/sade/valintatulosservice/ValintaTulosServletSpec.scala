@@ -25,8 +25,19 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
         body must_== """{"hakemusOid":"1.2.246.562.11.00000441369","hakutoiveet":[{"hakukohdeOid":"1.2.246.562.5.72607738902","tarjoajaOid":"1.2.246.562.10.591352080610","valintatila":"HYVAKSYTTY","vastaanottotila":"KESKEN","ilmoittautumistila":"EI_TEHTY","vastaanotettavuustila":"VASTAANOTETTAVISSA_SITOVASTI","jonosija":1,"varasijojaKaytetaanAlkaen":"2014-08-26T19:05:23Z","varasijojaTaytetaanAsti":"2014-08-26T19:05:23Z"},{"hakukohdeOid":"1.2.246.562.5.16303028779","tarjoajaOid":"1.2.246.562.10.455978782510","valintatila":"PERUUNTUNUT","vastaanottotila":"KESKEN","ilmoittautumistila":"EI_TEHTY","vastaanotettavuustila":"EI_VASTAANOTETTAVISSA"}]}"""
       }
     }
+    "hakutoiveet, joilta puuttuu julkaistu-flägi" in {
+      "merkitään tilaan KESKEN" in {
+        SijoitteluFixtureImporter.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken.json")
+        get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
+          val tulos = Serialization.read[Hakemuksentulos](body)
+          val hyvaksytty = tulos.hakutoiveet.head
+          hyvaksytty.valintatila must_== Valintatila.kesken
+        }
+      }
+    }
     "sijoittelusta puuttuvat hakutoiveet" in {
       "merkitään tilaan KESKEN" in {
+        SijoitteluFixtureImporter.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ilmoitettu.json")
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441370") {
           status must_== 200
           val tulos = Serialization.read[Hakemuksentulos](body)
