@@ -19,5 +19,5 @@ sijoittelu-service.mongodb.uri=${mongodb.virkailija.uri}
 
 # HAKEMUKSET
 hakemus.mongodb.dbname=hakulomake
-hakemus.mongodb.uri=mongodb://localhost:27017
+hakemus.mongodb.uri=${mongodb.hakemus.uri}
 hakemus.mongodb.collection=application
