@@ -105,11 +105,11 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
     }
 
     "vastaanottaa ehdollisesti" in {
-      hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369-kokonaan-sijoiteltu.json")
+      hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369.json")
       SijoitteluFixtureImporter.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ylempi-varalla.json")
       withFixedDate("15.8.2014") {
         post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
-          """{"hakukohdeOid":"1.2.246.562.5.72607738903","tila":"EHDOLLISESTI_VASTAANOTTANUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
+          """{"hakukohdeOid":"1.2.246.562.5.16303028779","tila":"EHDOLLISESTI_VASTAANOTTANUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
           status must_== 200
 
           get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
