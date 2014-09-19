@@ -11,13 +11,13 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation._
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer
 import org.springframework.core.env.{MapPropertySource, MutablePropertySources}
-
 import scala.collection.JavaConversions._
+import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
 
 class SijoitteluSpringContext(context: ApplicationContext) {
   def database = context.getBean(classOf[DB])
   lazy val vastaanottoService = context.getBean(classOf[VastaanottoService])
-  lazy val sijoitteluClient = SijoitteluClient(context.getBean(classOf[RaportointiService]))
+  lazy val sijoitteluClient = SijoitteluClient(context.getBean(classOf[RaportointiService]), context.getBean(classOf[ValintatulosDao]))
 }
 
 object SijoitteluSpringContext {

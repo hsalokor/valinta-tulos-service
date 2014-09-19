@@ -51,6 +51,7 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
       None,
       None,
       None,
+      None,
       None)
   }
 }

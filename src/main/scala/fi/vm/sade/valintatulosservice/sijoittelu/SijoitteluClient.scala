@@ -1,18 +1,18 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
 import java.util.Optional
-
 import fi.vm.sade.sijoittelu.tulos.service.{RaportointiService, YhteenvetoService}
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
 
-case class SijoitteluClient(raportointiService: RaportointiService) {
+case class SijoitteluClient(raportointiService: RaportointiService, valintatulosDao: ValintatulosDao) {
   import scala.collection.JavaConversions._
 
   def sijoittelunTulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
     optionalToOption(raportointiService.latestSijoitteluAjoForHaku(hakuOid)).flatMap { sijoitteluAjo =>
       Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)).map { hakijaDto =>
-        val yhteenveto = YhteenvetoService.yhteenveto(hakijaDto)
+        val yhteenveto = YhteenvetoService.yhteenveto(hakijaDto, valintatulosDao)
         Hakemuksentulos(hakemusOid, yhteenveto.hakutoiveet.toList.map { hakutoiveDto =>
           if (hakutoiveDto.julkaistavissa) {
             Hakutoiveentulos(hakutoiveDto.hakukohdeOid,
@@ -21,6 +21,7 @@ case class SijoitteluClient(raportointiService: RaportointiService) {
               Vastaanottotila.withName(hakutoiveDto.vastaanottotila.toString),
               Ilmoittautumistila.withName(hakutoiveDto.ilmoittautumistila.toString),
               Vastaanotettavuustila.withName(hakutoiveDto.vastaanotettavuustila.toString),
+              Option(hakutoiveDto.viimeisinVastaanottotilanMuutos),
               Option(hakutoiveDto.jonosija),
               Option(hakutoiveDto.varasijojaKaytetaanAlkaen),
               Option(hakutoiveDto.varasijojaTaytetaanAsti),
@@ -33,6 +34,7 @@ case class SijoitteluClient(raportointiService: RaportointiService) {
               Vastaanottotila.withName(hakutoiveDto.vastaanottotila.toString),
               Ilmoittautumistila.withName(hakutoiveDto.ilmoittautumistila.toString),
               Vastaanotettavuustila.ei_vastaanottavissa,
+              None,
               None,
               Option(hakutoiveDto.varasijojaKaytetaanAlkaen),
               Option(hakutoiveDto.varasijojaTaytetaanAsti),

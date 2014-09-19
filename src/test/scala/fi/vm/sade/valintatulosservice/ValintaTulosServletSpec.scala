@@ -1,7 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
 import java.text.SimpleDateFormat
-
 import fi.vm.sade.sijoittelu.tulos.testfixtures.{FixtureImporter => SijoitteluFixtureImporter}
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
@@ -11,6 +10,7 @@ import org.joda.time.DateTimeUtils
 import org.json4s.jackson.Serialization
 import org.scalatra.test.specs2.MutableScalatraSpec
 import org.specs2.specification.{Fragments, Step}
+import java.util.Date
 
 class ValintaTulosServletSpec extends MutableScalatraSpec {
   implicit val appConfig: AppConfig = new AppConfig.IT
@@ -88,6 +88,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
   }
 
   "POST /haku:hakuId/hakemus/:hakemusId/vastaanota" should {
+    val beforeSave = new Date()
     "vastaanottaa opiskelupaikan" in {
       hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369.json")
       post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
@@ -97,6 +98,8 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
           val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.head.vastaanottotila must_== Vastaanottotila.vastaanottanut
+          tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.isDefined must beTrue
+          tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 1000)
         }
       }
     }
@@ -111,6 +114,8 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
           val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.head.vastaanottotila.toString must_== "PERUNUT"
+          tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.isDefined must beTrue
+          tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 1000)
         }
       }
     }
@@ -127,15 +132,22 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
             val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
             tulos.hakutoiveet.head.valintatila must_== Valintatila.varalla
             tulos.hakutoiveet.head.vastaanottotila.toString must_== "KESKEN"
+            tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.isDefined must beFalse
             tulos.hakutoiveet.last.vastaanottotila.toString must_== "EHDOLLISESTI_VASTAANOTTANUT"
+            tulos.hakutoiveet.last.viimeisinVastaanottotilanMuutos.isDefined must beTrue
+            tulos.hakutoiveet.last.viimeisinVastaanottotilanMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 1000)
           }
         }
       }
     }
   }
 
+  private def getMillis(date: String) = {
+    new SimpleDateFormat("d.M.yyyy").parse(date).getTime
+  }
+
   private def withFixedDate[T](date: String)(f: => T) = {
-    DateTimeUtils.setCurrentMillisFixed(new SimpleDateFormat("d.M.yyyy").parse(date).getTime)
+    DateTimeUtils.setCurrentMillisFixed(getMillis(date))
     try {
       f
     }
