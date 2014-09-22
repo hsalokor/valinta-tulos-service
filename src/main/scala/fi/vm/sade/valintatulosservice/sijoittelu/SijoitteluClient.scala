@@ -12,7 +12,7 @@ case class SijoitteluClient(raportointiService: RaportointiService, valintatulos
   def sijoittelunTulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
     optionalToOption(raportointiService.latestSijoitteluAjoForHaku(hakuOid)).flatMap { sijoitteluAjo =>
       Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)).map { hakijaDto =>
-        val yhteenveto = YhteenvetoService.yhteenveto(hakijaDto, valintatulosDao)
+        val yhteenveto = YhteenvetoService.yhteenveto(hakijaDto)
         Hakemuksentulos(hakemusOid, yhteenveto.hakutoiveet.toList.map { hakutoiveDto =>
           if (hakutoiveDto.julkaistavissa) {
             Hakutoiveentulos(hakutoiveDto.hakukohdeOid,
