@@ -7,6 +7,7 @@ object Valintatila extends Enumeration {
   type Valintatila = Value
   val hyväksytty = Value(YhteenvedonValintaTila.HYVAKSYTTY.toString)
   val harkinnanvaraisesti_hyväksytty = Value(YhteenvedonValintaTila.HARKINNANVARAISESTI_HYVAKSYTTY.toString)
+  val varasijalta_hyväksytty = Value(YhteenvedonValintaTila.VARASIJALTA_HYVAKSYTTY.toString)
   val varalla = Value(YhteenvedonValintaTila.VARALLA.toString)
   val peruutettu = Value(YhteenvedonValintaTila.PERUUTETTU.toString)
   val perunut = Value(YhteenvedonValintaTila.PERUNUT.toString)

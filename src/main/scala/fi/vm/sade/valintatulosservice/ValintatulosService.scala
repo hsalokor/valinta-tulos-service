@@ -22,7 +22,7 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
 
   private def kasitteleKeskenEraiset(tulokset: List[Hakutoiveentulos]) = {
     val firstFinished = tulokset.indexWhere { t =>
-      t.valintatila == Valintatila.hyväksytty || t.valintatila == Valintatila.perunut || t.valintatila == Valintatila.peruutettu || t.valintatila == Valintatila.peruuntunut
+      List(Valintatila.hyväksytty, Valintatila.varasijalta_hyväksytty, Valintatila.perunut, Valintatila.peruutettu, Valintatila.peruuntunut).contains(t.valintatila)
     }
     val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
     tulokset.zipWithIndex.map {

@@ -76,7 +76,22 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
           hyvaksytty.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
         }
       }
+
+      "varasijalta hyväksyttyä alemmat puuttuvat merkitään tilaan PERUUNTUNUT" in {
+        hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369.json")
+        SijoitteluFixtureImporter.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-varasijalta-kesken-julkaistavissa.json", true)
+        get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
+          val tulos = Serialization.read[Hakemuksentulos](body)
+          val varasijaltaHyvaksytty = tulos.hakutoiveet.head
+          val puuttuva = tulos.hakutoiveet.last
+          varasijaltaHyvaksytty.valintatila must_== Valintatila.varasijalta_hyväksytty
+          varasijaltaHyvaksytty.vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
+          puuttuva.valintatila must_== Valintatila.peruuntunut
+          puuttuva.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+        }
+      }
     }
+
     "kun hakemusta ei löydy" in {
       "404" in {
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.LOLLERSTRÖM") {
