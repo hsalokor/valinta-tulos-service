@@ -6,9 +6,7 @@ import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import org.specs2.mutable.Specification
 import org.specs2.specification.{Step, Fragments}
 
-class HakemusRepositorySpec extends Specification {
-
-  implicit val appConfig = new AppConfig.IT
+class HakemusRepositorySpec extends Specification with ITSetup {
   val repo = new HakemusRepository()
 
   "HakemusRepository with embedded mongo" should {
@@ -16,9 +14,5 @@ class HakemusRepositorySpec extends Specification {
       val hakutoiveet = repo.findHakutoiveOids("1.2.246.562.11.00000878229")
       hakutoiveet must_== Some(Hakemus("1.2.246.562.11.00000878229", List(Hakutoive("1.2.246.562.20.83060182827","1.2.246.562.10.83122281013"), Hakutoive("1.2.246.562.10.83122281012","1.2.246.562.10.83122281012"))))
     }
-  }
-
-  override def map(fs: => Fragments) = {
-    Step(appConfig.start) ^ super.map(fs)
   }
 }
