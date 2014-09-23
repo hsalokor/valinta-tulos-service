@@ -11,9 +11,11 @@ import org.json4s.jackson.Serialization
 import org.scalatra.test.specs2.MutableScalatraSpec
 import org.specs2.specification.{Fragments, Step}
 import java.util.Date
+import org.scalatra.swagger.Swagger
 
 class ValintaTulosServletSpec extends MutableScalatraSpec {
   implicit val appConfig: AppConfig = new AppConfig.IT
+  implicit val swagger: Swagger = new ValintatulosSwagger
   implicit val formats = JsonFormats.jsonFormats
   val hakemusFixtureImporter = new HakemusFixtureImporter(appConfig.settings.hakemusMongoConfig)
 

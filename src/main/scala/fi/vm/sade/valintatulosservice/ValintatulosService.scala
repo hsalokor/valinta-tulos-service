@@ -37,7 +37,7 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
     }
   }
 
-  private def createKesken(hakukohdeOid: String, tarjoajaOid: String) = {
+  def createKesken(hakukohdeOid: String, tarjoajaOid: String) = {
     Hakutoiveentulos(
       hakukohdeOid,
       tarjoajaOid,
