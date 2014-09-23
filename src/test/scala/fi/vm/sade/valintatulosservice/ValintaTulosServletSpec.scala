@@ -13,7 +13,7 @@ import org.specs2.specification.{Fragments, Step}
 import java.util.Date
 import org.scalatra.swagger.Swagger
 
-class ValintaTulosServletSpec extends MutableScalatraSpec {
+class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
   implicit val appConfig: AppConfig = new AppConfig.IT
   implicit val swagger: Swagger = new ValintatulosSwagger
   implicit val formats = JsonFormats.jsonFormats
@@ -159,20 +159,6 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
           }
         }
       }
-    }
-  }
-
-  private def getMillis(date: String) = {
-    new SimpleDateFormat("d.M.yyyy").parse(date).getTime
-  }
-
-  private def withFixedDate[T](date: String)(f: => T) = {
-    DateTimeUtils.setCurrentMillisFixed(getMillis(date))
-    try {
-      f
-    }
-    finally {
-      DateTimeUtils.setCurrentMillisSystem
     }
   }
 

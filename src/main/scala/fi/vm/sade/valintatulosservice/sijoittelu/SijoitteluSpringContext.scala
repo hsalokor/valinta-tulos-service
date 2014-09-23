@@ -18,6 +18,7 @@ class SijoitteluSpringContext(context: ApplicationContext) {
   def database = context.getBean(classOf[DB])
   lazy val vastaanottoService = context.getBean(classOf[VastaanottoService])
   lazy val sijoitteluClient = SijoitteluClient(context.getBean(classOf[RaportointiService]), context.getBean(classOf[ValintatulosDao]))
+  lazy val valintatulosDao = context.getBean(classOf[ValintatulosDao])
 }
 
 object SijoitteluSpringContext {

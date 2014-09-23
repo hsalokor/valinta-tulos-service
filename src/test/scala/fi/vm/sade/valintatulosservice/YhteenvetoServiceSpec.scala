@@ -184,13 +184,6 @@ class YhteenvetoServiceSpec extends Specification with ITSetup {
     }
   }
 
-  import fi.vm.sade.sijoittelu.tulos.testfixtures.{FixtureImporter => SijoitteluFixtureImporter}
-
-  def useFixture(fixtureName: String) {
-    SijoitteluFixtureImporter.importFixture(appConfig.sijoitteluContext.database, fixtureName, true)
-  }
-
-
   import scala.collection.JavaConversions._
   lazy val sijoitteluClient = appConfig.sijoitteluContext.sijoitteluClient
 
