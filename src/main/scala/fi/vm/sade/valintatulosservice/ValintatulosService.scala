@@ -24,19 +24,16 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
     val firstFinished = tulokset.indexWhere { t =>
       List(Valintatila.hyväksytty, Valintatila.varasijalta_hyväksytty, Valintatila.perunut, Valintatila.peruutettu, Valintatila.peruuntunut).contains(t.valintatila)
     }
-    val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
-    tulokset.zipWithIndex.map {
-      case (tulos, index) => {
-        if(firstFinished > -1 && index > firstFinished && tulos.valintatila == Valintatila.kesken) {
-          // hyväksyttyä myöhemmät "kesken" -hakutoiveet peruuntuvat
-          tulos.copy(valintatila = Valintatila.peruuntunut)
-        } else if(firstKesken > -1 && index > firstKesken && tulos.valintatila == Valintatila.hyväksytty) {
-          // "kesken" tulosta alemmat "hyväksytty" -hakutoiveet merkitään keskeneräisiksi
-          tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanottavissa)
-        } else {
-          tulos
-        }
-      }
+    val alemmatKeskeneraisetPeruttu = tulokset.zipWithIndex.map {
+      case (tulos, index) if(firstFinished > -1 && index > firstFinished && tulos.valintatila == Valintatila.kesken) =>
+        tulos.copy(valintatila = Valintatila.peruuntunut)
+      case (tulos, _) => tulos
+    }
+    val firstKesken = alemmatKeskeneraisetPeruttu.indexWhere(_.valintatila == Valintatila.kesken)
+    alemmatKeskeneraisetPeruttu.zipWithIndex.map {
+      case (tulos, index) if(firstKesken > -1 && index > firstKesken && tulos.valintatila == Valintatila.hyväksytty) =>
+        tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanottavissa)
+      case (tulos, _) => tulos
     }
   }
 

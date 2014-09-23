@@ -52,15 +52,17 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
       }
 
       "hyväksyttyä hakutoivetta alemmat puuttuvat merkitään tilaan PERUUNTUNUT" in {
+        SijoitteluFixtureImporter.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-julkaisematon-hyvaksytty.json", true)
+        hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369-3.json")
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
           val tulos = Serialization.read[Hakemuksentulos](body)
-          tulos.hakutoiveet.size must_== 2
-          val hyvaksytty = tulos.hakutoiveet.head
-          val puuttuva = tulos.hakutoiveet.last
-          hyvaksytty.valintatila must_== Valintatila.hyväksytty
-          hyvaksytty.vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
-          puuttuva.valintatila must_== Valintatila.peruuntunut
-          puuttuva.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          tulos.hakutoiveet.size must_== 3
+          tulos.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty
+          tulos.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
+          tulos.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
+          tulos.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          tulos.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
+          tulos.hakutoiveet(2).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
         }
       }
 
