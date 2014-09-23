@@ -174,7 +174,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec {
     }
   }
 
-  addServlet(new ValintatulosServlet(), "/*")
+  addServlet(new ValintatulosServlet(), "/haku")
   override def map(fs: => Fragments) = {
     Step(appConfig.start) ^ super.map(fs)
   }

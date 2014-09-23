@@ -10,11 +10,8 @@ class ValintatulosServlet(implicit val appConfig: AppConfig) extends ScalatraSer
   lazy val valintatulosService: ValintatulosService = new ValintatulosService(appConfig.sijoitteluContext, new HakemusRepository())
   lazy val vastaanottoService: VastaanottoService = new VastaanottoService(appConfig.sijoitteluContext)
 
-  get("/") {
-    "valinta-tulos-service"
-  }
 
-  get("/haku/:hakuOid/hakemus/:hakemusOid") {
+  get("/:hakuOid/hakemus/:hakemusOid", operation(getHakemusSwagger)) {
     contentType = formats("json")
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
@@ -26,7 +23,7 @@ class ValintatulosServlet(implicit val appConfig: AppConfig) extends ScalatraSer
     }
   }
 
-  post("/haku/:hakuOid/hakemus/:hakemusOid/vastaanota") {
+  post("/:hakuOid/hakemus/:hakemusOid/vastaanota") {
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
     val vastaanotto = parsedBody.extract[Vastaanotto]
