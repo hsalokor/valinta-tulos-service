@@ -1,0 +1,39 @@
+{
+    "Sijoittelu": [
+        {
+            "_id": {
+                "$oid": "53fc79b8e4b0b0b110900765"
+            },
+            "className": "fi.vm.sade.sijoittelu.domain.Sijoittelu",
+            "hakuOid": "1.2.246.562.5.2013080813081926341928",
+            "sijoitteluId": {
+                "$numberLong": "1409055160621"
+            },
+            "created": {
+                "$date": "2014-08-26T15:12:40.621Z"
+            },
+            "sijoittele": true,
+            "sijoitteluajot": [
+                {
+                    "sijoitteluajoId": {
+                        "$numberLong": "1409055160621"
+                    },
+                    "hakuOid": "1.2.246.562.5.2013080813081926341928",
+                    "startMils": {
+                        "$numberLong": "1409055160617"
+                    },
+                    "endMils": {
+                        "$numberLong": "1409055160623"
+                    },
+                    "hakukohteet": [
+                        {
+                          "oid": "1.2.246.562.5.72607738902",
+                          "oid": "1.2.246.562.5.72607738903"
+                        }
+                    ]
+                }
+            ]
+        }
+
+    ]
+}

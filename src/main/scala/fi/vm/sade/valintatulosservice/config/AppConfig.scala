@@ -1,11 +1,10 @@
 package fi.vm.sade.valintatulosservice.config
 
 import com.typesafe.config.Config
-import fi.vm.sade.sijoittelu.tulos.testfixtures.{FixtureImporter => SijoitteluFixtureImporter}
 import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.fixtures.HakemusFixtureImporter
 import fi.vm.sade.valintatulosservice.mongo.{EmbeddedMongo, MongoServer}
-import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluSpringContext
+import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoitteluSpringContext}
 
 object AppConfig extends Logging {
   def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
@@ -55,7 +54,7 @@ object AppConfig extends Logging {
     override def start {
       mongo = EmbeddedMongo.start
       try {
-        SijoitteluFixtureImporter.importFixture(sijoitteluContext.database, "hyvaksytty-ilmoitettu.json")
+        SijoitteluFixtures.importFixture(sijoitteluContext.database, "hyvaksytty-ilmoitettu.json")
         new HakemusFixtureImporter(settings.hakemusMongoConfig).importData
       } catch {
         case e: Exception =>
