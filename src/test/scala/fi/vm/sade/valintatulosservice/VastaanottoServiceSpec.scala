@@ -147,8 +147,6 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   lazy val vastaanottoService = appConfig.sijoitteluContext.vastaanottoService
 
 
-  // TODO: expect failure
-
   def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: ValintatuloksenTila, muokkaaja: String, selite: String) = {
     vastaanottoService.vastaanota(hakuOid, hakemusOid, hakukohdeOid, tila, muokkaaja, selite)
     success

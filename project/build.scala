@@ -73,6 +73,7 @@ object ValintaTulosServiceBuild extends Build {
           ExclusionRule(organization = "cglib")
         ),
         "fi.vm.sade.valintaperusteet" % "valintaperusteet" % "1.0-SNAPSHOT",
+        "fi.vm.sade.sijoittelu" % "sijoittelu-algoritmi-domain" % "1.0-SNAPSHOT",
         "com.google.guava" % "guava" % "15.0"
       ),
       artifactName <<= (name in (Compile, packageWar)) { projectName =>

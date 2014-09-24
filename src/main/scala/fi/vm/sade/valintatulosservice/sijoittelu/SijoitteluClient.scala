@@ -1,10 +1,13 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
 import java.util.Optional
-import fi.vm.sade.sijoittelu.tulos.service.{RaportointiService, YhteenvetoService}
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
+import fi.vm.sade.sijoittelu.tulos.service.{YhteenvetoService, RaportointiService}
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
+import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
+
+
 
 case class SijoitteluClient(raportointiService: RaportointiService, valintatulosDao: ValintatulosDao) {
   import scala.collection.JavaConversions._
