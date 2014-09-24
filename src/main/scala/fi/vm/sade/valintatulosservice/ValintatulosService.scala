@@ -32,7 +32,7 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
     val firstKesken = alemmatKeskeneraisetPeruttu.indexWhere(_.valintatila == Valintatila.kesken)
     alemmatKeskeneraisetPeruttu.zipWithIndex.map {
       case (tulos, index) if(firstKesken > -1 && index > firstKesken && tulos.valintatila == Valintatila.hyväksytty) =>
-        tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanottavissa)
+        tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
       case (tulos, _) => tulos
     }
   }
@@ -44,7 +44,7 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
       Valintatila.kesken,
       Vastaanottotila.kesken,
       Ilmoittautumistila.ei_tehty,
-      Vastaanotettavuustila.ei_vastaanottavissa,
+      Vastaanotettavuustila.ei_vastaanotettavissa,
       None,
       None,
       None,

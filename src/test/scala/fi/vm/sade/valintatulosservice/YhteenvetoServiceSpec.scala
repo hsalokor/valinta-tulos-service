@@ -2,7 +2,14 @@ package fi.vm.sade.valintatulosservice
 
 import java.text.SimpleDateFormat
 
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi._
+import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
+import fi.vm.sade.valintatulosservice.domain.{Vastaanotettavuustila, Vastaanottotila, Valintatila}
+import fi.vm.sade.valintatulosservice.domain.Valintatila.Valintatila
+import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
+import Valintatila._
+import fi.vm.sade.valintatulosservice.sijoittelu.{HakutoiveYhteenvetoDTO, HakemusYhteenvetoDTO}
 import org.joda.time.{DateTime, DateTimeUtils}
 import org.specs2.mutable.Specification
 
@@ -13,116 +20,116 @@ class YhteenvetoServiceSpec extends Specification with ITSetup {
     "hyvaksyttyValintatulosIlmoitettuLegacy" in {
       useFixture("hyvaksytty-ilmoitettu.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.VASTAANOTETTAVISSA_SITOVASTI, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
     }
 
 
     "hyvaksyttyVarasijaltaValintatulosJulkaistavissa" in {
       useFixture("hyvaksytty-varasijalta-julkaistavissa.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.VARASIJALTA_HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.VASTAANOTETTAVISSA_SITOVASTI, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.varasijalta_hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
     }
 
 
     "hyvaksyttyValintatulosKesken" in {
       useFixture("hyvaksytty-kesken.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.VASTAANOTETTAVISSA_SITOVASTI, false)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
     }
 
 
     "hyvaksyttyValintatulosJulkaistavissa" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.VASTAANOTETTAVISSA_SITOVASTI, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
     }
 
 
     "hyvaksyttyEiValintatulosta" in {
       useFixture("hyvaksytty-ei-valintatulosta.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.VASTAANOTETTAVISSA_SITOVASTI, false)
-      yhteenveto.hakutoiveet.get(0).julkaistavissa must_== false
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
+      yhteenveto.hakutoiveet(0).julkaistavissa must_== false
     }
 
 
     "hyvaksyttyYlempiSijoittelematon" in {
       useFixture("hyvaksytty-ylempi-sijoittelematon.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.KESKEN, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, false)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
     }
 
 
     "hyvaksyttyValintatulosPeruutettu" in {
       useFixture("hyvaksytty-valintatulos-peruutettu.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.PERUUTETTU, YhteenvedonVastaanottotila.PERUUTETTU, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.peruutettu, Vastaanottotila.peruutettu, Vastaanotettavuustila.ei_vastaanotettavissa, true)
     }
 
 
     "hyvaksyttyValintatulosPerunut" in {
       useFixture("hyvaksytty-valintatulos-perunut.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.PERUNUT, YhteenvedonVastaanottotila.PERUNUT, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.perunut, Vastaanottotila.perunut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
     }
 
 
     "hyvaksyttyValintatulosEiVastaanottanutMaaraaikana" in {
       useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.PERUUNTUNUT, YhteenvedonVastaanottotila.EI_VASTAANOTETTU_MAARA_AIKANA, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.peruuntunut, Vastaanottotila.ei_vastaanotetu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
     }
 
 
     "hyvaksyttyYlemmatSijoiteltu" in {
       useFixture("hyvaksytty-ylempi-sijoiteltu.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.HYLATTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, false)
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(1), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.VASTAANOTETTAVISSA_SITOVASTI, false)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+      checkHakutoiveState(yhteenveto.hakutoiveet(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
     }
 
 
     "hyvaksyttyVastaanottanut" in {
       useFixture("hyvaksytty-vastaanottanut.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.VASTAANOTTANUT, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.hyväksytty, Vastaanottotila.vastaanottanut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
     }
 
 
     "hyvaksyttyVastaanottanutEhdollisesti" in {
       useFixture("hyvaksytty-vastaanottanut-ehdollisesti.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.EHDOLLISESTI_VASTAANOTTANUT, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.hyväksytty, Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
     }
 
 
     "hyvaksyttyYlempiVaralla" in {
       useFixture("hyvaksytty-ylempi-varalla.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.VARALLA, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, true)
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(1), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
     }
 
 
     "hyvaksyttyHarkinnanvaraisesti" in {
       useFixture("harkinnanvaraisesti-hyvaksytty.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.HARKINNANVARAISESTI_HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.VASTAANOTETTAVISSA_SITOVASTI, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.harkinnanvaraisesti_hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
     }
 
 
     "varallaKäytetäänParastaVarasijaa" in {
       useFixture("hyvaksytty-ylempi-varalla.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      yhteenveto.hakutoiveet.get(0).varasijanumero must_== 2
+      yhteenveto.hakutoiveet(0).varasijanumero must_== Some(2)
     }
 
 
     "varasijojenKasittelypaivamaaratNaytetaan" in {
       useFixture("hyvaksytty-ylempi-varalla.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      yhteenveto.hakutoiveet.get(1).varasijojaKaytetaanAlkaen must_== new DateTime("2014-08-01T16:00:00.000Z").toDate
-      yhteenveto.hakutoiveet.get(1).varasijojaTaytetaanAsti must_== new DateTime("2014-08-31T16:00:00.000Z").toDate
+      yhteenveto.hakutoiveet(1).varasijojaKaytetaanAlkaen must_== Some(new DateTime("2014-08-01T16:00:00.000Z").toDate)
+      yhteenveto.hakutoiveet(1).varasijojaTaytetaanAsti must_== Some(new DateTime("2014-08-31T16:00:00.000Z").toDate)
     }
 
 
@@ -131,8 +138,8 @@ class YhteenvetoServiceSpec extends Specification with ITSetup {
       DateTimeUtils.setCurrentMillisFixed(new SimpleDateFormat("d.M.yyyy").parse("15.8.2014").getTime)
       try {
         val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-        checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.VARALLA, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, true)
-        checkHakutoiveState(yhteenveto.hakutoiveet.get(1), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.VASTAANOTETTAVISSA_EHDOLLISESTI, true)
+        checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        checkHakutoiveState(yhteenveto.hakutoiveet(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, true)
       }
       finally {
         DateTimeUtils.setCurrentMillisSystem
@@ -143,44 +150,44 @@ class YhteenvetoServiceSpec extends Specification with ITSetup {
     "varallaValintatulosIlmoitettuLegacy" in {
       useFixture("varalla-valintatulos-ilmoitettu.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
     }
 
 
     "varallaValintatulosKesken" in {
       useFixture("varalla-valintatulos-kesken.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.VARALLA, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, false)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
     }
 
 
     "varallaValintatulosHyvaksyttyVarasijalta" in {
       useFixture("varalla-valintatulos-hyvaksytty-varasijalta-flag.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, false)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
     }
 
 
     "hakutoiveHylattyKunSijoitteluKesken" in {
       useFixture("hylatty-jonoja-kesken.json")
       val hakuToive: HakutoiveYhteenvetoDTO = getHakuToive
-      checkHakutoiveState(hakuToive, YhteenvedonValintaTila.KESKEN, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, false)
+      checkHakutoiveState(hakuToive, Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
     }
 
 
     "hakutoiveHylattyKunSijoitteluValmis" in {
       useFixture("hylatty-jonot-valmiit.json")
       val hakuToive: HakutoiveYhteenvetoDTO = getHakuToive
-      checkHakutoiveState(hakuToive, YhteenvedonValintaTila.HYLATTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.EI_VASTAANOTETTAVISSA, false)
+      checkHakutoiveState(hakuToive, Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
     }
 
 
     "hyvaksyttyPlusJulkaisematonPlusHyvaksytty" in {
       useFixture("hyvaksytty-julkaisematon-hyvaksytty.json")
       val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(0), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.VASTAANOTETTAVISSA_SITOVASTI, true)
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(1), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.VASTAANOTETTAVISSA_SITOVASTI, false)
-      checkHakutoiveState(yhteenveto.hakutoiveet.get(2), YhteenvedonValintaTila.HYVAKSYTTY, YhteenvedonVastaanottotila.KESKEN, Vastaanotettavuustila.VASTAANOTETTAVISSA_SITOVASTI, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
+      checkHakutoiveState(yhteenveto.hakutoiveet(2), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
     }
   }
 
@@ -194,7 +201,7 @@ class YhteenvetoServiceSpec extends Specification with ITSetup {
   def getYhteenveto: HakemusYhteenvetoDTO = sijoitteluClient.yhteenveto(hakuOid, hakemusOid).get
   def getHakuToive: HakutoiveYhteenvetoDTO = getYhteenveto.hakutoiveet(0)
 
-  def checkHakutoiveState(hakuToive: HakutoiveYhteenvetoDTO, expectedTila: YhteenvedonValintaTila, vastaanottoTila: YhteenvedonVastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean) = {
+  def checkHakutoiveState(hakuToive: HakutoiveYhteenvetoDTO, expectedTila: Valintatila, vastaanottoTila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean) = {
     hakuToive.valintatila must_== expectedTila
     hakuToive.vastaanottotila must_== vastaanottoTila
     hakuToive.vastaanotettavuustila must_== vastaanotettavuustila

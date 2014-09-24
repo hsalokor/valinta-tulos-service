@@ -47,9 +47,9 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
           val puuttuva1 = tulos.hakutoiveet.head
           val puuttuva2 = tulos.hakutoiveet.last
           puuttuva1.valintatila must_== Valintatila.kesken
-          puuttuva1.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          puuttuva1.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
           puuttuva2.valintatila must_== Valintatila.kesken
-          puuttuva2.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          puuttuva2.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
         }
       }
 
@@ -62,7 +62,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
           tulos.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty
           tulos.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
           tulos.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
-          tulos.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          tulos.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
           tulos.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
           tulos.hakutoiveet(2).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
         }
@@ -75,9 +75,9 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
           val puuttuva = tulos.hakutoiveet.head
           val hyvaksytty = tulos.hakutoiveet.last
           puuttuva.valintatila must_== Valintatila.kesken
-          puuttuva.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          puuttuva.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
           hyvaksytty.valintatila must_== Valintatila.kesken
-          hyvaksytty.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          hyvaksytty.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
         }
       }
 
@@ -91,7 +91,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
           varasijaltaHyvaksytty.valintatila must_== Valintatila.varasijalta_hyväksytty
           varasijaltaHyvaksytty.vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
           puuttuva.valintatila must_== Valintatila.peruuntunut
-          puuttuva.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanottavissa
+          puuttuva.vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
         }
       }
     }

@@ -1,17 +1,14 @@
 package fi.vm.sade.valintatulosservice.domain
 
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.YhteenvedonValintaTila
-
-
 object Valintatila extends Enumeration {
   type Valintatila = Value
-  val hyväksytty = Value(YhteenvedonValintaTila.HYVAKSYTTY.toString)
-  val harkinnanvaraisesti_hyväksytty = Value(YhteenvedonValintaTila.HARKINNANVARAISESTI_HYVAKSYTTY.toString)
-  val varasijalta_hyväksytty = Value(YhteenvedonValintaTila.VARASIJALTA_HYVAKSYTTY.toString)
-  val varalla = Value(YhteenvedonValintaTila.VARALLA.toString)
-  val peruutettu = Value(YhteenvedonValintaTila.PERUUTETTU.toString)
-  val perunut = Value(YhteenvedonValintaTila.PERUNUT.toString)
-  val hylätty = Value(YhteenvedonValintaTila.HYLATTY.toString)
-  val peruuntunut = Value(YhteenvedonValintaTila.PERUUNTUNUT.toString)
-  val kesken = Value(YhteenvedonValintaTila.KESKEN.toString)
+  val hyväksytty = Value("HYVAKSYTTY")
+  val harkinnanvaraisesti_hyväksytty = Value("HARKINNANVARAISESTI_HYVAKSYTTY")
+  val varasijalta_hyväksytty = Value("VARASIJALTA_HYVAKSYTTY")
+  val varalla = Value("VARALLA")
+  val peruutettu = Value("PERUUTETTU")
+  val perunut = Value("PERUNUT")
+  val hylätty = Value("HYLATTY")
+  val peruuntunut = Value("PERUUNTUNUT")
+  val kesken = Value("KESKEN")
 }

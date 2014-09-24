@@ -8,9 +8,7 @@ import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 
 case class SijoitteluClient(raportointiService: RaportointiService, valintatulosDao: ValintatulosDao) {
-  import scala.collection.JavaConversions._
-
-  def yhteenveto(hakuOid: String, hakemusOid: String) = {
+  def yhteenveto(hakuOid: String, hakemusOid: String): Option[HakemusYhteenvetoDTO] = {
     optionalToOption(raportointiService.latestSijoitteluAjoForHaku(hakuOid)).flatMap { sijoitteluAjo =>
       Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)).map { hakijaDto => YhteenvetoService.yhteenveto(hakijaDto)}
     }
@@ -22,27 +20,27 @@ case class SijoitteluClient(raportointiService: RaportointiService, valintatulos
         if (hakutoiveDto.julkaistavissa) {
           Hakutoiveentulos(hakutoiveDto.hakukohdeOid,
             hakutoiveDto.tarjoajaOid,
-            Valintatila.withName(hakutoiveDto.valintatila.toString),
-            Vastaanottotila.withName(hakutoiveDto.vastaanottotila.toString),
-            Ilmoittautumistila.withName(hakutoiveDto.ilmoittautumistila.toString),
-            Vastaanotettavuustila.withName(hakutoiveDto.vastaanotettavuustila.toString),
-            Option(hakutoiveDto.viimeisinVastaanottotilanMuutos),
-            Option(hakutoiveDto.jonosija),
-            Option(hakutoiveDto.varasijojaKaytetaanAlkaen),
-            Option(hakutoiveDto.varasijojaTaytetaanAsti),
-            Option(hakutoiveDto.varasijanumero).map(_.toInt)
+            hakutoiveDto.valintatila,
+            hakutoiveDto.vastaanottotila,
+            hakutoiveDto.ilmoittautumistila,
+            hakutoiveDto.vastaanotettavuustila,
+            hakutoiveDto.viimeisinVastaanottotilanMuutos,
+            hakutoiveDto.jonosija,
+            hakutoiveDto.varasijojaKaytetaanAlkaen,
+            hakutoiveDto.varasijojaTaytetaanAsti,
+            hakutoiveDto.varasijanumero
           )
         } else {
           Hakutoiveentulos(hakutoiveDto.hakukohdeOid,
             hakutoiveDto.tarjoajaOid,
             Valintatila.kesken,
-            Vastaanottotila.withName(hakutoiveDto.vastaanottotila.toString),
-            Ilmoittautumistila.withName(hakutoiveDto.ilmoittautumistila.toString),
-            Vastaanotettavuustila.ei_vastaanottavissa,
+            hakutoiveDto.vastaanottotila,
+            hakutoiveDto.ilmoittautumistila,
+            Vastaanotettavuustila.ei_vastaanotettavissa,
             None,
             None,
-            Option(hakutoiveDto.varasijojaKaytetaanAlkaen),
-            Option(hakutoiveDto.varasijojaTaytetaanAsti),
+            hakutoiveDto.varasijojaKaytetaanAlkaen,
+            hakutoiveDto.varasijojaTaytetaanAsti,
             None
           )
         }
