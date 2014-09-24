@@ -191,13 +191,13 @@ class YhteenvetoServiceSpec extends Specification with ITSetup {
   }
 
   import scala.collection.JavaConversions._
-  lazy val sijoitteluClient = appConfig.sijoitteluContext.sijoitteluClient
+  lazy val sijoitteluClient = appConfig.sijoitteluContext.sijoittelutulosService
 
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
   val sijoitteluAjoId: String = "latest"
   val hakemusOid: String = "1.2.246.562.11.00000441369"
 
-  def getYhteenveto = sijoitteluClient.yhteenveto(hakuOid, hakemusOid).get
+  def getYhteenveto = sijoitteluClient.hakemuksentulos(hakuOid, hakemusOid).get
   def getHakuToive = getYhteenveto.hakutoiveet(0)
 
   def checkHakutoiveState(hakuToive: Hakutoiveentulos, expectedTila: Valintatila, vastaanottoTila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean) = {

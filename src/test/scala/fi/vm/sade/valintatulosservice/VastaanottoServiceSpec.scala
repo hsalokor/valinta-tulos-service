@@ -18,7 +18,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
 
   "uusiValintatulosVastaanotaVäärälläArvolla" in {
     useFixture("hyvaksytty-ei-valintatulosta.json")
-    getYhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+    haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
     expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA, muokkaaja, selite)}
     success
   }
@@ -26,9 +26,9 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
 
   "uusiValintatulosVastaanota" in {
     useFixture("hyvaksytty-ei-valintatulosta.json")
-    getYhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+    haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
     vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
-    getYhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
+    haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
   }
 
 
@@ -49,7 +49,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   "uusiValintatulosPeru" in {
     useFixture("hyvaksytty-ei-valintatulosta.json")
     vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.PERUNUT, muokkaaja, selite)
-    getYhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
+    haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
   }
 
   "vastaanotaEhdollisestiKunAikaparametriEiLauennut" in {
@@ -62,13 +62,13 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   "vastaanotaEhdollisestiKunAikaparametriLauennut" in {
     useFixture("hyvaksytty-ylempi-varalla.json")
     withFixedDate("15.8.2014") {
-      getYhteenveto.hakutoiveet(0).valintatila must_== Valintatila.varalla
-      getYhteenveto.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
+      haeSijoittelutulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
+      haeSijoittelutulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
       vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT, muokkaaja, selite)
-      getYhteenveto.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
-      getYhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
-      getYhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
-      getYhteenveto.hakutoiveet(0).valintatila must_== Valintatila.varalla
+      haeSijoittelutulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
+      haeSijoittelutulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
+      haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      haeSijoittelutulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
     }
   }
 
@@ -76,7 +76,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     useFixture("hyvaksytty-ylempi-varalla.json")
     withFixedDate("15.8.2014") {
       vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
-      val yhteenveto = getYhteenveto
+      val yhteenveto = haeSijoittelutulos
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
       yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.vastaanottanut
       yhteenveto.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
@@ -90,7 +90,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   "vastaanotaYlempiKunKaksiHyvaksyttya" in {
     useFixture("hyvaksytty-julkaisematon-hyvaksytty.json")
     vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
-    val yhteenveto = getYhteenveto
+    val yhteenveto = haeSijoittelutulos
     yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty
     yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
     yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.peruuntunut
@@ -103,7 +103,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   "vastaanotaAlempiKunKaksiHyvaksyttya" in {
     useFixture("hyvaksytty-julkaisematon-hyvaksytty.json")
     vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738904", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
-    val yhteenveto = getYhteenveto
+    val yhteenveto = haeSijoittelutulos
     yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
     yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
     yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
@@ -130,7 +130,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   "vastaanotaIlmoitettu" in {
     useFixture("hyvaksytty-ilmoitettu.json")
     vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
-    getYhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
+    haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
   }
 
   "vastaanotaEhdollisestiVastaanotettu" in {
@@ -138,10 +138,10 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)}
   }
 
-  lazy val sijoitteluClient = appConfig.sijoitteluContext.sijoitteluClient
+  lazy val sijoitteluClient = appConfig.sijoitteluContext.sijoittelutulosService
   lazy val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
 
-  def getYhteenveto = sijoitteluClient.yhteenveto(hakuOid, hakemusOid).get
+  def haeSijoittelutulos = sijoitteluClient.hakemuksentulos(hakuOid, hakemusOid).get
 
   lazy val vastaanottoService = appConfig.sijoitteluContext.vastaanottoService
 

@@ -16,9 +16,9 @@ import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
 class SijoitteluSpringContext(context: ApplicationContext) {
   def database = context.getBean(classOf[DB])
 
-  lazy val sijoitteluClient = SijoitteluClient(context.getBean(classOf[RaportointiService]), context.getBean(classOf[ValintatulosDao]))
   lazy val valintatulosDao = context.getBean(classOf[ValintatulosDao])
   lazy val raportointiService = context.getBean(classOf[RaportointiService])
+  lazy val sijoittelutulosService = new SijoittelutulosService(raportointiService, valintatulosDao)
   lazy val vastaanottoService = new VastaanottoService(valintatulosDao, raportointiService)
 }
 

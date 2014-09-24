@@ -12,8 +12,8 @@ import org.json4s.Extraction
 import fi.vm.sade.sijoittelu.tulos.dto.HakemuksenTila
 
 class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagger) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
-  lazy val valintatulosService: ValintatulosService = new ValintatulosService(appConfig.sijoitteluContext, new HakemusRepository())
-  lazy val vastaanottoService: VastaanottoService = new VastaanottoService(appConfig.sijoitteluContext.valintatulosDao, appConfig.sijoitteluContext.raportointiService)
+  lazy val valintatulosService: ValintatulosService = new ValintatulosService(appConfig.sijoitteluContext.sijoittelutulosService, new HakemusRepository())
+  lazy val vastaanottoService: VastaanottoService = appConfig.sijoitteluContext.vastaanottoService
 
   override def applicationName = Some("haku")
   protected val applicationDescription = "Valintatulosten REST API"

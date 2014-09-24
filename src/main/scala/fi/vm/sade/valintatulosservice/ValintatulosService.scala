@@ -2,12 +2,12 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
-import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluSpringContext
+import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelutulosService, SijoitteluSpringContext}
 
-class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hakemusRepository: HakemusRepository) {
+class ValintatulosService(sijoittelutulosService: SijoittelutulosService, hakemusRepository: HakemusRepository) {
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
-    val sijoitteluTulos: Hakemuksentulos = sijoitteluSpringContext.sijoitteluClient.sijoittelunTulos(hakuOid, hakemusOid).getOrElse(Hakemuksentulos(hakemusOid, Nil))
+    val sijoitteluTulos: Hakemuksentulos = sijoittelutulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(Hakemuksentulos(hakemusOid, Nil)).julkaistavaVersio
     val hakemus: Option[Hakemus] = hakemusRepository.findHakutoiveOids(hakemusOid)
 
     hakemus.map { h =>
