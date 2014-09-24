@@ -1,20 +1,15 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.Vastaanotto
+import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.sijoittelu.VastaanottoService
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
-import fi.vm.sade.valintatulosservice.domain.Hakemuksentulos
-import fi.vm.sade.valintatulosservice.domain.Hakemuksentulos
 import org.json4s.Extraction
 import fi.vm.sade.sijoittelu.tulos.dto.HakemuksenTila
-import fi.vm.sade.valintatulosservice.domain.Hakemuksentulos
-import fi.vm.sade.valintatulosservice.domain.Vastaanotto
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila
 
 class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagger) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
   lazy val valintatulosService: ValintatulosService = new ValintatulosService(appConfig.sijoitteluContext, new HakemusRepository())
@@ -30,7 +25,7 @@ class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagge
       pretty(Extraction.decompose(
         Hakemuksentulos("4.3.2.1",
           List(
-            valintatulosService.createKesken("1.2.3.4", "4.4.4.4")
+            Hakutoiveentulos.kesken("1.2.3.4", "4.4.4.4")
           )
         )
       ))

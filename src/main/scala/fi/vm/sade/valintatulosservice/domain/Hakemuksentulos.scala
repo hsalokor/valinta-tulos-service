@@ -21,3 +21,20 @@ case class Hakutoiveentulos(hakukohdeOid: String,
                             varasijojaTaytetaanAsti: Option[Date],
                             varasijanumero: Option[Int]
                             )
+
+object Hakutoiveentulos {
+  def kesken(hakukohdeOid: String, tarjoajaOid: String) = {
+    Hakutoiveentulos(
+      hakukohdeOid,
+      tarjoajaOid,
+      Valintatila.kesken,
+      Vastaanottotila.kesken,
+      Ilmoittautumistila.ei_tehty,
+      Vastaanotettavuustila.ei_vastaanotettavissa,
+      None,
+      None,
+      None,
+      None,
+      None)
+  }
+}

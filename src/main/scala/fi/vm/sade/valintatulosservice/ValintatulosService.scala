@@ -14,7 +14,7 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
       val tulokset = h.toiveet.map { toive =>
         sijoitteluTulos.hakutoiveet.find { t =>
           t.hakukohdeOid == toive.oid
-        }.getOrElse(createKesken(toive.oid, toive.tarjoajaOid))
+        }.getOrElse(Hakutoiveentulos.kesken(toive.oid, toive.tarjoajaOid))
       }
       Hakemuksentulos(h.oid, kasitteleKeskenEraiset(tulokset))
     }
@@ -35,21 +35,6 @@ class ValintatulosService(sijoitteluSpringContext: SijoitteluSpringContext, hake
         tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
       case (tulos, _) => tulos
     }
-  }
-
-  def createKesken(hakukohdeOid: String, tarjoajaOid: String) = {
-    Hakutoiveentulos(
-      hakukohdeOid,
-      tarjoajaOid,
-      Valintatila.kesken,
-      Vastaanottotila.kesken,
-      Ilmoittautumistila.ei_tehty,
-      Vastaanotettavuustila.ei_vastaanotettavissa,
-      None,
-      None,
-      None,
-      None,
-      None)
   }
 }
 
