@@ -6,7 +6,11 @@ import java.util.stream.Collectors
 
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakutoiveDTO, HakutoiveenValintatapajonoDTO, HakijaDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, ValintatuloksenTila, IlmoittautumisTila}
-import fi.vm.sade.valintatulosservice.domain.{Vastaanotettavuustila, Vastaanottotila, Valintatila, Ilmoittautumistila}
+import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila
+import fi.vm.sade.valintatulosservice.domain.Valintatila
+import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila
+import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
@@ -14,13 +18,7 @@ import Ilmoittautumistila._
 
 import org.joda.time.LocalDate
 
-case class HakutoiveenYhteenveto (hakutoive: HakutoiveDTO, valintatapajono: HakutoiveenValintatapajonoDTO, valintatila: Valintatila, vastaanottotila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean, viimeisinVastaanottotilanMuutos: Option[Date])
-
-// TODO: luiskaa nämä
-case class HakutoiveYhteenvetoDTO(hakukohdeOid: String, tarjoajaOid: String, valintatila: Valintatila, vastaanottotila: Vastaanottotila, ilmoittautumistila: Ilmoittautumistila, vastaanotettavuustila: Vastaanotettavuustila, viimeisinVastaanottotilanMuutos: Option[Date], jonosija: Option[Int], varasijojaKaytetaanAlkaen: Option[Date], varasijojaTaytetaanAsti: Option[Date], varasijanumero: Option[Int], julkaistavissa: Boolean)
-case class HakemusYhteenvetoDTO (hakemusOid: String, hakutoiveet: List[HakutoiveYhteenvetoDTO])
-
-object YhteenvetoService {
+protected object YhteenvetoService {
   import collection.JavaConversions._
   def hakutoiveidenYhteenveto(hakija: HakijaDTO): List[HakutoiveenYhteenveto] = {
     hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
@@ -100,9 +98,9 @@ object YhteenvetoService {
       !h.getHakutoive().equals(hakutoive) && getFirst(h).get.getVastaanottotieto() == ValintatuloksenTila.VASTAANOTTANUT).isDefined
   }
 
-  def yhteenveto(hakija: HakijaDTO): HakemusYhteenvetoDTO = {
-    return new HakemusYhteenvetoDTO(hakija.getHakemusOid, hakutoiveidenYhteenveto(hakija).map { hakutoiveenYhteenveto =>
-      new HakutoiveYhteenvetoDTO(
+  def yhteenveto(hakija: HakijaDTO): Hakemuksentulos = {
+    return new Hakemuksentulos(hakija.getHakemusOid, hakutoiveidenYhteenveto(hakija).map { hakutoiveenYhteenveto =>
+      new Hakutoiveentulos(
         hakutoiveenYhteenveto.hakutoive.getHakukohdeOid(),
         hakutoiveenYhteenveto.hakutoive.getTarjoajaOid(),
         hakutoiveenYhteenveto.valintatila,

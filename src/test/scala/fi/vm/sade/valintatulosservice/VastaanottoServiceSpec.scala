@@ -1,7 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
 import java.text.SimpleDateFormat
-import fi.vm.sade.valintatulosservice.sijoittelu.HakemusYhteenvetoDTO
 import fi.vm.sade.sijoittelu.domain.{LogEntry, Valintatulos, ValintatuloksenTila}
 import fi.vm.sade.valintatulosservice.domain.{Valintatila, Vastaanottotila, Vastaanotettavuustila}
 import org.joda.time.{DateTimeUtils, LocalDate}
@@ -77,7 +76,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     useFixture("hyvaksytty-ylempi-varalla.json")
     withFixedDate("15.8.2014") {
       vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
-      val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
+      val yhteenveto = getYhteenveto
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
       yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.vastaanottanut
       yhteenveto.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
@@ -91,7 +90,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   "vastaanotaYlempiKunKaksiHyvaksyttya" in {
     useFixture("hyvaksytty-julkaisematon-hyvaksytty.json")
     vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
-    val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
+    val yhteenveto = getYhteenveto
     yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty
     yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
     yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.peruuntunut
@@ -104,7 +103,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   "vastaanotaAlempiKunKaksiHyvaksyttya" in {
     useFixture("hyvaksytty-julkaisematon-hyvaksytty.json")
     vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738904", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
-    val yhteenveto: HakemusYhteenvetoDTO = getYhteenveto
+    val yhteenveto = getYhteenveto
     yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
     yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
     yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
@@ -142,7 +141,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   lazy val sijoitteluClient = appConfig.sijoitteluContext.sijoitteluClient
   lazy val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
 
-  def getYhteenveto: HakemusYhteenvetoDTO = sijoitteluClient.yhteenveto(hakuOid, hakemusOid).get
+  def getYhteenveto = sijoitteluClient.yhteenveto(hakuOid, hakemusOid).get
 
   lazy val vastaanottoService = appConfig.sijoitteluContext.vastaanottoService
 

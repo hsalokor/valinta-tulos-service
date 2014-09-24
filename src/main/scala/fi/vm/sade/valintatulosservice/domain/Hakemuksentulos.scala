@@ -19,8 +19,29 @@ case class Hakutoiveentulos(hakukohdeOid: String,
                             jonosija: Option[Int],
                             varasijojaKaytetaanAlkaen: Option[Date],
                             varasijojaTaytetaanAsti: Option[Date],
-                            varasijanumero: Option[Int]
-                            )
+                            varasijanumero: Option[Int],
+                            julkaistavissa: Boolean
+                            ) {
+  def julkaistavaVersio = {
+    if (julkaistavissa) {
+      this
+    } else {
+      Hakutoiveentulos(hakukohdeOid,
+        tarjoajaOid,
+        Valintatila.kesken,
+        vastaanottotila,
+        ilmoittautumistila,
+        Vastaanotettavuustila.ei_vastaanotettavissa,
+        None,
+        None,
+        varasijojaKaytetaanAlkaen,
+        varasijojaTaytetaanAsti,
+        None,
+        false
+      )
+    }
+  }
+}
 
 object Hakutoiveentulos {
   def kesken(hakukohdeOid: String, tarjoajaOid: String) = {
@@ -35,6 +56,7 @@ object Hakutoiveentulos {
       None,
       None,
       None,
-      None)
+      None,
+      true)
   }
 }
