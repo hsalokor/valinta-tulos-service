@@ -5,6 +5,7 @@ import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.fixtures.HakemusFixtureImporter
 import fi.vm.sade.valintatulosservice.mongo.{EmbeddedMongo, MongoServer}
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoitteluSpringContext}
+import fi.vm.sade.valintatulosservice.ohjausparametrit._
 
 object AppConfig extends Logging {
   def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
@@ -45,9 +46,9 @@ object AppConfig extends Logging {
   }
 
   /**
-   * IT profile, uses embedded mongo
+   * IT profile, uses embedded mongo and stubbed external deps
    */
-  class IT extends ExampleTemplatedProps {
+  class IT extends ExampleTemplatedProps with StubbedExternalDeps {
 
     private var mongo: Option[MongoServer] = None
 
@@ -91,7 +92,7 @@ object AppConfig extends Logging {
   }
 
   trait AppConfig {
-    lazy val sijoitteluContext = new SijoitteluSpringContext(SijoitteluSpringContext.createApplicationContext(this))
+    lazy val sijoitteluContext = new SijoitteluSpringContext(this, SijoitteluSpringContext.createApplicationContext(this))
 
     def start {}
     def stop {}
@@ -105,10 +106,19 @@ object AppConfig extends Logging {
       }
     }
 
+    lazy val ohjausparametritService = this match {
+      case _ : StubbedExternalDeps => new StubbedOhjausparametritService()
+      case _ => CachedRemoteOhjausparametritService(this)
+    }
+
     def settings: ApplicationSettings
 
     def properties: Map[String, String] = settings.toProperties
   }
+
+  trait StubbedExternalDeps {
+  }
+
 }
 
 case class RemoteApplicationConfig(url: String, username: String, password: String, ticketConsumerPath: String, config: Config)

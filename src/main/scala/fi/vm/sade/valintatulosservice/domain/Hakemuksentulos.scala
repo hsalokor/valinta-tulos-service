@@ -7,8 +7,8 @@ import fi.vm.sade.valintatulosservice.domain.Valintatila.Valintatila
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 
-case class Hakemuksentulos(hakemusOid: String, hakutoiveet: List[Hakutoiveentulos]) {
-  def julkaistavaVersio = Hakemuksentulos(hakemusOid, hakutoiveet.toList.map(_.julkaistavaVersio))
+case class Hakemuksentulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu], hakutoiveet: List[Hakutoiveentulos]) {
+  def julkaistavaVersio = Hakemuksentulos(hakemusOid, aikataulu, hakutoiveet.toList.map(_.julkaistavaVersio))
 }
 
 case class Hakutoiveentulos(hakukohdeOid: String,

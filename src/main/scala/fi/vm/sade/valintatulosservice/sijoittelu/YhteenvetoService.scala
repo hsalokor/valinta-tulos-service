@@ -98,8 +98,8 @@ protected object YhteenvetoService {
       !h.getHakutoive().equals(hakutoive) && getFirst(h).get.getVastaanottotieto() == ValintatuloksenTila.VASTAANOTTANUT).isDefined
   }
 
-  def yhteenveto(hakija: HakijaDTO): Hakemuksentulos = {
-    return new Hakemuksentulos(hakija.getHakemusOid, hakutoiveidenYhteenveto(hakija).map { hakutoiveenYhteenveto =>
+  def yhteenveto(aikataulu: Option[Vastaanottoaikataulu], hakija: HakijaDTO): Hakemuksentulos = {
+    return new Hakemuksentulos(hakija.getHakemusOid, aikataulu, hakutoiveidenYhteenveto(hakija).map { hakutoiveenYhteenveto =>
       new Hakutoiveentulos(
         hakutoiveenYhteenveto.hakutoive.getHakukohdeOid(),
         hakutoiveenYhteenveto.hakutoive.getTarjoajaOid(),

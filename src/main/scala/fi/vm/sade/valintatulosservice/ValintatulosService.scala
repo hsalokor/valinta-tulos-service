@@ -3,11 +3,13 @@ package fi.vm.sade.valintatulosservice
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelutulosService, SijoitteluSpringContext}
+import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
 
-class ValintatulosService(sijoittelutulosService: SijoittelutulosService, hakemusRepository: HakemusRepository) {
+class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjausparametritService: OhjausparametritService, hakemusRepository: HakemusRepository) {
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
-    val sijoitteluTulos: Hakemuksentulos = sijoittelutulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(Hakemuksentulos(hakemusOid, Nil)).julkaistavaVersio
+    val aikataulu = ohjausparametritService.aikataulu(hakuOid)
+    val sijoitteluTulos: Hakemuksentulos = sijoittelutulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(Hakemuksentulos(hakemusOid, aikataulu, Nil)).julkaistavaVersio
     val hakemus: Option[Hakemus] = hakemusRepository.findHakutoiveOids(hakemusOid)
 
     hakemus.map { h =>
@@ -16,7 +18,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, hakemu
           t.hakukohdeOid == toive.oid
         }.getOrElse(Hakutoiveentulos.kesken(toive.oid, toive.tarjoajaOid))
       }
-      Hakemuksentulos(h.oid, kasitteleKeskenEraiset(tulokset))
+      Hakemuksentulos(h.oid, aikataulu, kasitteleKeskenEraiset(tulokset))
     }
   }
 
