@@ -74,7 +74,8 @@ object ValintaTulosServiceBuild extends Build {
         ),
         "fi.vm.sade.valintaperusteet" % "valintaperusteet" % "1.0-SNAPSHOT",
         "fi.vm.sade.sijoittelu" % "sijoittelu-algoritmi-domain" % "1.0-SNAPSHOT",
-        "com.google.guava" % "guava" % "15.0"
+        "com.google.guava" % "guava" % "15.0",
+        "org.scalaj" %% "scalaj-http" % "0.3.15"
       ),
       artifactName <<= (name in (Compile, packageWar)) { projectName =>
         (config: ScalaVersion, module: ModuleID, artifact: Artifact) =>
