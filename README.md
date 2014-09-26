@@ -70,6 +70,10 @@ Avaa selaimessa [http://localhost:8080/valinta-tulos-service/](http://localhost:
 
 Aja TomcatRunner-luokka.
 
+### Käynnistä komentoriviltä it-profiililla
+
+`./sbt "test:run-main fi.vm.sade.valintatulosservice.JettyLauncher" -Dvalintatulos.profile=it`
+
 ### Asetukset
 
 Sovellus tukee eri profiileita. Profiili määritellään `valintatulos.profile` system propertyllä, esim `-Dvalintatulos.profile=dev`.
