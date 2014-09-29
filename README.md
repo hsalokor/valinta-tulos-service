@@ -74,6 +74,10 @@ Aja TomcatRunner-luokka.
 
 `./sbt "test:run-main fi.vm.sade.valintatulosservice.JettyLauncher" -Dvalintatulos.profile=it`
 
+### Käynnistä komentoriviltä omatsivut-mocha-testien ajamista varten
+
+`./sbt "test:run-main fi.vm.sade.valintatulosservice.JettyLauncher" -Dvalintatulos.profile=it-externalHakemus`
+
 ### Asetukset
 
 Sovellus tukee eri profiileita. Profiili määritellään `valintatulos.profile` system propertyllä, esim `-Dvalintatulos.profile=dev`.
