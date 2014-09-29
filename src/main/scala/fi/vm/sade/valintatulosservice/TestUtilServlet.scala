@@ -7,7 +7,14 @@ import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
 
 class TestUtilServlet (implicit val appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats {
+  options("/fixtures/apply") {
+    response.addHeader("Access-Control-Allow-Origin", "*")
+    response.addHeader("Access-Control-Allow-Methods", "PUT")
+    response.addHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Allow-Headers"))
+  }
+
   put("/fixtures/apply") {
+    response.addHeader("Access-Control-Allow-Origin", "*")
     val fixturename = params("fixturename")
     SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database,  fixturename + ".json", true)
   }
