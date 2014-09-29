@@ -23,7 +23,6 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     success
   }
 
-
   "uusiValintatulosVastaanota" in {
     useFixture("hyvaksytty-ei-valintatulosta.json")
     haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
@@ -31,6 +30,52 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
   }
 
+  "uusiValintatulosVastaanotaEiOnnistuJosDeadlineOnPäättynyt" in {
+    useFixture("hyvaksytty-ei-valintatulosta.json", "vastaanotto-loppunut")
+    haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+    expectFailure {
+      vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
+    }
+  }
+
+  "uusiValintatulosVastaanotaOnnistuuJosEiDeadlinea" in {
+    useFixture("hyvaksytty-ei-valintatulosta.json", "ei-vastaanotto-deadlinea")
+    haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+    vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
+    haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
+  }
+
+  "ilmoitetunValintatuloksenVastaanottoOnnistuuJosViimeisinMuutosOnBufferinSisään" in {
+    useFixture("hyvaksytty-ilmoitettu.json", "vastaanotto-loppunut")
+    withFixedDateTime("9.9.2014 19:01") {
+      haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      haeSijoittelutulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
+      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
+      haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
+    }
+  }
+
+  "ilmoitetunValintatuloksenVastaanottoEiOnnistuDeadlinenjälkeenJosEiOleBufferiaAnnettu" in {
+    useFixture("hyvaksytty-ilmoitettu.json", "ei-vastaanotto-bufferia")
+    withFixedDateTime("1.9.2014 12:01") {
+      haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      haeSijoittelutulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
+      expectFailure {
+        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
+      }
+    }
+  }
+
+  "ilmoitetunValintatuloksenVastaanottoEiOnnistuJosViimeisinMuutosOnBufferinJälkeen" in {
+    useFixture("hyvaksytty-ilmoitettu.json", "vastaanotto-loppunut")
+    withFixedDateTime("9.9.2014 19:10") {
+      haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      haeSijoittelutulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
+      expectFailure {
+        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
+      }
+    }
+  }
 
   "valintaTuloksenMuutoslogi" in {
     import collection.JavaConversions._

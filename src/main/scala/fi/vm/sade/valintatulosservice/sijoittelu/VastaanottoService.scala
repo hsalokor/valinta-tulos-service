@@ -1,7 +1,6 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
 import java.util.{Date, Optional}
-
 import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT
 import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila.PERUNUT
 import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila.VASTAANOTTANUT
@@ -10,10 +9,11 @@ import fi.vm.sade.valintatulosservice.domain.{Vastaanotettavuustila, Vastaanotto
 import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
+import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
 
 // This compilation unit is a quick-and-dirty conversion from Java code
 
-class VastaanottoService(dao: ValintatulosDao, raportointiService: RaportointiService) {
+class VastaanottoService(dao: ValintatulosDao, raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService) {
   import Java8Conversions._
   import collection.JavaConversions._
 
@@ -30,7 +30,7 @@ class VastaanottoService(dao: ValintatulosDao, raportointiService: RaportointiSe
     if (hakemus == null) {
       throw new IllegalArgumentException("Hakemusta ei löydy")
     }
-    val hakutoiveet: List[HakutoiveenYhteenveto] = YhteenvetoService.hakutoiveidenYhteenveto(hakemus).toList
+    val hakutoiveet: List[HakutoiveenYhteenveto] = YhteenvetoService.hakutoiveidenYhteenveto(ohjausparametritService.aikataulu(hakuOid), hakemus).toList
     val hakutoive: Option[HakutoiveenYhteenveto] = hakutoiveet.find(_.hakutoive.getHakukohdeOid().equals(hakukohdeOid))
     if (!hakutoive.isDefined) {
       throw new IllegalArgumentException("Hakukohdetta ei löydy")

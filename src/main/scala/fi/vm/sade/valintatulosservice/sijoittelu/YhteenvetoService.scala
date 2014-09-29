@@ -2,8 +2,6 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 
 import java.util.Date
 import java.util.stream.Collectors
-
-
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakutoiveDTO, HakutoiveenValintatapajonoDTO, HakijaDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, ValintatuloksenTila, IlmoittautumisTila}
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila
@@ -15,12 +13,12 @@ import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 import Ilmoittautumistila._
-
 import org.joda.time.LocalDate
+import org.joda.time.LocalDateTime
 
 protected object YhteenvetoService {
   import collection.JavaConversions._
-  def hakutoiveidenYhteenveto(hakija: HakijaDTO): List[HakutoiveenYhteenveto] = {
+  def hakutoiveidenYhteenveto(aikataulu: Option[Vastaanottoaikataulu], hakija: HakijaDTO): List[HakutoiveenYhteenveto] = {
     hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val jono = getFirst(hakutoive).get
       var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila()), Valintatila.kesken);
@@ -78,11 +76,13 @@ protected object YhteenvetoService {
         vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
       }
 
-      var viimeisinVastaanottotilanMuutos: Option[Date] = None;
       if (vastaanottotila != Vastaanottotila.kesken) {
         vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-        viimeisinVastaanottotilanMuutos = Option(jono.getVastaanottotilanViimeisinMuutos());
       }
+
+      val viimeisinVastaanottotilanMuutos: Option[Date] = Option(jono.getVastaanottotilanViimeisinMuutos());
+
+      vastaanotettavuustila = checkAikataulu(vastaanotettavuustila, aikataulu, viimeisinVastaanottotilanMuutos)
 
       val julkaistavissa = jono.getVastaanottotieto() != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa();
       new HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinVastaanottotilanMuutos);
@@ -99,7 +99,7 @@ protected object YhteenvetoService {
   }
 
   def yhteenveto(aikataulu: Option[Vastaanottoaikataulu], hakija: HakijaDTO): Hakemuksentulos = {
-    return new Hakemuksentulos(hakija.getHakemusOid, aikataulu, hakutoiveidenYhteenveto(hakija).map { hakutoiveenYhteenveto =>
+    return new Hakemuksentulos(hakija.getHakemusOid, aikataulu, hakutoiveidenYhteenveto(aikataulu, hakija).map { hakutoiveenYhteenveto =>
       new Hakutoiveentulos(
         hakutoiveenYhteenveto.hakutoive.getHakukohdeOid(),
         hakutoiveenYhteenveto.hakutoive.getTarjoajaOid(),
@@ -139,6 +139,35 @@ protected object YhteenvetoService {
         Vastaanottotila.vastaanottanut
       case _ =>
         throw new IllegalArgumentException("Unknown state: " + valintatuloksenTila)
+    }
+  }
+
+  private def checkAikataulu(vastaanotettavuustila: Vastaanotettavuustila, aikataulu: Option[Vastaanottoaikataulu], viimeisinVastaanottotilanMuutos: Option[Date]) = {
+    if(vastaanotettavuustila == Vastaanotettavuustila.ei_vastaanotettavissa) {
+      Vastaanotettavuustila.ei_vastaanotettavissa
+    }
+    else {
+      aikataulu match {
+        case Some(Vastaanottoaikataulu(Some(deadline), buffer)) => {
+          if(LocalDateTime.now().toDate().before(deadline)) {
+            vastaanotettavuustila
+          }
+          else {
+            viimeisinVastaanottotilanMuutos match {
+              case None => Vastaanotettavuustila.ei_vastaanotettavissa
+              case Some(muutos) => {
+                if(LocalDateTime.now().isBefore(new LocalDateTime(muutos).plusDays(buffer.getOrElse(0)))) {
+                  vastaanotettavuustila
+                }
+                else {
+                  Vastaanotettavuustila.ei_vastaanotettavissa
+                }
+              }
+            }
+          }
+        }
+        case _ => vastaanotettavuustila
+      }
     }
   }
 
