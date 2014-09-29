@@ -180,6 +180,12 @@ class YhteenvetoServiceSpec extends Specification with ITSetup {
       checkHakutoiveState(hakuToive, Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
     }
 
+    "hakutoiveHylattyJulkaistavissa" in {
+      useFixture("hylatty-julkaistavissa.json")
+      val hakuToive = getHakuToive
+      checkHakutoiveState(hakuToive, Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+    }
+
 
     "hyvaksyttyPlusJulkaisematonPlusHyvaksytty" in {
       useFixture("hyvaksytty-julkaisematon-hyvaksytty.json")
