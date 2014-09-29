@@ -61,7 +61,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
 
   "vastaanotaEhdollisestiKunAikaparametriLauennut" in {
     useFixture("hyvaksytty-ylempi-varalla.json")
-    withFixedDate("15.8.2014") {
+    withFixedDateTime("15.8.2014 12:00") {
       haeSijoittelutulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
       haeSijoittelutulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
       vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT, muokkaaja, selite)
@@ -74,7 +74,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
 
   "vastaanotaSitovastiKunAikaparametriLauennut" in {
     useFixture("hyvaksytty-ylempi-varalla.json")
-    withFixedDate("15.8.2014") {
+    withFixedDateTime("15.8.2014 12:00") {
       vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
       val yhteenveto = haeSijoittelutulos
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty

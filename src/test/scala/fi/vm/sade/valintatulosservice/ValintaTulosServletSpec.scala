@@ -144,7 +144,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
     "vastaanottaa ehdollisesti" in {
       hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369.json")
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ylempi-varalla.json", true)
-      withFixedDate("15.8.2014") {
+      withFixedDateTime("15.8.2014 12:00") {
         post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
           """{"hakukohdeOid":"1.2.246.562.5.16303028779","tila":"EHDOLLISESTI_VASTAANOTTANUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
           status must_== 200
