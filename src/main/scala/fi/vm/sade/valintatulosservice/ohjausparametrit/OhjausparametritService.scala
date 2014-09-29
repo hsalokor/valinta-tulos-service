@@ -15,8 +15,9 @@ trait OhjausparametritService {
 }
 
 class StubbedOhjausparametritService extends OhjausparametritService {
+  var fixture = "vastaanotto-loppuu-2100"
   def aikataulu(asId: String) = {
-    val fileName = "/fixtures/ohjausparametrit/" + asId + ".json"
+    val fileName = "/fixtures/ohjausparametrit/" + fixture + ".json"
     Option(getClass.getResourceAsStream(fileName))
       .map(io.Source.fromInputStream(_).mkString)
       .map(parse(_).asInstanceOf[JObject])
