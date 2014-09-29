@@ -74,9 +74,9 @@ class YhteenvetoServiceSpec extends Specification with ITSetup {
 
 
     "hyvaksyttyValintatulosEiVastaanottanutMaaraaikana" in {
-      useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json")
+        useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json")
       val yhteenveto = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.peruuntunut, Vastaanottotila.ei_vastaanotetu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(1), Valintatila.peruuntunut, Vastaanottotila.ei_vastaanotetu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
     }
 
 
