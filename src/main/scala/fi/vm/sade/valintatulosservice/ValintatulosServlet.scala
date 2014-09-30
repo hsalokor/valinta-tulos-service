@@ -69,6 +69,29 @@ class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagge
     vastaanottoService.vastaanota(hakuOid, hakemusOid, vastaanotto)
   }
 
+  val postIlmoittautuminenSwagger: OperationBuilder = (apiOperation[Unit]("ilmoittaudu")
+    summary "Tallenna hakukohteelle uusi ilmoittautumistila"
+    // Real body param type cannot be used because of unsupported scala enumerations: https://github.com/scalatra/scalatra/issues/343
+    notes "Bodyssä tulee antaa tieto hakukohteen ilmoittautumistilan muutoksesta Ilmoittautuminen tyyppinä. Esim:\n" +
+    pretty(Extraction.decompose(
+      Ilmoittautuminen(
+        "1.2.3.4",
+        Ilmoittautumistila.läsnä_koko_lukuvuosi,
+        "henkilö: 5.5.5.5",
+        "kuvaus mitä kautta muokkaus tehty"
+      )
+    ))
+    parameter pathParam[String]("hakuOid").description("Haun oid")
+    parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
+    )
+  post("/:hakuOid/hakemus/:hakemusOid/ilmoittaudu", operation(postIlmoittautuminenSwagger)) {
+    val hakuOid = params("hakuOid")
+    val hakemusOid = params("hakemusOid")
+    val ilmoittautuminen = parsedBody.extract[Ilmoittautuminen]
+
+    vastaanottoService.ilmoittaudu(hakuOid, hakemusOid, ilmoittautuminen)
+  }
+
   notFound {
     // remove content type in case it was set through an action
     contentType = null

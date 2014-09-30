@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice
 import java.text.SimpleDateFormat
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Valintatila, Vastaanotettavuustila, Vastaanottotila}
+import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.fixtures.HakemusFixtureImporter
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
 import org.joda.time.DateTimeUtils
@@ -12,6 +12,7 @@ import org.scalatra.test.specs2.MutableScalatraSpec
 import org.specs2.specification.{Fragments, Step}
 import java.util.Date
 import org.scalatra.swagger.Swagger
+import fi.vm.sade.valintatulosservice.domain.Hakemuksentulos
 
 class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
   implicit val appConfig: AppConfig = new AppConfig.IT
@@ -123,6 +124,16 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
           tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 2000)
         }
       }
+
+      post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/ilmoittaudu",
+        """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"LASNA_KOKO_LUKUVUOSI","muokkaaja":"OILI","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
+        status must_== 200
+
+        get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
+          val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
+          tulos.hakutoiveet.head.ilmoittautumistila must_== Ilmoittautumistila.läsnä_koko_lukuvuosi
+        }
+      }
     }
 
     "peruu opiskelupaikan" in {
@@ -162,6 +173,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
       }
     }
   }
+
 
   addServlet(new ValintatulosServlet(), "/haku")
   override def map(fs: => Fragments) = {

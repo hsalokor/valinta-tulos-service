@@ -2,10 +2,12 @@ package fi.vm.sade.valintatulosservice
 
 import java.text.SimpleDateFormat
 import fi.vm.sade.sijoittelu.domain.{LogEntry, Valintatulos, ValintatuloksenTila}
-import fi.vm.sade.valintatulosservice.domain.{Valintatila, Vastaanottotila, Vastaanotettavuustila}
+import fi.vm.sade.valintatulosservice.domain._
 import org.joda.time.{DateTimeUtils, LocalDate}
 import org.junit.Assert._
 import org.specs2.mutable.Specification
+import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila._
+import fi.vm.sade.valintatulosservice.domain.Ilmoittautuminen
 
 class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   sequential
@@ -50,6 +52,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     useFixture("hyvaksytty-ei-valintatulosta.json")
     vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.PERUNUT, muokkaaja, selite)
     haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
+    expectFailure{ilmoittaudu(hakuOid, hakemusOid, hakukohdeOid, läsnä_koko_lukuvuosi, muokkaaja, selite)}
   }
 
   "vastaanotaEhdollisestiKunAikaparametriEiLauennut" in {
@@ -131,6 +134,8 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     useFixture("hyvaksytty-ilmoitettu.json")
     vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
     haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
+    ilmoittaudu(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", läsnä_koko_lukuvuosi, muokkaaja, selite)
+    haeSijoittelutulos.hakutoiveet(0).ilmoittautumistila must_== läsnä_koko_lukuvuosi
   }
 
   "vastaanotaEhdollisestiVastaanotettu" in {
@@ -148,6 +153,11 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
 
   def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: ValintatuloksenTila, muokkaaja: String, selite: String) = {
     vastaanottoService.vastaanota(hakuOid, hakemusOid, hakukohdeOid, tila, muokkaaja, selite)
+    success
+  }
+
+  def ilmoittaudu(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Ilmoittautumistila, muokkaaja: String, selite: String) = {
+    vastaanottoService.ilmoittaudu(hakuOid, hakemusOid, Ilmoittautuminen(hakukohdeOid, tila, muokkaaja, selite))
     success
   }
 
