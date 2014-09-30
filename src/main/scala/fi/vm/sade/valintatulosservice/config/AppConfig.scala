@@ -18,6 +18,7 @@ object AppConfig extends Logging {
       case "templated" => new LocalTestingWithTemplatedVars
       case "dev" => new Dev
       case "it" => new IT
+      case "it-externalHakemus" => new IT_externalHakemus
       case name => throw new IllegalArgumentException("Unknown value for valintatulos.profile: " + name);
     }
   }
@@ -69,6 +70,35 @@ object AppConfig extends Logging {
     }
 
     override lazy val settings = loadSettings.withOverride(("hakemus.mongodb.uri", "mongodb://localhost:28019"))
+
+    override def properties = super.properties +
+      ("sijoittelu-service.mongodb.uri" -> "mongodb://localhost:28019") +
+      ("sijoittelu-service.mongodb.dbname" -> "sijoittelu")
+  }
+
+  /**
+   * IT profile, uses embedded mongo for sijoittelu, external mongo for Hakemus and stubbed external deps
+   */
+  class IT_externalHakemus extends ExampleTemplatedProps with StubbedExternalDeps {
+
+    private var mongo: Option[MongoServer] = None
+
+    override def start {
+      mongo = EmbeddedMongo.start
+      try {
+        SijoitteluFixtures.importFixture(sijoitteluContext.database, "hyvaksytty-ilmoitettu.json")
+      } catch {
+        case e: Exception =>
+          stop
+          throw e
+      }
+    }
+    override def stop {
+      mongo.foreach(_.stop)
+      mongo = None
+    }
+
+    override lazy val settings = loadSettings.withOverride(("hakemus.mongodb.uri", "mongodb://localhost:28018"))
 
     override def properties = super.properties +
       ("sijoittelu-service.mongodb.uri" -> "mongodb://localhost:28019") +
