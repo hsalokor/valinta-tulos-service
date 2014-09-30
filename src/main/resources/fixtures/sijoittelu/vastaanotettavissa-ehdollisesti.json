@@ -8,13 +8,13 @@
             "sijoitteluajoId": {
                 "$numberLong": "1409055160621"
             },
-            "oid": "1.2.246.562.5.16303028779",
+            "oid": "1.2.246.562.5.72607738902",
             "tarjoajaOid": "1.2.246.562.10.591352080610",
             "kaikkiJonotSijoiteltu": true,
             "valintatapajonot": [
                 {
                     "tasasijasaanto": "YLITAYTTO",
-                    "oid": "14090336922663576781797489829887",
+                    "oid": "14090336922663576781797489829886",
                     "nimi": "Varsinainen jono",
                     "prioriteetti": 0,
                     "aloituspaikat": 3,
@@ -32,6 +32,7 @@
                             "pisteet": "4",
                             "tasasijaJonosija": 1,
                             "tila": "VARALLA",
+                            "varasijanNumero": 1,
                             "tilaHistoria": [
                                 {
                                     "luotu": {
@@ -54,12 +55,12 @@
             "sijoitteluajoId": {
                 "$numberLong": "1409055160621"
             },
-            "oid": "1.2.246.562.5.72607738902",
+            "oid": "1.2.246.562.5.16303028779",
             "tarjoajaOid": "1.2.246.562.10.591352080610",
             "valintatapajonot": [
                 {
                     "tasasijasaanto": "YLITAYTTO",
-                    "oid": "14090336922663576781797489829886",
+                    "oid": "14090336922663576781797489829887",
                     "nimi": "Varsinainen jono",
                     "prioriteetti": 0,
                     "aloituspaikat": 3,
@@ -104,12 +105,12 @@
     "Valintatulos": [
         {
             "_id": {
-                "$oid": "53fc8613e4b0b0b110900766"
+                "$oid": "53fc8613e4b0b0b110900767"
             },
             "className": "fi.vm.sade.sijoittelu.domain.Valintatulos",
             "valintatapajonoOid": "14090336922663576781797489829886",
             "hakemusOid": "1.2.246.562.11.00000441369",
-            "hakukohdeOid": "1.2.246.562.5.16303028779",
+            "hakukohdeOid": "1.2.246.562.5.72607738902",
             "hakijaOid": "1.2.246.562.24.14229104472",
             "hakuOid": "1.2.246.562.5.2013080813081926341928",
             "hakutoive": 1,
@@ -132,9 +133,9 @@
                 "$oid": "53fc8613e4b0b0b110900766"
             },
             "className": "fi.vm.sade.sijoittelu.domain.Valintatulos",
-            "valintatapajonoOid": "14090336922663576781797489829886",
+            "valintatapajonoOid": "14090336922663576781797489829887",
             "hakemusOid": "1.2.246.562.11.00000441369",
-            "hakukohdeOid": "1.2.246.562.5.72607738902",
+            "hakukohdeOid": "1.2.246.562.5.16303028779",
             "hakijaOid": "1.2.246.562.24.14229104472",
             "hakuOid": "1.2.246.562.5.2013080813081926341928",
             "hakutoive": 2,
