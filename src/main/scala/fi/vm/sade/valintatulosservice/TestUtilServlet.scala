@@ -18,4 +18,13 @@ class TestUtilServlet (implicit val appConfig: AppConfig) extends ScalatraServle
     val fixturename = params("fixturename")
     SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database,  fixturename + ".json", true)
   }
+
+  error {
+    case e => {
+      logger.error(request.getMethod + " " + requestPath, e);
+      response.setStatus(500)
+      "500 Internal Server Error"
+    }
+  }
+
 }

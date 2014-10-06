@@ -101,7 +101,6 @@ class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagge
   error {
     case e => {
       logger.error(request.getMethod + " " + requestPath, e);
-      e.printStackTrace()
       response.setStatus(500)
       "500 Internal Server Error"
     }
