@@ -57,26 +57,27 @@ Eclipseen:
 
 `./sbt package`
 
-### Käännä ja käynnistä (aina muutosten yhteydessä automaattisesti) ##
-
-```sh
-$ ./sbt
-> ~container:start
-```
-
-Avaa selaimessa [http://localhost:8080/valinta-tulos-service/](http://localhost:8080/valinta-tulos-service/).
-
 ### Käynnistä IDEAsta/Eclipsestä
 
-Aja TomcatRunner-luokka.
+Aja JettyLauncher-luokka.
 
-### Käynnistä komentoriviltä it-profiililla
+IT-profiililla, eli embedded mongo-kannalla: `-Dvalintatulos.profile=it`
+
+externalHakemus-profiililla omatsivut-mocha-testien ajamista varten: `-Dvalintatulos.profile=it-externalHakemus`
+
+### Käynnistä komentoriviltä
+
+IT-profiililla, eli embedded mongo-kannalla
 
 `./sbt "test:run-main fi.vm.sade.valintatulosservice.JettyLauncher" -Dvalintatulos.profile=it`
 
-### Käynnistä komentoriviltä omatsivut-mocha-testien ajamista varten
+externalHakemus-profiililla omatsivut-mocha-testien ajamista varten
 
 `./sbt "test:run-main fi.vm.sade.valintatulosservice.JettyLauncher" -Dvalintatulos.profile=it-externalHakemus`
+
+### Avaa selaimessa
+
+Avaa selaimessa http://localhost:8097/valinta-tulos-service/
 
 ### Asetukset
 
