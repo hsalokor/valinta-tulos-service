@@ -69,7 +69,7 @@ class YhteenvetoServiceSpec extends Specification with ITSetup {
     "hyvaksyttyValintatulosPerunut" in {
       useFixture("hyvaksytty-valintatulos-perunut.json")
       val yhteenveto = getYhteenveto
-      checkHakutoiveState(yhteenveto.hakutoiveet(0), Valintatila.perunut, Vastaanottotila.perunut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+      checkHakutoiveState(yhteenveto.hakutoiveet(1), Valintatila.perunut, Vastaanottotila.perunut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
     }
 
 
