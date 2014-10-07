@@ -1,0 +1,40 @@
+{
+    "result" : {
+        "modified" : 1411971889111,
+        "modifiedBy" : "1.2.246.562.24.00000000001",
+        "oid" : "1.2.246.562.5.2013080813081926341927",
+        "hakukausiUri" : "kausi_k#1",
+        "hakukausiVuosi" : 2014,
+        "hakutapaUri" : "hakutapa_01#1",
+        "hakutyyppiUri" : "hakutyyppi_01#1",
+        "kohdejoukkoUri" : "haunkohdejoukko_11#1",
+        "koulutuksenAlkamisVuosi" : 2014,
+        "koulutuksenAlkamiskausiUri" : "kausi_s#1",
+        "tila" : "JULKAISTU",
+        "sijoittelu" : true,
+        "jarjestelmanHakulomake" : true,
+        "hakuaikas" : [ {
+            "hakuaikaId" : "5474",
+            "nimi" : "Yhteishakuajan nimi 1",
+            "alkuPvm" : 1393221600000,
+            "loppuPvm" : 1394802000000
+        } ],
+        "hakukohdeOids" : [ "1.2.246.562.5.78282826169", "1.2.246.562.5.67306182477", "1.2.246.562.5.86411065799" ],
+        "haunTunniste" : "1.2.246.562.5.2013080813081926341927",
+        "nimi" : {
+            "kieli_sv" : "Gemensam ansökan till yrkes- och gymnasieutbildning våren 2014",
+            "kieli_en" : "",
+            "kieli_fi" : "Ammatillisen koulutuksen ja lukiokoulutuksen kevään 2014 yhteishaku"
+        },
+        "maxHakukohdes" : 5,
+        "organisaatioOids" : [ "1.2.246.562.10.00000000001" ],
+        "tarjoajaOids" : [ "1.2.246.562.10.00000000001" ],
+        "usePriority" : true
+    },
+    "status" : "OK",
+    "accessRights" : {
+        "update" : false,
+        "delete" : false,
+        "create" : false
+    }
+}
