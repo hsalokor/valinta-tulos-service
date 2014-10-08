@@ -11,7 +11,7 @@ import org.specs2.mutable.Specification
 class ValintatulosIntegrationTest extends Specification {
   "in luokka environment" should {
     "return valintatulos for " in {
-      val varsFile = "../deploy/vars/environments/ophitest_vars.ymlqwer"
+      val varsFile = "../deploy/vars/environments/ophitest_vars.yml"
       if (new File(varsFile).exists()) {
         implicit val appConfig = new AppConfig.LocalTestingWithTemplatedVars(varsFile)
 
