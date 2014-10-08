@@ -1,7 +1,6 @@
 package fi.vm.sade.valintatulosservice.local
 
 import java.text.SimpleDateFormat
-
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 import fi.vm.sade.valintatulosservice.{TimeWarp, ITSetup}
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
@@ -10,7 +9,10 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain.{Hakutoiveentulos, Valintatila, Vastaanotettavuustila, Vastaanottotila}
 import org.joda.time.{DateTime, DateTimeUtils}
 import org.specs2.mutable.Specification
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class SijoitteluTulosServiceSpec extends Specification with ITSetup with TimeWarp {
   sequential
 
@@ -105,10 +107,30 @@ class SijoitteluTulosServiceSpec extends Specification with ITSetup with TimeWar
     }
 
     "toisen asteen haku" in {
+      "hyvaksytty, ylemmat sijoiteltu" in {
+        useFixture("hyvaksytty-ylempi-sijoiteltu.json", hakuFixture = HakuFixtures.toinenAste)
+        checkHakutoiveState(getHakutoive(0), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+        checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
+      }
+
       "hyväksytty, ylempi varalla" in {
-        useFixture("hyvaksytty-ylempi-varalla.json")
+        useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = HakuFixtures.toinenAste)
         checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-        checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+      }
+
+      "hyvaksytty, ylempi sijoittelematon" in {
+        useFixture("hyvaksytty-ylempi-sijoittelematon.json", hakuFixture = HakuFixtures.toinenAste)
+        checkHakutoiveState(getHakutoive(0), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+        checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
+      }
+
+      "hyvaksytty, ylempi varalla, aikaparametri lauennut" in {
+        useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = HakuFixtures.toinenAste)
+        withFixedDateTime("15.8.2014 01:00") {
+          checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+        }
       }
     }
 
