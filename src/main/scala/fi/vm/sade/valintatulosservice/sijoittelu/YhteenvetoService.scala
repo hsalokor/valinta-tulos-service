@@ -58,7 +58,7 @@ protected object YhteenvetoService {
         valintatila = Valintatila.kesken;
       }
 
-      val vastaanottotila = convertVastaanottotila(ifNull(jono.getVastaanottotieto(), ValintatuloksenTila.KESKEN));
+      var vastaanottotila = convertVastaanottotila(ifNull(jono.getVastaanottotieto(), ValintatuloksenTila.KESKEN));
 
       // Vastaanottotilan vaikutus valintatilaan
       if (List(Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanottotila.vastaanottanut).contains(vastaanottotila)) {
@@ -82,7 +82,10 @@ protected object YhteenvetoService {
 
       val viimeisinVastaanottotilanMuutos: Option[Date] = Option(jono.getVastaanottotilanViimeisinMuutos());
 
-      vastaanotettavuustila = checkAikataulu(vastaanotettavuustila, aikataulu, viimeisinVastaanottotilanMuutos)
+      if(Vastaanotettavuustila.isVastaanotettavissa(vastaanotettavuustila) && LocalDateTime.now().isAfter(getVastaanottoDeadline(aikataulu, viimeisinVastaanottotilanMuutos))) {
+        //vastaanottotila = Vastaanottotila.ei_vastaanotetu_määräaikana
+        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa
+      }
 
       val julkaistavissa = jono.getVastaanottotieto() != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa();
       new HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinVastaanottotilanMuutos);
@@ -142,33 +145,16 @@ protected object YhteenvetoService {
     }
   }
 
-  private def checkAikataulu(vastaanotettavuustila: Vastaanotettavuustila, aikataulu: Option[Vastaanottoaikataulu], viimeisinVastaanottotilanMuutos: Option[Date]) = {
-    if(vastaanotettavuustila == Vastaanotettavuustila.ei_vastaanotettavissa) {
-      Vastaanotettavuustila.ei_vastaanotettavissa
-    }
-    else {
+  private def getVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinVastaanottotilanMuutos: Option[Date]) = {
       aikataulu match {
-        case Some(Vastaanottoaikataulu(Some(deadline), buffer)) => {
-          if(LocalDateTime.now().toDate().before(deadline)) {
-            vastaanotettavuustila
+        case Some(Vastaanottoaikataulu(Some(deadlineAsDate), buffer)) =>
+          val deadline = new LocalDateTime(deadlineAsDate)
+          viimeisinVastaanottotilanMuutos.map(new LocalDateTime(_).plusDays(buffer.getOrElse(0))) match {
+            case Some(muutosDeadline) if(muutosDeadline.isAfter(deadline)) => muutosDeadline
+            case _ => deadline
           }
-          else {
-            viimeisinVastaanottotilanMuutos match {
-              case None => Vastaanotettavuustila.ei_vastaanotettavissa
-              case Some(muutos) => {
-                if(LocalDateTime.now().isBefore(new LocalDateTime(muutos).plusDays(buffer.getOrElse(0)))) {
-                  vastaanotettavuustila
-                }
-                else {
-                  Vastaanotettavuustila.ei_vastaanotettavissa
-                }
-              }
-            }
-          }
-        }
-        case _ => vastaanotettavuustila
+        case _ => new LocalDateTime().plusYears(100)
       }
-    }
   }
 
   private def ifNull[T](value: T, defaultValue: T): T = {
