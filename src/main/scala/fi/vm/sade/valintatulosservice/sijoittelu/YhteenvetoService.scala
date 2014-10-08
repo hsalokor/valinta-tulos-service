@@ -10,7 +10,7 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
-import fi.vm.sade.valintatulosservice.tarjonta.HakuService
+import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 import org.joda.time.{LocalDate, LocalDateTime}
 
 protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService, hakuService: HakuService) {
@@ -23,12 +23,12 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
       .flatMap { sijoitteluAjo => Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)) }
 
     (haku, hakija) match {
-      case (Some(haku), Some(hakija)) => Some(hakemuksenYhteenveto(hakija, aikataulu))
+      case (Some(haku), Some(hakija)) => Some(hakemuksenYhteenveto(haku, hakija, aikataulu))
       case _ => None
     }
   }
 
-  private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu]): HakemuksenYhteenveto = {
+  private def hakemuksenYhteenveto(haku: Haku, hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu]): HakemuksenYhteenveto = {
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val jono = getFirst(hakutoive).get
       var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila()), Valintatila.kesken);
@@ -46,15 +46,19 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
           valintatila = Valintatila.harkinnanvaraisesti_hyväksytty;
         }
         vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_sitovasti;
-        if (hakutoive.getHakutoive() > 1) {
-          if (aikaparametriLauennut(jono)) {
-            vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti;
-          } else {
-            if (ylempiaHakutoiveitaSijoittelematta(hakija, hakutoive)) {
-              valintatila = Valintatila.kesken;
-              vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-            } else if (ylempiaHakutoiveitaVaralla(hakija, hakutoive)) {
-              vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+        if (haku.toinenAste) {
+
+        } else {
+          if (hakutoive.getHakutoive() > 1) {
+            if (aikaparametriLauennut(jono)) {
+              vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti;
+            } else {
+              if (ylempiaHakutoiveitaSijoittelematta(hakija, hakutoive)) {
+                valintatila = Valintatila.kesken;
+                vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+              } else if (ylempiaHakutoiveitaVaralla(hakija, hakutoive)) {
+                vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+              }
             }
           }
         }

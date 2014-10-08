@@ -38,9 +38,8 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
 }
 
 class StubbedHakuService extends HakuService with JsonHakuService {
-
   override def getHaku(oid: String) = {
-    val fileName = "/fixtures/tarjonta/haku/" + oid.split("\\.").last + ".json"
+    val fileName = "/fixtures/tarjonta/haku/" + HakuFixtures.activeFixture + ".json"
     Option(getClass.getResourceAsStream(fileName))
       .map(io.Source.fromInputStream(_).mkString)
       .map(parseResponse(_))
