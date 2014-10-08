@@ -8,7 +8,10 @@ import org.junit.Assert._
 import org.specs2.mutable.Specification
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila._
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautuminen
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   sequential
 
@@ -34,7 +37,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
 
   "uusiValintatulosVastaanotaEiOnnistuJosDeadlineOnPäättynyt" in {
     useFixture("hyvaksytty-ei-valintatulosta.json", "vastaanotto-loppunut")
-    haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+    haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotetu_määräaikana
     expectFailure {
       vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
     }
@@ -60,7 +63,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   "ilmoitetunValintatuloksenVastaanottoEiOnnistuDeadlinenjälkeenJosEiOleBufferiaAnnettu" in {
     useFixture("hyvaksytty-ilmoitettu.json", "ei-vastaanotto-bufferia")
     withFixedDateTime("1.9.2014 12:01") {
-      haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotetu_määräaikana
       haeSijoittelutulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
       expectFailure {
         vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
@@ -71,7 +74,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   "ilmoitetunValintatuloksenVastaanottoEiOnnistuJosViimeisinMuutosOnBufferinJälkeen" in {
     useFixture("hyvaksytty-ilmoitettu.json", "vastaanotto-loppunut")
     withFixedDateTime("9.9.2014 19:10") {
-      haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotetu_määräaikana
       haeSijoittelutulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
       expectFailure {
         vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)

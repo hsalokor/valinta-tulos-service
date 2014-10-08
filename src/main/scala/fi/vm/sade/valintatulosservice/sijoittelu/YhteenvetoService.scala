@@ -83,7 +83,7 @@ protected object YhteenvetoService {
       val viimeisinVastaanottotilanMuutos: Option[Date] = Option(jono.getVastaanottotilanViimeisinMuutos());
 
       if(Vastaanotettavuustila.isVastaanotettavissa(vastaanotettavuustila) && LocalDateTime.now().isAfter(getVastaanottoDeadline(aikataulu, viimeisinVastaanottotilanMuutos))) {
-        //vastaanottotila = Vastaanottotila.ei_vastaanotetu_määräaikana
+        vastaanottotila = Vastaanottotila.ei_vastaanotetu_määräaikana
         vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa
       }
 
