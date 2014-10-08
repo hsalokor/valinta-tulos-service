@@ -53,6 +53,10 @@ Eclipseen:
 
 `./sbt test`
 
+testit on jaettu ympäristöjen mukaan alipaketteihin.
+Esim. jos haluat ajaa vain lokaali testit niin aja:
+`sbt "testOnly fi.vm.sade.valintatulosservice.local.*"`
+
 ### War-paketointi
 
 `./sbt package`
