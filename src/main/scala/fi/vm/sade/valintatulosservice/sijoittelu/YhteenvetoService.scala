@@ -18,7 +18,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
   protected[sijoittelu] def hakemuksenYhteenveto(hakuOid: String, hakemusOid: String): Option[HakemuksenYhteenveto] = {
     val aikataulu = ohjausparametritService.aikataulu(hakuOid)
     fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)).flatMap { sijoitteluAjo =>
-      Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)).map { hakija =>
+      Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)).map { hakija: HakijaDTO =>
         val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
           val jono = getFirst(hakutoive).get
           var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila()), Valintatila.kesken);
@@ -40,17 +40,11 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
               if (aikaparametriLauennut(jono)) {
                 vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti;
               } else {
-                val ylempiaHakutoiveitaSijoittelematta = ylemmatHakutoiveet(hakija, hakutoive.getHakutoive()).filter(toive => !toive.isKaikkiJonotSijoiteltu()).size > 0;
-                if (ylempiaHakutoiveitaSijoittelematta) {
+                if (ylempiaHakutoiveitaSijoittelematta(hakija, hakutoive)) {
                   valintatila = Valintatila.kesken;
                   vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-                } else {
-                  val ylempiaHakutoiveitaVaralla = ylemmatHakutoiveet(hakija, hakutoive.getHakutoive()).filter { toive =>
-                    getFirst(toive).get.getTila == HakemuksenTila.VARALLA
-                  }.size > 0;
-                  if (ylempiaHakutoiveitaVaralla) {
-                    vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-                  }
+                } else if (ylempiaHakutoiveitaVaralla(hakija, hakutoive)) {
+                  vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
                 }
               }
             }
@@ -82,7 +76,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
 
           val viimeisinVastaanottotilanMuutos: Option[Date] = Option(jono.getVastaanottotilanViimeisinMuutos());
 
-          if(Vastaanotettavuustila.isVastaanotettavissa(vastaanotettavuustila) && LocalDateTime.now().isAfter(getVastaanottoDeadline(aikataulu, viimeisinVastaanottotilanMuutos))) {
+          if(Vastaanotettavuustila.isVastaanotettavissa(vastaanotettavuustila) && new LocalDateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinVastaanottotilanMuutos))) {
             vastaanottotila = Vastaanottotila.ei_vastaanotetu_määräaikana
             vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa
           }
@@ -93,6 +87,16 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
         HakemuksenYhteenveto(hakija, aikataulu, hakutoiveidenYhteenvedot)
       }
     }
+  }
+
+  private def ylempiaHakutoiveitaSijoittelematta(hakija: HakijaDTO, hakutoive: HakutoiveDTO) = {
+    ylemmatHakutoiveet(hakija, hakutoive.getHakutoive()).filter(toive => !toive.isKaikkiJonotSijoiteltu()).size > 0
+  }
+
+  private def ylempiaHakutoiveitaVaralla(hakija: HakijaDTO, hakutoive: HakutoiveDTO) = {
+    ylemmatHakutoiveet(hakija, hakutoive.getHakutoive()).find { toive =>
+      getFirst(toive).get.getTila == HakemuksenTila.VARALLA
+    }.isDefined
   }
 
   private def fromHakemuksenTila(tila: HakemuksenTila): Valintatila = {
