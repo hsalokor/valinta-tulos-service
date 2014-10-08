@@ -9,7 +9,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
     val aikataulu = ohjausparametritService.aikataulu(hakuOid)
-    val sijoitteluTulos: Hakemuksentulos = sijoittelutulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(Hakemuksentulos(hakemusOid, aikataulu, Nil)).julkaistavaVersio
+    val sijoitteluTulos: Hakemuksentulos = sijoittelutulosService.hakemuksenTulos(hakuOid, hakemusOid).getOrElse(Hakemuksentulos(hakemusOid, aikataulu, Nil)).julkaistavaVersio
     val hakemus: Option[Hakemus] = hakemusRepository.findHakutoiveOids(hakemusOid)
 
     hakemus.map { h =>

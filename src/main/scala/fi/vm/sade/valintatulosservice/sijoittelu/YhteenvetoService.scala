@@ -1,94 +1,97 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
-import java.util.Date
-import java.util.stream.Collectors
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakutoiveDTO, HakutoiveenValintatapajonoDTO, HakijaDTO}
-import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, ValintatuloksenTila, IlmoittautumisTila}
-import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila
-import fi.vm.sade.valintatulosservice.domain.Valintatila
-import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila
-import fi.vm.sade.valintatulosservice.domain._
+import java.util.{Optional, Date}
+
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, ValintatuloksenTila}
+import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
-import Ilmoittautumistila._
-import org.joda.time.LocalDate
-import org.joda.time.LocalDateTime
+import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
+import org.joda.time.{LocalDate, LocalDateTime}
 
-protected object YhteenvetoService {
-  import collection.JavaConversions._
-  def hakutoiveidenYhteenveto(aikataulu: Option[Vastaanottoaikataulu], hakija: HakijaDTO): List[HakutoiveenYhteenveto] = {
-    hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
-      val jono = getFirst(hakutoive).get
-      var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila()), Valintatila.kesken);
-      if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta()) {
-        valintatila = Valintatila.hyväksytty;
-      }
-      var vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-      // Valintatila
+protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService) {
+  import scala.collection.JavaConversions._
 
-      if (jono.getTila().isHyvaksyttyOrVaralla() && toinenHakutoiveVastaanotettu(hakija, hakutoive.getHakutoive())) {
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-        valintatila = Valintatila.peruuntunut;
-      } else if (jono.getTila().isHyvaksytty()) {
-        if (jono.isHyvaksyttyHarkinnanvaraisesti()) {
-          valintatila = Valintatila.harkinnanvaraisesti_hyväksytty;
-        }
-        vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_sitovasti;
-        if (hakutoive.getHakutoive() > 1) {
-          if (aikaparametriLauennut(jono)) {
-            vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti;
-          } else {
-            val ylempiaHakutoiveitaSijoittelematta = ylemmatHakutoiveet(hakija, hakutoive.getHakutoive()).filter(toive => !toive.isKaikkiJonotSijoiteltu()).size > 0;
-            if (ylempiaHakutoiveitaSijoittelematta) {
-              valintatila = Valintatila.kesken;
-              vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-            } else {
-              val ylempiaHakutoiveitaVaralla = ylemmatHakutoiveet(hakija, hakutoive.getHakutoive()).filter { toive =>
-                getFirst(toive).get.getTila == HakemuksenTila.VARALLA
-              }.size > 0;
-              if (ylempiaHakutoiveitaVaralla) {
-                vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+  protected[sijoittelu] def hakemuksenYhteenveto(hakuOid: String, hakemusOid: String): Option[HakemuksenYhteenveto] = {
+    val aikataulu = ohjausparametritService.aikataulu(hakuOid)
+    fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)).flatMap { sijoitteluAjo =>
+      Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)).map { hakija =>
+        val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
+          val jono = getFirst(hakutoive).get
+          var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila()), Valintatila.kesken);
+          if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta()) {
+            valintatila = Valintatila.hyväksytty;
+          }
+          var vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+          // Valintatila
+
+          if (jono.getTila().isHyvaksyttyOrVaralla() && toinenHakutoiveVastaanotettu(hakija, hakutoive.getHakutoive())) {
+            vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+            valintatila = Valintatila.peruuntunut;
+          } else if (jono.getTila().isHyvaksytty()) {
+            if (jono.isHyvaksyttyHarkinnanvaraisesti()) {
+              valintatila = Valintatila.harkinnanvaraisesti_hyväksytty;
+            }
+            vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_sitovasti;
+            if (hakutoive.getHakutoive() > 1) {
+              if (aikaparametriLauennut(jono)) {
+                vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti;
+              } else {
+                val ylempiaHakutoiveitaSijoittelematta = ylemmatHakutoiveet(hakija, hakutoive.getHakutoive()).filter(toive => !toive.isKaikkiJonotSijoiteltu()).size > 0;
+                if (ylempiaHakutoiveitaSijoittelematta) {
+                  valintatila = Valintatila.kesken;
+                  vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+                } else {
+                  val ylempiaHakutoiveitaVaralla = ylemmatHakutoiveet(hakija, hakutoive.getHakutoive()).filter { toive =>
+                    getFirst(toive).get.getTila == HakemuksenTila.VARALLA
+                  }.size > 0;
+                  if (ylempiaHakutoiveitaVaralla) {
+                    vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+                  }
+                }
               }
             }
+          } else if (!hakutoive.isKaikkiJonotSijoiteltu()) {
+            valintatila = Valintatila.kesken;
           }
+
+          var vastaanottotila = convertVastaanottotila(ifNull(jono.getVastaanottotieto(), ValintatuloksenTila.KESKEN));
+
+          // Vastaanottotilan vaikutus valintatilaan
+          if (List(Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanottotila.vastaanottanut).contains(vastaanottotila)) {
+            valintatila = Valintatila.hyväksytty;
+          } else if (Vastaanottotila.perunut == vastaanottotila) {
+            valintatila = Valintatila.perunut;
+            vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+          } else if (ValintatuloksenTila.ILMOITETTU == jono.getVastaanottotieto()) {
+            valintatila = Valintatila.hyväksytty;
+          } else if (Vastaanottotila.peruutettu == vastaanottotila) {
+            valintatila = Valintatila.peruutettu;
+            vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+          } else if (Vastaanottotila.ei_vastaanotetu_määräaikana == vastaanottotila) {
+            valintatila = Valintatila.peruuntunut;
+            vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+          }
+
+          if (vastaanottotila != Vastaanottotila.kesken) {
+            vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+          }
+
+          val viimeisinVastaanottotilanMuutos: Option[Date] = Option(jono.getVastaanottotilanViimeisinMuutos());
+
+          if(Vastaanotettavuustila.isVastaanotettavissa(vastaanotettavuustila) && LocalDateTime.now().isAfter(getVastaanottoDeadline(aikataulu, viimeisinVastaanottotilanMuutos))) {
+            vastaanottotila = Vastaanottotila.ei_vastaanotetu_määräaikana
+            vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa
+          }
+
+          val julkaistavissa = jono.getVastaanottotieto() != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa();
+          new HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinVastaanottotilanMuutos);
         }
-      } else if (!hakutoive.isKaikkiJonotSijoiteltu()) {
-        valintatila = Valintatila.kesken;
+        HakemuksenYhteenveto(hakija, aikataulu, hakutoiveidenYhteenvedot)
       }
-
-      var vastaanottotila = convertVastaanottotila(ifNull(jono.getVastaanottotieto(), ValintatuloksenTila.KESKEN));
-
-      // Vastaanottotilan vaikutus valintatilaan
-      if (List(Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanottotila.vastaanottanut).contains(vastaanottotila)) {
-        valintatila = Valintatila.hyväksytty;
-      } else if (Vastaanottotila.perunut == vastaanottotila) {
-        valintatila = Valintatila.perunut;
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-      } else if (ValintatuloksenTila.ILMOITETTU == jono.getVastaanottotieto()) {
-        valintatila = Valintatila.hyväksytty;
-      } else if (Vastaanottotila.peruutettu == vastaanottotila) {
-        valintatila = Valintatila.peruutettu;
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-      } else if (Vastaanottotila.ei_vastaanotetu_määräaikana == vastaanottotila) {
-        valintatila = Valintatila.peruuntunut;
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-      }
-
-      if (vastaanottotila != Vastaanottotila.kesken) {
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-      }
-
-      val viimeisinVastaanottotilanMuutos: Option[Date] = Option(jono.getVastaanottotilanViimeisinMuutos());
-
-      if(Vastaanotettavuustila.isVastaanotettavissa(vastaanotettavuustila) && LocalDateTime.now().isAfter(getVastaanottoDeadline(aikataulu, viimeisinVastaanottotilanMuutos))) {
-        vastaanottotila = Vastaanottotila.ei_vastaanotetu_määräaikana
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa
-      }
-
-      val julkaistavissa = jono.getVastaanottotieto() != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa();
-      new HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinVastaanottotilanMuutos);
     }
   }
 
@@ -99,25 +102,6 @@ protected object YhteenvetoService {
   private def toinenHakutoiveVastaanotettu(hakija: HakijaDTO, hakutoive: Integer): Boolean = {
     return hakija.getHakutoiveet.find(h =>
       !h.getHakutoive().equals(hakutoive) && getFirst(h).get.getVastaanottotieto() == ValintatuloksenTila.VASTAANOTTANUT).isDefined
-  }
-
-  def yhteenveto(aikataulu: Option[Vastaanottoaikataulu], hakija: HakijaDTO): Hakemuksentulos = {
-    return new Hakemuksentulos(hakija.getHakemusOid, aikataulu, hakutoiveidenYhteenveto(aikataulu, hakija).map { hakutoiveenYhteenveto =>
-      new Hakutoiveentulos(
-        hakutoiveenYhteenveto.hakutoive.getHakukohdeOid(),
-        hakutoiveenYhteenveto.hakutoive.getTarjoajaOid(),
-        hakutoiveenYhteenveto.valintatila,
-        hakutoiveenYhteenveto.vastaanottotila,
-        Ilmoittautumistila.withName(ifNull(hakutoiveenYhteenveto.valintatapajono.getIlmoittautumisTila(), IlmoittautumisTila.EI_TEHTY).name()),
-        hakutoiveenYhteenveto.vastaanotettavuustila,
-        Option(hakutoiveenYhteenveto.viimeisinVastaanottotilanMuutos.getOrElse(null)),
-        Option(hakutoiveenYhteenveto.valintatapajono.getJonosija()).map(_.toInt),
-        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaKaytetaanAlkaen()),
-        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaTaytetaanAsti()),
-        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijanNumero()).map(_.toInt),
-        hakutoiveenYhteenveto.julkaistavissa
-      )
-    })
   }
 
   private def convertVastaanottotila(valintatuloksenTila: ValintatuloksenTila): Vastaanottotila = {
@@ -189,4 +173,16 @@ protected object YhteenvetoService {
 
     hakutoive.getHakutoiveenValintatapajonot.toList.sorted(ordering).headOption
   }
+
+  def fromOptional[T](opt: Optional[T]) = {
+    if (opt.isPresent) {
+      Some(opt.get)
+    } else {
+      None
+    }
+  }
 }
+
+protected[sijoittelu] case class HakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu], hakutoiveet: List[HakutoiveenYhteenveto])
+
+protected[sijoittelu] case class HakutoiveenYhteenveto (hakutoive: HakutoiveDTO, valintatapajono: HakutoiveenValintatapajonoDTO, valintatila: Valintatila, vastaanottotila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean, viimeisinVastaanottotilanMuutos: Option[Date])

@@ -1,10 +1,9 @@
-package fi.vm.sade.valintatulosservice
+package fi.vm.sade.valintatulosservice.local
 
-import fi.vm.sade.valintatulosservice.config.AppConfig
-import fi.vm.sade.valintatulosservice.domain.{Hakutoive, Hakemus}
+import fi.vm.sade.valintatulosservice.ITSetup
+import fi.vm.sade.valintatulosservice.domain.{Hakemus, Hakutoive}
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import org.specs2.mutable.Specification
-import org.specs2.specification.{Step, Fragments}
 
 class HakemusRepositorySpec extends Specification with ITSetup {
   val repo = new HakemusRepository()

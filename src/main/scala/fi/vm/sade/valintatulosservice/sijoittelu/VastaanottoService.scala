@@ -1,23 +1,14 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
-import java.util.{Date, Optional}
-import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT
-import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila.PERUNUT
-import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila.VASTAANOTTANUT
-import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI
-import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
-import fi.vm.sade.valintatulosservice.domain.{Ilmoittautuminen, Vastaanotettavuustila, Vastaanotto}
+import java.util.Date
+
+import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila.{EHDOLLISESTI_VASTAANOTTANUT, PERUNUT, VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI}
 import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
-import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
+import fi.vm.sade.valintatulosservice.domain.{Ilmoittautuminen, Vastaanotettavuustila, Vastaanotto}
 
-// This compilation unit is a quick-and-dirty conversion from Java code
-
-class VastaanottoService(dao: ValintatulosDao, raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService) {
-  import Java8Conversions._
-  import collection.JavaConversions._
-
+class VastaanottoService(yhteenvetoService: YhteenvetoService, dao: ValintatulosDao) {
   def vastaanota(hakuOid: String, hakemusOid: String, vastaanotto: Vastaanotto) {
     vastaanota(hakuOid, hakemusOid, vastaanotto.hakukohdeOid, ValintatuloksenTila.valueOf(vastaanotto.tila.toString), vastaanotto.muokkaaja, vastaanotto.selite)
   }
@@ -25,29 +16,20 @@ class VastaanottoService(dao: ValintatulosDao, raportointiService: RaportointiSe
   def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: ValintatuloksenTila, muokkaaja: String, selite: String) {
     val (hakemus, hakutoive) = etsiHakutoive(hakuOid, hakemusOid, hakukohdeOid)
 
-    tarkistaVastaanotettavuus(hakutoive.get, tila)
-    val tiedot = new ValintatulosPerustiedot(hakuOid, hakukohdeOid, hakutoive.get.valintatapajono.getValintatapajonoOid, hakemusOid, hakemus.getHakijaOid, hakutoive.get.hakutoive.getHakutoive)
+    tarkistaVastaanotettavuus(hakutoive, tila)
+    val tiedot = new ValintatulosPerustiedot(hakuOid, hakukohdeOid, hakutoive.valintatapajono.getValintatapajonoOid, hakemusOid, hakemus.getHakijaOid, hakutoive.hakutoive.getHakutoive)
     vastaanota(tiedot, tila, muokkaaja, selite)
 
   }
 
-  private def etsiHakutoive(hakuOid: String, hakemusOid: String, hakukohdeOid: String) = {
-    val sijoitteluAjo: Option[SijoitteluAjo] = raportointiService.latestSijoitteluAjoForHaku(hakuOid)
-    if (!sijoitteluAjo.isDefined) {
-      throw new IllegalArgumentException("Sijoitteluajoa ei löydy")
+  private def etsiHakutoive(hakuOid: String, hakemusOid: String, hakukohdeOid: String): (HakijaDTO, HakutoiveenYhteenveto) = {
+    val yhteenveto: Option[HakemuksenYhteenveto] = yhteenvetoService.hakemuksenYhteenveto(hakuOid, hakemusOid)
+    (yhteenveto, yhteenveto.flatMap(_.hakutoiveet.find(_.hakutoive.getHakukohdeOid == hakukohdeOid))) match {
+      case (Some(yhteenveto), Some(hakutoive)) =>
+        (yhteenveto.hakija, hakutoive)
+      case _ =>
+        throw new IllegalArgumentException("Hakemusta tai hakutoivetta ei löydy")
     }
-    val hakemus: HakijaDTO = raportointiService.hakemus(sijoitteluAjo.get, hakemusOid)
-    if (hakemus == null) {
-      throw new IllegalArgumentException("Hakemusta ei löydy")
-    }
-    val hakutoiveet: List[HakutoiveenYhteenveto] = YhteenvetoService.hakutoiveidenYhteenveto(ohjausparametritService.aikataulu(hakuOid), hakemus).toList
-    val hakutoive: Option[HakutoiveenYhteenveto] = hakutoiveet.find(_.hakutoive.getHakukohdeOid == hakukohdeOid)
-
-    if (!hakutoive.isDefined) {
-      throw new IllegalArgumentException("Hakukohdetta ei löydy")
-    }
-    (hakemus, hakutoive)
-
   }
 
   private def tarkistaVastaanotettavuus(hakutoive: HakutoiveenYhteenveto, tila: ValintatuloksenTila) {
@@ -76,7 +58,7 @@ class VastaanottoService(dao: ValintatulosDao, raportointiService: RaportointiSe
 
   def ilmoittaudu(hakuOid: String, hakemusOid: String, ilmoittautuminen: Ilmoittautuminen) {
     val (_, hakutoive) = etsiHakutoive(hakuOid, hakemusOid, ilmoittautuminen.hakukohdeOid)
-    var valintatulos: Valintatulos = dao.loadValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.get.valintatapajono.getValintatapajonoOid, hakemusOid)
+    var valintatulos: Valintatulos = dao.loadValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajono.getValintatapajonoOid, hakemusOid)
     if (valintatulos == null) {
       throw new IllegalArgumentException("Valintatulosta ei löydy")
     }

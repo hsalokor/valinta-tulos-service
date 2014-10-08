@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice
+package fi.vm.sade.valintatulosservice.production
 
 import fi.vm.sade.valintatulosservice.http.DefaultHttpClient
 import org.specs2.mutable.Specification

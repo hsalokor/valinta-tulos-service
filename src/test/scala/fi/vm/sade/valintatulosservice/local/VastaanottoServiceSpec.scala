@@ -1,14 +1,12 @@
-package fi.vm.sade.valintatulosservice
+package fi.vm.sade.valintatulosservice.local
 
-import java.text.SimpleDateFormat
-import fi.vm.sade.sijoittelu.domain.{LogEntry, Valintatulos, ValintatuloksenTila}
-import fi.vm.sade.valintatulosservice.domain._
-import org.joda.time.{DateTimeUtils, LocalDate}
-import org.junit.Assert._
-import org.specs2.mutable.Specification
+import fi.vm.sade.sijoittelu.domain.{LogEntry, ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila._
-import fi.vm.sade.valintatulosservice.domain.Ilmoittautuminen
+import fi.vm.sade.valintatulosservice.domain.{Ilmoittautuminen, _}
+import fi.vm.sade.valintatulosservice.{ITSetup, TimeWarp}
+import org.joda.time.LocalDate
 import org.junit.runner.RunWith
+import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -83,7 +81,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   }
 
   "valintaTuloksenMuutoslogi" in {
-    import collection.JavaConversions._
+    import scala.collection.JavaConversions._
     useFixture("hyvaksytty-ei-valintatulosta.json")
     vastaanota(hakuOid, hakemusOid, hakukohdeOid, ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
     val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(hakukohdeOid, "14090336922663576781797489829887", hakemusOid)
@@ -194,7 +192,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   lazy val sijoitteluClient = appConfig.sijoitteluContext.sijoittelutulosService
   lazy val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
 
-  def haeSijoittelutulos = sijoitteluClient.hakemuksentulos(hakuOid, hakemusOid).get
+  def haeSijoittelutulos = sijoitteluClient.hakemuksenTulos(hakuOid, hakemusOid).get
 
   lazy val vastaanottoService = appConfig.sijoitteluContext.vastaanottoService
 

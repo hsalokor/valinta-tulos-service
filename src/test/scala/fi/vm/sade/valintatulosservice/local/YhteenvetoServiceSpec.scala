@@ -1,14 +1,12 @@
-package fi.vm.sade.valintatulosservice
+package fi.vm.sade.valintatulosservice.local
 
 import java.text.SimpleDateFormat
 
+import fi.vm.sade.valintatulosservice.ITSetup
+import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
-import fi.vm.sade.valintatulosservice.domain.{Hakutoiveentulos, Vastaanotettavuustila, Vastaanottotila, Valintatila}
-import fi.vm.sade.valintatulosservice.domain.Valintatila.Valintatila
-import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
-import Valintatila._
+import fi.vm.sade.valintatulosservice.domain.{Hakutoiveentulos, Valintatila, Vastaanotettavuustila, Vastaanottotila}
 import org.joda.time.{DateTime, DateTimeUtils}
 import org.specs2.mutable.Specification
 
@@ -195,15 +193,13 @@ class YhteenvetoServiceSpec extends Specification with ITSetup {
       checkHakutoiveState(yhteenveto.hakutoiveet(2), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
     }
   }
-
-  import scala.collection.JavaConversions._
   lazy val sijoitteluClient = appConfig.sijoitteluContext.sijoittelutulosService
 
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
   val sijoitteluAjoId: String = "latest"
   val hakemusOid: String = "1.2.246.562.11.00000441369"
 
-  def getYhteenveto = sijoitteluClient.hakemuksentulos(hakuOid, hakemusOid).get
+  def getYhteenveto = sijoitteluClient.hakemuksenTulos(hakuOid, hakemusOid).get
   def getHakuToive = getYhteenveto.hakutoiveet(0)
 
   def checkHakutoiveState(hakuToive: Hakutoiveentulos, expectedTila: Valintatila, vastaanottoTila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean) = {

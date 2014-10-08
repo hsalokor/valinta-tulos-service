@@ -1,18 +1,17 @@
-package fi.vm.sade.valintatulosservice
+package fi.vm.sade.valintatulosservice.local
 
-import java.text.SimpleDateFormat
+import java.util.Date
+
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, _}
 import fi.vm.sade.valintatulosservice.fixtures.HakemusFixtureImporter
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
-import org.joda.time.DateTimeUtils
+import fi.vm.sade.valintatulosservice.{JsonFormats, TimeWarp, ValintatulosServlet, ValintatulosSwagger}
 import org.json4s.jackson.Serialization
+import org.scalatra.swagger.Swagger
 import org.scalatra.test.specs2.MutableScalatraSpec
 import org.specs2.specification.{Fragments, Step}
-import java.util.Date
-import org.scalatra.swagger.Swagger
-import fi.vm.sade.valintatulosservice.domain.Hakemuksentulos
 
 class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
   implicit val appConfig: AppConfig = new AppConfig.IT

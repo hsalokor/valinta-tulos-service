@@ -1,7 +1,7 @@
-package fi.vm.sade.valintatulosservice
+package fi.vm.sade.valintatulosservice.testenvironment
 
 import fi.vm.sade.valintatulosservice.config.AppConfig
-import fi.vm.sade.valintatulosservice.tarjonta.{TarjontaHakuService, StubbedHakuService}
+import fi.vm.sade.valintatulosservice.tarjonta.TarjontaHakuService
 import org.specs2.mutable.Specification
 
 class TarjontaIntegrationTest extends Specification {
