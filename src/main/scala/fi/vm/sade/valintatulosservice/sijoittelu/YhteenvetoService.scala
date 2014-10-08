@@ -10,83 +10,92 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
+import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import org.joda.time.{LocalDate, LocalDateTime}
 
-protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService) {
+protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService, hakuService: HakuService) {
   import scala.collection.JavaConversions._
 
   protected[sijoittelu] def hakemuksenYhteenveto(hakuOid: String, hakemusOid: String): Option[HakemuksenYhteenveto] = {
     val aikataulu = ohjausparametritService.aikataulu(hakuOid)
-    fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)).flatMap { sijoitteluAjo =>
-      Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)).map { hakija: HakijaDTO =>
-        val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
-          val jono = getFirst(hakutoive).get
-          var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila()), Valintatila.kesken);
-          if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta()) {
-            valintatila = Valintatila.hyväksytty;
-          }
-          var vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-          // Valintatila
+    val haku = hakuService.getHaku(hakuOid)
+    val hakija = fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid))
+      .flatMap { sijoitteluAjo => Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)) }
 
-          if (jono.getTila().isHyvaksyttyOrVaralla() && toinenHakutoiveVastaanotettu(hakija, hakutoive.getHakutoive())) {
-            vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-            valintatila = Valintatila.peruuntunut;
-          } else if (jono.getTila().isHyvaksytty()) {
-            if (jono.isHyvaksyttyHarkinnanvaraisesti()) {
-              valintatila = Valintatila.harkinnanvaraisesti_hyväksytty;
-            }
-            vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_sitovasti;
-            if (hakutoive.getHakutoive() > 1) {
-              if (aikaparametriLauennut(jono)) {
-                vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti;
-              } else {
-                if (ylempiaHakutoiveitaSijoittelematta(hakija, hakutoive)) {
-                  valintatila = Valintatila.kesken;
-                  vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-                } else if (ylempiaHakutoiveitaVaralla(hakija, hakutoive)) {
-                  vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-                }
-              }
-            }
-          } else if (!hakutoive.isKaikkiJonotSijoiteltu()) {
-            valintatila = Valintatila.kesken;
-          }
-
-          var vastaanottotila = convertVastaanottotila(ifNull(jono.getVastaanottotieto(), ValintatuloksenTila.KESKEN));
-
-          // Vastaanottotilan vaikutus valintatilaan
-          if (List(Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanottotila.vastaanottanut).contains(vastaanottotila)) {
-            valintatila = Valintatila.hyväksytty;
-          } else if (Vastaanottotila.perunut == vastaanottotila) {
-            valintatila = Valintatila.perunut;
-            vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-          } else if (ValintatuloksenTila.ILMOITETTU == jono.getVastaanottotieto()) {
-            valintatila = Valintatila.hyväksytty;
-          } else if (Vastaanottotila.peruutettu == vastaanottotila) {
-            valintatila = Valintatila.peruutettu;
-            vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-          } else if (Vastaanottotila.ei_vastaanotetu_määräaikana == vastaanottotila) {
-            valintatila = Valintatila.peruuntunut;
-            vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-          }
-
-          if (vastaanottotila != Vastaanottotila.kesken) {
-            vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-          }
-
-          val viimeisinVastaanottotilanMuutos: Option[Date] = Option(jono.getVastaanottotilanViimeisinMuutos());
-
-          if(Vastaanotettavuustila.isVastaanotettavissa(vastaanotettavuustila) && new LocalDateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinVastaanottotilanMuutos))) {
-            vastaanottotila = Vastaanottotila.ei_vastaanotetu_määräaikana
-            vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa
-          }
-
-          val julkaistavissa = jono.getVastaanottotieto() != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa();
-          new HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinVastaanottotilanMuutos);
-        }
-        HakemuksenYhteenveto(hakija, aikataulu, hakutoiveidenYhteenvedot)
-      }
+    (haku, hakija) match {
+      case (Some(haku), Some(hakija)) => Some(hakemuksenYhteenveto(hakija, aikataulu))
+      case _ => None
     }
+  }
+
+  private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu]): HakemuksenYhteenveto = {
+    val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
+      val jono = getFirst(hakutoive).get
+      var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila()), Valintatila.kesken);
+      if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta()) {
+        valintatila = Valintatila.hyväksytty;
+      }
+      var vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+      // Valintatila
+
+      if (jono.getTila().isHyvaksyttyOrVaralla() && toinenHakutoiveVastaanotettu(hakija, hakutoive.getHakutoive())) {
+        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+        valintatila = Valintatila.peruuntunut;
+      } else if (jono.getTila().isHyvaksytty()) {
+        if (jono.isHyvaksyttyHarkinnanvaraisesti()) {
+          valintatila = Valintatila.harkinnanvaraisesti_hyväksytty;
+        }
+        vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_sitovasti;
+        if (hakutoive.getHakutoive() > 1) {
+          if (aikaparametriLauennut(jono)) {
+            vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti;
+          } else {
+            if (ylempiaHakutoiveitaSijoittelematta(hakija, hakutoive)) {
+              valintatila = Valintatila.kesken;
+              vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+            } else if (ylempiaHakutoiveitaVaralla(hakija, hakutoive)) {
+              vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+            }
+          }
+        }
+      } else if (!hakutoive.isKaikkiJonotSijoiteltu()) {
+        valintatila = Valintatila.kesken;
+      }
+
+      var vastaanottotila = convertVastaanottotila(ifNull(jono.getVastaanottotieto(), ValintatuloksenTila.KESKEN));
+
+      // Vastaanottotilan vaikutus valintatilaan
+      if (List(Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanottotila.vastaanottanut).contains(vastaanottotila)) {
+        valintatila = Valintatila.hyväksytty;
+      } else if (Vastaanottotila.perunut == vastaanottotila) {
+        valintatila = Valintatila.perunut;
+        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+      } else if (ValintatuloksenTila.ILMOITETTU == jono.getVastaanottotieto()) {
+        valintatila = Valintatila.hyväksytty;
+      } else if (Vastaanottotila.peruutettu == vastaanottotila) {
+        valintatila = Valintatila.peruutettu;
+        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+      } else if (Vastaanottotila.ei_vastaanotetu_määräaikana == vastaanottotila) {
+        valintatila = Valintatila.peruuntunut;
+        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+      }
+
+      if (vastaanottotila != Vastaanottotila.kesken) {
+        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
+      }
+
+      val viimeisinVastaanottotilanMuutos: Option[Date] = Option(jono.getVastaanottotilanViimeisinMuutos());
+
+      if(Vastaanotettavuustila.isVastaanotettavissa(vastaanotettavuustila) && new LocalDateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinVastaanottotilanMuutos))) {
+        vastaanottotila = Vastaanottotila.ei_vastaanotetu_määräaikana
+        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa
+      }
+
+      val julkaistavissa = jono.getVastaanottotieto() != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa();
+      new HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinVastaanottotilanMuutos);
+    }
+    HakemuksenYhteenveto(hakija, aikataulu, hakutoiveidenYhteenvedot)
+
   }
 
   private def ylempiaHakutoiveitaSijoittelematta(hakija: HakijaDTO, hakutoive: HakutoiveDTO) = {

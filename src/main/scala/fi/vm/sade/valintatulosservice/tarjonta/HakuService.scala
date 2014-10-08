@@ -8,9 +8,9 @@ trait HakuService {
 }
 
 object HakuService {
-  def apply(appConfig: AppConfig) = appConfig match {
+  def apply(appConfig: AppConfig): HakuService = appConfig match {
     case _:StubbedExternalDeps => new StubbedHakuService
-    case _ => new TarjontaHakuService(_)
+    case _ => new TarjontaHakuService(appConfig)
   }
 }
 

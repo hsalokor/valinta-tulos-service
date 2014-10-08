@@ -9,7 +9,9 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
     val aikataulu = ohjausparametritService.aikataulu(hakuOid)
-    val sijoitteluTulos: Hakemuksentulos = sijoittelutulosService.hakemuksenTulos(hakuOid, hakemusOid).getOrElse(Hakemuksentulos(hakemusOid, aikataulu, Nil)).julkaistavaVersio
+    val sijoitteluTulos: Hakemuksentulos = sijoittelutulosService.hakemuksenTulos(hakuOid, hakemusOid)
+      .getOrElse(tyhjäHakemuksenTulos(hakemusOid, aikataulu))
+      .julkaistavaVersio
     val hakemus: Option[Hakemus] = hakemusRepository.findHakutoiveOids(hakemusOid)
 
     hakemus.map { h =>
@@ -21,6 +23,8 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       Hakemuksentulos(h.oid, aikataulu, kasitteleKeskenEraiset(tulokset))
     }
   }
+
+  private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = Hakemuksentulos(hakemusOid, aikataulu, Nil)
 
   private def kasitteleKeskenEraiset(tulokset: List[Hakutoiveentulos]) = {
     val firstFinished = tulokset.indexWhere { t =>

@@ -4,6 +4,7 @@ import com.mongodb._
 import fi.vm.sade.sijoittelu.tulos.service.{RaportointiService}
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import org.mongodb.morphia.{Datastore, Morphia}
 import org.springframework.beans.factory.annotation.{Value, Autowired}
 import org.springframework.context.ApplicationContext
@@ -18,7 +19,7 @@ class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext) {
 
   lazy val valintatulosDao = context.getBean(classOf[ValintatulosDao])
   lazy val raportointiService = context.getBean(classOf[RaportointiService])
-  lazy val yhteenvetoService = new YhteenvetoService(raportointiService, config.ohjausparametritService)
+  lazy val yhteenvetoService = new YhteenvetoService(raportointiService, config.ohjausparametritService, HakuService.apply(config))
   lazy val sijoittelutulosService = new SijoittelutulosService(yhteenvetoService)
   lazy val vastaanottoService = new VastaanottoService(yhteenvetoService, valintatulosDao)
 }
