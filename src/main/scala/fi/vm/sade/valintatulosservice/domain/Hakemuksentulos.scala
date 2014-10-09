@@ -22,7 +22,8 @@ case class Hakutoiveentulos(hakukohdeOid: String,
                             varasijojaKaytetaanAlkaen: Option[Date],
                             varasijojaTaytetaanAsti: Option[Date],
                             varasijanumero: Option[Int],
-                            julkaistavissa: Boolean
+                            julkaistavissa: Boolean,
+                            tilanKuvaukset: Map[String, String]
                             ) {
   def julkaistavaVersio = {
     if (julkaistavissa) {
@@ -39,7 +40,8 @@ case class Hakutoiveentulos(hakukohdeOid: String,
         varasijojaKaytetaanAlkaen,
         varasijojaTaytetaanAsti,
         None,
-        false
+        false,
+        Map()
       )
     }
   }
@@ -59,6 +61,8 @@ object Hakutoiveentulos {
       None,
       None,
       None,
-      true)
+      true,
+      Map()
+    )
   }
 }

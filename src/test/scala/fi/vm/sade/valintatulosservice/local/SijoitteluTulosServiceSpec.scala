@@ -56,8 +56,16 @@ class SijoitteluTulosServiceSpec extends Specification with ITSetup with TimeWar
       }
 
       "ei vastaanottanut määräaikana" in {
-        useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json")
-        checkHakutoiveState(getHakutoive(1), Valintatila.peruuntunut, Vastaanottotila.ei_vastaanotetu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        "sijoittelu ei ole ehtinyt muuttamaan tulosta" in {
+          useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json")
+          checkHakutoiveState(getHakutoive(1), Valintatila.perunut, Vastaanottotila.ei_vastaanotetu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        }
+        "sijoittelu on muuttanut tuloksen" in {
+          useFixture("perunut-ei-vastaanottanut-maaraaikana.json")
+          val hakutoive = getHakutoive(0)
+          checkHakutoiveState(hakutoive, Valintatila.perunut, Vastaanottotila.ei_vastaanotetu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          hakutoive.tilanKuvaukset("FI") must_== "Peruuntunut, ei vastaanottanut määräaikana"
+        }
       }
 
       "vastaanottanut" in {

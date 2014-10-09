@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 
 import fi.vm.sade.sijoittelu.tulos.dto.IlmoittautumisTila
 import fi.vm.sade.valintatulosservice.domain._
+import scala.collection.JavaConversions._
 
 class SijoittelutulosService(yhteenvetoService: YhteenvetoService) {
   def hakemuksenTulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
@@ -21,7 +22,8 @@ class SijoittelutulosService(yhteenvetoService: YhteenvetoService) {
           Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaKaytetaanAlkaen()),
           Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaTaytetaanAsti()),
           Option(hakutoiveenYhteenveto.valintatapajono.getVarasijanNumero()).map(_.toInt),
-          hakutoiveenYhteenveto.julkaistavissa
+          hakutoiveenYhteenveto.julkaistavissa,
+          hakutoiveenYhteenveto.valintatapajono.getTilanKuvaukset.toMap
         )
       })
     }

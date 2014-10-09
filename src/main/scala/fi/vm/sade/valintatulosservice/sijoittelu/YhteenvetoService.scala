@@ -80,7 +80,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
         valintatila = Valintatila.peruutettu;
         vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
       } else if (Vastaanottotila.ei_vastaanotetu_määräaikana == vastaanottotila) {
-        valintatila = Valintatila.peruuntunut;
+        valintatila = Valintatila.perunut;
         vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
       }
 
