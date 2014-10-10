@@ -20,7 +20,7 @@ class TestUtilServlet (implicit val appConfig: AppConfig) extends ScalatraServle
     response.addHeader("Access-Control-Allow-Origin", "*")
     val fixturename = params("fixturename")
     SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database,  fixturename + ".json", true)
-    val ohjausparametrit = paramOption("ohjausparametrit").getOrElse(OhjausparametritFixtures.DEFAULT_FIXTURE)
+    val ohjausparametrit = paramOption("ohjausparametrit").getOrElse(OhjausparametritFixtures.vastaanottoLoppuu2100)
     OhjausparametritFixtures.activeFixture = ohjausparametrit
     val haku = paramOption("haku").getOrElse(HakuFixtures.korkeakoulu)
     HakuFixtures.activeFixture = haku
