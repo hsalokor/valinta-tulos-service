@@ -17,7 +17,7 @@ class SijoittelutulosService(yhteenvetoService: YhteenvetoService) {
           hakutoiveenYhteenveto.vastaanottotila,
           Ilmoittautumistila.withName(Option(hakutoiveenYhteenveto.valintatapajono.getIlmoittautumisTila()).getOrElse(IlmoittautumisTila.EI_TEHTY).name()),
           hakutoiveenYhteenveto.vastaanotettavuustila,
-          Option(hakutoiveenYhteenveto.viimeisinVastaanottotilanMuutos.getOrElse(null)),
+          Option(hakutoiveenYhteenveto.viimeisinValintatuloksenMuutos.getOrElse(null)),
           Option(hakutoiveenYhteenveto.valintatapajono.getJonosija()).map(_.toInt),
           Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaKaytetaanAlkaen()),
           Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaTaytetaanAsti()),

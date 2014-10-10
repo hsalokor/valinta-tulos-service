@@ -88,15 +88,15 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
         vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
       }
 
-      val viimeisinVastaanottotilanMuutos: Option[Date] = Option(jono.getVastaanottotilanViimeisinMuutos());
+      val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos());
 
-      if(Vastaanotettavuustila.isVastaanotettavissa(vastaanotettavuustila) && new LocalDateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinVastaanottotilanMuutos))) {
+      if(Vastaanotettavuustila.isVastaanotettavissa(vastaanotettavuustila) && new LocalDateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinValintatuloksenMuutos))) {
         vastaanottotila = Vastaanottotila.ei_vastaanotetu_määräaikana
         vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa
       }
 
       val julkaistavissa = jono.getVastaanottotieto() != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa();
-      new HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinVastaanottotilanMuutos);
+      new HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinValintatuloksenMuutos);
     }
     HakemuksenYhteenveto(hakija, aikataulu, hakutoiveidenYhteenvedot)
 
@@ -146,11 +146,11 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
     }
   }
 
-  private def getVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinVastaanottotilanMuutos: Option[Date]) = {
+  private def getVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinValintatuloksenMuutos: Option[Date]) = {
       aikataulu match {
         case Some(Vastaanottoaikataulu(Some(deadlineAsDate), buffer)) =>
           val deadline = new LocalDateTime(deadlineAsDate)
-          viimeisinVastaanottotilanMuutos.map(new LocalDateTime(_).plusDays(buffer.getOrElse(0))) match {
+          viimeisinValintatuloksenMuutos.map(new LocalDateTime(_).plusDays(buffer.getOrElse(0))) match {
             case Some(muutosDeadline) if(muutosDeadline.isAfter(deadline)) => muutosDeadline
             case _ => deadline
           }
@@ -202,4 +202,4 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
 
 protected[sijoittelu] case class HakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu], hakutoiveet: List[HakutoiveenYhteenveto])
 
-protected[sijoittelu] case class HakutoiveenYhteenveto (hakutoive: HakutoiveDTO, valintatapajono: HakutoiveenValintatapajonoDTO, valintatila: Valintatila, vastaanottotila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean, viimeisinVastaanottotilanMuutos: Option[Date])
+protected[sijoittelu] case class HakutoiveenYhteenveto (hakutoive: HakutoiveDTO, valintatapajono: HakutoiveenValintatapajonoDTO, valintatila: Valintatila, vastaanottotila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean, viimeisinValintatuloksenMuutos: Option[Date])

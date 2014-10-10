@@ -25,7 +25,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
     "palauttaa valintatulokset" in {
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ilmoitettu.json", true)
       get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
-        body must_== """{"hakemusOid":"1.2.246.562.11.00000441369","aikataulu":{"vastaanottoEnd":"2100-01-10T12:00:00Z","vastaanottoBufferDays":14},"hakutoiveet":[{"hakukohdeOid":"1.2.246.562.5.72607738902","tarjoajaOid":"1.2.246.562.10.591352080610","valintatila":"HYVAKSYTTY","vastaanottotila":"KESKEN","ilmoittautumistila":"EI_TEHTY","vastaanotettavuustila":"VASTAANOTETTAVISSA_SITOVASTI","viimeisinVastaanottotilanMuutos":"2014-08-26T19:05:23Z","jonosija":1,"varasijojaKaytetaanAlkaen":"2014-08-26T19:05:23Z","varasijojaTaytetaanAsti":"2014-08-26T19:05:23Z","julkaistavissa":true},{"hakukohdeOid":"1.2.246.562.5.16303028779","tarjoajaOid":"1.2.246.562.10.455978782510","valintatila":"PERUUNTUNUT","vastaanottotila":"KESKEN","ilmoittautumistila":"EI_TEHTY","vastaanotettavuustila":"EI_VASTAANOTETTAVISSA","julkaistavissa":true}]}"""
+        body must_== """{"hakemusOid":"1.2.246.562.11.00000441369","aikataulu":{"vastaanottoEnd":"2100-01-10T12:00:00Z","vastaanottoBufferDays":14},"hakutoiveet":[{"hakukohdeOid":"1.2.246.562.5.72607738902","tarjoajaOid":"1.2.246.562.10.591352080610","valintatila":"HYVAKSYTTY","vastaanottotila":"KESKEN","ilmoittautumistila":"EI_TEHTY","vastaanotettavuustila":"VASTAANOTETTAVISSA_SITOVASTI","viimeisinValintatuloksenMuutos":"2014-08-26T19:05:23Z","jonosija":1,"varasijojaKaytetaanAlkaen":"2014-08-26T19:05:23Z","varasijojaTaytetaanAsti":"2014-08-26T19:05:23Z","julkaistavissa":true,"tilanKuvaukset":{}},{"hakukohdeOid":"1.2.246.562.5.16303028779","tarjoajaOid":"1.2.246.562.10.455978782510","valintatila":"PERUUNTUNUT","vastaanottotila":"KESKEN","ilmoittautumistila":"EI_TEHTY","vastaanotettavuustila":"EI_VASTAANOTETTAVISSA","julkaistavissa":true,"tilanKuvaukset":{}}]}"""
       }
     }
     "hakutoiveet, joilta puuttuu julkaistu-flägi" in {
@@ -119,8 +119,8 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
           val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.head.vastaanottotila must_== Vastaanottotila.vastaanottanut
-          tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.isDefined must beTrue
-          tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 2000)
+          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.isDefined must beTrue
+          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 2000)
         }
       }
 
@@ -145,8 +145,8 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
           val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.head.vastaanottotila.toString must_== "PERUNUT"
-          tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.isDefined must beTrue
-          tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 2000)
+          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.isDefined must beTrue
+          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 2000)
         }
       }
     }
@@ -164,8 +164,8 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
             tulos.hakutoiveet.head.valintatila must_== Valintatila.varalla
             tulos.hakutoiveet.head.vastaanottotila.toString must_== "KESKEN"
             tulos.hakutoiveet.last.vastaanottotila.toString must_== "EHDOLLISESTI_VASTAANOTTANUT"
-            val muutosAika = tulos.hakutoiveet.last.viimeisinVastaanottotilanMuutos.get
-            tulos.hakutoiveet.head.viimeisinVastaanottotilanMuutos.get.before(muutosAika) must beTrue
+            val muutosAika = tulos.hakutoiveet.last.viimeisinValintatuloksenMuutos.get
+            tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.before(muutosAika) must beTrue
             muutosAika.getTime() must be ~(System.currentTimeMillis() +/- 2000)
           }
         }
