@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice.tarjonta
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.{StubbedExternalDeps, AppConfig}
 import fi.vm.sade.valintatulosservice.http.DefaultHttpClient
+import fi.vm.sade.valintatulosservice.Logging
 
 trait HakuService {
   def getHaku(oid: String): Option[Haku]
@@ -24,15 +25,19 @@ trait JsonHakuService {
   }
 }
 
-class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHakuService {
+class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHakuService with Logging {
   def getHaku(oid: String) = {
-    val (responseCode, _, resultString) = DefaultHttpClient.httpGet(appConfig.settings.tarjontaUrl + "/rest/v1/haku/" + oid)
+    val url = appConfig.settings.tarjontaUrl + "/rest/v1/haku/" + oid
+    val (responseCode, _, resultString) = DefaultHttpClient.httpGet(url)
       .responseWithHeaders
 
     responseCode match {
       case 200 =>
         Some(parseResponse(resultString))
-      case _ => None
+      case _ => {
+        logger.warn("Get haku from " + url + " failed with status " + responseCode)
+        None
+      }
     }
   }
 }
