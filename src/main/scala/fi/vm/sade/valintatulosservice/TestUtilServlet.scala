@@ -7,6 +7,7 @@ import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
 import fi.vm.sade.valintatulosservice.ohjausparametrit.StubbedOhjausparametritService
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
+import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 
 class TestUtilServlet (implicit val appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats {
   options("/fixtures/apply") {
@@ -21,6 +22,8 @@ class TestUtilServlet (implicit val appConfig: AppConfig) extends ScalatraServle
     SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database,  fixturename + ".json", true)
     val ohjausparametrit = paramOption("ohjausparametrit").getOrElse(OhjausparametritFixtures.DEFAULT_FIXTURE)
     OhjausparametritFixtures.activeFixture = ohjausparametrit
+    val haku = paramOption("haku").getOrElse(HakuFixtures.korkeakoulu)
+    HakuFixtures.activeFixture = haku
   }
 
   error {
