@@ -11,4 +11,8 @@ object Valintatila extends Enumeration {
   val hylätty = Value("HYLATTY")
   val peruuntunut = Value("PERUUNTUNUT")
   val kesken = Value("KESKEN")
+
+  def isHyväksytty(tila: Valintatila) = {
+    tila == hyväksytty || tila == harkinnanvaraisesti_hyväksytty || tila == varasijalta_hyväksytty
+  }
 }

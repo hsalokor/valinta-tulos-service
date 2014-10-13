@@ -22,11 +22,11 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
       .flatMap { sijoitteluAjo => Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)) }
 
     hakija.map { hakija =>
-      hakemuksenYhteenveto(haku, hakija, aikataulu)
+      hakemuksenYhteenveto(hakija, aikataulu)
     }
   }
 
-  private def hakemuksenYhteenveto(haku: Haku, hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu]): HakemuksenYhteenveto = {
+  private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu]): HakemuksenYhteenveto = {
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val jono = getFirst(hakutoive).get
       var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila()), Valintatila.kesken);
@@ -36,25 +36,11 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
       var vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
       // Valintatila
 
-      if (toisenToiveenVastaanottoEstaaVastaanoton(haku, jono, hakija, hakutoive)) {
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-        valintatila = Valintatila.peruuntunut;
-      } else if (jono.getTila().isHyvaksytty()) {
+      if (jono.getTila().isHyvaksytty()) {
         if (jono.isHyvaksyttyHarkinnanvaraisesti()) {
           valintatila = Valintatila.harkinnanvaraisesti_hyväksytty;
         }
         vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_sitovasti;
-        if (haku.korkeakoulu && haku.yhteishaku) {
-          if (hakutoive.getHakutoive() > 1) {
-            if (aikaparametriLauennut(jono)) {
-              vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti;
-            } else {
-              if (ylempiaHakutoiveitaVaralla(hakija, hakutoive)) {
-                vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-              }
-            }
-          }
-        }
       } else if (!hakutoive.isKaikkiJonotSijoiteltu()) {
         valintatila = Valintatila.kesken;
       }
@@ -95,28 +81,8 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
 
   }
 
-  private def toisenToiveenVastaanottoEstaaVastaanoton(haku: Haku, jono: HakutoiveenValintatapajonoDTO, hakija: HakijaDTO, hakutoive: HakutoiveDTO) = {
-    if(haku.korkeakoulu && haku.yhteishaku) {
-      jono.getTila().isHyvaksyttyOrVaralla() && toinenHakutoiveVastaanotettu(hakija, hakutoive.getHakutoive())
-    }
-    else {
-      false
-    }
-  }
-
-  private def ylempiaHakutoiveitaVaralla(hakija: HakijaDTO, hakutoive: HakutoiveDTO) = {
-    ylemmatHakutoiveet(hakija, hakutoive.getHakutoive()).find { toive =>
-      getFirst(toive).get.getTila == HakemuksenTila.VARALLA
-    }.isDefined
-  }
-
   private def fromHakemuksenTila(tila: HakemuksenTila): Valintatila = {
     Valintatila.withName(tila.name)
-  }
-
-  private def toinenHakutoiveVastaanotettu(hakija: HakijaDTO, hakutoive: Integer): Boolean = {
-    return hakija.getHakutoiveet.find(h =>
-      !h.getHakutoive().equals(hakutoive) && getFirst(h).get.getVastaanottotieto() == ValintatuloksenTila.VASTAANOTTANUT).isDefined
   }
 
   private def convertVastaanottotila(valintatuloksenTila: ValintatuloksenTila): Vastaanottotila = {
@@ -159,20 +125,6 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
   private def ifNull[T](value: T, defaultValue: T): T = {
     if (value == null) return defaultValue
     return value
-  }
-
-  private def aikaparametriLauennut(jono: HakutoiveenValintatapajonoDTO): Boolean = {
-    if (jono.getVarasijojaKaytetaanAlkaen == null || jono.getVarasijojaTaytetaanAsti == null) {
-      return false
-    }
-    val alkaen: LocalDate = new LocalDate(jono.getVarasijojaKaytetaanAlkaen)
-    val asti: LocalDate = new LocalDate(jono.getVarasijojaTaytetaanAsti)
-    val today: LocalDate = new LocalDate
-    return !today.isBefore(alkaen) && !today.isAfter(asti)
-  }
-
-  private def ylemmatHakutoiveet(hakija: HakijaDTO, prioriteettiRaja: Integer): Set[HakutoiveDTO] = {
-    return hakija.getHakutoiveet.toSet.filter(t => t.getHakutoive() < prioriteettiRaja)
   }
 
   private def getFirst(hakutoive: HakutoiveDTO): Option[HakutoiveenValintatapajonoDTO] = {

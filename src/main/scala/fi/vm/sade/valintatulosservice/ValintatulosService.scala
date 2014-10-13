@@ -1,11 +1,14 @@
 package fi.vm.sade.valintatulosservice
 
+import fi.vm.sade.sijoittelu.tulos.dto.HakemuksenTila
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakutoiveDTO, HakijaDTO, HakutoiveenValintatapajonoDTO}
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelutulosService, SijoitteluSpringContext}
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
+import org.joda.time.LocalDate
 
 class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjausparametritService: OhjausparametritService, hakemusRepository: HakemusRepository, hakuService: HakuService) {
   def this(hakuService: HakuService)(implicit appConfig: AppConfig) = this(appConfig.sijoitteluContext.sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), hakuService)
@@ -26,7 +29,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
         }
         val lopullisetTulokset = Välitulos(tulokset, haku)
           .map(peruValmistaAlemmatKeskeneräiset)
-          .map(peruKeskeneräistäAlemmatHyväksytyt)
+          .map(korkeakouluSpecial)
           .tulokset
 
         Hakemuksentulos(h.oid, aikataulu, lopullisetTulokset)
@@ -36,25 +39,56 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
 
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = Hakemuksentulos(hakemusOid, aikataulu, Nil)
 
-  private def peruValmistaAlemmatKeskeneräiset(tulokset: List[Hakutoiveentulos], haku: Haku) = {
-    val firstFinished = tulokset.indexWhere { t =>
-      List(Valintatila.hyväksytty, Valintatila.varasijalta_hyväksytty, Valintatila.perunut, Valintatila.peruutettu, Valintatila.peruuntunut).contains(t.valintatila)
+  private def korkeakouluSpecial(tulokset: List[Hakutoiveentulos], haku: Haku) = {
+    def aikaparametriLauennut(tulos: Hakutoiveentulos): Boolean = {
+      (tulos.varasijojaKaytetaanAlkaen, tulos.varasijojaTaytetaanAsti) match {
+        case (Some(käytetäänAlkaen), Some(käytetäänAsti)) =>
+          val today: LocalDate = new LocalDate
+          !today.isBefore(new LocalDate(käytetäänAlkaen)) && !today.isAfter(new LocalDate(käytetäänAsti))
+        case _ => false
+      }
     }
 
-    tulokset.zipWithIndex.map {
-      case (tulos, index) if (haku.käyttääSijoittelua && firstFinished > -1 && index > firstFinished && tulos.valintatila == Valintatila.kesken) =>
-        tulos.copy(valintatila = Valintatila.peruuntunut)
-      case (tulos, _) => tulos
+    if (haku.korkeakoulu && haku.yhteishaku) {
+      val firstVaralla = tulokset.indexWhere(_.valintatila == Valintatila.varalla)
+      val firstVastaanotettu = tulokset.indexWhere(_.vastaanottotila == Vastaanottotila.vastaanottanut)
+      val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
+
+      tulokset.zipWithIndex.map {
+        case (tulos, index) if (Valintatila.isHyväksytty(tulos.valintatila)) =>
+          if (firstVastaanotettu >= 0 && index > firstVastaanotettu)
+            // Peru vastaanotettua paikkaa alemmat hyväksytyt hakutoiveet
+            tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
+          else if (index > 0 && aikaparametriLauennut(tulos))
+            // Ehdollinen vastaanotto mahdollista
+            tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti)
+          else if (index > 0 && firstVaralla >= 0 && index > firstVaralla)
+            // Ei vastaanotettavissa, jos ylempi hakutoive on varalla
+            tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
+          else if (firstKesken >= 0 && index > firstKesken)
+            tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
+          else
+            tulos
+        case (tulos, _) => tulos
+      }
+    } else {
+      tulokset
     }
   }
 
-  private def peruKeskeneräistäAlemmatHyväksytyt(tulokset: List[Hakutoiveentulos], haku: Haku) = {
-    val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
+  private def peruValmistaAlemmatKeskeneräiset(tulokset: List[Hakutoiveentulos], haku: Haku) = {
+    if (haku.käyttääSijoittelua) {
+      val firstFinished = tulokset.indexWhere { t =>
+        List(Valintatila.hyväksytty, Valintatila.varasijalta_hyväksytty, Valintatila.perunut, Valintatila.peruutettu, Valintatila.peruuntunut).contains(t.valintatila)
+      }
 
-    tulokset.zipWithIndex.map {
-      case (tulos, index) if (haku.korkeakoulu && haku.yhteishaku && firstKesken >= 0 && index > firstKesken && tulos.valintatila == Valintatila.hyväksytty) =>
-        tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
-      case (tulos, _) => tulos
+      tulokset.zipWithIndex.map {
+        case (tulos, index) if (haku.käyttääSijoittelua && firstFinished > -1 && index > firstFinished && tulos.valintatila == Valintatila.kesken) =>
+          tulos.copy(valintatila = Valintatila.peruuntunut)
+        case (tulos, _) => tulos
+      }
+    } else {
+      tulokset
     }
   }
 
