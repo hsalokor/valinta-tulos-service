@@ -16,7 +16,7 @@ object HakuService {
   }
 }
 
-case class Haku(oid: String, korkeakoulu: Boolean, yhteishaku: Boolean)
+case class Haku(oid: String, korkeakoulu: Boolean, yhteishaku: Boolean, käyttääSijoittelua: Boolean)
 
 protected trait JsonHakuService {
   import org.json4s._

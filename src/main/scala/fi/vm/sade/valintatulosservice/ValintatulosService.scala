@@ -24,25 +24,30 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
             t.hakukohdeOid == toive.oid
           }.getOrElse(Hakutoiveentulos.kesken(toive.oid, toive.tarjoajaOid))
         }
-        Hakemuksentulos(h.oid, aikataulu, kasitteleKeskenEraiset(tulokset, haku))
+        Hakemuksentulos(h.oid, aikataulu, peruKeskeneräistäAlemmatHyväksytyt(peruValmistaAlemmatKeskeneräiset(tulokset, haku), haku))
       }
     }
   }
 
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = Hakemuksentulos(hakemusOid, aikataulu, Nil)
 
-  private def kasitteleKeskenEraiset(tulokset: List[Hakutoiveentulos], haku: Haku) = {
+  private def peruValmistaAlemmatKeskeneräiset(tulokset: List[Hakutoiveentulos], haku: Haku) = {
     val firstFinished = tulokset.indexWhere { t =>
       List(Valintatila.hyväksytty, Valintatila.varasijalta_hyväksytty, Valintatila.perunut, Valintatila.peruutettu, Valintatila.peruuntunut).contains(t.valintatila)
     }
-    val alemmatKeskeneraisetPeruttu = tulokset.zipWithIndex.map {
+
+    tulokset.zipWithIndex.map {
       case (tulos, index) if (firstFinished > -1 && index > firstFinished && tulos.valintatila == Valintatila.kesken) =>
         tulos.copy(valintatila = Valintatila.peruuntunut)
       case (tulos, _) => tulos
     }
-    val firstKesken = alemmatKeskeneraisetPeruttu.indexWhere(_.valintatila == Valintatila.kesken)
-    alemmatKeskeneraisetPeruttu.zipWithIndex.map {
-      case (tulos, index) if (haku.korkeakoulu && haku.yhteishaku && firstKesken > -1 && index > firstKesken && tulos.valintatila == Valintatila.hyväksytty) =>
+  }
+
+  private def peruKeskeneräistäAlemmatHyväksytyt(tulokset: List[Hakutoiveentulos], haku: Haku) = {
+    val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
+
+    tulokset.zipWithIndex.map {
+      case (tulos, index) if (haku.korkeakoulu && haku.yhteishaku && firstKesken >= 0 && index > firstKesken && tulos.valintatila == Valintatila.hyväksytty) =>
         tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
       case (tulos, _) => tulos
     }
