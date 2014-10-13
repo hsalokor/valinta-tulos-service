@@ -25,8 +25,6 @@ case class ApplicationSettings(config: Config) {
   val hakemusMongoConfig: MongoConfig = getMongoConfig(config.getConfig("hakemus.mongodb"))
   val ohjausparametritUrl = config.getString("valinta-tulos-service.ohjausparametrit.url")
   val tarjontaUrl = config.getString("tarjonta-service.url")
-  val haunKohdejoukkoKorkeakoulu = config.getString("koodisto.haunKohdejoukko.korkeakoulu")
-  val hakuTapaYhteishaku = config.getString("koodisto.hakutapa.yhteishaku")
 
   def withOverride(keyValuePair : (String, String)) = {
     ApplicationSettings(config.withValue(keyValuePair._1, ConfigValueFactory.fromAnyRef(keyValuePair._2)))

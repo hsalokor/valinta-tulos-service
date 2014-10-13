@@ -25,8 +25,3 @@ hakemus.mongodb.collection=application
 
 # TARJONTA
 tarjonta-service.url=https://{{host_virkailija}}/tarjonta-service
-
-# KOODISTO
-
-koodisto.haunKohdejoukko.korkeakoulu=haunkohdejoukko_12#
-koodisto.hakutapa.yhteishaku=hakutapa_01#

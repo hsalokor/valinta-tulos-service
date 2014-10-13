@@ -25,8 +25,9 @@ protected trait JsonHakuService {
 
   protected def parseResponse(response: String, settings: ApplicationSettings): Haku = {
     val hakuTarjonnassa = (parse(response) \ "result").extract[HakuTarjonnassa]
-    val korkeakoulu: Boolean = hakuTarjonnassa.kohdejoukkoUri.startsWith(settings.haunKohdejoukkoKorkeakoulu)
-    val yhteishaku: Boolean = hakuTarjonnassa.hakutapaUri.startsWith(settings.hakuTapaYhteishaku)
+    val korkeakoulu: Boolean = hakuTarjonnassa.kohdejoukkoUri.startsWith("haunkohdejoukko_12#")
+    val yhteishaku: Boolean = hakuTarjonnassa.hakutapaUri.startsWith("hakutapa_01#")
+
     Haku(korkeakoulu, yhteishaku)
   }
 }
