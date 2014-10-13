@@ -37,7 +37,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     }
 
     tulokset.zipWithIndex.map {
-      case (tulos, index) if (firstFinished > -1 && index > firstFinished && tulos.valintatila == Valintatila.kesken) =>
+      case (tulos, index) if (haku.käyttääSijoittelua && firstFinished > -1 && index > firstFinished && tulos.valintatila == Valintatila.kesken) =>
         tulos.copy(valintatila = Valintatila.peruuntunut)
       case (tulos, _) => tulos
     }

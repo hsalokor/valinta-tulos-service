@@ -28,10 +28,10 @@ protected trait JsonHakuService {
     val korkeakoulu: Boolean = hakuTarjonnassa.kohdejoukkoUri.startsWith("haunkohdejoukko_12#")
     val yhteishaku: Boolean = hakuTarjonnassa.hakutapaUri.startsWith("hakutapa_01#")
 
-    Haku(oid, korkeakoulu, yhteishaku)
+    Haku(oid, korkeakoulu, yhteishaku, hakuTarjonnassa.sijoittelu)
   }
 }
-private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String) {}
+private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean) {}
 
 class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHakuService with Logging {
   def getHaku(oid: String) = {

@@ -24,6 +24,7 @@ class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
       val hakuFixture = HakuFixtures.korkeakouluYhteishaku
 
       testitKaikilleHakutyypeille(hakuFixture)
+      testitSijoittelunPiirissäOlevilleHakutyypeille(hakuFixture)
 
       "hyväksytty, korkeakoulujen yhteishaku" in {
         "ylemmat sijoiteltu -> vastaanotettavissa" in {
@@ -55,13 +56,24 @@ class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
     }
 
     "erillishaku korkeakouluihin" in {
-      testitKaikilleHakutyypeille(HakuFixtures.korkeakouluErillishaku)
-      testitTyypillisilleHauille(HakuFixtures.korkeakouluErillishaku)
+      val hakuFixture: String = HakuFixtures.korkeakouluErillishaku
+      testitKaikilleHakutyypeille(hakuFixture)
+      testitTyypillisilleHauille(hakuFixture)
+      testitSijoittelunPiirissäOlevilleHakutyypeille(hakuFixture)
     }
 
     "yhteishaku toisen asteen oppilaitoksiin" in {
-      testitKaikilleHakutyypeille(HakuFixtures.toinenAsteYhteishaku)
-      testitTyypillisilleHauille(HakuFixtures.toinenAsteYhteishaku)
+      val hakuFixture: String = HakuFixtures.toinenAsteYhteishaku
+      testitKaikilleHakutyypeille(hakuFixture)
+      testitTyypillisilleHauille(hakuFixture)
+      testitSijoittelunPiirissäOlevilleHakutyypeille(hakuFixture)
+    }
+
+    "erillishaku toisen asteen oppilaitoksiin (ei sijoittelua)" in {
+      val hakuFixture: String = HakuFixtures.toinenAsteErillishakuEiSijoittelua
+      testitKaikilleHakutyypeille(hakuFixture)
+      testitTyypillisilleHauille(hakuFixture)
+      testitSijoittelunPiirissäOlemattomilleHakutyypeille(hakuFixture)
     }
 
     def testitTyypillisilleHauille(hakuFixture: String) = {
@@ -94,20 +106,48 @@ class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
       }
     }
 
+    def testitSijoittelunPiirissäOlevilleHakutyypeille(hakuFixture: String) = {
+      "hyväksyttyä hakutoivetta alemmat puuttuvat merkitään tilaan PERUUNTUNUT" in {
+        useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-3")
+
+        checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+        checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.peruuntunut, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+        checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738904"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+      }
+
+      "hyväksytty julkaisematon hyväksytty" in {
+        useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-3")
+
+        checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+        checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.peruuntunut, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+        checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738904"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+      }
+    }
+
+    def testitSijoittelunPiirissäOlemattomilleHakutyypeille(hakuFixture: String) = {
+      "hyväksyttyä hakutoivetta alempia ei merkitä tilaan PERUUNTUNUT" in {
+        useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-3")
+
+        checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+        checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+        checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738904"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+      }
+
+      "hyväksytty julkaisematon hyväksytty" in {
+        useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-3")
+
+        checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+        checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+        checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738904"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+      }
+    }
+
     def testitKaikilleHakutyypeille(hakuFixture: String) = {
       "sijoittelusta puuttuvat hakutoiveet" in {
         "näytetään keskeneräisinä" in {
           useFixture("hylatty-jonot-valmiit.json", hakuFixture = hakuFixture)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-        }
-
-        "hyväksyttyä hakutoivetta alemmat puuttuvat merkitään tilaan PERUUNTUNUT" in {
-          useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-3")
-
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.peruuntunut, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738904"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
         }
       }
 
@@ -169,14 +209,6 @@ class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
         "vastaanottanut ehdollisesti" in {
           useFixture("hyvaksytty-vastaanottanut-ehdollisesti.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-flipped")
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-        }
-
-        "hyväksytty julkaisematon hyväksytty" in {
-          useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-3")
-
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.peruuntunut, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738904"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
         }
       }
 
