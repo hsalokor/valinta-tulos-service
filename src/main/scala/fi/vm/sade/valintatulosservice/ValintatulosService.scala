@@ -24,7 +24,12 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
             t.hakukohdeOid == toive.oid
           }.getOrElse(Hakutoiveentulos.kesken(toive.oid, toive.tarjoajaOid))
         }
-        Hakemuksentulos(h.oid, aikataulu, peruKeskeneräistäAlemmatHyväksytyt(peruValmistaAlemmatKeskeneräiset(tulokset, haku), haku))
+        val lopullisetTulokset = Välitulos(tulokset, haku)
+          .map(peruValmistaAlemmatKeskeneräiset)
+          .map(peruKeskeneräistäAlemmatHyväksytyt)
+          .tulokset
+
+        Hakemuksentulos(h.oid, aikataulu, lopullisetTulokset)
       }
     }
   }
@@ -50,6 +55,12 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       case (tulos, index) if (haku.korkeakoulu && haku.yhteishaku && firstKesken >= 0 && index > firstKesken && tulos.valintatila == Valintatila.hyväksytty) =>
         tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
       case (tulos, _) => tulos
+    }
+  }
+
+  case class Välitulos(tulokset: List[Hakutoiveentulos], haku: Haku) {
+    def map(f: (List[Hakutoiveentulos], Haku) => List[Hakutoiveentulos]) = {
+      Välitulos(f(tulokset, haku), haku)
     }
   }
 }
