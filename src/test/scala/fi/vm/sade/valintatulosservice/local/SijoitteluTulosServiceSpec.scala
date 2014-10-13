@@ -17,186 +17,199 @@ class SijoitteluTulosServiceSpec extends Specification with ITSetup with TimeWar
   sequential
 
   "SijoitteluTulosService" should {
-    "hyväksytty" in {
-      "valintatulos ilmoitettu (Legacy)" in {
-        useFixture("hyvaksytty-ilmoitettu.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
-      }
-
-      "hyvaksytty varasijalta, Valintatulos julkaistavissa" in {
-        useFixture("hyvaksytty-varasijalta-julkaistavissa.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.varasijalta_hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
-      }
-
-
-      "Valintatulos kesken" in {
-        useFixture("hyvaksytty-kesken.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
-      }
-
-      "Valintatulos julkaistavissa" in {
-        useFixture("hyvaksytty-kesken-julkaistavissa.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
-      }
-
-      "ei Valintatulosta" in {
-        useFixture("hyvaksytty-ei-valintatulosta.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
-        getHakutoive(0).julkaistavissa must_== false
-      }
-
-      "hyvaksytty Valintatulos peruutettu" in {
-        useFixture("hyvaksytty-valintatulos-peruutettu.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.peruutettu, Vastaanottotila.peruutettu, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-      }
-
-      "hyvaksytty Valintatulos perunut" in {
-        useFixture("hyvaksytty-valintatulos-perunut.json")
-        checkHakutoiveState(getHakutoive(1), Valintatila.perunut, Vastaanottotila.perunut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-      }
-
-      "ei vastaanottanut määräaikana" in {
-        "sijoittelu ei ole ehtinyt muuttamaan tulosta" in {
-          useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json")
-          checkHakutoiveState(getHakutoive(1), Valintatila.perunut, Vastaanottotila.ei_vastaanotetu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-        }
-        "sijoittelu on muuttanut tuloksen" in {
-          useFixture("perunut-ei-vastaanottanut-maaraaikana.json")
-          val hakutoive = getHakutoive(0)
-          checkHakutoiveState(hakutoive, Valintatila.perunut, Vastaanottotila.ei_vastaanotetu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-          hakutoive.tilanKuvaukset("FI") must_== "Peruuntunut, ei vastaanottanut määräaikana"
-        }
-      }
-
-      "vastaanottanut" in {
-        useFixture("hyvaksytty-vastaanottanut.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.vastaanottanut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-      }
-
-      "vastaanottanut ehdollisesti" in {
-        useFixture("hyvaksytty-vastaanottanut-ehdollisesti.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-      }
-
-      "hyväksytty + julkaisematon + hyväksytty" in {
-        useFixture("hyvaksytty-julkaisematon-hyvaksytty.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
-        checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
-        checkHakutoiveState(getHakutoive(2), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
-      }
-    }
 
     "yhteishaku korkeakouluihin" in {
-      "hyvaksytty, ylemmat sijoiteltu -> vastaanotettavissa" in {
-        useFixture("hyvaksytty-ylempi-sijoiteltu.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
-        checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
-      }
+      val hakuFixture = HakuFixtures.korkeakouluYhteishaku
 
-      "hyväksytty, ylempi varalla -> ei vastaanotettavissa" in {
-        useFixture("hyvaksytty-ylempi-varalla.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-        checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-      }
+      testitKaikilleHakutyypeille(hakuFixture)
 
-      "hyvaksytty, ylempi sijoittelematon -> kesken" in {
-        useFixture("hyvaksytty-ylempi-sijoittelematon.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
-        checkHakutoiveState(getHakutoive(1), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
-      }
+      "hyväksytty, korkeakoulujen yhteishaku" in {
+        "ylemmat sijoiteltu -> vastaanotettavissa" in {
+          useFixture("hyvaksytty-ylempi-sijoiteltu.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+          checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
+        }
 
-      "hyvaksytty, ylempi varalla, aikaparametri lauennut -> ehdollisesti vastaanotettavissa" in {
-        useFixture("hyvaksytty-ylempi-varalla.json")
-        withFixedDateTime("15.8.2014 01:00") {
+        "ylempi varalla -> ei vastaanotettavissa" in {
+          useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
           checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-          checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, true)
+          checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        }
+
+        "ylempi sijoittelematon -> kesken" in {
+          useFixture("hyvaksytty-ylempi-sijoittelematon.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+          checkHakutoiveState(getHakutoive(1), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+        }
+
+        "ylempi varalla, aikaparametri lauennut -> ehdollisesti vastaanotettavissa" in {
+          useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
+          withFixedDateTime("15.8.2014 01:00") {
+            checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+            checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, true)
+          }
         }
       }
     }
 
     "erillishaku korkeakouluihin" in {
+      testitKaikilleHakutyypeille(HakuFixtures.korkeakouluErillishaku)
       testitTyypillisilleHauille(HakuFixtures.korkeakouluErillishaku)
     }
 
     "yhteishaku toisen asteen oppilaitoksiin" in {
+      testitKaikilleHakutyypeille(HakuFixtures.toinenAsteYhteishaku)
       testitTyypillisilleHauille(HakuFixtures.toinenAsteYhteishaku)
     }
 
     def testitTyypillisilleHauille(hakuFixture: String) = {
-      "hyvaksytty, ylemmat sijoiteltu -> vastaanotettavissa" in {
-        useFixture("hyvaksytty-ylempi-sijoiteltu.json", hakuFixture = hakuFixture)
-        checkHakutoiveState(getHakutoive(0), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
-        checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
-      }
+      "hyväksytty, tyypilliset haut" in {
+        "ylemmat sijoiteltu -> vastaanotettavissa" in {
+          useFixture("hyvaksytty-ylempi-sijoiteltu.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+          checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
+        }
 
-      "hyväksytty, ylempi varalla -> vastaanotettavissa" in {
-        useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
-        checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-        checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
-      }
-
-      "hyvaksytty, ylempi sijoittelematon -> vastaanotettavissa" in {
-        useFixture("hyvaksytty-ylempi-sijoittelematon.json", hakuFixture = hakuFixture)
-        checkHakutoiveState(getHakutoive(0), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
-        checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
-      }
-
-      "hyvaksytty, ylempi varalla, aikaparametri lauennut -> vastaanotettavissa sitovasti" in {
-        useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
-        withFixedDateTime("15.8.2014 01:00") {
+        "hyväksytty, ylempi varalla -> vastaanotettavissa" in {
+          useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
           checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
           checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+        }
+
+        "ylempi sijoittelematon -> vastaanotettavissa" in {
+          useFixture("hyvaksytty-ylempi-sijoittelematon.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+          checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
+        }
+
+        "ylempi varalla, aikaparametri lauennut -> vastaanotettavissa sitovasti" in {
+          useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
+          withFixedDateTime("15.8.2014 01:00") {
+            checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+            checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+          }
         }
       }
     }
 
-    "hyvaksytty harkinnanvaraisesti" in {
-      useFixture("harkinnanvaraisesti-hyvaksytty.json")
-      checkHakutoiveState(getHakutoive(0), Valintatila.harkinnanvaraisesti_hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
-    }
+    def testitKaikilleHakutyypeille(hakuFixture: String) = {
+      "hyväksytty" in {
+        "valintatulos ilmoitettu (Legacy)" in {
+          useFixture("hyvaksytty-ilmoitettu.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+        }
 
-    "varalla" in {
-      "käytetään parasta varasijaa, jos useammassa jonossa varalla" in {
-        useFixture("hyvaksytty-ylempi-varalla.json")
-        getHakutoive(0).varasijanumero must_== Some(2)
+        "hyvaksytty varasijalta, Valintatulos julkaistavissa" in {
+          useFixture("hyvaksytty-varasijalta-julkaistavissa.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.varasijalta_hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+        }
+
+
+        "Valintatulos kesken" in {
+          useFixture("hyvaksytty-kesken.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
+        }
+
+        "Valintatulos julkaistavissa" in {
+          useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+        }
+
+        "ei Valintatulosta" in {
+          useFixture("hyvaksytty-ei-valintatulosta.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
+          getHakutoive(0).julkaistavissa must_== false
+        }
+
+        "hyvaksytty Valintatulos peruutettu" in {
+          useFixture("hyvaksytty-valintatulos-peruutettu.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.peruutettu, Vastaanottotila.peruutettu, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        }
+
+        "hyvaksytty Valintatulos perunut" in {
+          useFixture("hyvaksytty-valintatulos-perunut.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(1), Valintatila.perunut, Vastaanottotila.perunut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        }
+
+        "ei vastaanottanut määräaikana" in {
+          "sijoittelu ei ole ehtinyt muuttamaan tulosta" in {
+            useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
+            checkHakutoiveState(getHakutoive(1), Valintatila.perunut, Vastaanottotila.ei_vastaanotetu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          }
+          "sijoittelu on muuttanut tuloksen" in {
+            useFixture("perunut-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
+            val hakutoive = getHakutoive(0)
+            checkHakutoiveState(hakutoive, Valintatila.perunut, Vastaanottotila.ei_vastaanotetu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+            hakutoive.tilanKuvaukset("FI") must_== "Peruuntunut, ei vastaanottanut määräaikana"
+          }
+        }
+
+        "vastaanottanut" in {
+          useFixture("hyvaksytty-vastaanottanut.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.vastaanottanut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        }
+
+        "vastaanottanut ehdollisesti" in {
+          useFixture("hyvaksytty-vastaanottanut-ehdollisesti.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        }
+
+        "hyväksytty + julkaisematon + hyväksytty" in {
+          useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+          checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
+          checkHakutoiveState(getHakutoive(2), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+        }
       }
 
-      "varasijojen käsittelypäivämäärät näytetään" in {
-        useFixture("hyvaksytty-ylempi-varalla.json")
-        getHakutoive(1).varasijojaKaytetaanAlkaen must_== Some(new DateTime("2014-08-01T16:00:00.000Z").toDate)
-        getHakutoive(1).varasijojaTaytetaanAsti must_== Some(new DateTime("2014-08-31T16:00:00.000Z").toDate)
+      "hyvaksytty harkinnanvaraisesti" in {
+        useFixture("harkinnanvaraisesti-hyvaksytty.json", hakuFixture = hakuFixture)
+        checkHakutoiveState(getHakutoive(0), Valintatila.harkinnanvaraisesti_hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
       }
 
-      "Valintatulos ilmoitettu (Legacy)" in {
-        useFixture("varalla-valintatulos-ilmoitettu.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+      "varalla" in {
+        "käytetään parasta varasijaa, jos useammassa jonossa varalla" in {
+          useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
+          getHakutoive(0).varasijanumero must_== Some(2)
+        }
+
+        "varasijojen käsittelypäivämäärät näytetään" in {
+          useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
+          getHakutoive(1).varasijojaKaytetaanAlkaen must_== Some(new DateTime("2014-08-01T16:00:00.000Z").toDate)
+          getHakutoive(1).varasijojaTaytetaanAsti must_== Some(new DateTime("2014-08-31T16:00:00.000Z").toDate)
+        }
+
+        "Valintatulos ilmoitettu (Legacy)" in {
+          useFixture("varalla-valintatulos-ilmoitettu.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        }
+
+        "Valintatulos kesken" in {
+          useFixture("varalla-valintatulos-kesken.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+        }
+
+        "Valintatulos hyvaksytty varasijalta" in {
+          useFixture("varalla-valintatulos-hyvaksytty-varasijalta-flag.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+        }
       }
 
-      "Valintatulos kesken" in {
-        useFixture("varalla-valintatulos-kesken.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
-      }
+      "hylätty" in {
+        "jonoja sijoittelematta" in {
+          useFixture("hylatty-jonoja-kesken.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+        }
 
-      "Valintatulos hyvaksytty varasijalta" in {
-        useFixture("varalla-valintatulos-hyvaksytty-varasijalta-flag.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
-      }
-    }
+        "jonot sijoiteltu" in {
+          useFixture("hylatty-jonot-valmiit.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+        }
 
-    "hylätty" in {
-      "jonoja sijoittelematta" in {
-        useFixture("hylatty-jonoja-kesken.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
-      }
-
-      "jonot sijoiteltu" in {
-        useFixture("hylatty-jonot-valmiit.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
-      }
-
-      "julkaistavissa" in {
-        useFixture("hylatty-julkaistavissa.json")
-        checkHakutoiveState(getHakutoive(0), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        "julkaistavissa" in {
+          useFixture("hylatty-julkaistavissa.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive(0), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        }
       }
     }
   }

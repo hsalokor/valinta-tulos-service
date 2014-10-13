@@ -14,7 +14,7 @@ trait ITSetup extends Specification {
   def useFixture(
                   fixtureName: String,
                   ohjausparametritFixture: String = OhjausparametritFixtures.vastaanottoLoppuu2100,
-                  hakuFixture: String = HakuFixtures.korkeakouluYhteishaku) {
+                  hakuFixture: String) {
     SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, fixtureName, true)
     OhjausparametritFixtures.activeFixture = ohjausparametritFixture
     HakuFixtures.activeFixture = hakuFixture
