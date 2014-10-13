@@ -46,9 +46,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
           valintatila = Valintatila.harkinnanvaraisesti_hyväksytty;
         }
         vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_sitovasti;
-        if (haku.toinenAste) {
-
-        } else {
+        if (haku.korkeakoulu && haku.yhteishaku) {
           if (hakutoive.getHakutoive() > 1) {
             if (aikaparametriLauennut(jono)) {
               vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti;

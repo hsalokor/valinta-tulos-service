@@ -52,11 +52,11 @@ class StubbedHakuService extends HakuService with JsonHakuService {
 }
 
 trait Haku {
-  def toinenAste: Boolean
-  def varsinainenHaku: Boolean
+  def korkeakoulu: Boolean
+  def yhteishaku: Boolean
 }
 
 case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String) extends Haku {
-  def toinenAste: Boolean = kohdejoukkoUri == "haunkohdejoukko_11#1"
-  def varsinainenHaku: Boolean = hakutyyppiUri == "hakutyyppi_01#1"
+  def korkeakoulu: Boolean = kohdejoukkoUri.startsWith("haunkohdejoukko_12#")
+  def yhteishaku: Boolean = hakutapaUri.startsWith("hakutapa_01#")
 }

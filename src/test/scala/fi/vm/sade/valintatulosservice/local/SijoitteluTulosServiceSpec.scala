@@ -86,26 +86,26 @@ class SijoitteluTulosServiceSpec extends Specification with ITSetup with TimeWar
       }
     }
 
-    "korkeakouluhaku" in {
-      "hyvaksytty, ylemmat sijoiteltu" in {
+    "yhteishaku korkeakouluihin" in {
+      "hyvaksytty, ylemmat sijoiteltu -> vastaanotettavissa" in {
         useFixture("hyvaksytty-ylempi-sijoiteltu.json")
         checkHakutoiveState(getHakutoive(0), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
         checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
       }
 
-      "hyväksytty, ylempi varalla" in {
+      "hyväksytty, ylempi varalla -> ei vastaanotettavissa" in {
         useFixture("hyvaksytty-ylempi-varalla.json")
         checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
         checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
       }
 
-      "hyvaksytty, ylempi sijoittelematon" in {
+      "hyvaksytty, ylempi sijoittelematon -> kesken" in {
         useFixture("hyvaksytty-ylempi-sijoittelematon.json")
         checkHakutoiveState(getHakutoive(0), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
         checkHakutoiveState(getHakutoive(1), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
       }
 
-      "hyvaksytty, ylempi varalla, aikaparametri lauennut" in {
+      "hyvaksytty, ylempi varalla, aikaparametri lauennut -> ehdollisesti vastaanotettavissa" in {
         useFixture("hyvaksytty-ylempi-varalla.json")
         withFixedDateTime("15.8.2014 01:00") {
           checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
@@ -114,27 +114,35 @@ class SijoitteluTulosServiceSpec extends Specification with ITSetup with TimeWar
       }
     }
 
-    "toisen asteen haku" in {
-      "hyvaksytty, ylemmat sijoiteltu" in {
-        useFixture("hyvaksytty-ylempi-sijoiteltu.json", hakuFixture = HakuFixtures.toinenAste)
+    "erillishaku korkeakouluihin" in {
+      testitTyypillisilleHauille(HakuFixtures.korkeakouluErillishaku)
+    }
+
+    "yhteishaku toisen asteen oppilaitoksiin" in {
+      testitTyypillisilleHauille(HakuFixtures.toinenAsteYhteishaku)
+    }
+
+    def testitTyypillisilleHauille(hakuFixture: String) = {
+      "hyvaksytty, ylemmat sijoiteltu -> vastaanotettavissa" in {
+        useFixture("hyvaksytty-ylempi-sijoiteltu.json", hakuFixture = hakuFixture)
         checkHakutoiveState(getHakutoive(0), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
         checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
       }
 
-      "hyväksytty, ylempi varalla" in {
-        useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = HakuFixtures.toinenAste)
+      "hyväksytty, ylempi varalla -> vastaanotettavissa" in {
+        useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
         checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
         checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
       }
 
-      "hyvaksytty, ylempi sijoittelematon" in {
-        useFixture("hyvaksytty-ylempi-sijoittelematon.json", hakuFixture = HakuFixtures.toinenAste)
+      "hyvaksytty, ylempi sijoittelematon -> vastaanotettavissa" in {
+        useFixture("hyvaksytty-ylempi-sijoittelematon.json", hakuFixture = hakuFixture)
         checkHakutoiveState(getHakutoive(0), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
         checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, false)
       }
 
-      "hyvaksytty, ylempi varalla, aikaparametri lauennut" in {
-        useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = HakuFixtures.toinenAste)
+      "hyvaksytty, ylempi varalla, aikaparametri lauennut -> vastaanotettavissa sitovasti" in {
+        useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
         withFixedDateTime("15.8.2014 01:00") {
           checkHakutoiveState(getHakutoive(0), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
           checkHakutoiveState(getHakutoive(1), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)

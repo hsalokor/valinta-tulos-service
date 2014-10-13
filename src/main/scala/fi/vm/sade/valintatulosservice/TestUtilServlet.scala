@@ -22,7 +22,7 @@ class TestUtilServlet (implicit val appConfig: AppConfig) extends ScalatraServle
     SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database,  fixturename + ".json", true)
     val ohjausparametrit = paramOption("ohjausparametrit").getOrElse(OhjausparametritFixtures.vastaanottoLoppuu2100)
     OhjausparametritFixtures.activeFixture = ohjausparametrit
-    val haku = paramOption("haku").getOrElse(HakuFixtures.korkeakoulu)
+    val haku = paramOption("haku").getOrElse(HakuFixtures.korkeakouluYhteishaku)
     HakuFixtures.activeFixture = haku
   }
 

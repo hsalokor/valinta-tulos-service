@@ -1,8 +1,9 @@
 package fi.vm.sade.valintatulosservice.tarjonta
 
 object HakuFixtures {
-  val korkeakoulu = "korkeakoulu"
-  val toinenAste = "toinen-aste"
+  val korkeakouluYhteishaku = "korkeakoulu-yhteishaku"
+  val korkeakouluErillishaku = "korkeakoulu-erillishaku"
+  val toinenAsteYhteishaku = "toinen-aste-yhteishaku"
 
-  var activeFixture = korkeakoulu
+  var activeFixture = korkeakouluYhteishaku
 }

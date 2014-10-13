@@ -8,7 +8,8 @@ class TarjontaIntegrationTest extends Specification {
   "HakuService" should {
     "Extract response from tarjonta API"in {
       val haku = new TarjontaHakuService(new AppConfig.IT).getHaku("1.2.246.562.5.2013080813081926341927").get
-      haku.toinenAste must_== true
+      haku.korkeakoulu must_== false
+      haku.yhteishaku must_== true
     }
   }
 }
