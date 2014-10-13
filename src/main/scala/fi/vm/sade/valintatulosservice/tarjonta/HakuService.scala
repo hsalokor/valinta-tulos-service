@@ -16,7 +16,9 @@ object HakuService {
   }
 }
 
-trait JsonHakuService {
+case class Haku(korkeakoulu: Boolean, yhteishaku: Boolean)
+
+protected trait JsonHakuService {
   import org.json4s._
   import org.json4s.jackson.JsonMethods._
   implicit val formats = DefaultFormats
@@ -28,6 +30,7 @@ trait JsonHakuService {
     Haku(korkeakoulu, yhteishaku)
   }
 }
+private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String) {}
 
 class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHakuService with Logging {
   def getHaku(oid: String) = {
@@ -54,8 +57,3 @@ class StubbedHakuService(appConfig: AppConfig) extends HakuService with JsonHaku
       .map(parseResponse(_, appConfig.settings))
   }
 }
-
-case class Haku(korkeakoulu: Boolean, yhteishaku: Boolean) {
-}
-
-case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String) {}
