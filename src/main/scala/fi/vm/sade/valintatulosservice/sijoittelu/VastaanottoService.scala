@@ -34,13 +34,13 @@ class VastaanottoService(yhteenvetoService: YhteenvetoService, dao: Valintatulos
 
   private def tarkistaVastaanotettavuus(hakutoive: HakutoiveenYhteenveto, tila: ValintatuloksenTila) {
     if (!List(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT, PERUNUT).contains(tila)) {
-      throw new IllegalArgumentException("Ei-hyväksytty vastaantottotila: " + tila)
+      throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + tila)
     }
     if (List(VASTAANOTTANUT, PERUNUT).contains(tila) && !List(Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, Vastaanotettavuustila.vastaanotettavissa_sitovasti).contains(hakutoive.vastaanotettavuustila)) {
-      throw new IllegalArgumentException
+      throw new IllegalArgumentException(tila.toString())
     }
     if (tila == EHDOLLISESTI_VASTAANOTTANUT && hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti) {
-      throw new IllegalArgumentException
+      throw new IllegalArgumentException(tila.toString())
     }
   }
 
