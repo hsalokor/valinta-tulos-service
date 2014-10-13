@@ -23,8 +23,7 @@ class ProductionSmokeTest extends Specification {
       responseCode must_== 200
       val tulos = parse(resultString).extractOpt[JValue].map(_.extract[Hakemuksentulos]).get
       tulos.hakemusOid must_== hyväksytty
-      tulos.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty
-      tulos.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
+      resultString must beMatching(""".*"valintatila":"HYVAKSYTTY".*"valintatila":"PERUUNTUNUT".*""")
     }
 
     "hakija hakemuksella " + perunut + " on perunut paikan kahdessa ylimmässä hakutoiveessa ja alin on peruuntunut" in {
@@ -32,9 +31,7 @@ class ProductionSmokeTest extends Specification {
       responseCode must_== 200
       val tulos = parse(resultString).extractOpt[JValue].map(_.extract[Hakemuksentulos]).get
       tulos.hakemusOid must_== perunut
-      tulos.hakutoiveet(0).valintatila must_== Valintatila.perunut
-      tulos.hakutoiveet(1).valintatila must_== Valintatila.perunut
-      tulos.hakutoiveet(2).valintatila must_== Valintatila.peruuntunut
+      resultString must beMatching(""".*"valintatila":"PERUNUT".*"valintatila":"PERUNUT".*"valintatila":"PERUUNTUNUT".*""")
     }
   }
 }
