@@ -1,7 +1,6 @@
 package fi.vm.sade.valintatulosservice.local
 
 import java.util.Date
-
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, _}
@@ -12,6 +11,7 @@ import org.json4s.jackson.Serialization
 import org.scalatra.swagger.Swagger
 import org.scalatra.test.specs2.MutableScalatraSpec
 import org.specs2.specification.{Fragments, Step}
+import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 
 class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
   implicit val appConfig: AppConfig = new AppConfig.IT
@@ -109,6 +109,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
 
   "POST /haku:hakuId/hakemus/:hakemusId/vastaanota" should {
     val beforeSave = new Date()
+    HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
     "vastaanottaa opiskelupaikan" in {
       hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369.json")
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ilmoitettu.json", true)
