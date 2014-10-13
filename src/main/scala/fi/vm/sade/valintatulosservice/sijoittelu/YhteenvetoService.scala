@@ -13,18 +13,16 @@ import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 import org.joda.time.{LocalDate, LocalDateTime}
 
-protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService, hakuService: HakuService) {
+protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService) {
   import scala.collection.JavaConversions._
 
-  protected[sijoittelu] def hakemuksenYhteenveto(hakuOid: String, hakemusOid: String): Option[HakemuksenYhteenveto] = {
-    val aikataulu = ohjausparametritService.aikataulu(hakuOid)
-    val haku = hakuService.getHaku(hakuOid)
-    val hakija = fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid))
+  protected[sijoittelu] def hakemuksenYhteenveto(haku: Haku, hakemusOid: String): Option[HakemuksenYhteenveto] = {
+    val aikataulu = ohjausparametritService.aikataulu(haku.oid)
+    val hakija = fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid))
       .flatMap { sijoitteluAjo => Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)) }
 
-    (haku, hakija) match {
-      case (Some(haku), Some(hakija)) => Some(hakemuksenYhteenveto(haku, hakija, aikataulu))
-      case _ => None
+    hakija.map { hakija =>
+      hakemuksenYhteenveto(haku, hakija, aikataulu)
     }
   }
 

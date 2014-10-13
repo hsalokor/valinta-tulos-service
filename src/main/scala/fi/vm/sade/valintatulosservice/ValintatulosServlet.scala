@@ -4,6 +4,7 @@ import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.sijoittelu.VastaanottoService
+import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
@@ -13,7 +14,8 @@ import fi.vm.sade.sijoittelu.tulos.dto.HakemuksenTila
 import java.util.Date
 
 class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagger) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
-  lazy val valintatulosService: ValintatulosService = new ValintatulosService()
+  lazy val hakuService: HakuService = HakuService(appConfig)
+  lazy val valintatulosService: ValintatulosService = new ValintatulosService(hakuService)
   lazy val vastaanottoService: VastaanottoService = appConfig.sijoitteluContext.vastaanottoService
 
   override def applicationName = Some("haku")

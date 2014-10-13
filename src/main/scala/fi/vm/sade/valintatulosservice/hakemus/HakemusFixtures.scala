@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.fixtures
+package fi.vm.sade.valintatulosservice.hakemus
 
 import com.mongodb.BasicDBObject
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
@@ -6,7 +6,7 @@ import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.config.MongoConfig
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 
-class HakemusFixtureImporter(config: MongoConfig) {
+class HakemusFixtures(config: MongoConfig) {
   lazy val db = MongoFactory.createDB(config)
 
   if (config.url.indexOf("localhost") < 0)
@@ -17,13 +17,20 @@ class HakemusFixtureImporter(config: MongoConfig) {
     this
   }
 
-  def importData: HakemusFixtureImporter = {
-    List("fixtures/hakemus/00000878229.json", "fixtures/hakemus/00000441369.json", "fixtures/hakemus/00000441370.json").foreach(importData(_))
+  def importData: HakemusFixtures = {
+    List("00000878229", "00000441369", "00000441370").foreach(importData(_))
     this
   }
 
-  def importData(filename: String): HakemusFixtureImporter = {
+  def importData(fixtureName: String): HakemusFixtures = {
+    val filename = "fixtures/hakemus/" + fixtureName + ".json"
     MongoMockData.insertData(db.underlying, MongoMockData.readJson(filename))
     this
+  }
+}
+
+object HakemusFixtures {
+  def apply()(implicit appConfig: AppConfig) = {
+    new HakemusFixtures(appConfig.settings.hakemusMongoConfig)
   }
 }

@@ -7,23 +7,33 @@ import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
 import fi.vm.sade.valintatulosservice.domain.{Ilmoittautuminen, Vastaanotettavuustila, Vastaanotto}
+import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 
-class VastaanottoService(yhteenvetoService: YhteenvetoService, dao: ValintatulosDao) {
+class VastaanottoService(yhteenvetoService: YhteenvetoService, dao: ValintatulosDao, hakuService: HakuService) {
   def vastaanota(hakuOid: String, hakemusOid: String, vastaanotto: Vastaanotto) {
     vastaanota(hakuOid, hakemusOid, vastaanotto.hakukohdeOid, ValintatuloksenTila.valueOf(vastaanotto.tila.toString), vastaanotto.muokkaaja, vastaanotto.selite)
   }
 
   def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: ValintatuloksenTila, muokkaaja: String, selite: String) {
-    val (hakemus, hakutoive) = etsiHakutoive(hakuOid, hakemusOid, hakukohdeOid)
+    withHaku(hakuOid) { haku =>
+      val (hakemus, hakutoive) = etsiHakutoive(haku, hakemusOid, hakukohdeOid)
 
-    tarkistaVastaanotettavuus(hakutoive, tila)
-    val tiedot = new ValintatulosPerustiedot(hakuOid, hakukohdeOid, hakutoive.valintatapajono.getValintatapajonoOid, hakemusOid, hakemus.getHakijaOid, hakutoive.hakutoive.getHakutoive)
-    vastaanota(tiedot, tila, muokkaaja, selite)
-
+      tarkistaVastaanotettavuus(hakutoive, tila)
+      val tiedot = new ValintatulosPerustiedot(hakuOid, hakukohdeOid, hakutoive.valintatapajono.getValintatapajonoOid, hakemusOid, hakemus.getHakijaOid, hakutoive.hakutoive.getHakutoive)
+      vastaanota(tiedot, tila, muokkaaja, selite)
+    }
   }
 
-  private def etsiHakutoive(hakuOid: String, hakemusOid: String, hakukohdeOid: String): (HakijaDTO, HakutoiveenYhteenveto) = {
-    val yhteenveto: Option[HakemuksenYhteenveto] = yhteenvetoService.hakemuksenYhteenveto(hakuOid, hakemusOid)
+  private def withHaku[T](hakuOid: String)(block: (Haku => T)): T = {
+    hakuService.getHaku(hakuOid) match {
+      case Some(haku) =>
+        block(haku)
+      case _ => throw new IllegalArgumentException("Hakua " + hakuOid + " ei löydy")
+    }
+  }
+
+  private def etsiHakutoive(haku: Haku, hakemusOid: String, hakukohdeOid: String): (HakijaDTO, HakutoiveenYhteenveto) = {
+    val yhteenveto: Option[HakemuksenYhteenveto] = yhteenvetoService.hakemuksenYhteenveto(haku, hakemusOid)
     (yhteenveto, yhteenveto.flatMap(_.hakutoiveet.find(_.hakutoive.getHakukohdeOid == hakukohdeOid))) match {
       case (Some(yhteenveto), Some(hakutoive)) =>
         (yhteenveto.hakija, hakutoive)
@@ -57,20 +67,22 @@ class VastaanottoService(yhteenvetoService: YhteenvetoService, dao: Valintatulos
   }
 
   def ilmoittaudu(hakuOid: String, hakemusOid: String, ilmoittautuminen: Ilmoittautuminen) {
-    val (_, hakutoive) = etsiHakutoive(hakuOid, hakemusOid, ilmoittautuminen.hakukohdeOid)
-    var valintatulos: Valintatulos = dao.loadValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajono.getValintatapajonoOid, hakemusOid)
-    if (valintatulos == null) {
-      throw new IllegalArgumentException("Valintatulosta ei löydy")
-    }
-    val sopivatTilat = Array(VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI)
+    withHaku(hakuOid) { haku =>
+      val (_, hakutoive) = etsiHakutoive(haku, hakemusOid, ilmoittautuminen.hakukohdeOid)
+      var valintatulos: Valintatulos = dao.loadValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajono.getValintatapajonoOid, hakemusOid)
+      if (valintatulos == null) {
+        throw new IllegalArgumentException("Valintatulosta ei löydy")
+      }
+      val sopivatTilat = Array(VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI)
 
-    if(!sopivatTilat.contains(valintatulos.getTila)) {
-      throw new IllegalArgumentException(s"""Valintatulokselle, jonka tila on
+      if(!sopivatTilat.contains(valintatulos.getTila)) {
+        throw new IllegalArgumentException(s"""Valintatulokselle, jonka tila on
       ${valintatulos.getTila} ei voi tallentaa ilmoittautumistietoa""")
+      }
+      valintatulos.setIlmoittautumisTila(IlmoittautumisTila.valueOf(ilmoittautuminen.tila.toString))
+      addLogEntry(valintatulos, ilmoittautuminen.tila.toString, ilmoittautuminen.muokkaaja, ilmoittautuminen.selite)
+      dao.createOrUpdateValintatulos(valintatulos)
     }
-    valintatulos.setIlmoittautumisTila(IlmoittautumisTila.valueOf(ilmoittautuminen.tila.toString))
-    addLogEntry(valintatulos, ilmoittautuminen.tila.toString, ilmoittautuminen.muokkaaja, ilmoittautuminen.selite)
-    dao.createOrUpdateValintatulos(valintatulos)
   }
 
   private def addLogEntry(valintatulos: Valintatulos, tila: String, muokkaaja: String, selite: String) {

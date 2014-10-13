@@ -62,6 +62,7 @@
         "tila": "KESKEN",
         "ilmoittautumisTila": "EI_TEHTY",
         "hyvaksyttyVarasijalta": true,
+        "julkaistavissa": true,
         "logEntries": [
           {
             "luotu": {

@@ -3,13 +3,12 @@ package fi.vm.sade.valintatulosservice.local
 import fi.vm.sade.sijoittelu.domain.{LogEntry, ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila._
 import fi.vm.sade.valintatulosservice.domain.{Ilmoittautuminen, _}
-import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
+import fi.vm.sade.valintatulosservice.tarjonta.{HakuService, HakuFixtures}
 import fi.vm.sade.valintatulosservice.{ITSetup, TimeWarp}
 import org.joda.time.LocalDate
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 
 @RunWith(classOf[JUnitRunner])
 class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
@@ -206,8 +205,9 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
 
   lazy val sijoitteluClient = appConfig.sijoitteluContext.sijoittelutulosService
   lazy val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
+  lazy val hakuService = HakuService(appConfig)
 
-  def haeSijoittelutulos = sijoitteluClient.hakemuksenTulos(hakuOid, hakemusOid).get
+  def haeSijoittelutulos = sijoitteluClient.hakemuksenTulos(hakuService.getHaku(hakuOid).get, hakemusOid).get
 
   lazy val vastaanottoService = appConfig.sijoitteluContext.vastaanottoService
 

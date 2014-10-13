@@ -4,7 +4,7 @@ import java.util.Date
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, _}
-import fi.vm.sade.valintatulosservice.fixtures.HakemusFixtureImporter
+import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
 import fi.vm.sade.valintatulosservice.{JsonFormats, TimeWarp, ValintatulosServlet, ValintatulosSwagger}
 import org.json4s.jackson.Serialization
@@ -17,7 +17,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
   implicit val appConfig: AppConfig = new AppConfig.IT
   implicit val swagger: Swagger = new ValintatulosSwagger
   implicit val formats = JsonFormats.jsonFormats
-  val hakemusFixtureImporter = new HakemusFixtureImporter(appConfig.settings.hakemusMongoConfig)
+  val hakemusFixtureImporter = HakemusFixtures()
 
   sequential
 
@@ -57,7 +57,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
 
       "hyväksyttyä hakutoivetta alemmat puuttuvat merkitään tilaan PERUUNTUNUT" in {
         SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-julkaisematon-hyvaksytty.json", true)
-        hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369-3.json")
+        hakemusFixtureImporter.clear.importData("00000441369-3")
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
           val tulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.size must_== 3
@@ -71,7 +71,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
       }
 
       "jos hyväksyttyä hakutoivetta ylempi puuttuu, merkitään hyväksytty hakutoive tilaan KESKEN" in {
-        hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369-flipped.json")
+        hakemusFixtureImporter.clear.importData("00000441369-flipped")
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
           val tulos = Serialization.read[Hakemuksentulos](body)
           val puuttuva = tulos.hakutoiveet.head
@@ -84,7 +84,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
       }
 
       "varasijalta hyväksyttyä alemmat puuttuvat merkitään tilaan PERUUNTUNUT" in {
-        hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369.json")
+        hakemusFixtureImporter.clear.importData("00000441369")
         SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-varasijalta-kesken-julkaistavissa.json", true)
         get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
           val tulos = Serialization.read[Hakemuksentulos](body)
@@ -112,7 +112,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
     val beforeSave = new Date()
     HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
     "vastaanottaa opiskelupaikan" in {
-      hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369.json")
+      hakemusFixtureImporter.clear.importData("00000441369")
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ilmoitettu.json", true)
       post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
         """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"VASTAANOTTANUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
@@ -138,7 +138,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
     }
 
     "peruu opiskelupaikan" in {
-      hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369.json")
+      hakemusFixtureImporter.clear.importData("00000441369")
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ilmoitettu.json", true)
       post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
         """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"PERUNUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
@@ -154,7 +154,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
     }
 
     "vastaanottaa ehdollisesti" in {
-      hakemusFixtureImporter.clear.importData("fixtures/hakemus/00000441369.json")
+      hakemusFixtureImporter.clear.importData("00000441369")
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ylempi-varalla.json", true)
       withFixedDateTime("15.8.2014 12:00") {
         post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",

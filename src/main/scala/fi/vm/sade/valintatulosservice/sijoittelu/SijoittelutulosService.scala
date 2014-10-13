@@ -2,11 +2,12 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 
 import fi.vm.sade.sijoittelu.tulos.dto.IlmoittautumisTila
 import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.tarjonta.Haku
 import scala.collection.JavaConversions._
 
 class SijoittelutulosService(yhteenvetoService: YhteenvetoService) {
-  def hakemuksenTulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
-    yhteenvetoService.hakemuksenYhteenveto(hakuOid, hakemusOid).map { hakemuksenYhteenveto =>
+  def hakemuksenTulos(haku: Haku, hakemusOid: String): Option[Hakemuksentulos] = {
+    yhteenvetoService.hakemuksenYhteenveto(haku, hakemusOid).map { hakemuksenYhteenveto =>
       val hakija = hakemuksenYhteenveto.hakija
       val aikataulu = hakemuksenYhteenveto.aikataulu
       new Hakemuksentulos(hakija.getHakemusOid, aikataulu, hakemuksenYhteenveto.hakutoiveet.map { hakutoiveenYhteenveto =>

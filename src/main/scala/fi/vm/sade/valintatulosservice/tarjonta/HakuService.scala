@@ -16,19 +16,19 @@ object HakuService {
   }
 }
 
-case class Haku(korkeakoulu: Boolean, yhteishaku: Boolean)
+case class Haku(oid: String, korkeakoulu: Boolean, yhteishaku: Boolean)
 
 protected trait JsonHakuService {
   import org.json4s._
   import org.json4s.jackson.JsonMethods._
   implicit val formats = DefaultFormats
 
-  protected def parseResponse(response: String, settings: ApplicationSettings): Haku = {
+  protected def parseResponse(oid: String, response: String, settings: ApplicationSettings): Haku = {
     val hakuTarjonnassa = (parse(response) \ "result").extract[HakuTarjonnassa]
     val korkeakoulu: Boolean = hakuTarjonnassa.kohdejoukkoUri.startsWith("haunkohdejoukko_12#")
     val yhteishaku: Boolean = hakuTarjonnassa.hakutapaUri.startsWith("hakutapa_01#")
 
-    Haku(korkeakoulu, yhteishaku)
+    Haku(oid, korkeakoulu, yhteishaku)
   }
 }
 private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String) {}
@@ -41,7 +41,7 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
 
     responseCode match {
       case 200 =>
-        Some(parseResponse(resultString, appConfig.settings))
+        Some(parseResponse(oid, resultString, appConfig.settings))
       case _ => {
         logger.warn("Get haku from " + url + " failed with status " + responseCode)
         None
@@ -55,6 +55,6 @@ class StubbedHakuService(appConfig: AppConfig) extends HakuService with JsonHaku
     val fileName = "/fixtures/tarjonta/haku/" + HakuFixtures.activeFixture + ".json"
     Option(getClass.getResourceAsStream(fileName))
       .map(io.Source.fromInputStream(_).mkString)
-      .map(parseResponse(_, appConfig.settings))
+      .map(parseResponse(oid, _, appConfig.settings))
   }
 }

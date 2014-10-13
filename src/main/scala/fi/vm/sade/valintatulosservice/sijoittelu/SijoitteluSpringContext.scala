@@ -14,14 +14,14 @@ import org.springframework.core.env.{MapPropertySource, MutablePropertySources}
 import scala.collection.JavaConversions._
 import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
 
-class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext) {
+class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext, hakuService: HakuService) {
   def database = context.getBean(classOf[DB])
 
   lazy val valintatulosDao = context.getBean(classOf[ValintatulosDao])
   lazy val raportointiService = context.getBean(classOf[RaportointiService])
-  lazy val yhteenvetoService = new YhteenvetoService(raportointiService, config.ohjausparametritService, HakuService.apply(config))
+  lazy val yhteenvetoService = new YhteenvetoService(raportointiService, config.ohjausparametritService)
   lazy val sijoittelutulosService = new SijoittelutulosService(yhteenvetoService)
-  lazy val vastaanottoService = new VastaanottoService(yhteenvetoService, valintatulosDao)
+  lazy val vastaanottoService = new VastaanottoService(yhteenvetoService, valintatulosDao, hakuService)
 }
 
 object SijoitteluSpringContext {
