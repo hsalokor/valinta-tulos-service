@@ -9,6 +9,7 @@ import org.joda.time.LocalDate
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 
 @RunWith(classOf[JUnitRunner])
 class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
@@ -157,6 +158,18 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     val yhteenveto = haeSijoittelutulos
     yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
     yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
+    yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
+    yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+    yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
+    yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.vastaanottanut
+  }
+
+  "toisella asteella vastaanota alempi kun kaksi hyvaksyttya" in {
+    useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = HakuFixtures.toinenAsteYhteishaku)
+    vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738904", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
+    val yhteenveto = haeSijoittelutulos
+    yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty
+    yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
     yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
     yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
     yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken

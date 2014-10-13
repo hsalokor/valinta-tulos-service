@@ -38,7 +38,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
       var vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
       // Valintatila
 
-      if (jono.getTila().isHyvaksyttyOrVaralla() && toinenHakutoiveVastaanotettu(hakija, hakutoive.getHakutoive())) {
+      if (toisenToiveenVastaanottoEstaaVastaanoton(haku, jono, hakija, hakutoive)) {
         vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
         valintatila = Valintatila.peruuntunut;
       } else if (jono.getTila().isHyvaksytty()) {
@@ -98,6 +98,15 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
     }
     HakemuksenYhteenveto(hakija, aikataulu, hakutoiveidenYhteenvedot)
 
+  }
+
+  private def toisenToiveenVastaanottoEstaaVastaanoton(haku: Haku, jono: HakutoiveenValintatapajonoDTO, hakija: HakijaDTO, hakutoive: HakutoiveDTO) = {
+    if(haku.korkeakoulu && haku.yhteishaku) {
+      jono.getTila().isHyvaksyttyOrVaralla() && toinenHakutoiveVastaanotettu(hakija, hakutoive.getHakutoive())
+    }
+    else {
+      false
+    }
   }
 
   private def ylempiaHakutoiveitaSijoittelematta(hakija: HakijaDTO, hakutoive: HakutoiveDTO) = {
