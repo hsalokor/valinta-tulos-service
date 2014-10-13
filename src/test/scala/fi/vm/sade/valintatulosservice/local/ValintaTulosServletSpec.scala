@@ -22,6 +22,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
   sequential
 
   "GET /haku/:hakuId/hakemus/:hakemusId" should {
+    HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
     "palauttaa valintatulokset" in {
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ilmoitettu.json", true)
       get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
