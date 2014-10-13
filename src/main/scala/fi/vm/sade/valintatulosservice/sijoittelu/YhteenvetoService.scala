@@ -49,10 +49,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
             if (aikaparametriLauennut(jono)) {
               vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti;
             } else {
-              if (ylempiaHakutoiveitaSijoittelematta(hakija, hakutoive)) {
-                valintatila = Valintatila.kesken;
-                vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-              } else if (ylempiaHakutoiveitaVaralla(hakija, hakutoive)) {
+              if (ylempiaHakutoiveitaVaralla(hakija, hakutoive)) {
                 vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
               }
             }
@@ -105,10 +102,6 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
     else {
       false
     }
-  }
-
-  private def ylempiaHakutoiveitaSijoittelematta(hakija: HakijaDTO, hakutoive: HakutoiveDTO) = {
-    ylemmatHakutoiveet(hakija, hakutoive.getHakutoive()).filter(toive => !toive.isKaikkiJonotSijoiteltu()).size > 0
   }
 
   private def ylempiaHakutoiveitaVaralla(hakija: HakijaDTO, hakutoive: HakutoiveDTO) = {
