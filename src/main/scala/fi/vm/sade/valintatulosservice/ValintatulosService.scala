@@ -32,12 +32,12 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
           .map(korkeakouluSpecial)
           .tulokset
 
-        Hakemuksentulos(h.oid, aikataulu, lopullisetTulokset)
+        Hakemuksentulos(h.oid, sijoitteluTulos.hakijaOid, aikataulu, lopullisetTulokset)
       }
     }
   }
 
-  private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = Hakemuksentulos(hakemusOid, aikataulu, Nil)
+  private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = Hakemuksentulos(hakemusOid, "", aikataulu, Nil)
 
   private def korkeakouluSpecial(tulokset: List[Hakutoiveentulos], haku: Haku) = {
     def aikaparametriLauennut(tulos: Hakutoiveentulos): Boolean = {
@@ -59,12 +59,13 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
           if (firstVastaanotettu >= 0 && index > firstVastaanotettu)
             // Peru vastaanotettua paikkaa alemmat hyväksytyt hakutoiveet
             tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
-          else if (index > 0 && aikaparametriLauennut(tulos))
+          else if (firstVaralla >= 0 && index > firstVaralla) {
+           if(aikaparametriLauennut(tulos))
             // Ehdollinen vastaanotto mahdollista
             tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti)
-          else if (index > 0 && firstVaralla >= 0 && index > firstVaralla)
-            // Ei vastaanotettavissa, jos ylempi hakutoive on varalla
+           else
             tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
+          }
           else if (firstKesken >= 0 && index > firstKesken)
             tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
           else

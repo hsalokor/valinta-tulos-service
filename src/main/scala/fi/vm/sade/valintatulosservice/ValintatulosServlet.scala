@@ -14,8 +14,8 @@ import fi.vm.sade.sijoittelu.tulos.dto.HakemuksenTila
 import java.util.Date
 
 class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagger) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
-  lazy val hakuService: HakuService = HakuService(appConfig)
-  lazy val valintatulosService: ValintatulosService = new ValintatulosService(hakuService)
+
+  lazy val valintatulosService: ValintatulosService = appConfig.sijoitteluContext.valintatulosService
   lazy val vastaanottoService: VastaanottoService = appConfig.sijoitteluContext.vastaanottoService
 
   override def applicationName = Some("haku")
@@ -27,6 +27,7 @@ class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagge
     notes "Palauttaa tyyppiä Hakemuksentulos. Esim:\n" +
       pretty(Extraction.decompose(
         Hakemuksentulos("4.3.2.1",
+          "1.3.3.1",
           Some(Vastaanottoaikataulu(Some(new Date()), Some(14))),
           List(
             Hakutoiveentulos.kesken("1.2.3.4", "4.4.4.4")

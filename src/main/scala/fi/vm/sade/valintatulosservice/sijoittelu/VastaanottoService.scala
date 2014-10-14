@@ -1,25 +1,27 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
 import java.util.Date
-
 import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila.{EHDOLLISESTI_VASTAANOTTANUT, PERUNUT, VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI}
 import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
 import fi.vm.sade.valintatulosservice.domain.{Ilmoittautuminen, Vastaanotettavuustila, Vastaanotto}
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
+import fi.vm.sade.valintatulosservice.ValintatulosService
+import fi.vm.sade.valintatulosservice.domain.Hakemuksentulos
+import fi.vm.sade.valintatulosservice.domain.Hakutoiveentulos
 
-class VastaanottoService(yhteenvetoService: YhteenvetoService, dao: ValintatulosDao, hakuService: HakuService) {
+class VastaanottoService(valintatulosService: ValintatulosService, dao: ValintatulosDao, hakuService: HakuService) {
   def vastaanota(hakuOid: String, hakemusOid: String, vastaanotto: Vastaanotto) {
     vastaanota(hakuOid, hakemusOid, vastaanotto.hakukohdeOid, ValintatuloksenTila.valueOf(vastaanotto.tila.toString), vastaanotto.muokkaaja, vastaanotto.selite)
   }
 
   def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: ValintatuloksenTila, muokkaaja: String, selite: String) {
     withHaku(hakuOid) { haku =>
-      val (hakemus, hakutoive) = etsiHakutoive(haku, hakemusOid, hakukohdeOid)
+      val (hakemus, hakutoive, hakutoiveIndex) = etsiHakutoive(haku, hakemusOid, hakukohdeOid)
 
       tarkistaVastaanotettavuus(hakutoive, tila)
-      val tiedot = new ValintatulosPerustiedot(hakuOid, hakukohdeOid, hakutoive.valintatapajono.getValintatapajonoOid, hakemusOid, hakemus.getHakijaOid, hakutoive.hakutoive.getHakutoive)
+      val tiedot = new ValintatulosPerustiedot(hakuOid, hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, hakemus.hakijaOid, hakutoiveIndex)
       vastaanota(tiedot, tila, muokkaaja, selite)
     }
   }
@@ -32,17 +34,17 @@ class VastaanottoService(yhteenvetoService: YhteenvetoService, dao: Valintatulos
     }
   }
 
-  private def etsiHakutoive(haku: Haku, hakemusOid: String, hakukohdeOid: String): (HakijaDTO, HakutoiveenYhteenveto) = {
-    val yhteenveto: Option[HakemuksenYhteenveto] = yhteenvetoService.hakemuksenYhteenveto(haku, hakemusOid)
-    (yhteenveto, yhteenveto.flatMap(_.hakutoiveet.find(_.hakutoive.getHakukohdeOid == hakukohdeOid))) match {
-      case (Some(yhteenveto), Some(hakutoive)) =>
-        (yhteenveto.hakija, hakutoive)
+  private def etsiHakutoive(haku: Haku, hakemusOid: String, hakukohdeOid: String): (Hakemuksentulos, Hakutoiveentulos, Integer) = {
+    val yhteenveto: Option[Hakemuksentulos] = valintatulosService.hakemuksentulos(haku.oid, hakemusOid)
+    (yhteenveto, yhteenveto.flatMap(_.hakutoiveet.zipWithIndex.find(_._1.hakukohdeOid == hakukohdeOid))) match {
+      case (Some(yhteenveto), Some((hakutoive, index))) =>
+        (yhteenveto, hakutoive, index)
       case _ =>
         throw new IllegalArgumentException("Hakemusta tai hakutoivetta ei löydy")
     }
   }
 
-  private def tarkistaVastaanotettavuus(hakutoive: HakutoiveenYhteenveto, tila: ValintatuloksenTila) {
+  private def tarkistaVastaanotettavuus(hakutoive: Hakutoiveentulos, tila: ValintatuloksenTila) {
     if (!List(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT, PERUNUT).contains(tila)) {
       throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + tila)
     }
@@ -68,8 +70,8 @@ class VastaanottoService(yhteenvetoService: YhteenvetoService, dao: Valintatulos
 
   def ilmoittaudu(hakuOid: String, hakemusOid: String, ilmoittautuminen: Ilmoittautuminen) {
     withHaku(hakuOid) { haku =>
-      val (_, hakutoive) = etsiHakutoive(haku, hakemusOid, ilmoittautuminen.hakukohdeOid)
-      var valintatulos: Valintatulos = dao.loadValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajono.getValintatapajonoOid, hakemusOid)
+      val (_, hakutoive, _) = etsiHakutoive(haku, hakemusOid, ilmoittautuminen.hakukohdeOid)
+      var valintatulos: Valintatulos = dao.loadValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid)
       if (valintatulos == null) {
         throw new IllegalArgumentException("Valintatulosta ei löydy")
       }

@@ -10,10 +10,11 @@ class SijoittelutulosService(yhteenvetoService: YhteenvetoService) {
     yhteenvetoService.hakemuksenYhteenveto(haku, hakemusOid).map { hakemuksenYhteenveto =>
       val hakija = hakemuksenYhteenveto.hakija
       val aikataulu = hakemuksenYhteenveto.aikataulu
-      new Hakemuksentulos(hakija.getHakemusOid, aikataulu, hakemuksenYhteenveto.hakutoiveet.map { hakutoiveenYhteenveto =>
+      new Hakemuksentulos(hakija.getHakemusOid, hakija.getHakijaOid(), aikataulu, hakemuksenYhteenveto.hakutoiveet.map { hakutoiveenYhteenveto =>
         new Hakutoiveentulos(
           hakutoiveenYhteenveto.hakutoive.getHakukohdeOid(),
           hakutoiveenYhteenveto.hakutoive.getTarjoajaOid(),
+          hakutoiveenYhteenveto.valintatapajono.getValintatapajonoOid(),
           hakutoiveenYhteenveto.valintatila,
           hakutoiveenYhteenveto.vastaanottotila,
           Ilmoittautumistila.withName(Option(hakutoiveenYhteenveto.valintatapajono.getIlmoittautumisTila()).getOrElse(IlmoittautumisTila.EI_TEHTY).name()),

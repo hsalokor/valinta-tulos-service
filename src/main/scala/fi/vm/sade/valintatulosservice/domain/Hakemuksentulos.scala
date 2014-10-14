@@ -7,12 +7,13 @@ import fi.vm.sade.valintatulosservice.domain.Valintatila.Valintatila
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 
-case class Hakemuksentulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu], hakutoiveet: List[Hakutoiveentulos]) {
-  def julkaistavaVersio = Hakemuksentulos(hakemusOid, aikataulu, hakutoiveet.toList.map(_.julkaistavaVersio))
+case class Hakemuksentulos(hakemusOid: String, hakijaOid: String, aikataulu: Option[Vastaanottoaikataulu], hakutoiveet: List[Hakutoiveentulos]) {
+  def julkaistavaVersio = Hakemuksentulos(hakemusOid, hakijaOid, aikataulu, hakutoiveet.toList.map(_.julkaistavaVersio))
 }
 
 case class Hakutoiveentulos(hakukohdeOid: String,
                             tarjoajaOid: String,
+                            valintatapajonoOid: String,
                             valintatila: Valintatila,
                             vastaanottotila: Vastaanottotila,
                             ilmoittautumistila: Ilmoittautumistila,
@@ -31,6 +32,7 @@ case class Hakutoiveentulos(hakukohdeOid: String,
     } else {
       Hakutoiveentulos(hakukohdeOid,
         tarjoajaOid,
+        valintatapajonoOid,
         Valintatila.kesken,
         vastaanottotila,
         ilmoittautumistila,
@@ -52,6 +54,7 @@ object Hakutoiveentulos {
     Hakutoiveentulos(
       hakukohdeOid,
       tarjoajaOid,
+      "",
       Valintatila.kesken,
       Vastaanottotila.kesken,
       Ilmoittautumistila.ei_tehty,

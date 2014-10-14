@@ -13,6 +13,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer
 import org.springframework.core.env.{MapPropertySource, MutablePropertySources}
 import scala.collection.JavaConversions._
 import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
+import fi.vm.sade.valintatulosservice.ValintatulosService
 
 class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext, hakuService: HakuService) {
   def database = context.getBean(classOf[DB])
@@ -21,7 +22,8 @@ class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext, ha
   lazy val raportointiService = context.getBean(classOf[RaportointiService])
   lazy val yhteenvetoService = new YhteenvetoService(raportointiService, config.ohjausparametritService)
   lazy val sijoittelutulosService = new SijoittelutulosService(yhteenvetoService)
-  lazy val vastaanottoService = new VastaanottoService(yhteenvetoService, valintatulosDao, hakuService)
+  lazy val valintatulosService = new ValintatulosService(hakuService)(config)
+  lazy val vastaanottoService = new VastaanottoService(valintatulosService, valintatulosDao, hakuService)
 }
 
 object SijoitteluSpringContext {
