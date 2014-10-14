@@ -152,11 +152,6 @@ class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
       }
 
       "hyväksytty" in {
-        "valintatulos ilmoitettu (Legacy)" in {
-          useFixture("hyvaksytty-ilmoitettu.json", hakuFixture = hakuFixture)
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
-        }
-
         "hyvaksytty varasijalta, Valintatulos julkaistavissa" in {
           useFixture("hyvaksytty-varasijalta-julkaistavissa.json", hakuFixture = hakuFixture)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.varasijalta_hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
@@ -229,11 +224,6 @@ class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
           getHakutoive("1.2.246.562.5.16303028779").varasijojaTaytetaanAsti must_== Some(new DateTime("2014-08-31T16:00:00.000Z").toDate)
         }
 
-        "Valintatulos ilmoitettu (Legacy)" in {
-          useFixture("varalla-valintatulos-ilmoitettu.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-flipped")
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-        }
-
         "Valintatulos kesken" in {
           useFixture("varalla-valintatulos-kesken.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-flipped")
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
@@ -241,7 +231,7 @@ class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
 
         "Valintatulos hyvaksytty varasijalta" in {
           useFixture("varalla-valintatulos-hyvaksytty-varasijalta-flag.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-flipped")
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
         }
       }
 

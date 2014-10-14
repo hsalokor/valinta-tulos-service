@@ -33,45 +33,40 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
       if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta()) {
         valintatila = Valintatila.hyväksytty;
       }
-      var vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-      // Valintatila
 
       if (jono.getTila().isHyvaksytty()) {
         if (jono.isHyvaksyttyHarkinnanvaraisesti()) {
           valintatila = Valintatila.harkinnanvaraisesti_hyväksytty;
         }
-        vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_sitovasti;
       } else if (!hakutoive.isKaikkiJonotSijoiteltu()) {
         valintatila = Valintatila.kesken;
       }
 
-      var vastaanottotila = convertVastaanottotila(ifNull(jono.getVastaanottotieto(), ValintatuloksenTila.KESKEN));
+      var vastaanottotila = convertVastaanottotila(ifNull(jono.getVastaanottotieto(), ValintatuloksenTila.KESKEN))
 
       // Vastaanottotilan vaikutus valintatilaan
       if (List(Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanottotila.vastaanottanut).contains(vastaanottotila)) {
         valintatila = Valintatila.hyväksytty;
       } else if (Vastaanottotila.perunut == vastaanottotila) {
         valintatila = Valintatila.perunut;
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
       } else if (ValintatuloksenTila.ILMOITETTU == jono.getVastaanottotieto()) {
         valintatila = Valintatila.hyväksytty;
       } else if (Vastaanottotila.peruutettu == vastaanottotila) {
         valintatila = Valintatila.peruutettu;
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
       } else if (Vastaanottotila.ei_vastaanotetu_määräaikana == vastaanottotila) {
         valintatila = Valintatila.perunut;
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
-      }
-
-      if (vastaanottotila != Vastaanottotila.kesken) {
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa;
       }
 
       val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos());
 
-      if(Vastaanotettavuustila.isVastaanotettavissa(vastaanotettavuustila) && new LocalDateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinValintatuloksenMuutos))) {
+      if(Valintatila.isHyväksytty(valintatila) && vastaanottotila == Vastaanottotila.kesken && new LocalDateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinValintatuloksenMuutos))) {
         vastaanottotila = Vastaanottotila.ei_vastaanotetu_määräaikana
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa
+      }
+
+      val vastaanotettavuustila = if (Valintatila.isHyväksytty(valintatila) && vastaanottotila == Vastaanottotila.kesken) {
+        Vastaanotettavuustila.vastaanotettavissa_sitovasti;
+      } else {
+        Vastaanotettavuustila.ei_vastaanotettavissa;
       }
 
       val julkaistavissa = jono.getVastaanottotieto() != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa();
