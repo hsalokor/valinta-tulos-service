@@ -55,8 +55,8 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
 
       tulokset.zipWithIndex.map {
-        case (tulos, index) if (Valintatila.isHyväksytty(tulos.valintatila)) =>
-          if (firstVastaanotettu >= 0 && index > firstVastaanotettu)
+        case (tulos, index) if (Valintatila.isHyväksytty(tulos.valintatila) && tulos.vastaanottotila == Vastaanottotila.kesken) =>
+          if (firstVastaanotettu >= 0 && index != firstVastaanotettu)
             // Peru vastaanotettua paikkaa alemmat hyväksytyt hakutoiveet
             tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
           else if (firstVaralla >= 0 && index > firstVaralla) {
@@ -70,6 +70,9 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
             tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
           else
             tulos
+        case (tulos, index) if (firstVastaanotettu >= 0 && index != firstVastaanotettu && List(Valintatila.varalla, Valintatila.kesken).contains(tulos.valintatila)) =>
+          // Peru muut varalla/kesken toiveet, jos jokin muu vastaanotettu
+          tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
         case (tulos, _) => tulos
       }
     } else {
