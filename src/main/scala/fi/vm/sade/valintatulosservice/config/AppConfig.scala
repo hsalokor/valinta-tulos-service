@@ -57,7 +57,7 @@ object AppConfig extends Logging {
     override def start {
       mongo = EmbeddedMongo.start
       try {
-        SijoitteluFixtures.importFixture(sijoitteluContext.database, "hyvaksytty-ilmoitettu.json")
+        SijoitteluFixtures.importFixture(sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json")
         HakemusFixtures()(this).importData
       } catch {
         case e: Exception =>
@@ -87,7 +87,7 @@ object AppConfig extends Logging {
     override def start {
       mongo = EmbeddedMongo.start
       try {
-        SijoitteluFixtures.importFixture(sijoitteluContext.database, "hyvaksytty-ilmoitettu.json")
+        SijoitteluFixtures.importFixture(sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json")
       } catch {
         case e: Exception =>
           stop

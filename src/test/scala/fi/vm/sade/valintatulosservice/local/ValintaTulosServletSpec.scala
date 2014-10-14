@@ -24,7 +24,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
   "GET /haku/:hakuId/hakemus/:hakemusId" should {
     HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
     "palauttaa valintatulokset" in {
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ilmoitettu.json", true)
+      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
       get("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
         body must_== """{"hakemusOid":"1.2.246.562.11.00000441369","aikataulu":{"vastaanottoEnd":"2100-01-10T12:00:00Z","vastaanottoBufferDays":14},"hakutoiveet":[{"hakukohdeOid":"1.2.246.562.5.72607738902","tarjoajaOid":"1.2.246.562.10.591352080610","valintatila":"HYVAKSYTTY","vastaanottotila":"KESKEN","ilmoittautumistila":"EI_TEHTY","vastaanotettavuustila":"VASTAANOTETTAVISSA_SITOVASTI","viimeisinValintatuloksenMuutos":"2014-08-26T19:05:23Z","jonosija":1,"varasijojaKaytetaanAlkaen":"2014-08-26T19:05:23Z","varasijojaTaytetaanAsti":"2014-08-26T19:05:23Z","julkaistavissa":true,"tilanKuvaukset":{}},{"hakukohdeOid":"1.2.246.562.5.16303028779","tarjoajaOid":"1.2.246.562.10.455978782510","valintatila":"PERUUNTUNUT","vastaanottotila":"KESKEN","ilmoittautumistila":"EI_TEHTY","vastaanotettavuustila":"EI_VASTAANOTETTAVISSA","julkaistavissa":true,"tilanKuvaukset":{}}]}"""
       }
@@ -45,7 +45,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
     HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
     "vastaanottaa opiskelupaikan" in {
       hakemusFixtureImporter.clear.importData("00000441369")
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ilmoitettu.json", true)
+      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
       post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
         """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"VASTAANOTTANUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
         status must_== 200
@@ -71,7 +71,7 @@ class ValintaTulosServletSpec extends MutableScalatraSpec with TimeWarp {
 
     "peruu opiskelupaikan" in {
       hakemusFixtureImporter.clear.importData("00000441369")
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ilmoitettu.json", true)
+      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
       post("/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
         """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"PERUNUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
         status must_== 200

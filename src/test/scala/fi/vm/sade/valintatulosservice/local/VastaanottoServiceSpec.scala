@@ -50,8 +50,8 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
   }
 
-  "ilmoitetunValintatuloksenVastaanottoOnnistuuJosViimeisinMuutosOnBufferinSisään" in {
-    useFixture("hyvaksytty-ilmoitettu.json", "vastaanotto-loppunut", hakuFixture = hakuFixture)
+  "ilmoitetun Valintatuloksen vastaanotto onnistuu jos viimeisin muutos on bufferin sisään" in {
+    useFixture("hyvaksytty-kesken-julkaistavissa.json", "vastaanotto-loppunut", hakuFixture = hakuFixture)
     withFixedDateTime("9.9.2014 19:01") {
       haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
       haeSijoittelutulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
@@ -61,7 +61,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   }
 
   "ilmoitetunValintatuloksenVastaanottoEiOnnistuDeadlinenjälkeenJosEiOleBufferiaAnnettu" in {
-    useFixture("hyvaksytty-ilmoitettu.json", "ei-vastaanotto-bufferia", hakuFixture = hakuFixture)
+    useFixture("hyvaksytty-kesken-julkaistavissa.json", "ei-vastaanotto-bufferia", hakuFixture = hakuFixture)
     withFixedDateTime("1.9.2014 12:01") {
       haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotetu_määräaikana
       haeSijoittelutulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
@@ -72,7 +72,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   }
 
   "ilmoitetunValintatuloksenVastaanottoEiOnnistuJosViimeisinMuutosOnBufferinJälkeen" in {
-    useFixture("hyvaksytty-ilmoitettu.json", "vastaanotto-loppunut", hakuFixture = hakuFixture)
+    useFixture("hyvaksytty-kesken-julkaistavissa.json", "vastaanotto-loppunut", hakuFixture = hakuFixture)
     withFixedDateTime("9.9.2014 19:10") {
       haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotetu_määräaikana
       haeSijoittelutulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
@@ -191,7 +191,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   }
 
   "vastaanotaIlmoitettu" in {
-    useFixture("hyvaksytty-ilmoitettu.json", hakuFixture = hakuFixture)
+    useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
     vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", ValintatuloksenTila.VASTAANOTTANUT, muokkaaja, selite)
     haeSijoittelutulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
     ilmoittaudu(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", läsnä_koko_lukuvuosi, muokkaaja, selite)
