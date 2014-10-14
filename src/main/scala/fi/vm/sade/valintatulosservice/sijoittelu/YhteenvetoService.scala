@@ -28,82 +28,103 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
 
   private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu]): HakemuksenYhteenveto = {
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
-      val jono = getFirst(hakutoive).get
-      var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila()), Valintatila.kesken);
-      if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta()) {
-        valintatila = Valintatila.hyväksytty;
-      }
+      val jono: HakutoiveenValintatapajonoDTO = merkitseväJono(hakutoive).get
 
-      if (jono.getTila().isHyvaksytty()) {
-        if (jono.isHyvaksyttyHarkinnanvaraisesti()) {
-          valintatila = Valintatila.harkinnanvaraisesti_hyväksytty;
-        }
-      } else if (!hakutoive.isKaikkiJonotSijoiteltu()) {
-        valintatila = Valintatila.kesken;
-      }
-
-      var vastaanottotila = convertVastaanottotila(ifNull(jono.getVastaanottotieto(), ValintatuloksenTila.KESKEN))
-
-      // Vastaanottotilan vaikutus valintatilaan
-      if (List(Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanottotila.vastaanottanut).contains(vastaanottotila)) {
-        valintatila = Valintatila.hyväksytty;
-      } else if (Vastaanottotila.perunut == vastaanottotila) {
-        valintatila = Valintatila.perunut;
-      } else if (ValintatuloksenTila.ILMOITETTU == jono.getVastaanottotieto()) {
-        valintatila = Valintatila.hyväksytty;
-      } else if (Vastaanottotila.peruutettu == vastaanottotila) {
-        valintatila = Valintatila.peruutettu;
-      } else if (Vastaanottotila.ei_vastaanotetu_määräaikana == vastaanottotila) {
-        valintatila = Valintatila.perunut;
-      }
+      var valintatila: Valintatila = jononValintatila(jono, hakutoive)
 
       val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos());
 
-      if(Valintatila.isHyväksytty(valintatila) && vastaanottotila == Vastaanottotila.kesken && new LocalDateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinValintatuloksenMuutos))) {
-        vastaanottotila = Vastaanottotila.ei_vastaanotetu_määräaikana
-      }
+      val vastaanottotila: Vastaanottotila = laskeVastaanottotila(valintatila, jono.getVastaanottotieto(), aikataulu, viimeisinValintatuloksenMuutos)
 
-      val vastaanotettavuustila = if (Valintatila.isHyväksytty(valintatila) && vastaanottotila == Vastaanottotila.kesken) {
-        Vastaanotettavuustila.vastaanotettavissa_sitovasti;
-      } else {
-        Vastaanotettavuustila.ei_vastaanotettavissa;
-      }
+      valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
+
+      val vastaanotettavuustila = laskeVastaanotettavuustila(valintatila, vastaanottotila)
 
       val julkaistavissa = jono.getVastaanottotieto() != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa();
+
       new HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinValintatuloksenMuutos);
     }
     HakemuksenYhteenveto(hakija, aikataulu, hakutoiveidenYhteenvedot)
+  }
 
+  private def laskeVastaanotettavuustila(valintatila: Valintatila, vastaanottotila: Vastaanottotila): Vastaanotettavuustila.Value = {
+    val vastaanotettavuustila = if (Valintatila.isHyväksytty(valintatila) && vastaanottotila == Vastaanottotila.kesken) {
+      Vastaanotettavuustila.vastaanotettavissa_sitovasti;
+    } else {
+      Vastaanotettavuustila.ei_vastaanotettavissa;
+    }
+    vastaanotettavuustila
+  }
+
+  private def jononValintatila(jono: HakutoiveenValintatapajonoDTO, hakutoive: HakutoiveDTO) = {
+    var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila()), Valintatila.kesken);
+    if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta()) {
+      valintatila = Valintatila.hyväksytty;
+    }
+
+    if (jono.getTila().isHyvaksytty()) {
+      if (jono.isHyvaksyttyHarkinnanvaraisesti()) {
+        valintatila = Valintatila.harkinnanvaraisesti_hyväksytty;
+      }
+    } else if (!hakutoive.isKaikkiJonotSijoiteltu()) {
+      valintatila = Valintatila.kesken;
+    }
+    valintatila
+  }
+
+  private def laskeVastaanottotila(valintatila: Valintatila, vastaanottotieto: ValintatuloksenTila, aikataulu: Option[Vastaanottoaikataulu], viimeisinValintatuloksenMuutos: Option[Date]): Vastaanottotila = {
+    def convertVastaanottotila(valintatuloksenTila: ValintatuloksenTila): Vastaanottotila = {
+      valintatuloksenTila match {
+        case ValintatuloksenTila.ILMOITETTU =>
+          Vastaanottotila.kesken
+        case ValintatuloksenTila.KESKEN =>
+          Vastaanottotila.kesken
+        case ValintatuloksenTila.PERUNUT =>
+          Vastaanottotila.perunut
+        case ValintatuloksenTila.PERUUTETTU =>
+          Vastaanottotila.peruutettu
+        case ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA =>
+          Vastaanottotila.ei_vastaanotetu_määräaikana
+        case ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT =>
+          Vastaanottotila.ehdollisesti_vastaanottanut
+        case ValintatuloksenTila.VASTAANOTTANUT_LASNA =>
+          Vastaanottotila.vastaanottanut
+        case ValintatuloksenTila.VASTAANOTTANUT_POISSAOLEVA =>
+          Vastaanottotila.vastaanottanut
+        case ValintatuloksenTila.VASTAANOTTANUT =>
+          Vastaanottotila.vastaanottanut
+        case _ =>
+          throw new IllegalArgumentException("Unknown state: " + valintatuloksenTila)
+      }
+    }
+
+    val vastaanottotila = convertVastaanottotila(ifNull(vastaanottotieto, ValintatuloksenTila.KESKEN)) match {
+      case Vastaanottotila.kesken if (Valintatila.isHyväksytty(valintatila) && new LocalDateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinValintatuloksenMuutos))) =>
+        Vastaanottotila.ei_vastaanotetu_määräaikana
+      case tila =>
+        tila
+    }
+    vastaanottotila
+  }
+
+  private def vastaanottotilanVaikutusValintatilaan(valintatila: Valintatila, vastaanottotila : Vastaanottotila) = {
+    if (List(Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanottotila.vastaanottanut).contains(vastaanottotila)) {
+      Valintatila.hyväksytty;
+    } else if (Vastaanottotila.perunut == vastaanottotila) {
+      Valintatila.perunut;
+    } else if (Vastaanottotila.peruutettu == vastaanottotila) {
+      Valintatila.peruutettu;
+    } else if (Vastaanottotila.ei_vastaanotetu_määräaikana == vastaanottotila) {
+      Valintatila.perunut;
+    } else {
+      valintatila
+    }
   }
 
   private def fromHakemuksenTila(tila: HakemuksenTila): Valintatila = {
     Valintatila.withName(tila.name)
   }
 
-  private def convertVastaanottotila(valintatuloksenTila: ValintatuloksenTila): Vastaanottotila = {
-    valintatuloksenTila match {
-      case ValintatuloksenTila.ILMOITETTU =>
-        Vastaanottotila.kesken
-      case ValintatuloksenTila.KESKEN =>
-        Vastaanottotila.kesken
-      case ValintatuloksenTila.PERUNUT =>
-        Vastaanottotila.perunut
-      case ValintatuloksenTila.PERUUTETTU =>
-        Vastaanottotila.peruutettu
-      case ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA =>
-        Vastaanottotila.ei_vastaanotetu_määräaikana
-      case ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT =>
-        Vastaanottotila.ehdollisesti_vastaanottanut
-      case ValintatuloksenTila.VASTAANOTTANUT_LASNA =>
-        Vastaanottotila.vastaanottanut
-      case ValintatuloksenTila.VASTAANOTTANUT_POISSAOLEVA =>
-        Vastaanottotila.vastaanottanut
-      case ValintatuloksenTila.VASTAANOTTANUT =>
-        Vastaanottotila.vastaanottanut
-      case _ =>
-        throw new IllegalArgumentException("Unknown state: " + valintatuloksenTila)
-    }
-  }
 
   private def getVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinValintatuloksenMuutos: Option[Date]) = {
       aikataulu match {
@@ -122,7 +143,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
     return value
   }
 
-  private def getFirst(hakutoive: HakutoiveDTO): Option[HakutoiveenValintatapajonoDTO] = {
+  private def merkitseväJono(hakutoive: HakutoiveDTO): Option[HakutoiveenValintatapajonoDTO] = {
     val ordering = Ordering.fromLessThan{ (jono1: HakutoiveenValintatapajonoDTO, jono2: HakutoiveenValintatapajonoDTO) =>
       val tila1 = fromHakemuksenTila(jono1.getTila)
       val tila2 = fromHakemuksenTila(jono2.getTila)
