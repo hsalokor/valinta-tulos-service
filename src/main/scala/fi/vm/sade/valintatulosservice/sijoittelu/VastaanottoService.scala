@@ -57,13 +57,11 @@ class VastaanottoService(valintatulosService: ValintatulosService, dao: Valintat
   }
 
   private def vastaanota(perustiedot: ValintatulosPerustiedot, tila: ValintatuloksenTila, muokkaaja: String, selite: String) {
-    var valintatulos: Valintatulos = dao.loadValintatulos(perustiedot.hakukohdeOid, perustiedot.valintatapajonoOid, perustiedot.hakemusOid)
+    val valintatulos: Valintatulos = dao.loadValintatulos(perustiedot.hakukohdeOid, perustiedot.valintatapajonoOid, perustiedot.hakemusOid)
     if (valintatulos == null) {
-      valintatulos = perustiedot.createValintatulos(tila)
+      throw new IllegalArgumentException("Valintatulosta ei löydy")
     }
-    else {
-      valintatulos.setTila(tila)
-    }
+    valintatulos.setTila(tila)
     addLogEntry(valintatulos, valintatulos.getTila.name, muokkaaja, selite)
     dao.createOrUpdateValintatulos(valintatulos)
   }
@@ -96,18 +94,5 @@ class VastaanottoService(valintatulosService: ValintatulosService, dao: Valintat
     valintatulos.getLogEntries.add(logEntry)
   }
 
-  private case class ValintatulosPerustiedot (hakuOid: String, hakukohdeOid: String, valintatapajonoOid: String, hakemusOid: String, hakijaOid: String, hakutoiveenPrioriteetti: Int) {
-    def createValintatulos(tila: ValintatuloksenTila): Valintatulos = {
-      val valintatulos: Valintatulos = new Valintatulos
-      valintatulos.setHakemusOid(hakemusOid)
-      valintatulos.setHakijaOid(hakijaOid)
-      valintatulos.setHakukohdeOid(hakukohdeOid)
-      valintatulos.setHakuOid(hakuOid)
-      valintatulos.setHakutoive(hakutoiveenPrioriteetti)
-      valintatulos.setIlmoittautumisTila(IlmoittautumisTila.EI_TEHTY)
-      valintatulos.setTila(tila)
-      valintatulos.setValintatapajonoOid(valintatapajonoOid)
-      return valintatulos
-    }
-  }
+  private case class ValintatulosPerustiedot (hakuOid: String, hakukohdeOid: String, valintatapajonoOid: String, hakemusOid: String, hakijaOid: String, hakutoiveenPrioriteetti: Int)
 }
