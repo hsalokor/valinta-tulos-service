@@ -49,7 +49,7 @@ class VastaanottoService(valintatulosService: ValintatulosService, dao: Valintat
       throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + tila)
     }
     if (List(VASTAANOTTANUT, PERUNUT).contains(tila) && !List(Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, Vastaanotettavuustila.vastaanotettavissa_sitovasti).contains(hakutoive.vastaanotettavuustila)) {
-      throw new IllegalArgumentException(tila.toString())
+      throw new IllegalArgumentException("Väärä vastaanotettavuustila: " + hakutoive.vastaanotettavuustila.toString + " (tavoitetila " + tila + ")")
     }
     if (tila == EHDOLLISESTI_VASTAANOTTANUT && hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti) {
       throw new IllegalArgumentException(tila.toString())
