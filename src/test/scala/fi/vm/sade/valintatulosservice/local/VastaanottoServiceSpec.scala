@@ -5,7 +5,7 @@ import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain.{Ilmoittautuminen, _}
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuService, HakuFixtures}
-import fi.vm.sade.valintatulosservice.{ITSetup, TimeWarp}
+import fi.vm.sade.valintatulosservice._
 import org.joda.time.LocalDate
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -223,10 +223,12 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     }
   }
 
-
   private lazy val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
-  private lazy val valintatulosService = appConfig.sijoitteluContext.valintatulosService
-  private lazy val vastaanottoService = appConfig.sijoitteluContext.vastaanottoService
+
+  lazy val hakuService = HakuService(appConfig)
+  lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
+  lazy val vastaanottoService = new VastaanottoService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
+  lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
 
   private def hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).get
 
@@ -236,7 +238,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
   }
 
   private def ilmoittaudu(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Ilmoittautumistila, muokkaaja: String, selite: String) = {
-    vastaanottoService.ilmoittaudu(hakuOid, hakemusOid, Ilmoittautuminen(hakukohdeOid, tila, muokkaaja, selite))
+    ilmoittautumisService.ilmoittaudu(hakuOid, hakemusOid, Ilmoittautuminen(hakukohdeOid, tila, muokkaaja, selite))
     success
   }
 

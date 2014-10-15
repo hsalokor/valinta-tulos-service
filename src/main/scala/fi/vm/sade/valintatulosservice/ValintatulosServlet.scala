@@ -1,22 +1,21 @@
 package fi.vm.sade.valintatulosservice
 
+import java.util.Date
+
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
-import fi.vm.sade.valintatulosservice.sijoittelu.VastaanottoService
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
+import org.json4s.Extraction
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
-import org.json4s.Extraction
-import fi.vm.sade.sijoittelu.tulos.dto.HakemuksenTila
-import java.util.Date
 
 class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagger) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
-
-  lazy val valintatulosService: ValintatulosService = appConfig.sijoitteluContext.valintatulosService
-  lazy val vastaanottoService: VastaanottoService = appConfig.sijoitteluContext.vastaanottoService
+  lazy val hakuService = HakuService(appConfig)
+  lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
+  lazy val vastaanottoService = new VastaanottoService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
+  lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
 
   override def applicationName = Some("haku")
   protected val applicationDescription = "Valintatulosten REST API"
@@ -92,7 +91,7 @@ class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagge
     val hakemusOid = params("hakemusOid")
     val ilmoittautuminen = parsedBody.extract[Ilmoittautuminen]
 
-    vastaanottoService.ilmoittaudu(hakuOid, hakemusOid, ilmoittautuminen)
+    ilmoittautumisService.ilmoittaudu(hakuOid, hakemusOid, ilmoittautuminen)
   }
 
   notFound {
