@@ -13,16 +13,27 @@ import fi.vm.sade.valintatulosservice.domain.Hakutoiveentulos
 
 class VastaanottoService(valintatulosService: ValintatulosService, dao: ValintatulosDao, hakuService: HakuService) {
   def vastaanota(hakuOid: String, hakemusOid: String, vastaanotto: Vastaanotto) {
-    vastaanota(hakuOid, hakemusOid, vastaanotto.hakukohdeOid, ValintatuloksenTila.valueOf(vastaanotto.tila.toString), vastaanotto.muokkaaja, vastaanotto.selite)
+    withHaku(hakuOid) { haku =>
+      val hakutoive = etsiHakutoive(haku, hakemusOid, vastaanotto.hakukohdeOid)
+      val tila: ValintatuloksenTila = ValintatuloksenTila.valueOf(vastaanotto.tila.toString)
+      tarkistaVastaanotettavuus(hakutoive, tila)
+      vastaanota(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, tila, vastaanotto.muokkaaja, vastaanotto.selite)
+    }
   }
 
-  def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: ValintatuloksenTila, muokkaaja: String, selite: String) {
+  def ilmoittaudu(hakuOid: String, hakemusOid: String, ilmoittautuminen: Ilmoittautuminen) {
     withHaku(hakuOid) { haku =>
-      val (hakemus, hakutoive, hakutoiveIndex) = etsiHakutoive(haku, hakemusOid, hakukohdeOid)
+      val hakutoive = etsiHakutoive(haku, hakemusOid, ilmoittautuminen.hakukohdeOid)
+      val valintatulos: Valintatulos = getValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid)
+      val sopivatTilat = Array(VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI)
 
-      tarkistaVastaanotettavuus(hakutoive, tila)
-      val tiedot = new ValintatulosPerustiedot(hakuOid, hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, hakemus.hakijaOid, hakutoiveIndex)
-      vastaanota(tiedot, tila, muokkaaja, selite)
+      if(!sopivatTilat.contains(valintatulos.getTila)) {
+        throw new IllegalArgumentException(s"""Valintatulokselle, jonka tila on
+      ${valintatulos.getTila} ei voi tallentaa ilmoittautumistietoa""")
+      }
+      valintatulos.setIlmoittautumisTila(IlmoittautumisTila.valueOf(ilmoittautuminen.tila.toString))
+      addLogEntry(valintatulos, ilmoittautuminen.tila.toString, ilmoittautuminen.muokkaaja, ilmoittautuminen.selite)
+      dao.createOrUpdateValintatulos(valintatulos)
     }
   }
 
@@ -34,11 +45,12 @@ class VastaanottoService(valintatulosService: ValintatulosService, dao: Valintat
     }
   }
 
-  private def etsiHakutoive(haku: Haku, hakemusOid: String, hakukohdeOid: String): (Hakemuksentulos, Hakutoiveentulos, Integer) = {
-    val yhteenveto: Option[Hakemuksentulos] = valintatulosService.hakemuksentulos(haku.oid, hakemusOid)
-    (yhteenveto, yhteenveto.flatMap(_.hakutoiveet.zipWithIndex.find(_._1.hakukohdeOid == hakukohdeOid))) match {
-      case (Some(yhteenveto), Some((hakutoive, index))) =>
-        (yhteenveto, hakutoive, index)
+  private def etsiHakutoive(haku: Haku, hakemusOid: String, hakukohdeOid: String): Hakutoiveentulos = {
+    val hakemuksenTulos: Option[Hakemuksentulos] = valintatulosService.hakemuksentulos(haku.oid, hakemusOid)
+
+    hakemuksenTulos.flatMap(_.hakutoiveet.find(_.hakukohdeOid == hakukohdeOid)) match {
+      case Some(hakutoive) =>
+        hakutoive
       case _ =>
         throw new IllegalArgumentException("Hakemusta tai hakutoivetta ei löydy")
     }
@@ -56,33 +68,19 @@ class VastaanottoService(valintatulosService: ValintatulosService, dao: Valintat
     }
   }
 
-  private def vastaanota(perustiedot: ValintatulosPerustiedot, tila: ValintatuloksenTila, muokkaaja: String, selite: String) {
-    val valintatulos: Valintatulos = dao.loadValintatulos(perustiedot.hakukohdeOid, perustiedot.valintatapajonoOid, perustiedot.hakemusOid)
-    if (valintatulos == null) {
-      throw new IllegalArgumentException("Valintatulosta ei löydy")
-    }
+  private def vastaanota(hakukohdeOid: String, valintatapajonoOid: String, hakemusOid: String, tila: ValintatuloksenTila, muokkaaja: String, selite: String) {
+    val valintatulos = getValintatulos(hakukohdeOid, valintatapajonoOid, hakemusOid)
     valintatulos.setTila(tila)
     addLogEntry(valintatulos, valintatulos.getTila.name, muokkaaja, selite)
     dao.createOrUpdateValintatulos(valintatulos)
   }
 
-  def ilmoittaudu(hakuOid: String, hakemusOid: String, ilmoittautuminen: Ilmoittautuminen) {
-    withHaku(hakuOid) { haku =>
-      val (_, hakutoive, _) = etsiHakutoive(haku, hakemusOid, ilmoittautuminen.hakukohdeOid)
-      var valintatulos: Valintatulos = dao.loadValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid)
-      if (valintatulos == null) {
-        throw new IllegalArgumentException("Valintatulosta ei löydy")
-      }
-      val sopivatTilat = Array(VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI)
-
-      if(!sopivatTilat.contains(valintatulos.getTila)) {
-        throw new IllegalArgumentException(s"""Valintatulokselle, jonka tila on
-      ${valintatulos.getTila} ei voi tallentaa ilmoittautumistietoa""")
-      }
-      valintatulos.setIlmoittautumisTila(IlmoittautumisTila.valueOf(ilmoittautuminen.tila.toString))
-      addLogEntry(valintatulos, ilmoittautuminen.tila.toString, ilmoittautuminen.muokkaaja, ilmoittautuminen.selite)
-      dao.createOrUpdateValintatulos(valintatulos)
+  private def getValintatulos(hakukohdeOid: String, valintatapajonoOid: String, hakemusOid: String): Valintatulos = {
+    val valintatulos: Valintatulos = dao.loadValintatulos(hakukohdeOid, valintatapajonoOid, hakemusOid)
+    if (valintatulos == null) {
+      throw new IllegalArgumentException("Valintatulosta ei löydy")
     }
+    valintatulos
   }
 
   private def addLogEntry(valintatulos: Valintatulos, tila: String, muokkaaja: String, selite: String) {
@@ -93,6 +91,4 @@ class VastaanottoService(valintatulosService: ValintatulosService, dao: Valintat
     logEntry.setMuutos(tila)
     valintatulos.getLogEntries.add(logEntry)
   }
-
-  private case class ValintatulosPerustiedot (hakuOid: String, hakukohdeOid: String, valintatapajonoOid: String, hakemusOid: String, hakijaOid: String, hakutoiveenPrioriteetti: Int)
 }
