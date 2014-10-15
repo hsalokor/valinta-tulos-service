@@ -10,7 +10,9 @@ class VastaanottoService(valintatulosService: ValintatulosService, tulokset: Val
     val hakutoive = valintatulosService.hakutoive(hakuOid, hakemusOid, vastaanotto.hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakemusta tai hakutoivetta ei löydy"))
     val tila: ValintatuloksenTila = ValintatuloksenTila.valueOf(vastaanotto.tila.toString)
     tarkistaVastaanotettavuus(hakutoive, tila)
-    vastaanota(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, tila, vastaanotto.muokkaaja, vastaanotto.selite)
+    tulokset.modifyValintatulos(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, tila.name, vastaanotto.muokkaaja, vastaanotto.selite) { valintatulos =>
+      valintatulos.setTila(tila)
+    }
   }
 
   private def tarkistaVastaanotettavuus(hakutoive: Hakutoiveentulos, tila: ValintatuloksenTila) {
@@ -22,12 +24,6 @@ class VastaanottoService(valintatulosService: ValintatulosService, tulokset: Val
     }
     if (tila == EHDOLLISESTI_VASTAANOTTANUT && hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti) {
       throw new IllegalArgumentException(tila.toString())
-    }
-  }
-
-  private def vastaanota(hakukohdeOid: String, valintatapajonoOid: String, hakemusOid: String, tila: ValintatuloksenTila, muokkaaja: String, selite: String) {
-    tulokset.modifyValintatulos(hakukohdeOid, valintatapajonoOid, hakemusOid, tila.name, muokkaaja, selite) { valintatulos =>
-      valintatulos.setTila(tila)
     }
   }
 }
