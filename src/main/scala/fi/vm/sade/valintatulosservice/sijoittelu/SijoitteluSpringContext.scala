@@ -23,7 +23,7 @@ class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext, ha
   lazy val yhteenvetoService = new YhteenvetoService(raportointiService, config.ohjausparametritService)
   lazy val sijoittelutulosService = new SijoittelutulosService(yhteenvetoService)
   lazy val valintatulosService = new ValintatulosService(hakuService)(config)
-  lazy val vastaanottoService = new VastaanottoService(valintatulosService, valintatulosDao, hakuService)
+  lazy val vastaanottoService = new VastaanottoService(valintatulosService, valintatulosDao)
 }
 
 object SijoitteluSpringContext {

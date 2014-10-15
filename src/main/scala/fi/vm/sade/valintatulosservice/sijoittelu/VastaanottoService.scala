@@ -11,42 +11,30 @@ import fi.vm.sade.valintatulosservice.ValintatulosService
 import fi.vm.sade.valintatulosservice.domain.Hakemuksentulos
 import fi.vm.sade.valintatulosservice.domain.Hakutoiveentulos
 
-class VastaanottoService(valintatulosService: ValintatulosService, dao: ValintatulosDao, hakuService: HakuService) {
+class VastaanottoService(valintatulosService: ValintatulosService, dao: ValintatulosDao) {
   def vastaanota(hakuOid: String, hakemusOid: String, vastaanotto: Vastaanotto) {
-    withHaku(hakuOid) { haku =>
-      val hakutoive = etsiHakutoive(haku, hakemusOid, vastaanotto.hakukohdeOid)
-      val tila: ValintatuloksenTila = ValintatuloksenTila.valueOf(vastaanotto.tila.toString)
-      tarkistaVastaanotettavuus(hakutoive, tila)
-      vastaanota(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, tila, vastaanotto.muokkaaja, vastaanotto.selite)
-    }
+    val hakutoive = etsiHakutoive(hakuOid, hakemusOid, vastaanotto.hakukohdeOid)
+    val tila: ValintatuloksenTila = ValintatuloksenTila.valueOf(vastaanotto.tila.toString)
+    tarkistaVastaanotettavuus(hakutoive, tila)
+    vastaanota(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, tila, vastaanotto.muokkaaja, vastaanotto.selite)
   }
 
   def ilmoittaudu(hakuOid: String, hakemusOid: String, ilmoittautuminen: Ilmoittautuminen) {
-    withHaku(hakuOid) { haku =>
-      val hakutoive = etsiHakutoive(haku, hakemusOid, ilmoittautuminen.hakukohdeOid)
-      val valintatulos: Valintatulos = getValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid)
-      val sopivatTilat = Array(VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI)
+    val hakutoive = etsiHakutoive(hakuOid, hakemusOid, ilmoittautuminen.hakukohdeOid)
+    val valintatulos: Valintatulos = getValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid)
+    val sopivatTilat = Array(VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI)
 
-      if(!sopivatTilat.contains(valintatulos.getTila)) {
-        throw new IllegalArgumentException(s"""Valintatulokselle, jonka tila on
+    if(!sopivatTilat.contains(valintatulos.getTila)) {
+      throw new IllegalArgumentException(s"""Valintatulokselle, jonka tila on
       ${valintatulos.getTila} ei voi tallentaa ilmoittautumistietoa""")
-      }
-      valintatulos.setIlmoittautumisTila(IlmoittautumisTila.valueOf(ilmoittautuminen.tila.toString))
-      addLogEntry(valintatulos, ilmoittautuminen.tila.toString, ilmoittautuminen.muokkaaja, ilmoittautuminen.selite)
-      dao.createOrUpdateValintatulos(valintatulos)
     }
+    valintatulos.setIlmoittautumisTila(IlmoittautumisTila.valueOf(ilmoittautuminen.tila.toString))
+    addLogEntry(valintatulos, ilmoittautuminen.tila.toString, ilmoittautuminen.muokkaaja, ilmoittautuminen.selite)
+    dao.createOrUpdateValintatulos(valintatulos)
   }
 
-  private def withHaku[T](hakuOid: String)(block: (Haku => T)): T = {
-    hakuService.getHaku(hakuOid) match {
-      case Some(haku) =>
-        block(haku)
-      case _ => throw new IllegalArgumentException("Hakua " + hakuOid + " ei löydy")
-    }
-  }
-
-  private def etsiHakutoive(haku: Haku, hakemusOid: String, hakukohdeOid: String): Hakutoiveentulos = {
-    val hakemuksenTulos: Option[Hakemuksentulos] = valintatulosService.hakemuksentulos(haku.oid, hakemusOid)
+  private def etsiHakutoive(hakuOid: String, hakemusOid: String, hakukohdeOid: String): Hakutoiveentulos = {
+    val hakemuksenTulos: Option[Hakemuksentulos] = valintatulosService.hakemuksentulos(hakuOid, hakemusOid)
 
     hakemuksenTulos.flatMap(_.hakutoiveet.find(_.hakukohdeOid == hakukohdeOid)) match {
       case Some(hakutoive) =>
