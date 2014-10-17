@@ -48,6 +48,17 @@ class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagge
     }
   }
 
+  get("/:hakuOid") {
+    contentType = formats("json")
+    val hakuOid = params("hakuOid")
+    valintatulosService.hakemustenTulos(hakuOid) match {
+      case Some(tulos) => tulos
+      case _ =>
+        response.setStatus(404)
+        "Not found"
+    }
+  }
+
   val postVastaanottoSwagger: OperationBuilder = (apiOperation[Unit]("getHakemus")
     summary "Tallenna hakukohteelle uusi vastaanottotila"
     // Real body param type cannot be used because of unsupported scala enumerations: https://github.com/scalatra/scalatra/issues/343

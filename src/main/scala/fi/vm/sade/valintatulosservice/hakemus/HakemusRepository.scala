@@ -8,6 +8,7 @@ import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 
 object DatabaseKeys {
   val oidKey: String = "oid"
+  val applicationSystemIdKey: String = "applicationSystemId"
   val hakutoiveetPath: String = "answers.hakutoiveet"
   val answersKey: String = "answers"
   val hakutoiveetKey: String = "hakutoiveet"
@@ -19,6 +20,20 @@ class HakemusRepository()(implicit appConfig: AppConfig) {
 
   val application = MongoFactory.createCollection(appConfig.settings.hakemusMongoConfig)
 
+  def findHakemukset(hakuOid: String): Iterator[Hakemus] = {
+    val query = MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid)
+    val fields = MongoDBObject(DatabaseKeys.hakutoiveetPath -> 1)
+    val res = application.find(query, fields)
+
+    (for (
+      result <- res
+    ) yield for (
+      answers <- result.getAs[MongoDBObject](DatabaseKeys.answersKey);
+      hakutoiveet <- answers.getAs[MongoDBObject](DatabaseKeys.hakutoiveetKey);
+      hakemusOid <- result.getAs[String](DatabaseKeys.oidKey)
+    ) yield Hakemus(hakemusOid, parseHakutoiveet(hakutoiveet))).flatten
+
+  }
 
   def findHakutoiveOids(hakemusOid: String): Option[Hakemus] = {
     val query = MongoDBObject(DatabaseKeys.oidKey -> hakemusOid)
