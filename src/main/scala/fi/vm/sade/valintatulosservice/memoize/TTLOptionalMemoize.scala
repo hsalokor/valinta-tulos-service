@@ -18,19 +18,19 @@ class TTLOptionalMemoize[-T, +R](f: T => Option[R], lifetimeSeconds: Long) exten
 }
 
 object TTLOptionalMemoize {
-  def memoize[T, R](f: T => Option[R], lifetime: Long): (T => Option[R]) = new TTLOptionalMemoize(f, lifetime)
+  def memoize[T, R](f: T => Option[R], lifetimeSeconds: Long): (T => Option[R]) = new TTLOptionalMemoize(f, lifetimeSeconds)
 
-  def memoize[T1, T2, R](f: (T1, T2) => Option[R], lifetime: Long): ((T1, T2) => Option[R]) =
-    Function.untupled(memoize(f.tupled, lifetime))
+  def memoize[T1, T2, R](f: (T1, T2) => Option[R], lifetimeSeconds: Long): ((T1, T2) => Option[R]) =
+    Function.untupled(memoize(f.tupled, lifetimeSeconds))
 
-  def memoize[T1, T2, T3, R](f: (T1, T2, T3) => Option[R], lifetime: Long): ((T1, T2, T3) => Option[R]) =
-    Function.untupled(memoize(f.tupled, lifetime))
+  def memoize[T1, T2, T3, R](f: (T1, T2, T3) => Option[R], lifetimeSeconds: Long): ((T1, T2, T3) => Option[R]) =
+    Function.untupled(memoize(f.tupled, lifetimeSeconds))
 
-  def memoize[T1, T2, T3, T4, T5, R](f: (T1, T2, T3, T4, T5) => Option[R], lifetime: Long): ((T1, T2, T3, T4, T5) => Option[R]) =
-    Function.untupled(memoize(f.tupled, lifetime))
+  def memoize[T1, T2, T3, T4, T5, R](f: (T1, T2, T3, T4, T5) => Option[R], lifetimeSeconds: Long): ((T1, T2, T3, T4, T5) => Option[R]) =
+    Function.untupled(memoize(f.tupled, lifetimeSeconds))
 
-  def Y[T, R](f: (T => Option[R]) => T => Option[R], lifetime: Long): (T => Option[R]) = {
-    lazy val yf: (T => Option[R]) = memoize(f(yf)(_), lifetime)
+  def Y[T, R](f: (T => Option[R]) => T => Option[R], lifetimeSeconds: Long): (T => Option[R]) = {
+    lazy val yf: (T => Option[R]) = memoize(f(yf)(_), lifetimeSeconds)
     yf
   }
 }
