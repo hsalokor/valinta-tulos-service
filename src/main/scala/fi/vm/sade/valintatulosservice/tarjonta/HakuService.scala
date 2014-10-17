@@ -1,9 +1,10 @@
 package fi.vm.sade.valintatulosservice.tarjonta
 
-import fi.vm.sade.valintatulosservice.config.AppConfig.{StubbedExternalDeps, AppConfig}
+import fi.vm.sade.valintatulosservice.Logging
+import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
 import fi.vm.sade.valintatulosservice.config.ApplicationSettings
 import fi.vm.sade.valintatulosservice.http.DefaultHttpClient
-import fi.vm.sade.valintatulosservice.Logging
+import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
 
 trait HakuService {
   def getHaku(oid: String): Option[Haku]
@@ -12,7 +13,7 @@ trait HakuService {
 object HakuService {
   def apply(appConfig: AppConfig): HakuService = appConfig match {
     case _:StubbedExternalDeps => new StubbedHakuService(appConfig)
-    case _ => new TarjontaHakuService(appConfig)
+    case _ => new CachedHakuService(new TarjontaHakuService(appConfig))
   }
 }
 
@@ -31,6 +32,12 @@ protected trait JsonHakuService {
     Haku(oid, korkeakoulu, yhteishaku, hakuTarjonnassa.sijoittelu)
   }
 }
+
+class CachedHakuService(wrapperService: HakuService) extends HakuService {
+  private val memo = TTLOptionalMemoize.memoize(wrapperService.getHaku _, 60 * 60)
+  override def getHaku(oid: String) = memo(oid)
+}
+
 private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean) {}
 
 class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHakuService with Logging {
