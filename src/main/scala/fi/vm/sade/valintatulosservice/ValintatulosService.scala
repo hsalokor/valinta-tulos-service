@@ -23,16 +23,16 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     }
   }
 
-  def hakemustenTulos(hakuOid: String): Option[Iterator[Hakemuksentulos]] = {
+  def hakemustenTulos(hakuOid: String): Option[Seq[Hakemuksentulos]] = {
     for (
       haku <- hakuService.getHaku(hakuOid)
     ) yield {
       val aikataulu = ohjausparametritService.aikataulu(hakuOid)
-      val sijoitteluTulokset  = sijoittelutulosService.hakemustenTulos(haku).groupBy(_.hakemusOid).mapValues(_.head)
+      val sijoitteluTulokset = sijoittelutulosService.hakemustenTulos(haku).groupBy(_.hakemusOid).mapValues(_.head)
       for (
-        hakemus <- hakemusRepository.findHakemukset(hakuOid)
+        hakemus: Hakemus <- hakemusRepository.findHakemukset(hakuOid)
       ) yield {
-        val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid,tyhjäHakemuksenTulos(hakemus.oid, aikataulu)).julkaistavaVersio
+        val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, aikataulu)).julkaistavaVersio
         tulos(sijoitteluTulos, haku, aikataulu)(hakemus)
       }
     }

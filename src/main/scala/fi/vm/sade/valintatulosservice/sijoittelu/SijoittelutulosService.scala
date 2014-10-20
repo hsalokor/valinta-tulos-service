@@ -10,12 +10,13 @@ class SijoittelutulosService(yhteenvetoService: YhteenvetoService) {
     yhteenvetoService.hakemuksenYhteenveto(haku, hakemusOid).map(yhteenveto2Tulos)
   }
 
-  def hakemustenTulos(haku: Haku): List[Hakemuksentulos] =
-    (for(
+  def hakemustenTulos(haku: Haku): List[Hakemuksentulos] = {
+    (for (
       tulokset <- yhteenvetoService.hakemustenYhteenveto(haku)
     ) yield for (
-      yhteenveto <- tulokset
-    ) yield yhteenveto2Tulos(yhteenveto)).getOrElse(List())
+        yhteenveto <- tulokset
+      ) yield yhteenveto2Tulos(yhteenveto)).getOrElse(List())
+  }
 
   private def yhteenveto2Tulos(hakemuksenYhteenveto: HakemuksenYhteenveto) = {
     val hakija = hakemuksenYhteenveto.hakija

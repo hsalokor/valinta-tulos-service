@@ -20,19 +20,18 @@ class HakemusRepository()(implicit appConfig: AppConfig) {
 
   val application = MongoFactory.createCollection(appConfig.settings.hakemusMongoConfig)
 
-  def findHakemukset(hakuOid: String): Iterator[Hakemus] = {
+  def findHakemukset(hakuOid: String): Seq[Hakemus] = {
     val query = MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid)
-    val fields = MongoDBObject(DatabaseKeys.hakutoiveetPath -> 1)
-    val res = application.find(query, fields)
+    val fields = MongoDBObject(DatabaseKeys.hakutoiveetPath -> 1, DatabaseKeys.oidKey -> 1)
+    val cursor = application.find(query, fields)
 
     (for (
-      result <- res
+      hakemus <- cursor
     ) yield for (
-      answers <- result.getAs[MongoDBObject](DatabaseKeys.answersKey);
-      hakutoiveet <- answers.getAs[MongoDBObject](DatabaseKeys.hakutoiveetKey);
-      hakemusOid <- result.getAs[String](DatabaseKeys.oidKey)
-    ) yield Hakemus(hakemusOid, parseHakutoiveet(hakutoiveet))).flatten
-
+        hakemusOid <- hakemus.getAs[String](DatabaseKeys.oidKey);
+        answers <- hakemus.getAs[MongoDBObject](DatabaseKeys.answersKey);
+        hakutoiveet <- answers.getAs[MongoDBObject](DatabaseKeys.hakutoiveetKey)
+      ) yield Hakemus(hakemusOid, parseHakutoiveet(hakutoiveet))).flatten.toSeq
   }
 
   def findHakutoiveOids(hakemusOid: String): Option[Hakemus] = {

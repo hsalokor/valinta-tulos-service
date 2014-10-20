@@ -27,11 +27,10 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
 
   protected[sijoittelu] def hakemustenYhteenveto(haku: Haku): Option[List[HakemuksenYhteenveto]] = {
     val aikataulu = ohjausparametritService.aikataulu(haku.oid)
-    import scala.collection.JavaConverters._
 
     for (
       sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid));
-      hakijat: HakijaPaginationObject <- Option(raportointiService.hakemukset(sijoitteluAjo, true, true, true, List[String]().asJava, Integer.MAX_VALUE, 0))
+      hakijat: HakijaPaginationObject <- Option(raportointiService.hakemukset(sijoitteluAjo, null, null, null, null, null, null))
     ) yield for(
         hakija <- hakijat.getResults.toList
       ) yield hakemuksenYhteenveto(hakija, aikataulu)
