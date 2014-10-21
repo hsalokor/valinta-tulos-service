@@ -7,7 +7,7 @@ import org.scalatra.servlet.ScalatraListener
 
 object JettyLauncher {
   def main(args: Array[String]) {
-    val port = 8097
+    val port = System.getProperty("valintatulos.port","8097").toInt
     val server = new Server(port)
     val context = new WebAppContext()
     context.setResourceBase("src/main/webapp")
