@@ -3,6 +3,8 @@ package fi.vm.sade.valintatulosservice.tcp
 import java.io.IOException
 import java.net.Socket
 
+import scala.util.Random
+
 object PortChecker {
   def isFreeLocalPort(port: Int): Boolean = {
     try {
@@ -11,6 +13,15 @@ object PortChecker {
       false
     } catch {
       case e:IOException => true
+    }
+  }
+
+  def findFreeLocalPort: Int = {
+    val port = new Random().nextInt(60000) + 1000
+    if (isFreeLocalPort(port)) {
+      port
+    } else {
+      findFreeLocalPort
     }
   }
 }

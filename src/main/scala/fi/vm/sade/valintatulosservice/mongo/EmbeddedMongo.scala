@@ -5,15 +5,18 @@ import de.flapdoodle.embed.mongo.distribution.Version
 import de.flapdoodle.embed.mongo.{Command, MongodStarter}
 import de.flapdoodle.embed.process.config.io.ProcessOutput
 import de.flapdoodle.embed.process.runtime.Network
+import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.tcp.PortChecker
 
-object EmbeddedMongo {
-  val port = 28019
+object EmbeddedMongo extends Logging {
+  val port = PortChecker.findFreeLocalPort
 
   def start = {
     if (PortChecker.isFreeLocalPort(port)) {
+      logger.info("Starting embedded mongo on port " + port)
       Some(new MongoServer(port))
     } else {
+      logger.info("Not starting embedded mongo, seems to be running on port " + port)
       None
     }
   }

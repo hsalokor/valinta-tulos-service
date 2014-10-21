@@ -81,7 +81,7 @@ object AppConfig extends Logging {
    * IT profile, uses embedded mongo for sijoittelu, external mongo for Hakemus and stubbed external deps
    */
   class IT_externalHakemus extends ExampleTemplatedProps with StubbedExternalDeps {
-
+    // TODO: duplication
     private var mongo: Option[MongoServer] = None
 
     override def start {
