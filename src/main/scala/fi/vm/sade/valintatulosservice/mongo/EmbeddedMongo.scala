@@ -9,7 +9,7 @@ import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.tcp.PortChecker
 
 object EmbeddedMongo extends Logging {
-  val port = PortChecker.findFreeLocalPort
+  val port = System.getProperty("valintatulos.embeddedmongo.port", PortChecker.findFreeLocalPort.toString).toInt
 
   def start = {
     if (PortChecker.isFreeLocalPort(port)) {
