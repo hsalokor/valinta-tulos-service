@@ -102,7 +102,7 @@ object AppConfig extends Logging {
     override lazy val settings = loadSettings.withOverride("hakemus.mongodb.uri", "mongodb://localhost:" + System.getProperty("hakemus.embeddedmongo.port", "28018"))
 
     override def properties = super.properties +
-      ("sijoittelu-service.mongodb.uri" -> ("mongodb://localhost" + EmbeddedMongo.port)) +
+      ("sijoittelu-service.mongodb.uri" -> ("mongodb://localhost:" + EmbeddedMongo.port)) +
       ("sijoittelu-service.mongodb.dbname" -> "sijoittelu")
   }
 
