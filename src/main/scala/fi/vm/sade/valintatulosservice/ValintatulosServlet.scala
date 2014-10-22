@@ -20,19 +20,20 @@ class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagge
   override def applicationName = Some("haku")
   protected val applicationDescription = "Valintatulosten REST API"
 
+  val hakemuksenTulos = Hakemuksentulos(
+    "4.3.2.1",
+    "1.3.3.1",
+    Some(Vastaanottoaikataulu(Some(new Date()), Some(14))),
+    List(
+      Hakutoiveentulos.kesken("1.2.3.4", "4.4.4.4")
+    )
+  )
+
   // Real return type cannot be used because of unsupported scala enumerations: https://github.com/scalatra/scalatra/issues/343
   val getHakemusSwagger: OperationBuilder = (apiOperation[Unit]("getHakemus")
     summary "Hae hakemuksen tulokset."
     notes "Palauttaa tyyppiä Hakemuksentulos. Esim:\n" +
-      pretty(Extraction.decompose(
-        Hakemuksentulos("4.3.2.1",
-          "1.3.3.1",
-          Some(Vastaanottoaikataulu(Some(new Date()), Some(14))),
-          List(
-            Hakutoiveentulos.kesken("1.2.3.4", "4.4.4.4")
-          )
-        )
-      ))
+      pretty(Extraction.decompose(hakemuksenTulos))
     parameter pathParam[String]("hakuOid").description("Haun oid")
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka tulokset halutaan")
   )
@@ -42,9 +43,22 @@ class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagge
     val hakemusOid = params("hakemusOid")
     valintatulosService.hakemuksentulos(hakuOid, hakemusOid) match {
       case Some(tulos) => tulos
-      case _ =>
-        response.setStatus(404)
-        "Not found"
+      case _ => NotFound("Not found")
+    }
+  }
+
+  val getHakemuksetSwagger: OperationBuilder = (apiOperation[Unit]("getHakemukset")
+    summary "Hae haun kaikkien hakemusten tulokset."
+    notes "Palauttaa tyyppiä Seq[Hakemuksentulos]. Esim:\n" +
+      pretty(Extraction.decompose(Seq(hakemuksenTulos)))
+    parameter pathParam[String]("hakuOid").description("Haun oid")
+  )
+  get("/:hakuOid", operation(getHakemuksetSwagger)) {
+    contentType = formats("json")
+    val hakuOid = params("hakuOid")
+    valintatulosService.hakemustenTulos(hakuOid) match {
+      case Some(tulos) => tulos
+      case _ => NotFound("Not found")
     }
   }
 

@@ -1,8 +1,8 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
-import java.util.{Optional, Date}
+import java.util.{Date, Optional}
 
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakijaPaginationObject, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, ValintatuloksenTila}
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
@@ -10,20 +10,30 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
-import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
-import org.joda.time.{LocalDate, LocalDateTime}
+import fi.vm.sade.valintatulosservice.tarjonta.Haku
+import org.joda.time.LocalDateTime
 
 protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService) {
   import scala.collection.JavaConversions._
 
   protected[sijoittelu] def hakemuksenYhteenveto(haku: Haku, hakemusOid: String): Option[HakemuksenYhteenveto] = {
     val aikataulu = ohjausparametritService.aikataulu(haku.oid)
-    val hakija = fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid))
-      .flatMap { sijoitteluAjo => Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)) }
 
-    hakija.map { hakija =>
-      hakemuksenYhteenveto(hakija, aikataulu)
-    }
+    for (
+      sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid));
+      hakija: HakijaDTO <- Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid))
+    ) yield hakemuksenYhteenveto(hakija, aikataulu)
+  }
+
+  protected[sijoittelu] def hakemustenYhteenveto(haku: Haku): Option[List[HakemuksenYhteenveto]] = {
+    val aikataulu = ohjausparametritService.aikataulu(haku.oid)
+
+    for (
+      sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid));
+      hakijat: HakijaPaginationObject <- Option(raportointiService.hakemukset(sijoitteluAjo, null, null, null, null, null, null))
+    ) yield for(
+        hakija <- hakijat.getResults.toList
+      ) yield hakemuksenYhteenveto(hakija, aikataulu)
   }
 
   private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu]): HakemuksenYhteenveto = {

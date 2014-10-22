@@ -6,6 +6,8 @@ import fi.vm.sade.valintatulosservice.config.ApplicationSettings
 import fi.vm.sade.valintatulosservice.http.DefaultHttpClient
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
 
+import scala.util.Try
+
 trait HakuService {
   def getHaku(oid: String): Option[Haku]
 }
@@ -48,11 +50,12 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
 
     responseCode match {
       case 200 =>
-        Some(parseResponse(oid, resultString, appConfig.settings))
-      case _ => {
+        val parsed = Try(parseResponse(oid, resultString, appConfig.settings))
+        if (parsed.isFailure) logger.error(s"Error parsing response from: $resultString", parsed.failed.get)
+        parsed.toOption
+      case _ =>
         logger.warn("Get haku from " + url + " failed with status " + responseCode)
         None
-      }
     }
   }
 }
