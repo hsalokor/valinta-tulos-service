@@ -48,23 +48,31 @@ object AppConfig extends Logging {
   }
 
   /**
-   * IT profile, uses embedded mongo and stubbed external deps
+   *  IT (integration test) profiles. Uses embedded mongo database and stubbed external deps
    */
   class IT extends ExampleTemplatedProps with StubbedExternalDeps {
-
     private var mongo: Option[MongoServer] = None
 
     override def start {
       mongo = EmbeddedMongo.start
       try {
-        SijoitteluFixtures.importFixture(sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json")
-        HakemusFixtures()(this).importData
+        importFixturesToSijoitteluDatabase
+        importFixturesToHakemusDatabase
       } catch {
         case e: Exception =>
           stop
           throw e
       }
     }
+
+    protected def importFixturesToSijoitteluDatabase {
+      SijoitteluFixtures.importFixture(sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json")
+    }
+
+    protected def importFixturesToHakemusDatabase {
+      HakemusFixtures()(this).importData
+    }
+
     override def stop {
       mongo.foreach(_.stop)
       mongo = None
@@ -80,30 +88,10 @@ object AppConfig extends Logging {
   /**
    * IT profile, uses embedded mongo for sijoittelu, external mongo for Hakemus and stubbed external deps
    */
-  class IT_externalHakemus extends ExampleTemplatedProps with StubbedExternalDeps {
-    // TODO: duplication
-    private var mongo: Option[MongoServer] = None
-
-    override def start {
-      mongo = EmbeddedMongo.start
-      try {
-        SijoitteluFixtures.importFixture(sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json")
-      } catch {
-        case e: Exception =>
-          stop
-          throw e
-      }
-    }
-    override def stop {
-      mongo.foreach(_.stop)
-      mongo = None
-    }
-
+  class IT_externalHakemus extends IT {
     override lazy val settings = loadSettings.withOverride("hakemus.mongodb.uri", "mongodb://localhost:" + System.getProperty("hakemus.embeddedmongo.port", "28018"))
 
-    override def properties = super.properties +
-      ("sijoittelu-service.mongodb.uri" -> ("mongodb://localhost:" + EmbeddedMongo.port)) +
-      ("sijoittelu-service.mongodb.dbname" -> "sijoittelu")
+    override def importFixturesToHakemusDatabase { /* Don't import initial fixtures, as database is considered external */ }
   }
 
   trait ExternalProps {
