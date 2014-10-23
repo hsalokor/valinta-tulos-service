@@ -21,22 +21,23 @@ class SijoittelutulosService(yhteenvetoService: YhteenvetoService) {
   private def yhteenveto2Tulos(hakemuksenYhteenveto: HakemuksenYhteenveto) = {
     val hakija = hakemuksenYhteenveto.hakija
     val aikataulu = hakemuksenYhteenveto.aikataulu
-    new Hakemuksentulos(hakija.getHakemusOid, hakija.getHakijaOid(), aikataulu, hakemuksenYhteenveto.hakutoiveet.map { hakutoiveenYhteenveto =>
-      new Hakutoiveentulos(
-        hakutoiveenYhteenveto.hakutoive.getHakukohdeOid(),
-        hakutoiveenYhteenveto.hakutoive.getTarjoajaOid(),
-        hakutoiveenYhteenveto.valintatapajono.getValintatapajonoOid(),
+    Hakemuksentulos(hakija.getHakemusOid, hakija.getHakijaOid, aikataulu, hakemuksenYhteenveto.hakutoiveet.map { hakutoiveenYhteenveto =>
+      Hakutoiveentulos(
+        hakutoiveenYhteenveto.hakutoive.getHakukohdeOid,
+        hakutoiveenYhteenveto.hakutoive.getTarjoajaOid,
+        hakutoiveenYhteenveto.valintatapajono.getValintatapajonoOid,
         hakutoiveenYhteenveto.valintatila,
         hakutoiveenYhteenveto.vastaanottotila,
-        Ilmoittautumistila.withName(Option(hakutoiveenYhteenveto.valintatapajono.getIlmoittautumisTila()).getOrElse(IlmoittautumisTila.EI_TEHTY).name()),
+        Ilmoittautumistila.withName(Option(hakutoiveenYhteenveto.valintatapajono.getIlmoittautumisTila).getOrElse(IlmoittautumisTila.EI_TEHTY).name()),
         hakutoiveenYhteenveto.vastaanotettavuustila,
-        Option(hakutoiveenYhteenveto.viimeisinValintatuloksenMuutos.getOrElse(null)),
-        Option(hakutoiveenYhteenveto.valintatapajono.getJonosija()).map(_.toInt),
-        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaKaytetaanAlkaen()),
-        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaTaytetaanAsti()),
-        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijanNumero()).map(_.toInt),
+        Option(hakutoiveenYhteenveto.viimeisinValintatuloksenMuutos.orNull),
+        Option(hakutoiveenYhteenveto.valintatapajono.getJonosija).map(_.toInt),
+        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaKaytetaanAlkaen),
+        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaTaytetaanAsti),
+        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijanNumero).map(_.toInt),
         hakutoiveenYhteenveto.julkaistavissa,
-        hakutoiveenYhteenveto.valintatapajono.getTilanKuvaukset.toMap
+        hakutoiveenYhteenveto.valintatapajono.getTilanKuvaukset.toMap,
+        hakutoiveenYhteenveto.pisteet
       )
     })
   }

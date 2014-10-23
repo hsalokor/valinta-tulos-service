@@ -42,42 +42,44 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
 
       var valintatila: Valintatila = jononValintatila(jono, hakutoive)
 
-      val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos());
+      val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos)
 
-      val vastaanottotila: Vastaanottotila = laskeVastaanottotila(valintatila, jono.getVastaanottotieto(), aikataulu, viimeisinValintatuloksenMuutos)
+      val vastaanottotila: Vastaanottotila = laskeVastaanottotila(valintatila, jono.getVastaanottotieto, aikataulu, viimeisinValintatuloksenMuutos)
 
       valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
 
       val vastaanotettavuustila = laskeVastaanotettavuustila(valintatila, vastaanottotila)
 
-      val julkaistavissa = jono.getVastaanottotieto() != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa();
+      val julkaistavissa = jono.getVastaanottotieto != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa
 
-      new HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinValintatuloksenMuutos);
+      val pisteet = Option(jono.getPisteet).map((p: java.math.BigDecimal) => new BigDecimal(p))
+
+      HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinValintatuloksenMuutos, pisteet)
     }
     HakemuksenYhteenveto(hakija, aikataulu, hakutoiveidenYhteenvedot)
   }
 
   private def laskeVastaanotettavuustila(valintatila: Valintatila, vastaanottotila: Vastaanottotila): Vastaanotettavuustila.Value = {
     val vastaanotettavuustila = if (Valintatila.isHyväksytty(valintatila) && vastaanottotila == Vastaanottotila.kesken) {
-      Vastaanotettavuustila.vastaanotettavissa_sitovasti;
+      Vastaanotettavuustila.vastaanotettavissa_sitovasti
     } else {
-      Vastaanotettavuustila.ei_vastaanotettavissa;
+      Vastaanotettavuustila.ei_vastaanotettavissa
     }
     vastaanotettavuustila
   }
 
   private def jononValintatila(jono: HakutoiveenValintatapajonoDTO, hakutoive: HakutoiveDTO) = {
-    var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila()), Valintatila.kesken);
-    if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta()) {
-      valintatila = Valintatila.hyväksytty;
+    var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila), Valintatila.kesken)
+    if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta) {
+      valintatila = Valintatila.hyväksytty
     }
 
-    if (jono.getTila().isHyvaksytty()) {
-      if (jono.isHyvaksyttyHarkinnanvaraisesti()) {
-        valintatila = Valintatila.harkinnanvaraisesti_hyväksytty;
+    if (jono.getTila.isHyvaksytty) {
+      if (jono.isHyvaksyttyHarkinnanvaraisesti) {
+        valintatila = Valintatila.harkinnanvaraisesti_hyväksytty
       }
-    } else if (!hakutoive.isKaikkiJonotSijoiteltu()) {
-      valintatila = Valintatila.kesken;
+    } else if (!hakutoive.isKaikkiJonotSijoiteltu) {
+      valintatila = Valintatila.kesken
     }
     valintatila
   }
@@ -109,7 +111,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
     }
 
     val vastaanottotila = convertVastaanottotila(ifNull(vastaanottotieto, ValintatuloksenTila.KESKEN)) match {
-      case Vastaanottotila.kesken if (Valintatila.isHyväksytty(valintatila) && new LocalDateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinValintatuloksenMuutos))) =>
+      case Vastaanottotila.kesken if Valintatila.isHyväksytty(valintatila) && new LocalDateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinValintatuloksenMuutos)) =>
         Vastaanottotila.ei_vastaanotetu_määräaikana
       case tila =>
         tila
@@ -119,13 +121,13 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
 
   private def vastaanottotilanVaikutusValintatilaan(valintatila: Valintatila, vastaanottotila : Vastaanottotila) = {
     if (List(Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanottotila.vastaanottanut).contains(vastaanottotila)) {
-      Valintatila.hyväksytty;
+      Valintatila.hyväksytty
     } else if (Vastaanottotila.perunut == vastaanottotila) {
-      Valintatila.perunut;
+      Valintatila.perunut
     } else if (Vastaanottotila.peruutettu == vastaanottotila) {
-      Valintatila.peruutettu;
+      Valintatila.peruutettu
     } else if (Vastaanottotila.ei_vastaanotetu_määräaikana == vastaanottotila) {
-      Valintatila.perunut;
+      Valintatila.perunut
     } else {
       valintatila
     }
@@ -141,7 +143,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
         case Some(Vastaanottoaikataulu(Some(deadlineAsDate), buffer)) =>
           val deadline = new LocalDateTime(deadlineAsDate)
           viimeisinValintatuloksenMuutos.map(new LocalDateTime(_).plusDays(buffer.getOrElse(0))) match {
-            case Some(muutosDeadline) if(muutosDeadline.isAfter(deadline)) => muutosDeadline
+            case Some(muutosDeadline) if muutosDeadline.isAfter(deadline) => muutosDeadline
             case _ => deadline
           }
         case _ => new LocalDateTime().plusYears(100)
@@ -149,8 +151,8 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
   }
 
   private def ifNull[T](value: T, defaultValue: T): T = {
-    if (value == null) return defaultValue
-    return value
+    if (value == null) defaultValue
+    else value
   }
 
   private def merkitseväJono(hakutoive: HakutoiveDTO): Option[HakutoiveenValintatapajonoDTO] = {
@@ -158,9 +160,9 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
       val tila1 = fromHakemuksenTila(jono1.getTila)
       val tila2 = fromHakemuksenTila(jono2.getTila)
       if (tila1 == Valintatila.varalla && tila2 == Valintatila.varalla) {
-        jono1.getVarasijanNumero() < jono2.getVarasijanNumero()
+        jono1.getVarasijanNumero < jono2.getVarasijanNumero
       } else {
-        tila1.compareTo(tila2) < 0;
+        tila1.compareTo(tila2) < 0
       }
     }
 
@@ -178,4 +180,4 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
 
 protected[sijoittelu] case class HakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu], hakutoiveet: List[HakutoiveenYhteenveto])
 
-protected[sijoittelu] case class HakutoiveenYhteenveto (hakutoive: HakutoiveDTO, valintatapajono: HakutoiveenValintatapajonoDTO, valintatila: Valintatila, vastaanottotila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean, viimeisinValintatuloksenMuutos: Option[Date])
+protected[sijoittelu] case class HakutoiveenYhteenveto(hakutoive: HakutoiveDTO, valintatapajono: HakutoiveenValintatapajonoDTO, valintatila: Valintatila, vastaanottotila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean, viimeisinValintatuloksenMuutos: Option[Date], pisteet: Option[BigDecimal])
