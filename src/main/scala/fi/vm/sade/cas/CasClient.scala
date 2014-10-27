@@ -3,7 +3,7 @@ package fi.vm.sade.cas
 import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.http.DefaultHttpClient
 
-import scala.xml.{NodeSeq, Elem, XML}
+import scala.xml.{Elem, XML}
 
 class CasClient(casRoot: String) extends Logging {
   def validateServiceTicket(ticket: CasTicket): CasResponse = {
@@ -24,34 +24,34 @@ class CasClient(casRoot: String) extends Logging {
     }
   }
 
-  private val casTicketUrl = casRoot + "/v1/tickets"
+  def getServiceTicket(service: CasTicketRequest): Option[String] = {
+    val casTicketUrl = casRoot + "/v1/tickets"
 
-  private def getTicketGrantingTicket(username: String, password: String): Option[String] = {
-    val (responseCode, headersMap, resultString) = DefaultHttpClient.httpPost(casTicketUrl, None)
-      .param("username", username)
-      .param("password", password)
-      .responseWithHeaders
+    def getTicketGrantingTicket(username: String, password: String): Option[String] = {
+      val (responseCode, headersMap, resultString) = DefaultHttpClient.httpPost(casTicketUrl, None)
+        .param("username", username)
+        .param("password", password)
+        .responseWithHeaders
 
-    responseCode match {
-      case 201 => {
-        val ticketPattern = """.*/([^/]+)""".r
-        val headerValue = headersMap.getOrElse("Location",List("no location header")).head
-        ticketPattern.findFirstMatchIn(headerValue) match {
-          case Some(matched) => Some(matched.group(1))
-          case None => {
-            logger.warn("Successful ticket granting request, but no ticket found! Location header: " + headerValue)
-            None
+      responseCode match {
+        case 201 => {
+          val ticketPattern = """.*/([^/]+)""".r
+          val headerValue = headersMap.getOrElse("Location",List("no location header")).head
+          ticketPattern.findFirstMatchIn(headerValue) match {
+            case Some(matched) => Some(matched.group(1))
+            case None => {
+              logger.warn("Successful ticket granting request, but no ticket found! Location header: " + headerValue)
+              None
+            }
           }
         }
-      }
-      case _ => {
-        logger.error("Invalid response code (" + responseCode + ") from CAS server. Response body: " + resultString)
-        None
+        case _ => {
+          logger.error("Invalid response code (" + responseCode + ") from CAS server. Response body: " + resultString)
+          None
+        }
       }
     }
-  }
 
-  def getServiceTicket(service: CasTicketRequest): Option[String] = {
     getTicketGrantingTicket(service.username, service.password).flatMap { ticket =>
       DefaultHttpClient.httpPost(casTicketUrl + "/" + ticket, None)
         .param("service", service.service)
