@@ -89,6 +89,7 @@ object ValintaTulosServiceBuild extends Build {
       artifactPath in (Compile, packageWar) ~= { defaultPath =>
         file("target") / defaultPath.getName
       },
+      testOptions in Test := Seq(Tests.Filter(s => s.endsWith("Test"))),
       testOptions in Test += Tests.Argument("junitxml", "console")
     ) ++ container.deploy(
       "/valinta-tulos-service" -> projectRef
