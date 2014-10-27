@@ -1,4 +1,4 @@
-package fi.vm.sade.cas
+package fi.vm.sade.security.cas
 
 sealed trait CasResponse {
   def success: Boolean

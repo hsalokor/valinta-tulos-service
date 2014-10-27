@@ -1,11 +1,11 @@
-package fi.vm.sade.cas
+package fi.vm.sade.security.cas
 
 import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.http.DefaultHttpClient
 
 import scala.xml.{Node, Elem, XML}
 
-class CasClient(casRoot: String) extends Logging {
+class CasClient(config: CasConfig) extends Logging {
   def validateServiceTicket(ticket: CasTicket): CasResponse = {
     def failure(error: String) = CasResponseFailure(error)
     def parseCasResponse(response: String) = {
@@ -23,7 +23,7 @@ class CasClient(casRoot: String) extends Logging {
       }
     }
 
-    val casUrl: String = casRoot + "/serviceValidate"
+    val casUrl: String = config.casRoot + "/serviceValidate"
     val (responseCode, headers, resultString) = DefaultHttpClient.httpGet(casUrl).param("service", ticket.service).param("ticket", ticket.ticket)
       .responseWithHeaders
 
@@ -34,7 +34,7 @@ class CasClient(casRoot: String) extends Logging {
   }
 
   def getServiceTicket(service: CasTicketRequest): Option[String] = {
-    val casTicketUrl = casRoot + "/v1/tickets"
+    val casTicketUrl = config.casRoot + "/v1/tickets"
 
     def getTicketGrantingTicket(username: String, password: String): Option[String] = {
       val (responseCode, headersMap, resultString) = DefaultHttpClient.httpPost(casTicketUrl, None)

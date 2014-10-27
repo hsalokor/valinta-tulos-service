@@ -1,3 +1,3 @@
-package fi.vm.sade.cas
+package fi.vm.sade.security.cas
 
 case class CasTicket(service: String, ticket: String)

@@ -1,11 +1,12 @@
-package fi.vm.sade.cas
+package fi.vm.sade.security
 
+import fi.vm.sade.security.cas._
 import fi.vm.sade.valintatulosservice.config.AppConfig.LocalTestingWithTemplatedVars
 import org.specs2.mutable.Specification
 
 class CasClientIntegrationTest extends Specification {
   val appConfig = new LocalTestingWithTemplatedVars("../deploy/vars/environments/oph_vars.yml")
-  val client = new CasClient(appConfig.settings.config.getString("cas.url"))
+  val client = new CasClient(CasConfig(appConfig.settings.config.getString("cas.url")))
 
   val someService = appConfig.settings.config.getString("tarjonta-service.url")
   val casUsername = appConfig.settings.config.getString("valinta-tulos-service.cas.username")

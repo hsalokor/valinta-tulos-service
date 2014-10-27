@@ -1,6 +1,6 @@
-package fi.vm.sade.cas
+package fi.vm.sade.security
 
-import fi.vm.sade.ldap.{LdapConfig, LdapClient}
+import fi.vm.sade.security.ldap.{LdapClient, LdapConfig}
 import fi.vm.sade.valintatulosservice.config.AppConfig.LocalTestingWithTemplatedVars
 import org.specs2.mutable.Specification
 

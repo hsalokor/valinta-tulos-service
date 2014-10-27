@@ -1,4 +1,4 @@
-package fi.vm.sade.ldap
+package fi.vm.sade.security.ldap
 
 import org.json4s.DefaultFormats
 
