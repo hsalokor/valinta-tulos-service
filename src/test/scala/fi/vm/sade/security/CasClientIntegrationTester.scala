@@ -5,9 +5,9 @@ import fi.vm.sade.valintatulosservice.config.AppConfig.LocalTestingWithTemplated
 import org.specs2.mutable.Specification
 
 class CasClientIntegrationTester extends Specification {
-  val appConfig = new LocalTestingWithTemplatedVars("../deploy/vars/environments/oph_vars.yml")
-  val security = appConfig.settings.securitySettings
-  val client = new CasClient(security.casConfig)
+  lazy val appConfig = new LocalTestingWithTemplatedVars("../deploy/vars/environments/oph_vars.yml")
+  lazy val security = appConfig.settings.securitySettings
+  lazy val client = new CasClient(security.casConfig)
 
   "get service ticket from CAS" in {
     val ticket = client.getServiceTicket(security.ticketRequest)
