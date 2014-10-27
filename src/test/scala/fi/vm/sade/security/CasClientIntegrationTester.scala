@@ -4,7 +4,7 @@ import fi.vm.sade.security.cas._
 import fi.vm.sade.valintatulosservice.config.AppConfig.LocalTestingWithTemplatedVars
 import org.specs2.mutable.Specification
 
-class CasClientIntegrationTest extends Specification {
+class CasClientIntegrationTester extends Specification {
   val appConfig = new LocalTestingWithTemplatedVars("../deploy/vars/environments/oph_vars.yml")
   val security = appConfig.settings.securitySettings
   val client = new CasClient(security.casConfig)
