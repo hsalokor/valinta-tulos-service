@@ -64,7 +64,13 @@ class CasClient(config: CasConfig) extends Logging {
     getTicketGrantingTicket(service.username, service.password).flatMap { ticket =>
       DefaultHttpClient.httpPost(casTicketUrl + "/" + ticket, None)
         .param("service", service.service)
-        .response
+        .responseWithHeaders match {
+        case (code, _, ticket) if (code >= 200 && code < 300) =>
+          Some(ticket)
+        case (code, _, body) =>
+          logger.warn("Service ticket creation failed with response code " + code + ". Body: " + body)
+          None
+      }
     }
   }
 }

@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.config
 import java.io.File
 
 import com.typesafe.config._
-import fi.vm.sade.valintatulosservice.Logging
+import fi.vm.sade.valintatulosservice.{SecuritySettings, Logging}
 
 import scala.collection.JavaConversions._
 
@@ -25,6 +25,7 @@ case class ApplicationSettings(config: Config) {
   val hakemusMongoConfig: MongoConfig = getMongoConfig(config.getConfig("hakemus.mongodb"))
   val ohjausparametritUrl = config.getString("valinta-tulos-service.ohjausparametrit.url")
   val tarjontaUrl = config.getString("tarjonta-service.url")
+  val securitySettings = new SecuritySettings(config)
 
   def withOverride(keyValuePair : (String, String)) = {
     ApplicationSettings(config.withValue(keyValuePair._1, ConfigValueFactory.fromAnyRef(keyValuePair._2)))

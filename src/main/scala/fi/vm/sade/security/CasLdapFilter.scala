@@ -2,9 +2,10 @@ package fi.vm.sade.security
 
 import fi.vm.sade.security.cas._
 import fi.vm.sade.security.ldap.{LdapClient, LdapConfig}
+import fi.vm.sade.valintatulosservice.Logging
 import org.scalatra.ScalatraFilter
 
-class CasLdapFilter(casConfig: CasConfig, ldapConfig: LdapConfig, casServiceIdentifier: String, requiredRoles: List[String]) extends ScalatraFilter {
+class CasLdapFilter(casConfig: CasConfig, ldapConfig: LdapConfig, casServiceIdentifier: String, requiredRoles: List[String]) extends ScalatraFilter with Logging {
   val casClient = new CasClient(casConfig)
   val ldapClient = new LdapClient(ldapConfig)
 
@@ -19,9 +20,11 @@ class CasLdapFilter(casConfig: CasConfig, ldapConfig: LdapConfig, casServiceIden
               case _ => halt(status = 401, body = "LDAP access denied")
             }
           case CasResponseFailure(error) =>
+            logger.warn("Cas ticket rejected: " + error)
             halt(status = 401, body = "CAS ticket rejected")
         }
-      case _ => halt(status = 401, body = "CAS ticket required")
+      case _ =>
+        halt(status = 401, body = "CAS ticket required")
     }
   }
 }

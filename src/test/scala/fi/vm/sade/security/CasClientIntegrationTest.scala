@@ -6,16 +6,11 @@ import org.specs2.mutable.Specification
 
 class CasClientIntegrationTest extends Specification {
   val appConfig = new LocalTestingWithTemplatedVars("../deploy/vars/environments/oph_vars.yml")
-  val client = new CasClient(CasConfig(appConfig.settings.config.getString("cas.url")))
-
-  val someService = appConfig.settings.config.getString("tarjonta-service.url")
-  val casUsername = appConfig.settings.config.getString("valinta-tulos-service.cas.username")
-  val casPassword = appConfig.settings.config.getString("valinta-tulos-service.cas.password")
-
-  val ticketRequest: CasTicketRequest = CasTicketRequest(someService, casUsername, casPassword)
+  val security = appConfig.settings.securitySettings
+  val client = new CasClient(security.casConfig)
 
   "get service ticket from CAS" in {
-    val ticket = client.getServiceTicket(ticketRequest)
+    val ticket = client.getServiceTicket(security.ticketRequest)
     ticket.isDefined must_== true
   }
 
@@ -26,8 +21,8 @@ class CasClientIntegrationTest extends Specification {
       response.errorMessage must_== "Service not allowed to validate tickets."
     }
     "valid ticket" in {
-      val ticket = client.getServiceTicket(ticketRequest).get
-      val response = client.validateServiceTicket(CasTicket(someService, ticket)).asInstanceOf[CasResponseSuccess]
+      val ticket = client.getServiceTicket(security.ticketRequest).get
+      val response = client.validateServiceTicket(CasTicket(security.casServiceIdentifier, ticket)).asInstanceOf[CasResponseSuccess]
       response.username must_== "reaktor"
     }
   }
