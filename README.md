@@ -82,3 +82,11 @@ ja aseta muuttujat sisältävän tiedoston sijainti system propertyssä, esim. `
 Swaggerilla generoitu dokomentaatio.
 
 [http://localhost:8097/valinta-tulos-service/api-docs/index.html](http://localhost:8097/valinta-tulos-service/api-docs/index.html)
+
+## Urleja
+
+Urleja lokaaliin testaukseen eri konfiguraatioilla
+
+Luokka: http://localhost:8097/valinta-tulos-service/haku/1.2.246.562.29.92478804245/hakemus/1.2.246.562.11.00000441369
+Reppu (plain): http://localhost:8097/valinta-tulos-service/haku/1.2.246.562.5.2014022413473526465435/hakemus/1.2.246.562.11.00000442406
+Reppu (CAS, korvaa tiketti uudella): http://localhost:8097/valinta-tulos-service/cas/haku/1.2.246.562.5.2014022413473526465435/hakemus/1.2.246.562.11.00000442406?ticket=ST-240196-C3w7PDEqYCbeJZl5K4gv-cas.reppu
