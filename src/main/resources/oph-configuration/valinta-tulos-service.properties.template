@@ -25,3 +25,9 @@ hakemus.mongodb.collection=application
 
 # TARJONTA
 tarjonta-service.url=https://{{host_virkailija}}/tarjonta-service
+
+# CAS
+
+cas.url={{cas_url}}
+valinta-tulos-service.cas.username={{omatsivut_haku_app_username}}
+valinta-tulos-service.cas.password={{omatsivut_haku_app_password}}
