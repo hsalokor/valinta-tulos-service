@@ -31,3 +31,11 @@ tarjonta-service.url=https://{{host_virkailija}}/tarjonta-service
 cas.url={{cas_url}}
 valinta-tulos-service.cas.username={{omatsivut_haku_app_username}}
 valinta-tulos-service.cas.password={{omatsivut_haku_app_password}}
+
+# LDAP
+
+ldap.server.host={{host_ldap}}
+ldap.user.dn={{ldap_manager_userdn}}
+ldap.user.password={{ldap_manager_password}}
+
+ldap.url=ldap\://{{host_ldap}}/dc\=opintopolku,dc\=fi

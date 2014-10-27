@@ -3,15 +3,24 @@ package fi.vm.sade.cas
 import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.http.DefaultHttpClient
 
-import scala.xml.{Elem, XML}
+import scala.xml.{Node, Elem, XML}
 
 class CasClient(casRoot: String) extends Logging {
   def validateServiceTicket(ticket: CasTicket): CasResponse = {
-    def failure(error: String) = CasResponse(false, Some(error))
+    def failure(error: String) = CasResponseFailure(error)
     def parseCasResponse(response: String) = {
       val responseXml: Elem = XML.loadString(response)
-      val success = !(responseXml \\ ("authenticationSuccess")).isEmpty
-      CasResponse(success, None)
+      (responseXml \\ "authenticationSuccess").theSeq match {
+        case ((n: Elem) :: _) =>
+          CasResponseSuccess((n \\ "user").text)
+        case _ =>
+          (responseXml \\ "authenticationFailure").theSeq match {
+            case ((n: Elem) :: _) =>
+              CasResponseFailure(n.attributes("code").map(_.text).headOption.getOrElse("CAS authentication failure"))
+            case _ =>
+              CasResponseFailure("Unexpected CAS error")
+          }
+      }
     }
 
     val casUrl: String = casRoot + "/serviceValidate"
