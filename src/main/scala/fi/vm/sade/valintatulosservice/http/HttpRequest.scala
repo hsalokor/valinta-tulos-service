@@ -28,7 +28,7 @@ class DefaultHttpRequest(private val request: Request) extends HttpRequest {
         (e.code, HashMap(), e.body)
       }
       case t: Throwable => {
-        (500, HashMap(), "")
+        (500, HashMap(), t.getMessage)
       }
     }
   }

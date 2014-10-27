@@ -75,7 +75,8 @@ object ValintaTulosServiceBuild extends Build {
         "fi.vm.sade.valintaperusteet" % "valintaperusteet" % "1.0-SNAPSHOT",
         "fi.vm.sade.sijoittelu" % "sijoittelu-algoritmi-domain" % "1.0-SNAPSHOT",
         "com.google.guava" % "guava" % "15.0",
-        "org.scalaj" %% "scalaj-http" % "0.3.15"
+        "org.scalaj" %% "scalaj-http" % "0.3.15",
+        "fi.vm.sade" %% "scala-security" % "0.1.0-SNAPSHOT"
       ),
       artifactName <<= (name in (Compile, packageWar)) { projectName =>
         (config: ScalaVersion, module: ModuleID, artifact: Artifact) =>
@@ -88,6 +89,7 @@ object ValintaTulosServiceBuild extends Build {
       artifactPath in (Compile, packageWar) ~= { defaultPath =>
         file("target") / defaultPath.getName
       },
+      testOptions in Test := Seq(Tests.Filter(s => s.endsWith("Test"))),
       testOptions in Test += Tests.Argument("junitxml", "console")
     ) ++ container.deploy(
       "/valinta-tulos-service" -> projectRef
