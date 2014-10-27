@@ -14,8 +14,7 @@ class LdapClient(config: LdapConfig) {
     try {
       connection.bind(config.userDn, config.password)
       val filter = Filter.createEqualityFilter("uid", userid);
-      val searchRequest =
-        new SearchRequest("ou=People,dc=opintopolku,dc=fi", SearchScope.SUB, filter, "description", "uid");
+      val searchRequest = new SearchRequest("ou=People,dc=opintopolku,dc=fi", SearchScope.SUB, filter, "description", "uid");
       connection.search(searchRequest).getSearchEntries.toList.headOption.map { result =>
         val roles = Option(result.getAttribute("description").getValue).toList.flatMap { crazyString =>
           org.json4s.jackson.parseJson(crazyString).extract[List[String]]
