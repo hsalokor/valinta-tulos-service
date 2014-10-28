@@ -1,5 +1,7 @@
 package fi.vm.sade.valintatulosservice.local
 
+import fi.vm.sade.security.cas.CasTicketRequest
+import fi.vm.sade.security.ldap.LdapUser
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
@@ -55,6 +57,13 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
         status must_== 401
       }
     }
+    "mahdolistaa pääsyn validilla tiketillä" in {
+      val ticketRequest: CasTicketRequest = appConfig.settings.securitySettings.ticketRequest
+      val ticket = SecurityContext(appConfig).ticketClient.getServiceTicket(ticketRequest).get.toString
+      get("cas/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369", ("ticket", ticket)) {
+        status must_== 200
+      }
+    }
   }
 
   "GET /haku/:hakuOid" should {
@@ -69,7 +78,7 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
     "kun hakua ei löydy" in {
       "404" in {
         HakuFixtures.activeFixture = "notfound"
-          get("haku/1.2.246.562.5.foo") {
+        get("haku/1.2.246.562.5.foo") {
           status must_== 404
           body must_== "Not found"
         }
@@ -91,7 +100,7 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
           val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.head.vastaanottotila must_== Vastaanottotila.vastaanottanut
           tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.isDefined must beTrue
-          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 2000)
+          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.getTime() must be ~ (System.currentTimeMillis() +/- 2000)
         }
       }
 
@@ -117,7 +126,7 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
           val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.head.vastaanottotila.toString must_== "PERUNUT"
           tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.isDefined must beTrue
-          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.getTime() must be ~(System.currentTimeMillis() +/- 2000)
+          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.getTime() must be ~ (System.currentTimeMillis() +/- 2000)
         }
       }
     }
@@ -137,7 +146,7 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
             tulos.hakutoiveet.last.vastaanottotila.toString must_== "EHDOLLISESTI_VASTAANOTTANUT"
             val muutosAika = tulos.hakutoiveet.last.viimeisinValintatuloksenMuutos.get
             tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.before(muutosAika) must beTrue
-            muutosAika.getTime() must be ~(System.currentTimeMillis() +/- 2000)
+            muutosAika.getTime() must be ~ (System.currentTimeMillis() +/- 2000)
           }
         }
       }

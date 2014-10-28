@@ -4,7 +4,7 @@ import javax.servlet.{DispatcherType, ServletContext}
 import fi.vm.sade.security.CasLdapFilter
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.config.AppConfig
-import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, IT_externalHakemus}
+import fi.vm.sade.valintatulosservice.config.AppConfig.{StubbedExternalDeps, AppConfig, IT_externalHakemus}
 import org.scalatra._
 
 class ScalatraBootstrap extends LifeCycle {
@@ -21,8 +21,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new ValintatulosServlet, "/haku")
     context.mount(new SwaggerServlet, "/swagger/*")
 
-    val securityConfig = appConfig.settings.securitySettings
-    val securityFilter = new CasLdapFilter(securityConfig.casConfig, securityConfig.ldapConfig, securityConfig.casServiceIdentifier, securityConfig.requiredLdapRoles)
+    val securityFilter = SecurityContext(appConfig).securityFilter
 
     context.addFilter("cas", securityFilter)
       .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/cas/*")

@@ -1,8 +1,21 @@
 package fi.vm.sade.valintatulosservice
 
 import com.typesafe.config.Config
-import fi.vm.sade.security.cas.{CasTicketRequest, CasConfig}
-import fi.vm.sade.security.ldap.LdapConfig
+import fi.vm.sade.security.cas.{CasConfig, CasTicketRequest}
+import fi.vm.sade.security.ldap.{LdapConfig, LdapUser}
+import fi.vm.sade.security.mock.MockSecurityContext
+import fi.vm.sade.security.{ProductionSecurityContext, SecurityContext}
+import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
+
+object SecurityContext {
+  def apply(appConfig: AppConfig): SecurityContext = {
+    val settings: SecuritySettings = appConfig.settings.securitySettings
+    if (appConfig.isInstanceOf[StubbedExternalDeps])
+      new MockSecurityContext(settings.casServiceIdentifier, settings.requiredLdapRoles, Map((settings.ticketRequest.username -> LdapUser(settings.requiredLdapRoles))))
+    else
+      new ProductionSecurityContext(settings.ldapConfig, settings.casConfig, settings.casServiceIdentifier, settings.requiredLdapRoles)
+  }
+}
 
 class SecuritySettings(c: Config) {
   val casConfig = CasConfig(c.getString("cas.url"))
