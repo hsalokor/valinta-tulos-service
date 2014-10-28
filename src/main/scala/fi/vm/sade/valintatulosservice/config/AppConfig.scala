@@ -1,6 +1,9 @@
 package fi.vm.sade.valintatulosservice.config
 
 import com.typesafe.config.Config
+import fi.vm.sade.security.{ProductionSecurityContext, SecurityContext}
+import fi.vm.sade.security.ldap.LdapUser
+import fi.vm.sade.security.mock.MockSecurityContext
 import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.mongo.{EmbeddedMongo, MongoServer}
@@ -34,19 +37,19 @@ object AppConfig extends Logging {
   /**
    * Default profile, uses ~/oph-configuration/valinta-tulos-service.properties
    */
-  class Default extends AppConfig with ExternalProps {
+  class Default extends AppConfig with ExternalProps with CasLdapSecurity {
   }
 
   /**
    * Templated profile, uses config template with vars file located by system property valintatulos.vars
    */
-  class LocalTestingWithTemplatedVars(val templateAttributesFile: String = System.getProperty("valintatulos.vars")) extends AppConfig with TemplatedProps {
+  class LocalTestingWithTemplatedVars(val templateAttributesFile: String = System.getProperty("valintatulos.vars")) extends AppConfig with TemplatedProps with CasLdapSecurity {
   }
 
   /**
    * Dev profile, uses local mongo db
    */
-  class Dev extends AppConfig with ExampleTemplatedProps {
+  class Dev extends AppConfig with ExampleTemplatedProps with CasLdapSecurity {
     override def properties = super.properties +
       ("sijoittelu-service.mongodb.uri" -> "mongodb://localhost:27017") +
       ("sijoittelu-service.mongodb.dbname" -> "sijoittelu")
@@ -57,7 +60,7 @@ object AppConfig extends Logging {
   /**
    *  IT (integration test) profiles. Uses embedded mongo database and stubbed external deps
    */
-  class IT extends ExampleTemplatedProps with StubbedExternalDeps {
+  class IT extends ExampleTemplatedProps with StubbedExternalDeps with MockSecurity {
     private var mongo: Option[MongoServer] = None
 
     override def start {
@@ -140,11 +143,25 @@ object AppConfig extends Logging {
     def settings: ApplicationSettings
 
     def properties: Map[String, String] = settings.toProperties
+
+    def securityContext: SecurityContext
   }
 
   trait StubbedExternalDeps {
+
   }
 
+  trait MockSecurity extends AppConfig {
+    lazy val securityContext = {
+      new MockSecurityContext(settings.securitySettings.casServiceIdentifier, settings.securitySettings.requiredLdapRoles, Map((settings.securitySettings.ticketRequest.username -> LdapUser(settings.securitySettings.requiredLdapRoles))))
+    }
+  }
+
+  trait CasLdapSecurity extends AppConfig {
+    lazy val securityContext: SecurityContext = {
+      new ProductionSecurityContext(settings.securitySettings.ldapConfig, settings.securitySettings.casConfig, settings.securitySettings.casServiceIdentifier, settings.securitySettings.requiredLdapRoles)
+    }
+  }
 }
 
 case class RemoteApplicationConfig(url: String, username: String, password: String, ticketConsumerPath: String, config: Config)

@@ -59,7 +59,7 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
     }
     "mahdolistaa pääsyn validilla tiketillä" in {
       val ticketRequest: CasTicketRequest = appConfig.settings.securitySettings.ticketRequest
-      val ticket = SecurityContext(appConfig).ticketClient.getServiceTicket(ticketRequest).get.toString
+      val ticket = appConfig.securityContext.ticketClient.getServiceTicket(ticketRequest).get.toString
       get("cas/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369", ("ticket", ticket)) {
         status must_== 200
       }

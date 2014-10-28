@@ -21,7 +21,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new ValintatulosServlet, "/haku")
     context.mount(new SwaggerServlet, "/swagger/*")
 
-    val securityFilter = SecurityContext(appConfig).securityFilter
+    val securityFilter = appConfig.securityContext.securityFilter
 
     context.addFilter("cas", securityFilter)
       .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/cas/*")
