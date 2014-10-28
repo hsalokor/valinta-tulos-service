@@ -16,7 +16,7 @@ class SecuritySettings(c: Config) {
     c.getString("ldap.user.dn"),
     c.getString("ldap.user.password"))
 
-  val requiredLdapRoles = List("APP_VALINTAREKISTERI")
+  val requiredLdapRoles = List("APP_VALINTATULOSSERVICE_CRUD")
 
   val ticketRequest: CasTicketRequest = CasTicketRequest(casServiceIdentifier, casUsername, casPassword)
 }
