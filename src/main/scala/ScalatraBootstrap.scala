@@ -1,22 +1,28 @@
 import java.util
 import javax.servlet.{DispatcherType, ServletContext}
+
 import fi.vm.sade.security.CasLdapFilter
-import fi.vm.sade.security.cas.CasConfig
-import fi.vm.sade.security.ldap.LdapConfig
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.config.AppConfig
-import fi.vm.sade.valintatulosservice.config.AppConfig.{IT_externalHakemus, IT, AppConfig}
+import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, IT_externalHakemus}
 import org.scalatra._
 
 class ScalatraBootstrap extends LifeCycle {
-  implicit val appConfig: AppConfig = AppConfig.fromSystemProperty
+
   implicit val swagger = new ValintatulosSwagger
 
+  var globalConfig: Option[AppConfig] = None
+
   override def init(context: ServletContext) {
+    implicit val appConfig: AppConfig = AppConfig.fromOptionalString(Option(context.getAttribute("valintatulos.profile").asInstanceOf[String]))
+    globalConfig = Some(appConfig)
     appConfig.start
     context.mount(new BuildInfoServlet, "/")
     context.mount(new ValintatulosServlet, "/haku")
     context.mount(new SwaggerServlet, "/swagger/*")
+
+    val securityConfig = appConfig.settings.securitySettings
+    val securityFilter = new CasLdapFilter(securityConfig.casConfig, securityConfig.ldapConfig, securityConfig.casServiceIdentifier, securityConfig.requiredLdapRoles)
 
     context.addFilter("cas", securityFilter)
       .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/cas/*")
@@ -28,12 +34,7 @@ class ScalatraBootstrap extends LifeCycle {
   }
 
   override def destroy(context: ServletContext) = {
-    appConfig.stop
+    globalConfig.foreach(_.stop)
     super.destroy(context)
-  }
-
-  private def securityFilter = {
-    val securityConfig = appConfig.settings.securitySettings
-    new CasLdapFilter(securityConfig.casConfig, securityConfig.ldapConfig, securityConfig.casServiceIdentifier, securityConfig.requiredLdapRoles)
   }
 }

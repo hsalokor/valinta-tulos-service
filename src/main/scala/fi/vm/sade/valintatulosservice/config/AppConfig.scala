@@ -11,8 +11,15 @@ import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 object AppConfig extends Logging {
   def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
 
+  def fromOptionalString(profile: Option[String]) = {
+    fromString(profile.getOrElse(getProfileProperty))
+  }
+
   def fromSystemProperty: AppConfig = {
-    val profile: String = getProfileProperty
+    fromString(getProfileProperty)
+  }
+
+  def fromString(profile: String) = {
     logger.info("Using valintatulos.profile=" + profile)
     profile match {
       case "default" => new Default
