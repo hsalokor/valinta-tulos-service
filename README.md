@@ -87,6 +87,10 @@ Swaggerilla generoitu dokomentaatio.
 
 Urleja lokaaliin testaukseen eri konfiguraatioilla
 
+```
 Luokka: http://localhost:8097/valinta-tulos-service/haku/1.2.246.562.29.92478804245/hakemus/1.2.246.562.11.00000441369
 Reppu (plain): http://localhost:8097/valinta-tulos-service/haku/1.2.246.562.5.2014022413473526465435/hakemus/1.2.246.562.11.00000442406
-Reppu (CAS, korvaa tiketti uudella): http://localhost:8097/valinta-tulos-service/cas/haku/1.2.246.562.5.2014022413473526465435/hakemus/1.2.246.562.11.00000442406?ticket=ST-240196-C3w7PDEqYCbeJZl5K4gv-cas.reppu
+Reppu (CAS, korvaa tiketti uudella): http://localhost:8097/valinta-tulos-service/cas/haku/1.2.246.562.5.2014022413473526465435/hakemus/1.2.246.562.11.00000442406?ticket=xxx
+QA: https://testi.virkailija.opintopolku.fi/valinta-tulos-service/haku/1.2.246.562.29.173465377510/hakemus/1.2.246.562.11.00001021871
+QA (CAS, korvaa tiketti uudella): https://testi.virkailija.opintopolku.fi/valinta-tulos-service/cas/haku/1.2.246.562.29.173465377510/hakemus/1.2.246.562.11.00001021871?ticket=xxx
+```
