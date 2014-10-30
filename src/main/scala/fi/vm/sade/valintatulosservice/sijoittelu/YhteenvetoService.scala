@@ -60,12 +60,11 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
   }
 
   private def laskeVastaanotettavuustila(valintatila: Valintatila, vastaanottotila: Vastaanottotila): Vastaanotettavuustila.Value = {
-    val vastaanotettavuustila = if (Valintatila.isHyväksytty(valintatila) && vastaanottotila == Vastaanottotila.kesken) {
+    if (Valintatila.isHyväksytty(valintatila) && vastaanottotila == Vastaanottotila.kesken) {
       Vastaanotettavuustila.vastaanotettavissa_sitovasti
     } else {
       Vastaanotettavuustila.ei_vastaanotettavissa
     }
-    vastaanotettavuustila
   }
 
   private def jononValintatila(jono: HakutoiveenValintatapajonoDTO, hakutoive: HakutoiveDTO) = {
