@@ -105,8 +105,9 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
           Vastaanottotila.vastaanottanut
         case ValintatuloksenTila.VASTAANOTTANUT =>
           Vastaanottotila.vastaanottanut
-        case _ =>
-          throw new IllegalArgumentException("Unknown state: " + valintatuloksenTila)
+        // TODO tulisiko käyttää myös vastaanotossa?
+        case ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI =>
+          Vastaanottotila.vastaanottanut
       }
     }
 
