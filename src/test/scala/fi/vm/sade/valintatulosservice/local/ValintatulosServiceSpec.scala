@@ -167,6 +167,11 @@ class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.perunut, Vastaanottotila.perunut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
         }
 
+        "hyvaksytty, toisessa jonossa hylatty" in {
+          useFixture("hyvaksytty-jonot-valmiit.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+        }
+
         "ei vastaanottanut määräaikana" in {
           "sijoittelu ei ole ehtinyt muuttamaan tulosta" in {
             useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
