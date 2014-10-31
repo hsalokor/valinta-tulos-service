@@ -4,14 +4,17 @@ import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila.{EHDOLLISESTI_VASTAANOTT
 import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.valintatulosservice.domain.{Hakutoiveentulos, Vastaanotettavuustila, Vastaanotto}
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
+import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 
-class VastaanottoService(valintatulosService: ValintatulosService, tulokset: ValintatulosRepository) {
+class VastaanottoService(hakuService: HakuService, valintatulosService: ValintatulosService, tulokset: ValintatulosRepository) {
   def vastaanota(hakuOid: String, hakemusOid: String, vastaanotto: Vastaanotto) {
+    val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException("Hakua ei löydy"))
     val hakutoive = valintatulosService.hakutoive(hakuOid, hakemusOid, vastaanotto.hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakemusta tai hakutoivetta ei löydy"))
     val tila: ValintatuloksenTila = ValintatuloksenTila.valueOf(vastaanotto.tila.toString)
     tarkistaVastaanotettavuus(hakutoive, tila)
-    tulokset.modifyValintatulos(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, tila.name, vastaanotto.muokkaaja, vastaanotto.selite) { valintatulos =>
-      valintatulos.setTila(tila)
+    tulokset.modifyValintatulos(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, tila.name, vastaanotto.muokkaaja, vastaanotto.selite) { valintatulos => {
+        valintatulos.setTila(vastaanotaSitovastiJosKorkeakouluYhteishaku(haku, tila))
+      }
     }
   }
 
@@ -24,6 +27,15 @@ class VastaanottoService(valintatulosService: ValintatulosService, tulokset: Val
     }
     if (tila == EHDOLLISESTI_VASTAANOTTANUT && hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti) {
       throw new IllegalArgumentException(tila.toString())
+    }
+  }
+
+  private def vastaanotaSitovastiJosKorkeakouluYhteishaku(haku: Haku, tila: ValintatuloksenTila): ValintatuloksenTila = {
+    if(tila == VASTAANOTTANUT && haku.korkeakoulu && haku.yhteishaku) {
+      ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI
+    }
+    else {
+      tila
     }
   }
 }

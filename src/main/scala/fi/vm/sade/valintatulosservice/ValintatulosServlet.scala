@@ -14,7 +14,7 @@ import org.scalatra.swagger._
 class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagger) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
   lazy val hakuService = HakuService(appConfig)
   lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
-  lazy val vastaanottoService = new VastaanottoService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
+  lazy val vastaanottoService = new VastaanottoService(hakuService, valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
   lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
 
   override def applicationName = Some("haku")
