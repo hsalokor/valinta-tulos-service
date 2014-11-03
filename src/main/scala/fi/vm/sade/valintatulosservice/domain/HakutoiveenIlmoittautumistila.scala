@@ -2,14 +2,15 @@ package fi.vm.sade.valintatulosservice.domain
 
 import java.util.Date
 
+import fi.vm.sade.valintatulosservice.domain.Language.Language
+
 case class HakutoiveenIlmoittautumistila(
   ilmoittautumisAika: IlmoittautumisAika,
-  ilmoittautumisTapa: Ilmoittautumistapa,
-  ilmoittauduttavissa: Boolean
+  ilmoittautumisTapa: Option[Ilmoittautumistapa]
 )
 
-case class IlmoittautumisAika(alku: Date, loppu: Date, aktiivinen: Boolean)
+case class IlmoittautumisAika(alku: Option[Date], loppu: Option[Date], aktiivinen: Boolean)
 
 sealed trait Ilmoittautumistapa {}
 
-case class UlkoinenJärjestelmä(nimi: String, url: String)
+case class UlkoinenJärjestelmä(nimi: Map[Language,String], url: String) extends Ilmoittautumistapa
