@@ -9,7 +9,8 @@ import fi.vm.sade.valintatulosservice.tarjonta.Haku
 case class HakutoiveenIlmoittautumistila(
   ilmoittautumisaika: Ilmoittautumisaika,
   ilmoittautumistapa: Option[Ilmoittautumistapa],
-  ilmoittautumistila: Ilmoittautumistila
+  ilmoittautumistila: Ilmoittautumistila,
+  ilmoittauduttavissa: Boolean
 )
 
 case class Ilmoittautumisaika(alku: Option[Date], loppu: Option[Date], aktiivinen: Boolean)
@@ -19,13 +20,18 @@ sealed trait Ilmoittautumistapa {}
 case class UlkoinenJärjestelmä(nimi: LanguageMap, url: String) extends Ilmoittautumistapa
 
 object HakutoiveenIlmoittautumistila {
+
   val oili = UlkoinenJärjestelmä(Map(Language.fi -> "Oili", Language.sv -> "Oili", Language.en -> "Oili"), "/oili/")
+  val ilmottautumisaika = Ilmoittautumisaika(None, None, true)
+
   def getIlmoittautumistila(sijoitteluTila: HakutoiveenSijoitteluntulos, haku: Haku): HakutoiveenIlmoittautumistila = {
-    if(haku.korkeakoulu) {
-      HakutoiveenIlmoittautumistila(Ilmoittautumisaika(None, None, true), Some(oili), sijoitteluTila.ilmoittautumistila)
+    val ilmoittautumistapa = if(haku.korkeakoulu && haku.yhteishaku) {
+      Some(oili)
     }
     else {
-      HakutoiveenIlmoittautumistila(Ilmoittautumisaika(None, None, true), None, sijoitteluTila.ilmoittautumistila)
+      None
     }
+    val ilmottauduttavissa = sijoitteluTila.vastaanottotila == Vastaanottotila.vastaanottanut && ilmottautumisaika.aktiivinen && sijoitteluTila.ilmoittautumistila == Ilmoittautumistila.ei_tehty
+    HakutoiveenIlmoittautumistila(ilmottautumisaika, ilmoittautumistapa, sijoitteluTila.ilmoittautumistila, ilmottauduttavissa)
   }
 }

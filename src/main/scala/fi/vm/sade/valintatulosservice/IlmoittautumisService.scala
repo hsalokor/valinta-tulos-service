@@ -8,6 +8,10 @@ import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
 class IlmoittautumisService(valintatulosService: ValintatulosService, tulokset: ValintatulosRepository) {
   def ilmoittaudu(hakuOid: String, hakemusOid: String, ilmoittautuminen: Ilmoittautuminen) {
     val hakutoive = valintatulosService.hakutoive(hakuOid, hakemusOid, ilmoittautuminen.hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakemusta tai hakutoivetta ei löydy"))
+
+    if(!hakutoive.ilmoittautumistila.ilmoittauduttavissa)  {
+      throw new IllegalArgumentException(s"""Hakutoive ei ole ilmottauduttavissa: ${hakutoive.ilmoittautumistila}""")
+    }
     val sopivatTilat = Array(VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI)
 
     tulokset.modifyValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, ilmoittautuminen.tila.toString, ilmoittautuminen.muokkaaja, ilmoittautuminen.selite) { valintatulos =>

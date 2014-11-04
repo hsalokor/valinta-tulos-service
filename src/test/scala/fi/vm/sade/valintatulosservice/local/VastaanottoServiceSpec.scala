@@ -97,14 +97,6 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     }
 
     "ilmoittautuminen" in {
-      "vastaanota ja ilmoittaudu" in {
-        useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
-        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
-        hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
-        ilmoittaudu(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", läsnä_koko_lukuvuosi, muokkaaja, selite)
-        hakemuksenTulos.hakutoiveet(0).ilmoittautumistila.ilmoittautumistila must_== läsnä_koko_lukuvuosi
-      }
-
       "virhetilanteet" in {
         "ilmoittautuminen peruttuun kohteeseen" in {
           useFixture("hyvaksytty-ilmoitettu.json", hakuFixture = hakuFixture)
@@ -116,6 +108,16 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
         "ilmoittautuminen ilman vastaanottoa" in {
           useFixture("hyvaksytty-ilmoitettu.json", hakuFixture = hakuFixture)
           expectFailure{ilmoittaudu(hakuOid, hakemusOid, hakukohdeOid, läsnä_koko_lukuvuosi, muokkaaja, selite)}
+        }
+
+        "kahteen kertaan ilmottatuminen" in {
+          useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
+          vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+          hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
+          ilmoittaudu(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", läsnä_koko_lukuvuosi, muokkaaja, selite)
+          hakemuksenTulos.hakutoiveet(0).ilmoittautumistila.ilmoittautumistila must_== Ilmoittautumistila.läsnä_koko_lukuvuosi
+          hakemuksenTulos.hakutoiveet(0).ilmoittautumistila.ilmoittauduttavissa must_== false
+          expectFailure{ilmoittaudu(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", läsnä_koko_lukuvuosi, muokkaaja, selite)}
         }
       }
     }
@@ -204,12 +206,24 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
         yhteenveto.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
       }
     }
+
+    "ilmoittautuminen" in {
+      "vastaanota ja ilmoittaudu" in {
+        useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
+        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+        hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
+        hakemuksenTulos.hakutoiveet(0).ilmoittautumistila must_== HakutoiveenIlmoittautumistila(Ilmoittautumisaika(None, None, true), Some(HakutoiveenIlmoittautumistila.oili), Ilmoittautumistila.ei_tehty, true)
+        ilmoittaudu(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", läsnä_koko_lukuvuosi, muokkaaja, selite)
+        hakemuksenTulos.hakutoiveet(0).ilmoittautumistila must_== HakutoiveenIlmoittautumistila(Ilmoittautumisaika(None, None, true), Some(HakutoiveenIlmoittautumistila.oili), Ilmoittautumistila.läsnä_koko_lukuvuosi, false)
+      }
+    }
   }
 
   "toisen asteen oppilaitosten yhteishaku" in {
     val hakuFixture = HakuFixtures.toinenAsteYhteishaku
 
     kaikkienHakutyyppienTestit(hakuFixture)
+
 
     "vastaanota alempi kun kaksi hyvaksyttya -> muut eivät peruunnut" in {
       useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-3")
@@ -222,6 +236,17 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
       yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.vastaanottanut
       valintatulosDao.loadValintatulos("1.2.246.562.5.72607738904", "14090336922663576781797489829888", hakemusOid).getTila must_== ValintatuloksenTila.VASTAANOTTANUT
+    }
+
+    "ilmoittautuminen" in {
+      "vastaanota ja ilmoittaudu" in {
+        useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
+        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+        hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
+        hakemuksenTulos.hakutoiveet(0).ilmoittautumistila must_== HakutoiveenIlmoittautumistila(Ilmoittautumisaika(None, None, true), None, Ilmoittautumistila.ei_tehty, true)
+        ilmoittaudu(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", läsnä_koko_lukuvuosi, muokkaaja, selite)
+        hakemuksenTulos.hakutoiveet(0).ilmoittautumistila must_== HakutoiveenIlmoittautumistila(Ilmoittautumisaika(None, None, true), None, Ilmoittautumistila.läsnä_koko_lukuvuosi, false)
+      }
     }
   }
 
