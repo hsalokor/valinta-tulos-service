@@ -14,12 +14,11 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
     hakuService.getHaku(hakuOid).flatMap { haku =>
       val aikataulu = ohjausparametritService.aikataulu(hakuOid)
-      val sijoitteluTulos: Hakemuksentulos = sijoittelutulosService.hakemuksenTulos(haku, hakemusOid)
+      val sijoitteluTulos: HakemuksenSijoitteluntulos = sijoittelutulosService.hakemuksenTulos(haku, hakemusOid)
         .getOrElse(tyhjäHakemuksenTulos(hakemusOid, aikataulu))
-        .julkaistavaVersio
-      val hakemus: Option[Hakemus] = hakemusRepository.findHakutoiveOids(hakemusOid)
 
-      hakemus.map(tulos(sijoitteluTulos, haku, aikataulu))
+      val hakemus: Option[Hakemus] = hakemusRepository.findHakutoiveOids(hakemusOid)
+      hakemus.map(julkaistavaTulos(sijoitteluTulos, haku, aikataulu))
     }
   }
 
@@ -32,18 +31,19 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       for (
         hakemus: Hakemus <- hakemusRepository.findHakemukset(hakuOid)
       ) yield {
-        val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, aikataulu)).julkaistavaVersio
-        tulos(sijoitteluTulos, haku, aikataulu)(hakemus)
+        val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, aikataulu))
+        julkaistavaTulos(sijoitteluTulos, haku, aikataulu)(hakemus)
       }
     }
   }
 
-  private def tulos(sijoitteluTulos: Hakemuksentulos, haku: Haku, aikataulu: Option[Vastaanottoaikataulu])(h:Hakemus) = {
+  private def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos, haku: Haku, aikataulu: Option[Vastaanottoaikataulu])(h:Hakemus) = {
     val tulokset = h.toiveet.map { toive =>
       sijoitteluTulos.hakutoiveet.find { t =>
         t.hakukohdeOid == toive.oid
-      }.getOrElse(Hakutoiveentulos.kesken(toive.oid, toive.tarjoajaOid))
-    }
+      }.getOrElse(HakutoiveenSijoitteluntulos.kesken(toive.oid, toive.tarjoajaOid))
+    }.map(Hakutoiveentulos.julkaistavaVersio(_))
+
     val lopullisetTulokset = Välitulos(tulokset, haku)
       .map(peruValmistaAlemmatKeskeneräiset)
       .map(korkeakouluSpecial)
@@ -58,7 +58,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     hakemuksenTulos.flatMap(_.hakutoiveet.find(_.hakukohdeOid == hakukohdeOid))
   }
 
-  private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = Hakemuksentulos(hakemusOid, "", aikataulu, Nil)
+  private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, "", Nil)
 
   private def korkeakouluSpecial(tulokset: List[Hakutoiveentulos], haku: Haku) = {
     def aikaparametriLauennut(tulos: Hakutoiveentulos): Boolean = {

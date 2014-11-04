@@ -6,11 +6,11 @@ import fi.vm.sade.valintatulosservice.tarjonta.Haku
 import scala.collection.JavaConversions._
 
 class SijoittelutulosService(yhteenvetoService: YhteenvetoService) {
-  def hakemuksenTulos(haku: Haku, hakemusOid: String): Option[Hakemuksentulos] = {
+  def hakemuksenTulos(haku: Haku, hakemusOid: String): Option[HakemuksenSijoitteluntulos] = {
     yhteenvetoService.hakemuksenYhteenveto(haku, hakemusOid).map(yhteenveto2Tulos)
   }
 
-  def hakemustenTulos(haku: Haku): List[Hakemuksentulos] = {
+  def hakemustenTulos(haku: Haku): List[HakemuksenSijoitteluntulos] = {
     (for (
       tulokset <- yhteenvetoService.hakemustenYhteenveto(haku)
     ) yield for (
@@ -21,8 +21,8 @@ class SijoittelutulosService(yhteenvetoService: YhteenvetoService) {
   private def yhteenveto2Tulos(hakemuksenYhteenveto: HakemuksenYhteenveto) = {
     val hakija = hakemuksenYhteenveto.hakija
     val aikataulu = hakemuksenYhteenveto.aikataulu
-    Hakemuksentulos(hakija.getHakemusOid, hakija.getHakijaOid, aikataulu, hakemuksenYhteenveto.hakutoiveet.map { hakutoiveenYhteenveto =>
-      Hakutoiveentulos(
+    HakemuksenSijoitteluntulos(hakija.getHakemusOid, hakija.getHakijaOid, hakemuksenYhteenveto.hakutoiveet.map { hakutoiveenYhteenveto =>
+      HakutoiveenSijoitteluntulos(
         hakutoiveenYhteenveto.hakutoive.getHakukohdeOid,
         hakutoiveenYhteenveto.hakutoive.getTarjoajaOid,
         hakutoiveenYhteenveto.valintatapajono.getValintatapajonoOid,

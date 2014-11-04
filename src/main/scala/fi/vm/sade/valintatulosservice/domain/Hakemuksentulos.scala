@@ -7,9 +7,7 @@ import fi.vm.sade.valintatulosservice.domain.Valintatila.Valintatila
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 
-case class Hakemuksentulos(hakemusOid: String, hakijaOid: String, aikataulu: Option[Vastaanottoaikataulu], hakutoiveet: List[Hakutoiveentulos]) {
-  def julkaistavaVersio = Hakemuksentulos(hakemusOid, hakijaOid, aikataulu, hakutoiveet.toList.map(_.julkaistavaVersio))
-}
+case class Hakemuksentulos(hakemusOid: String, hakijaOid: String, aikataulu: Option[Vastaanottoaikataulu], hakutoiveet: List[Hakutoiveentulos])
 
 case class Hakutoiveentulos(hakukohdeOid: String,
                             tarjoajaOid: String,
@@ -26,49 +24,45 @@ case class Hakutoiveentulos(hakukohdeOid: String,
                             julkaistavissa: Boolean,
                             tilanKuvaukset: Map[String, String],
                             pisteet: Option[BigDecimal]
-                            ) {
-  def julkaistavaVersio = {
-    if (julkaistavissa) {
-      this
-    } else {
-      Hakutoiveentulos(hakukohdeOid,
-        tarjoajaOid,
-        valintatapajonoOid,
+                            )
+
+object Hakutoiveentulos {
+  def julkaistavaVersio(tulos: HakutoiveenSijoitteluntulos) = {
+    if(tulos.julkaistavissa)
+      Hakutoiveentulos(
+        tulos.hakukohdeOid,
+        tulos.tarjoajaOid,
+        tulos.valintatapajonoOid,
+        tulos.valintatila,
+        tulos.vastaanottotila,
+        tulos.ilmoittautumistila,
+        tulos.vastaanotettavuustila,
+        tulos.viimeisinValintatuloksenMuutos,
+        tulos.jonosija,
+        tulos.varasijojaKaytetaanAlkaen,
+        tulos.varasijojaTaytetaanAsti,
+        tulos.varasijanumero,
+        tulos.julkaistavissa,
+        tulos.tilanKuvaukset,
+        tulos.pisteet
+      )
+    else
+      Hakutoiveentulos(
+        tulos.hakukohdeOid,
+        tulos.tarjoajaOid,
+        tulos.valintatapajonoOid,
         Valintatila.kesken,
-        vastaanottotila,
-        ilmoittautumistila,
+        tulos.vastaanottotila,
+        tulos.ilmoittautumistila,
         Vastaanotettavuustila.ei_vastaanotettavissa,
         None,
         None,
-        varasijojaKaytetaanAlkaen,
-        varasijojaTaytetaanAsti,
+        tulos.varasijojaKaytetaanAlkaen,
+        tulos.varasijojaTaytetaanAsti,
         None,
         false,
         Map(),
-        pisteet
+        tulos.pisteet
       )
-    }
-  }
-}
-
-object Hakutoiveentulos {
-  def kesken(hakukohdeOid: String, tarjoajaOid: String) = {
-    Hakutoiveentulos(
-      hakukohdeOid,
-      tarjoajaOid,
-      "",
-      Valintatila.kesken,
-      Vastaanottotila.kesken,
-      Ilmoittautumistila.ei_tehty,
-      Vastaanotettavuustila.ei_vastaanotettavissa,
-      None,
-      None,
-      None,
-      None,
-      None,
-      true,
-      Map(),
-      None
-    )
   }
 }

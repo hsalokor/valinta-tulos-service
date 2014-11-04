@@ -25,7 +25,7 @@ class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagge
     "1.3.3.1",
     Some(Vastaanottoaikataulu(Some(new Date()), Some(14))),
     List(
-      Hakutoiveentulos.kesken("1.2.3.4", "4.4.4.4")
+      Hakutoiveentulos.julkaistavaVersio(HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"))
     )
   )
 
