@@ -4,7 +4,8 @@ import java.util.Date
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.tarjonta.HakuService
+import fi.vm.sade.valintatulosservice.json.JsonFormats
+import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 import org.json4s.Extraction
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
@@ -20,20 +21,20 @@ class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagge
   override def applicationName = Some("haku")
   protected val applicationDescription = "Valintatulosten REST API"
 
-  val hakemuksenTulos = Hakemuksentulos(
+  lazy val exampleHakemuksenTulos = Hakemuksentulos(
     "4.3.2.1",
     "1.3.3.1",
     Some(Vastaanottoaikataulu(Some(new Date()), Some(14))),
     List(
-      Hakutoiveentulos.julkaistavaVersio(HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"))
+      Hakutoiveentulos.julkaistavaVersio(HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"), Haku("5.5.5.5", true, true, true))
     )
   )
 
   // Real return type cannot be used because of unsupported scala enumerations: https://github.com/scalatra/scalatra/issues/343
-  val getHakemusSwagger: OperationBuilder = (apiOperation[Unit]("getHakemus")
+  lazy val getHakemusSwagger: OperationBuilder = (apiOperation[Unit]("getHakemus")
     summary "Hae hakemuksen tulokset."
     notes "Palauttaa tyyppiä Hakemuksentulos. Esim:\n" +
-      pretty(Extraction.decompose(hakemuksenTulos))
+      pretty(Extraction.decompose(exampleHakemuksenTulos))
     parameter pathParam[String]("hakuOid").description("Haun oid")
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka tulokset halutaan")
   )
@@ -47,10 +48,10 @@ class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagge
     }
   }
 
-  val getHakemuksetSwagger: OperationBuilder = (apiOperation[Unit]("getHakemukset")
+  lazy val getHakemuksetSwagger: OperationBuilder = (apiOperation[Unit]("getHakemukset")
     summary "Hae haun kaikkien hakemusten tulokset."
     notes "Palauttaa tyyppiä Seq[Hakemuksentulos]. Esim:\n" +
-      pretty(Extraction.decompose(Seq(hakemuksenTulos)))
+      pretty(Extraction.decompose(Seq(exampleHakemuksenTulos)))
     parameter pathParam[String]("hakuOid").description("Haun oid")
   )
   get("/:hakuOid", operation(getHakemuksetSwagger)) {

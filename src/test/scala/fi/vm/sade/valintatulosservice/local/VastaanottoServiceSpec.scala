@@ -102,7 +102,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
         vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
         hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
         ilmoittaudu(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", läsnä_koko_lukuvuosi, muokkaaja, selite)
-        hakemuksenTulos.hakutoiveet(0).ilmoittautumistila must_== läsnä_koko_lukuvuosi
+        hakemuksenTulos.hakutoiveet(0).ilmoittautumistila.ilmoittautumistila must_== läsnä_koko_lukuvuosi
       }
 
       "virhetilanteet" in {

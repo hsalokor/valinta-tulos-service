@@ -42,7 +42,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       sijoitteluTulos.hakutoiveet.find { t =>
         t.hakukohdeOid == toive.oid
       }.getOrElse(HakutoiveenSijoitteluntulos.kesken(toive.oid, toive.tarjoajaOid))
-    }.map(Hakutoiveentulos.julkaistavaVersio(_))
+    }.map(Hakutoiveentulos.julkaistavaVersio(_, haku))
 
     val lopullisetTulokset = Välitulos(tulokset, haku)
       .map(peruValmistaAlemmatKeskeneräiset)
