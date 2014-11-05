@@ -17,7 +17,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
   import scala.collection.JavaConversions._
 
   protected[sijoittelu] def hakemuksenYhteenveto(haku: Haku, hakemusOid: String): Option[HakemuksenYhteenveto] = {
-    val aikataulu = ohjausparametritService.aikataulu(haku.oid)
+    val aikataulu = ohjausparametritService.ohjausparametrit(haku.oid).flatMap(_.vastaanottoaikataulu)
 
     for (
       sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid));
@@ -26,7 +26,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
   }
 
   protected[sijoittelu] def hakemustenYhteenveto(haku: Haku): Option[List[HakemuksenYhteenveto]] = {
-    val aikataulu = ohjausparametritService.aikataulu(haku.oid)
+    val aikataulu = ohjausparametritService.ohjausparametrit(haku.oid).flatMap(_.vastaanottoaikataulu)
 
     for (
       sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid));

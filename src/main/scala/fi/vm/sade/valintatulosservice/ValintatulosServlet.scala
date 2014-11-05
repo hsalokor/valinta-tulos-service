@@ -5,7 +5,9 @@ import java.util.Date
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats
+import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
+import org.joda.time.LocalDateTime
 import org.json4s.Extraction
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
@@ -26,7 +28,7 @@ class ValintatulosServlet(implicit val appConfig: AppConfig, val swagger: Swagge
     "1.3.3.1",
     Some(Vastaanottoaikataulu(Some(new Date()), Some(14))),
     List(
-      Hakutoiveentulos.julkaistavaVersio(HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"), Haku("5.5.5.5", true, true, true))
+      Hakutoiveentulos.julkaistavaVersio(HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"), Haku("5.5.5.5", true, true, true), Some(Ohjausparametrit(None, Some(LocalDateTime.now().plusDays(30).toDate))))
     )
   )
 
