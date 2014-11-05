@@ -15,11 +15,11 @@ case class HakutoiveenIlmoittautumistila(
   ilmoittauduttavissa: Boolean
 )
 
-case class Ilmoittautumisaika(alku: Option[Date], loppu: Option[Date]) {
+case class Ilmoittautumisaika(alku: Option[DateTime], loppu: Option[DateTime]) {
   def aktiivinen = {
     val now = new DateTime
-    now.isAfter(alku.map(new DateTime(_)).getOrElse(now.minusYears(100))) &&
-    now.isBefore(loppu.map(new DateTime(_)).getOrElse(now.plusYears(100)))
+    now.isAfter(alku.getOrElse(now.minusYears(100))) &&
+    now.isBefore(loppu.getOrElse(now.plusYears(100)))
   }
 }
 

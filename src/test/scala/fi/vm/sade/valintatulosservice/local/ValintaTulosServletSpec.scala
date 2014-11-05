@@ -11,6 +11,7 @@ import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 import fi.vm.sade.valintatulosservice.tcp.PortChecker
+import org.joda.time.DateTime
 import org.json4s.jackson.Serialization
 import org.scalatra.swagger.Swagger
 import org.scalatra.test.HttpComponentsClient

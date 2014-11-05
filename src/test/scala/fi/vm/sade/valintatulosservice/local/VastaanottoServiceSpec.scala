@@ -6,7 +6,7 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain.{Ilmoittautuminen, _}
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuService, HakuFixtures}
 import fi.vm.sade.valintatulosservice._
-import org.joda.time.LocalDate
+import org.joda.time.{DateTime, LocalDate}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

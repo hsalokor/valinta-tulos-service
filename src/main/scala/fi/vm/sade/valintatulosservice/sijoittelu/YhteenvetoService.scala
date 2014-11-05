@@ -11,7 +11,7 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
 import fi.vm.sade.valintatulosservice.tarjonta.Haku
-import org.joda.time.LocalDateTime
+import org.joda.time.DateTime
 
 protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService) {
   import scala.collection.JavaConversions._
@@ -110,7 +110,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
     }
 
     val vastaanottotila = convertVastaanottotila(ifNull(vastaanottotieto, ValintatuloksenTila.KESKEN)) match {
-      case Vastaanottotila.kesken if Valintatila.isHyväksytty(valintatila) && new LocalDateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinValintatuloksenMuutos)) =>
+      case Vastaanottotila.kesken if Valintatila.isHyväksytty(valintatila) && new DateTime().isAfter(getVastaanottoDeadline(aikataulu, viimeisinValintatuloksenMuutos)) =>
         Vastaanottotila.ei_vastaanotetu_määräaikana
       case tila =>
         tila
@@ -140,12 +140,12 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
   private def getVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinValintatuloksenMuutos: Option[Date]) = {
       aikataulu match {
         case Some(Vastaanottoaikataulu(Some(deadlineAsDate), buffer)) =>
-          val deadline = new LocalDateTime(deadlineAsDate)
-          viimeisinValintatuloksenMuutos.map(new LocalDateTime(_).plusDays(buffer.getOrElse(0))) match {
+          val deadline = new DateTime(deadlineAsDate)
+          viimeisinValintatuloksenMuutos.map(new DateTime(_).plusDays(buffer.getOrElse(0))) match {
             case Some(muutosDeadline) if muutosDeadline.isAfter(deadline) => muutosDeadline
             case _ => deadline
           }
-        case _ => new LocalDateTime().plusYears(100)
+        case _ => new DateTime().plusYears(100)
       }
   }
 
