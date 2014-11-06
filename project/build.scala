@@ -53,8 +53,8 @@ object ValintaTulosServiceBuild extends Build {
         "org.apache.tomcat.embed" % "tomcat-embed-core"         % TomcatVersion % "container;test",
         "org.apache.tomcat.embed" % "tomcat-embed-logging-juli" % TomcatVersion % "container;test",
         "org.apache.tomcat.embed" % "tomcat-embed-jasper"       % TomcatVersion % "container;test",
-        "org.json4s" %% "json4s-jackson" % "3.2.11",
-        "org.json4s" %% "json4s-ext" % "3.2.11",
+        "org.json4s" %% "json4s-jackson" % "3.2.10",
+        "org.json4s" %% "json4s-ext" % "3.2.10",
         "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.4.1",
         "org.scalatra.scalate" %% "scalate-core" % "1.7.0",
         "org.springframework" % "spring-jms" % SpringVersion, // <- patch for spring-core-3.1.3 transitive dep
