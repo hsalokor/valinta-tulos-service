@@ -104,6 +104,10 @@ object AppConfig extends Logging {
     override def importFixturesToHakemusDatabase { /* Don't import initial fixtures, as database is considered external */ }
   }
 
+  class IT_disabledIlmoittautuminen extends IT {
+    override lazy val settings = loadSettings.withOverride("valinta-tulos-service.ilmoittautuminen.enabled", "")
+  }
+
   trait ExternalProps {
     def configFile = System.getProperty("user.home") + "/oph-configuration/valinta-tulos-service.properties"
     lazy val settings = ApplicationSettings.loadSettings(configFile)

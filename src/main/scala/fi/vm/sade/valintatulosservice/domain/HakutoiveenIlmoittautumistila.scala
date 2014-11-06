@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice.domain
 
 import java.util.Date
 
+import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila.Ilmoittautumistila
 import fi.vm.sade.valintatulosservice.domain.LanguageMap.LanguageMap
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
@@ -31,7 +32,7 @@ object HakutoiveenIlmoittautumistila {
 
   val oili = UlkoinenJärjestelmä(Map(Language.fi -> "Oili", Language.sv -> "Oili", Language.en -> "Oili"), "/oili/")
 
-  def getIlmoittautumistila(sijoitteluTila: HakutoiveenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit]): HakutoiveenIlmoittautumistila = {
+  def getIlmoittautumistila(sijoitteluTila: HakutoiveenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(implicit appConfig: AppConfig): HakutoiveenIlmoittautumistila = {
     val ilmoittautumistapa = if(haku.korkeakoulu) {
       Some(oili)
     }
@@ -39,7 +40,7 @@ object HakutoiveenIlmoittautumistila {
       None
     }
     val ilmottautumisaika = Ilmoittautumisaika(None, ohjausparametrit.flatMap(_.ilmoittautuminenPaattyy.map(new DateTime(_).withTime(23,59,59,999))))
-    val ilmottauduttavissa = sijoitteluTila.vastaanottotila == Vastaanottotila.vastaanottanut && ilmottautumisaika.aktiivinen && sijoitteluTila.ilmoittautumistila == Ilmoittautumistila.ei_tehty
+    val ilmottauduttavissa = appConfig.settings.ilmoittautuminenEnabled && sijoitteluTila.vastaanottotila == Vastaanottotila.vastaanottanut && ilmottautumisaika.aktiivinen && sijoitteluTila.ilmoittautumistila == Ilmoittautumistila.ei_tehty
     HakutoiveenIlmoittautumistila(ilmottautumisaika, ilmoittautumistapa, sijoitteluTila.ilmoittautumistila, ilmottauduttavissa)
   }
 }

@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice.domain
 
 import java.util.Date
 
+import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila.Ilmoittautumistila
 import fi.vm.sade.valintatulosservice.domain.Valintatila.Valintatila
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
@@ -29,7 +30,7 @@ case class Hakutoiveentulos(hakukohdeOid: String,
                             )
 
 object Hakutoiveentulos {
-  def julkaistavaVersio(tulos: HakutoiveenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+  def julkaistavaVersio(tulos: HakutoiveenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(implicit appConfig: AppConfig) = {
     if(tulos.julkaistavissa)
       Hakutoiveentulos(
         tulos.hakukohdeOid,

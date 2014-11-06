@@ -6,6 +6,7 @@
 #
 
 valinta-tulos-service.ohjausparametrit.url=https\://{{host_virkailija}}/ohjausparametrit-service/api/v1/rest/parametri
+valinta-tulos-service.ilmoittautuminen.enabled={{valinta-tulos-service_ilmoittautuminen_enabled}}
 
 mongodb.virkailija.uri=mongodb://{{mongodb_virkailija_auth}}@{{mongodb_virkailija_host}}:{{mongodb_virkailija_port}}
 mongodb.hakemus.uri=mongodb://{{mongodb_hakemus_auth}}@{{mongodb_hakemus_host}}:{{mongodb_hakemus_port}}
