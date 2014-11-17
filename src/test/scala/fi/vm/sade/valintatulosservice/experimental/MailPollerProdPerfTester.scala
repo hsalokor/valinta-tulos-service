@@ -11,7 +11,7 @@ import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 
 object MailPollerProdPerfTester extends App {
   val url = System.getProperty("mongo.uri")
-  val valintatulos = MongoFactory.createCollection(MongoConfig(url, "sijoitteludb", "Valintatulos"))
+  val valintatulos = MongoFactory.createCollection(MongoConfig(url, "sijoitteludb"), "Valintatulos")
   val query = MongoDBObject(
     "hakuOid" -> "1.2.246.562.5.2013080813081926341927",
     "julkaistavissa" -> true,

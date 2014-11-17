@@ -18,7 +18,7 @@ object DatabaseKeys {
 
 class HakemusRepository()(implicit appConfig: AppConfig) {
 
-  val application = MongoFactory.createCollection(appConfig.settings.hakemusMongoConfig)
+  val application = MongoFactory.createCollection(appConfig.settings.hakemusMongoConfig, "application")
 
   def findHakemukset(hakuOid: String): Seq[Hakemus] = {
     val query = MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid)

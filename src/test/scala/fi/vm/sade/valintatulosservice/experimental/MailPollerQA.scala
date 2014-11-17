@@ -4,10 +4,11 @@ import fi.vm.sade.valintatulosservice.ValintatulosService
 import fi.vm.sade.valintatulosservice.config.AppConfig.LocalTestingWithTemplatedVars
 import fi.vm.sade.valintatulosservice.config.MongoConfig
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
+import fi.vm.sade.valintatulosservice.vastaanottomeili.MailPoller
 
 object MailPollerQA extends App {
   val url = System.getProperty("mongo.uri")
-  val mongoConfig: MongoConfig = MongoConfig(url, "sijoitteludb", "Valintatulos")
+  val mongoConfig: MongoConfig = MongoConfig(url, "sijoitteludb")
 
   val appConfig = new LocalTestingWithTemplatedVars("../deploy/vars/environments/ophp_vars.yml")
 

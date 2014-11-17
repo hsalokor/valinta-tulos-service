@@ -23,6 +23,7 @@ object ApplicationSettings extends Logging {
 
 case class ApplicationSettings(config: Config) {
   val hakemusMongoConfig: MongoConfig = getMongoConfig(config.getConfig("hakemus.mongodb"))
+  val valintatulosMongoConfig: MongoConfig = getMongoConfig(config.getConfig("sijoittelu-service.mongodb"))
   val ohjausparametritUrl = config.getString("valinta-tulos-service.ohjausparametrit.url")
   val tarjontaUrl = config.getString("tarjonta-service.url")
   val securitySettings = new SecuritySettings(config)
@@ -34,8 +35,7 @@ case class ApplicationSettings(config: Config) {
   private def getMongoConfig(config: Config) = {
     MongoConfig(
       config.getString("uri"),
-      config.getString("dbname"),
-      config.getString("collection")
+      config.getString("dbname")
     )
   }
 

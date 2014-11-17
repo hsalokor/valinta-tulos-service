@@ -9,7 +9,7 @@ object MongoFactory {
     MongoClient(MongoClientURI(config.url))(config.dbname)
   }
 
-  def createCollection(config: MongoConfig) = {
-    createDB(config)(config.collection)
+  def createCollection(config: MongoConfig, collection: String) = {
+    createDB(config)(collection)
   }
 }
