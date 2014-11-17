@@ -33,7 +33,42 @@
                     ]
                 }
             ]
+        },
+        {
+            "_id": {
+                "$oid": "53fc79b8e4b0b0b110900766"
+            },
+            "className": "fi.vm.sade.sijoittelu.domain.Sijoittelu",
+            "hakuOid": "1.2.246.562.5.2013112910452702965370",
+            "sijoitteluId": {
+                "$numberLong": "1409055160622"
+            },
+            "created": {
+                "$date": "2014-08-26T15:12:40.621Z"
+            },
+            "sijoittele": true,
+            "sijoitteluajot": [
+                {
+                    "sijoitteluajoId": {
+                        "$numberLong": "1409055160622"
+                    },
+                    "hakuOid": "1.2.246.562.5.2013112910452702965370",
+                    "startMils": {
+                        "$numberLong": "1409055160617"
+                    },
+                    "endMils": {
+                        "$numberLong": "1409055160623"
+                    },
+                    "hakukohteet": [
+                        {
+                            "oid": "1.2.246.562.14.2013120515524070995659"
+                        },
+                        {
+                            "oid": "1.2.246.562.14.2014022408541751568934"
+                        }
+                    ]
+                }
+            ]
         }
-
     ]
 }

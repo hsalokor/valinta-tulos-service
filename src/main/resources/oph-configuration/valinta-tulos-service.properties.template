@@ -6,6 +6,7 @@
 #
 
 valinta-tulos-service.ohjausparametrit.url=https\://{{host_virkailija}}/ohjausparametrit-service/api/v1/rest/parametri
+valinta-tulos-service.ilmoittautuminen.enabled={{valintatulosservice_ilmoittautuminen_enabled}}
 
 #VALINTALASKENTA-SERVICE
 valintalaskenta-laskenta-service.mongodb.dbname=valintalaskentadb

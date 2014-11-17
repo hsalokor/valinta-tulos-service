@@ -1,5 +1,5 @@
 package fi.vm.sade.valintatulosservice.domain
 
-import java.util.Date
+import org.joda.time.DateTime
 
-case class Vastaanottoaikataulu(vastaanottoEnd: Option[Date], vastaanottoBufferDays: Option[Int])
+case class Vastaanottoaikataulu(vastaanottoEnd: Option[DateTime], vastaanottoBufferDays: Option[Int])

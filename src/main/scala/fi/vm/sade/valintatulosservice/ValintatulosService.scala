@@ -3,22 +3,22 @@ package fi.vm.sade.valintatulosservice
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
-import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
+import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 import org.joda.time.LocalDate
 
-class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjausparametritService: OhjausparametritService, hakemusRepository: HakemusRepository, hakuService: HakuService) {
+class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjausparametritService: OhjausparametritService, hakemusRepository: HakemusRepository, hakuService: HakuService)(implicit appConfig: AppConfig) {
   def this(hakuService: HakuService)(implicit appConfig: AppConfig) = this(appConfig.sijoitteluContext.sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), hakuService)
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
     hakuService.getHaku(hakuOid).flatMap { haku =>
-      val aikataulu = ohjausparametritService.aikataulu(hakuOid)
+      val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
       val sijoitteluTulos: HakemuksenSijoitteluntulos = sijoittelutulosService.hakemuksenTulos(haku, hakemusOid)
-        .getOrElse(tyhjäHakemuksenTulos(hakemusOid, aikataulu))
+        .getOrElse(tyhjäHakemuksenTulos(hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
 
       val hakemus: Option[Hakemus] = hakemusRepository.findHakutoiveOids(hakemusOid)
-      hakemus.map(julkaistavaTulos(sijoitteluTulos, haku, aikataulu))
+      hakemus.map(julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit))
     }
   }
 
@@ -26,30 +26,30 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     for (
       haku <- hakuService.getHaku(hakuOid)
     ) yield {
-      val aikataulu = ohjausparametritService.aikataulu(hakuOid)
+      val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
       val sijoitteluTulokset = sijoittelutulosService.hakemustenTulos(haku).groupBy(_.hakemusOid).mapValues(_.head)
       for (
         hakemus: Hakemus <- hakemusRepository.findHakemukset(hakuOid)
       ) yield {
-        val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, aikataulu))
-        julkaistavaTulos(sijoitteluTulos, haku, aikataulu)(hakemus)
+        val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
+        julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
       }
     }
   }
 
-  private def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos, haku: Haku, aikataulu: Option[Vastaanottoaikataulu])(h:Hakemus) = {
+  private def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(h:Hakemus)(implicit appConfig: AppConfig) = {
     val tulokset = h.toiveet.map { toive =>
       sijoitteluTulos.hakutoiveet.find { t =>
         t.hakukohdeOid == toive.oid
       }.getOrElse(HakutoiveenSijoitteluntulos.kesken(toive.oid, toive.tarjoajaOid))
-    }.map(Hakutoiveentulos.julkaistavaVersio(_, haku))
+    }.map(Hakutoiveentulos.julkaistavaVersio(_, haku, ohjausparametrit))
 
     val lopullisetTulokset = Välitulos(tulokset, haku)
       .map(peruValmistaAlemmatKeskeneräiset)
       .map(korkeakouluSpecial)
       .tulokset
 
-    Hakemuksentulos(h.oid, sijoitteluTulos.hakijaOid, aikataulu, lopullisetTulokset)
+    Hakemuksentulos(h.oid, sijoitteluTulos.hakijaOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullisetTulokset)
   }
 
   def hakutoive(hakuOid: String, hakemusOid: String, hakukohdeOid: String): Option[Hakutoiveentulos] = {
