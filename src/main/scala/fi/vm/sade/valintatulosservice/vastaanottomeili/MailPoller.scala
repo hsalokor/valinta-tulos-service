@@ -11,9 +11,8 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
 
   def pollForMailables(hakuOid: String): List[HakemusMailStatus] = {
     for {
-      candidateId <- pollForCandidates(hakuOid)
+      candidateId: HakemusIdentifier <- pollForCandidates(hakuOid).toSet.toList
       hakemuksenTulos <- fetchHakemuksentulos(candidateId)
-      // TODO: filter duplicates (sama hakemus voi esiintyä monesti)
     } yield {
       mailStatusFor(hakemuksenTulos)
     }
@@ -24,14 +23,17 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
     mailContents.hakukohteet.foreach { hakukohde =>
       val query = MongoDBObject(
         "hakemusOid" -> mailContents.hakemusOid,
-        "hakukohdeOid" -> hakukohde.hakukohdeOid,
-        "valintatapajonoOid" -> hakukohde.valintatapajonoOid
+        "hakukohdeOid" -> hakukohde.hakukohdeOid
       )
+      var mailStatus = Map(
+        "previousCheck" -> timestamp
+      )
+      if (hakukohde.shouldMail) {
+        mailStatus += ("sent" -> timestamp)
+      }
       val update = Map(
         "$set" -> Map(
-          "mailStatus" -> Map(
-            "previousCheck" -> timestamp
-          )
+          "mailStatus" -> mailStatus
         )
       )
       valintatulos.update(query, update)
@@ -40,10 +42,23 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
 
   private def mailStatusFor(hakemuksenTulos: Hakemuksentulos): HakemusMailStatus = {
     val mailables = hakemuksenTulos.hakutoiveet.map { (hakutoive: Hakutoiveentulos) =>
-      // TODO: voi tulla false positiveja?
-      HakukohdeMailStatus(hakutoive.hakukohdeOid, hakutoive.valintatapajonoOid, Vastaanotettavuustila.isVastaanotettavissa(hakutoive.vastaanotettavuustila))
+      val shouldMail: Boolean = Vastaanotettavuustila.isVastaanotettavissa(hakutoive.vastaanotettavuustila) && !mailed(hakemuksenTulos, hakutoive)
+      HakukohdeMailStatus(hakutoive.hakukohdeOid, hakutoive.valintatapajonoOid, shouldMail)
     }
     HakemusMailStatus(hakemuksenTulos.hakemusOid, mailables)
+  }
+
+  private def mailed(hakemus: Hakemuksentulos, hakutoive: Hakutoiveentulos) = {
+    // TODO: Valintatulokseen tarvitaan indeksi, tai lähetetty-tieto domain-olioihin
+
+    val query = Map(
+      "hakukohdeOid" -> hakutoive.hakukohdeOid,
+      "hakemusOid" -> hakemus.hakemusOid,
+      "mailStatus.sent" -> Map(
+        "$exists" -> true
+      )
+    )
+    valintatulos.count(query) > 0
   }
 
   private def fetchHakemuksentulos(id: HakemusIdentifier): Option[Hakemuksentulos] = {
@@ -56,21 +71,19 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
     }
   }
 
-  private def pollForCandidates(hakuOid: String) = {
+  def pollForCandidates(hakuOid: String): List[HakemusIdentifier] = {
     // TODO: Valintatulokseen tarvitaan indeksi
 
-    val query = MongoDBObject(
+    val query = Map(
       "hakuOid" -> hakuOid,
       "tila" -> "KESKEN",
       "julkaistavissa" -> true,
-      "mailStatus.sent" -> MongoDBObject("$exists" -> false)
+      "mailStatus.sent" -> Map("$exists" -> false)
     )
 
     val cursor = valintatulos.find(query).sort(
-      MongoDBObject("mailStatus.previousCheck" -> 1)
+      Map("mailStatus.previousCheck" -> 1)
     ).limit(limit)
     cursor.toList.map{ tulos => HakemusIdentifier(tulos.get("hakuOid").asInstanceOf[String], tulos.get("hakemusOid").asInstanceOf[String])}
   }
-
-  case class HakemusIdentifier(hakuOid: String, hakemusOid: String)
 }
