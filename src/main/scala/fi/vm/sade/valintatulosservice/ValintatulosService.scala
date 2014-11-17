@@ -87,6 +87,8 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
            else
             tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
           }
+          else if (firstKesken >= 0 && index > firstKesken)
+            tulos.copy(valintatila = Valintatila.kesken, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
           else
             tulos
         case (tulos, index) if (firstVastaanotettu >= 0 && index != firstVastaanotettu && List(Valintatila.varalla, Valintatila.kesken).contains(tulos.valintatila)) =>
