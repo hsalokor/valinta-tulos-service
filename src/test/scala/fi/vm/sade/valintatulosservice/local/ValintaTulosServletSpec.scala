@@ -1,7 +1,6 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.security.cas.CasTicketRequest
-import fi.vm.sade.security.ldap.LdapUser
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
@@ -10,30 +9,14 @@ import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
-import fi.vm.sade.valintatulosservice.tcp.PortChecker
 import org.joda.time.DateTime
 import org.json4s.jackson.Serialization
 import org.scalatra.swagger.Swagger
-import org.scalatra.test.HttpComponentsClient
-import org.specs2.mutable.Specification
 import org.specs2.specification.{Fragments, Step}
 
-class ValintaTulosServletSpec extends Specification with TimeWarp with HttpComponentsClient {
-  implicit val appConfig: AppConfig = new AppConfig.IT
-  implicit val swagger: Swagger = new ValintatulosSwagger
-  implicit val formats = JsonFormats.jsonFormats
+class ValintaTulosServletSpec extends ServletSpecification {
   val hakemusFixtureImporter = HakemusFixtures()
   HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
-
-  lazy val jettyLauncher = new JettyLauncher(PortChecker.findFreeLocalPort, Some("it"))
-
-  def baseUrl = "http://localhost:" + jettyLauncher.port + "/valinta-tulos-service"
-
-  override def map(fs: => Fragments) = {
-    Step(jettyLauncher.start) ^ super.map(fs)
-  }
-
-  sequential
 
   "GET /haku/:hakuId/hakemus/:hakemusId" should {
     "palauttaa valintatulokset" in {
