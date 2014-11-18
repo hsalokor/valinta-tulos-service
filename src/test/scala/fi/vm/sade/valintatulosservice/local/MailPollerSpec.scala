@@ -6,43 +6,43 @@ import fi.vm.sade.valintatulosservice.{ITSetup, ValintatulosService}
 import org.specs2.mutable.Specification
 
 class MailPollerSpec extends Specification with ITSetup {
+  sequential
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
 
   lazy val hakuService = HakuService(appConfig)
   lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
-  lazy val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService)
+  lazy val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService)
 
-  "fixture" in {
-    "Finds candidates" in {
-      useFixture("hyvaksytty-hylatty-toisessa-jonossa.json", hakuFixture=HakuFixtures.korkeakouluYhteishaku)
-      val hakemusId = HakemusIdentifier("1.2.246.562.5.2013080813081926341928","1.2.246.562.11.00000441369")
-      poller.pollForCandidates(hakuOid) must_== List(hakemusId, hakemusId)
-    }
+  "Finds candidates" in {
+    useFixture("hyvaksytty-hylatty-toisessa-jonossa.json", hakuFixture=HakuFixtures.korkeakouluYhteishaku)
+    val hakemusId = HakemusIdentifier(hakuOid,"1.2.246.562.11.00000441369")
+    poller.pollForCandidates must_== List(hakemusId, hakemusId)
+  }
 
-    "Finds mailables" in {
-      useFixture("hyvaksytty-hylatty-toisessa-jonossa.json", hakuFixture=HakuFixtures.korkeakouluYhteishaku)
-      val mailables: List[HakemusMailStatus] = poller.pollForMailables(hakuOid)
-      mailables.size must_== 1
-      mailables(0).hakemusOid must_== "1.2.246.562.11.00000441369"
-      mailables(0).hakukohteet.size must_== 2
-      mailables(0).hakukohteet(0).shouldMail must_== true
-      mailables(0).hakukohteet(1).shouldMail must_== false
-      mailables(0).anyMailToBeSent must_== true
-    }
+  "Finds mailables" in {
+    useFixture("hyvaksytty-hylatty-toisessa-jonossa.json", hakuFixture=HakuFixtures.korkeakouluYhteishaku)
+    val mailables: List[HakemusMailStatus] = poller.pollForMailables
+    mailables.size must_== 1
+    mailables(0).hakemusOid must_== "1.2.246.562.11.00000441369"
+    mailables(0).hakukohteet.size must_== 2
+    mailables(0).hakukohteet(0).shouldMail must_== true
+    mailables(0).hakukohteet(1).shouldMail must_== false
+    mailables(0).anyMailToBeSent must_== true
+  }
 
-    "Marks mails sent" in {
-      useFixture("hyvaksytty-hylatty-toisessa-jonossa.json", hakuFixture=HakuFixtures.korkeakouluYhteishaku)
-      var mailables: List[HakemusMailStatus] = poller.pollForMailables(hakuOid)
-      mailables.foreach(poller.markAsHandled(_))
-      mailables = poller.pollForMailables(hakuOid)
-      mailables.size must_== 1
-      mailables(0).anyMailToBeSent must_== false
+  "Marks mails sent" in {
+    useFixture("hyvaksytty-hylatty-toisessa-jonossa.json", hakuFixture=HakuFixtures.korkeakouluYhteishaku)
+    var mailables: List[HakemusMailStatus] = poller.pollForMailables
+    mailables.foreach(poller.markAsHandled(_))
+    mailables = poller.pollForMailables
+    mailables.size must_== 1
+    mailables(0).anyMailToBeSent must_== false
 
-      poller.pollForCandidates(hakuOid).size must_== 1 // <- se jono, jonka tulosta ei lähetetty
-    }
+    poller.pollForCandidates.size must_== 1 // <- se jono, jonka tulosta ei lähetetty
   }
 
 
+  // TODO: hae relevantit haut (miten?)
   // TODO: (hyväksytty+hylätty)         -> 2 candidates, 1 status (dups removed), 1 to be sent
   // TODO: (hyväksytty+hylätty) -> mark -> 1 candidate,  1 status,              , 0 to be sent
   // TODO: vain korkeakouluhaku

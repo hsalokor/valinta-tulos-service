@@ -4,14 +4,21 @@ import com.mongodb.casbah.Imports._
 import fi.vm.sade.valintatulosservice.config.MongoConfig
 import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Hakutoiveentulos, Vastaanotettavuustila}
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
+import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.{Logging, ValintatulosService}
 
-class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosService, limit: Integer = 5) extends Logging {
-  val valintatulos = MongoFactory.createDB(mongoConfig)("Valintatulos")
+class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosService, hakuService: HakuService, limit: Integer = 5) extends Logging {
+  private val valintatulos = MongoFactory.createDB(mongoConfig)("Valintatulos")
 
-  def pollForMailables(hakuOid: String): List[HakemusMailStatus] = {
+  def haut = hakuService.kaikkiHaut.map(_.oid)
+
+  def pollForMailables: List[HakemusMailStatus] = {
+    pollForMailables(haut)
+  }
+
+  def pollForMailables(hakuOids: List[String]): List[HakemusMailStatus] = {
     for {
-      candidateId: HakemusIdentifier <- pollForCandidates(hakuOid).toSet.toList
+      candidateId: HakemusIdentifier <- pollForCandidates(hakuOids).toSet.toList
       hakemuksenTulos <- fetchHakemuksentulos(candidateId)
     } yield {
       mailStatusFor(hakemuksenTulos)
@@ -71,11 +78,15 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
     }
   }
 
-  def pollForCandidates(hakuOid: String): List[HakemusIdentifier] = {
+  def pollForCandidates: List[HakemusIdentifier] = {
+    pollForCandidates(haut)
+  }
+
+  def pollForCandidates(hakuOids: List[String]): List[HakemusIdentifier] = {
     // TODO: Valintatulokseen tarvitaan indeksi
 
     val query = Map(
-      "hakuOid" -> hakuOid,
+      "hakuOid" -> Map("$in" -> hakuOids),
       "tila" -> "KESKEN",
       "julkaistavissa" -> true,
       "mailStatus.sent" -> Map("$exists" -> false)

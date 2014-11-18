@@ -15,7 +15,7 @@ object MailPollerQA extends App {
   lazy val hakuService = HakuService(appConfig)
   lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
 
-  private val list = new MailPoller(mongoConfig, valintatulosService).pollForMailables("1.2.246.562.5.2013080813081926341927")
+  private val list = new MailPoller(mongoConfig, valintatulosService, hakuService).pollForMailables(List("1.2.246.562.5.2013080813081926341927"))
 
   list.foreach { mailable =>
     println(mailable)
