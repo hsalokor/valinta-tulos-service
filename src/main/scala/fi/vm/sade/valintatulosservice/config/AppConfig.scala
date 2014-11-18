@@ -98,8 +98,11 @@ object AppConfig extends Logging {
    * IT profile, uses embedded mongo for sijoittelu, external mongo for Hakemus and stubbed external deps
    */
   class IT_externalHakemus extends IT {
-    override lazy val settings = loadSettings.withOverride("hakemus.mongodb.uri", "mongodb://localhost:" + System.getProperty("hakemus.embeddedmongo.port", "28018"))
-
+    override lazy val settings = loadSettings
+      .withOverride("hakemus.mongodb.uri", "mongodb://localhost:" + System.getProperty("hakemus.embeddedmongo.port", "28018"))
+      .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + EmbeddedMongo.port))
+      .withOverride(("sijoittelu-service.mongodb.dbname", "sijoittelu"))
+    
     override def importFixturesToHakemusDatabase { /* Don't import initial fixtures, as database is considered external */ }
   }
 
