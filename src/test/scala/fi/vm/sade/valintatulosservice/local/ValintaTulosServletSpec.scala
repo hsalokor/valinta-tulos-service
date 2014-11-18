@@ -88,14 +88,38 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
     }
   }
 
+  "POST /haku/:hakuId/hakemus/:hakemusId/ilmoittaudu" should {
+    "merkitsee ilmoittautuneeksi" in {
+      HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
+      hakemusFixtureImporter.clear.importData("00000441369")
+      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
+      vastaanota("VASTAANOTTANUT") {
+        ilmoittaudu("LASNA_KOKO_LUKUVUOSI") {
+          status must_== 200
 
-  "POST /haku:hakuId/hakemus/:hakemusId/vastaanota" should {
+          get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
+            val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
+            tulos.hakutoiveet.head.ilmoittautumistila must_== HakutoiveenIlmoittautumistila(Ilmoittautumisaika(None, Some(new DateTime(2100, 1, 10, 23, 59, 59))), None, Ilmoittautumistila.läsnä_koko_lukuvuosi, false)
+          }
+        }
+      }
+    }
+
+    "hyväksyy ilmoittautumisen vain jos vastaanotettu ja ilmoittauduttavissa" in {
+      hakemusFixtureImporter.clear.importData("00000441369")
+      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
+      ilmoittaudu("LASNA_KOKO_LUKUVUOSI") {
+        status must_== 500
+      }
+    }
+  }
+
+  "POST /haku/:hakuId/hakemus/:hakemusId/vastaanota" should {
     "vastaanottaa opiskelupaikan" in {
       HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
       hakemusFixtureImporter.clear.importData("00000441369")
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
-      post("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
-        """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"VASTAANOTTANUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
+      vastaanota("VASTAANOTTANUT") {
         status must_== 200
 
         get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
@@ -105,23 +129,12 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
           tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.getTime() must be ~ (System.currentTimeMillis() +/- 2000)
         }
       }
-
-      post("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/ilmoittaudu",
-        """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"LASNA_KOKO_LUKUVUOSI","muokkaaja":"OILI","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
-        status must_== 200
-
-        get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
-          val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
-          tulos.hakutoiveet.head.ilmoittautumistila must_== HakutoiveenIlmoittautumistila(Ilmoittautumisaika(None, Some(new DateTime(2100, 1, 10, 23, 59, 59))), None, Ilmoittautumistila.läsnä_koko_lukuvuosi, false)
-        }
-      }
     }
 
     "peruu opiskelupaikan" in {
       hakemusFixtureImporter.clear.importData("00000441369")
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
-      post("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
-        """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"PERUNUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
+      vastaanota("PERUNUT") {
         status must_== 200
 
         get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
@@ -137,8 +150,7 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
       hakemusFixtureImporter.clear.importData("00000441369")
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ylempi-varalla.json", true)
       withFixedDateTime("15.8.2014 12:00") {
-        post("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
-          """{"hakukohdeOid":"1.2.246.562.5.16303028779","tila":"EHDOLLISESTI_VASTAANOTTANUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
+        vastaanota("EHDOLLISESTI_VASTAANOTTANUT", "1.2.246.562.5.16303028779") {
           status must_== 200
 
           get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
@@ -154,4 +166,19 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
       }
     }
   }
+
+  def vastaanota[T](tila: String, hakukohde: String = "1.2.246.562.5.72607738902")(block: => T) = {
+    post("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
+      ("""{"hakukohdeOid":""""+hakukohde+"""","tila":""""+tila+"""","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""").getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
+      block
+    }
+  }
+
+  def ilmoittaudu[T](tila: String)(block: => T) = {
+    post("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/ilmoittaudu",
+      ("""{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":""""+tila+"""","muokkaaja":"OILI","selite":"Testimuokkaus"}""").getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
+      block
+    }
+  }
+
 }
