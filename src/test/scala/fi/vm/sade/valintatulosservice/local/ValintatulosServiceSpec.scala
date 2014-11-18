@@ -12,7 +12,6 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
-  sequential
 
   "ValintaTulosService" should {
 

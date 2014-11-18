@@ -5,7 +5,6 @@ import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusIdentifier, Hakem
 import fi.vm.sade.valintatulosservice.{ITSpecification, ValintatulosService}
 
 class MailPollerSpec extends ITSpecification {
-  sequential
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
 
   lazy val hakuService = HakuService(appConfig)

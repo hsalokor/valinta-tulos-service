@@ -12,8 +12,6 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
-  sequential
-
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
   val hakukohdeOid: String = "1.2.246.562.5.16303028779"
   val vastaanotettavissaHakuKohdeOid = "1.2.246.562.5.72607738902"

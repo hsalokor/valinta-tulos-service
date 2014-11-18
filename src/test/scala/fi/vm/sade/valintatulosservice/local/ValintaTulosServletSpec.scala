@@ -70,9 +70,8 @@ class ValintaTulosServletSpec extends ServletSpecification {
 
   "POST /haku/:hakuId/hakemus/:hakemusId/ilmoittaudu" should {
     "merkitsee ilmoittautuneeksi" in {
-      HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
-      hakemusFixtureImporter.clear.importFixture("00000441369")
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
+
       vastaanota("VASTAANOTTANUT") {
         ilmoittaudu("LASNA_KOKO_LUKUVUOSI") {
           status must_== 200
@@ -86,8 +85,8 @@ class ValintaTulosServletSpec extends ServletSpecification {
     }
 
     "hyväksyy ilmoittautumisen vain jos vastaanotettu ja ilmoittauduttavissa" in {
-      hakemusFixtureImporter.clear.importFixture("00000441369")
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
+
       ilmoittaudu("LASNA_KOKO_LUKUVUOSI") {
         status must_== 500
       }
@@ -96,9 +95,8 @@ class ValintaTulosServletSpec extends ServletSpecification {
 
   "POST /haku/:hakuId/hakemus/:hakemusId/vastaanota" should {
     "vastaanottaa opiskelupaikan" in {
-      HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
-      hakemusFixtureImporter.clear.importFixture("00000441369")
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
+
       vastaanota("VASTAANOTTANUT") {
         status must_== 200
 
@@ -112,10 +110,9 @@ class ValintaTulosServletSpec extends ServletSpecification {
     }
 
     "peruu opiskelupaikan" in {
-      hakemusFixtureImporter.clear.importFixture("00000441369")
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
-      vastaanota("PERUNUT") {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
 
+      vastaanota("PERUNUT") {
         status must_== 200
 
         get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
