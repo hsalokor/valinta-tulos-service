@@ -6,7 +6,6 @@ import fi.vm.sade.valintatulosservice.tarjonta.Haku
 import org.specs2.mutable.Specification
 
 class HakutoiveenIlmoittautumistilaSpec extends Specification {
-
   val vastaanottanut = HakutoiveenSijoitteluntulos.kesken("","").copy(vastaanottotila = Vastaanottotila.vastaanottanut)
   "Ilmoittautiminen" should {
     "should be enabled in IT" in {

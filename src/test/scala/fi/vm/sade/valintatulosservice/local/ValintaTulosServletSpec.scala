@@ -1,7 +1,6 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.security.cas.CasTicketRequest
-import fi.vm.sade.security.ldap.LdapUser
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
@@ -10,34 +9,15 @@ import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
-import fi.vm.sade.valintatulosservice.tcp.PortChecker
 import org.joda.time.DateTime
 import org.json4s.jackson.Serialization
 import org.scalatra.swagger.Swagger
-import org.scalatra.test.HttpComponentsClient
-import org.specs2.mutable.Specification
 import org.specs2.specification.{Fragments, Step}
 
-class ValintaTulosServletSpec extends Specification with TimeWarp with HttpComponentsClient {
-  implicit val appConfig: AppConfig = new AppConfig.IT
-  implicit val swagger: Swagger = new ValintatulosSwagger
-  implicit val formats = JsonFormats.jsonFormats
-  val hakemusFixtureImporter = HakemusFixtures()
-  HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
-
-  lazy val jettyLauncher = new JettyLauncher(PortChecker.findFreeLocalPort, Some("it"))
-
-  def baseUrl = "http://localhost:" + jettyLauncher.port + "/valinta-tulos-service"
-
-  override def map(fs: => Fragments) = {
-    Step(jettyLauncher.start) ^ super.map(fs)
-  }
-
-  sequential
-
+class ValintaTulosServletSpec extends ServletSpecification {
   "GET /haku/:hakuId/hakemus/:hakemusId" should {
     "palauttaa valintatulokset" in {
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
       get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
         body must_== """{"hakemusOid":"1.2.246.562.11.00000441369","hakijaOid":"1.2.246.562.24.14229104472","aikataulu":{"vastaanottoEnd":"2100-01-10T10:00:00Z","vastaanottoBufferDays":14},"hakutoiveet":[{"hakukohdeOid":"1.2.246.562.5.72607738902","tarjoajaOid":"1.2.246.562.10.591352080610","valintatapajonoOid":"14090336922663576781797489829886","valintatila":"HYVAKSYTTY","vastaanottotila":"KESKEN","ilmoittautumistila":{"ilmoittautumisaika":{"loppu":"2100-01-10T21:59:59Z"},"ilmoittautumistapa":{"nimi":{"fi":"Oili","sv":"Oili","en":"Oili"},"url":"/oili/"},"ilmoittautumistila":"EI_TEHTY","ilmoittauduttavissa":false},"vastaanotettavuustila":"VASTAANOTETTAVISSA_SITOVASTI","viimeisinValintatuloksenMuutos":"2014-08-26T16:05:23Z","jonosija":1,"varasijojaKaytetaanAlkaen":"2014-08-26T16:05:23Z","varasijojaTaytetaanAsti":"2014-08-26T16:05:23Z","julkaistavissa":true,"tilanKuvaukset":{},"pisteet":4.0},{"hakukohdeOid":"1.2.246.562.5.16303028779","tarjoajaOid":"1.2.246.562.10.455978782510","valintatapajonoOid":"","valintatila":"PERUUNTUNUT","vastaanottotila":"KESKEN","ilmoittautumistila":{"ilmoittautumisaika":{"loppu":"2100-01-10T21:59:59Z"},"ilmoittautumistapa":{"nimi":{"fi":"Oili","sv":"Oili","en":"Oili"},"url":"/oili/"},"ilmoittautumistila":"EI_TEHTY","ilmoittauduttavissa":false},"vastaanotettavuustila":"EI_VASTAANOTETTAVISSA","julkaistavissa":true,"tilanKuvaukset":{}}]}"""
       }
@@ -91,7 +71,7 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
   "POST /haku/:hakuId/hakemus/:hakemusId/ilmoittaudu" should {
     "merkitsee ilmoittautuneeksi" in {
       HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
-      hakemusFixtureImporter.clear.importData("00000441369")
+      hakemusFixtureImporter.clear.importFixture("00000441369")
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
       vastaanota("VASTAANOTTANUT") {
         ilmoittaudu("LASNA_KOKO_LUKUVUOSI") {
@@ -106,7 +86,7 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
     }
 
     "hyväksyy ilmoittautumisen vain jos vastaanotettu ja ilmoittauduttavissa" in {
-      hakemusFixtureImporter.clear.importData("00000441369")
+      hakemusFixtureImporter.clear.importFixture("00000441369")
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
       ilmoittaudu("LASNA_KOKO_LUKUVUOSI") {
         status must_== 500
@@ -117,7 +97,7 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
   "POST /haku/:hakuId/hakemus/:hakemusId/vastaanota" should {
     "vastaanottaa opiskelupaikan" in {
       HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
-      hakemusFixtureImporter.clear.importData("00000441369")
+      hakemusFixtureImporter.clear.importFixture("00000441369")
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
       vastaanota("VASTAANOTTANUT") {
         status must_== 200
@@ -132,9 +112,10 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
     }
 
     "peruu opiskelupaikan" in {
-      hakemusFixtureImporter.clear.importData("00000441369")
+      hakemusFixtureImporter.clear.importFixture("00000441369")
       SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
       vastaanota("PERUNUT") {
+
         status must_== 200
 
         get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
@@ -147,8 +128,8 @@ class ValintaTulosServletSpec extends Specification with TimeWarp with HttpCompo
     }
 
     "vastaanottaa ehdollisesti" in {
-      hakemusFixtureImporter.clear.importData("00000441369")
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ylempi-varalla.json", true)
+      useFixture("hyvaksytty-ylempi-varalla.json")
+
       withFixedDateTime("15.8.2014 12:00") {
         vastaanota("EHDOLLISESTI_VASTAANOTTANUT", "1.2.246.562.5.16303028779") {
           status must_== 200

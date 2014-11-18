@@ -1,21 +1,17 @@
 package fi.vm.sade.valintatulosservice.local
 
-import fi.vm.sade.valintatulosservice.domain.Valintatila
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
-import fi.vm.sade.valintatulosservice.tarjonta.{HakuService, HakuFixtures}
-import fi.vm.sade.valintatulosservice.{ValintatulosService, ITSetup, TimeWarp}
+import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
+import fi.vm.sade.valintatulosservice.{ITSpecification, TimeWarp, ValintatulosService}
 import org.joda.time.DateTime
-import org.json4s.jackson.Serialization
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
+class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
   sequential
 
   "ValintaTulosService" should {
@@ -108,7 +104,7 @@ class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
 
     def testitSijoittelunPiirissäOlevilleHakutyypeille(hakuFixture: String) = {
       "hyväksyttyä hakutoivetta alemmat julkaisemattomat merkitään tilaan PERUUNTUNUT" in {
-        useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-3")
+        useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixtures = List( "00000441369-3"))
 
         checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
         checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.peruuntunut, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
@@ -118,7 +114,7 @@ class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
 
     def testitSijoittelunPiirissäOlemattomilleHakutyypeille(hakuFixture: String) = {
       "hyväksyttyä hakutoivetta alempia ei merkitä tilaan PERUUNTUNUT" in {
-        useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-3")
+        useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixtures = List( "00000441369-3"))
 
         checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
         checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
@@ -191,7 +187,7 @@ class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
         }
 
         "vastaanottanut ehdollisesti" in {
-          useFixture("hyvaksytty-vastaanottanut-ehdollisesti.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-flipped")
+          useFixture("hyvaksytty-vastaanottanut-ehdollisesti.json", hakuFixture = hakuFixture, hakemusFixtures = List( "00000441369-flipped"))
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
         }
       }
@@ -214,12 +210,12 @@ class ValintatulosServiceSpec extends Specification with ITSetup with TimeWarp {
         }
 
         "Valintatulos kesken" in {
-          useFixture("varalla-valintatulos-kesken.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-flipped")
+          useFixture("varalla-valintatulos-kesken.json", hakuFixture = hakuFixture, hakemusFixtures = List( "00000441369-flipped"))
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
         }
 
         "Valintatulos hyvaksytty varasijalta" in {
-          useFixture("varalla-valintatulos-hyvaksytty-varasijalta-flag.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-flipped")
+          useFixture("varalla-valintatulos-hyvaksytty-varasijalta-flag.json", hakuFixture = hakuFixture, hakemusFixtures = List( "00000441369-flipped"))
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
         }
       }

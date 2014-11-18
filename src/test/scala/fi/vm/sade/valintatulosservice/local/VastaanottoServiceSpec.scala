@@ -1,18 +1,17 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.sijoittelu.domain.{LogEntry, ValintatuloksenTila, Valintatulos}
+import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
-import fi.vm.sade.valintatulosservice.domain.{Ilmoittautuminen, _}
-import fi.vm.sade.valintatulosservice.tarjonta.{HakuService, HakuFixtures}
-import fi.vm.sade.valintatulosservice._
+import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import org.joda.time.{DateTime, LocalDate}
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
+class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
   sequential
 
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
@@ -143,7 +142,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     kaikkienHakutyyppienTestit(hakuFixture)
 
     "vastaanota ylempi kun kaksi hyvaksyttyä -> alemmat peruuntuvat" in {
-      useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-3")
+      useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixtures = List("00000441369-3"))
       vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
       val yhteenveto = hakemuksenTulos
       yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty
@@ -156,7 +155,7 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
     }
 
     "vastaanota alempi kun kaksi hyväksyttyä -> muut peruuntuvat" in {
-      useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-3")
+      useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixtures = List("00000441369-3"))
       vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738904", Vastaanottotila.vastaanottanut, muokkaaja, selite)
       val yhteenveto = hakemuksenTulos
       yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
@@ -247,9 +246,8 @@ class VastaanottoServiceSpec extends Specification with ITSetup with TimeWarp {
 
     kaikkienHakutyyppienTestit(hakuFixture)
 
-
     "vastaanota alempi kun kaksi hyvaksyttya -> muut eivät peruunnut" in {
-      useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixture = "00000441369-3")
+      useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixtures = List("00000441369-3"))
       vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738904", Vastaanottotila.vastaanottanut, muokkaaja, selite)
       val yhteenveto = hakemuksenTulos
       yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty

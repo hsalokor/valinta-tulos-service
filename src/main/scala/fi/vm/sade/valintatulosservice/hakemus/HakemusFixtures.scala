@@ -17,12 +17,12 @@ class HakemusFixtures(config: MongoConfig) {
     this
   }
 
-  def importData: HakemusFixtures = {
-    List("00000878229", "00000441369", "00000441370").foreach(importData(_))
+  def importDefaultFixtures: HakemusFixtures = {
+    HakemusFixtures.defaultFixtures.foreach(importFixture(_))
     this
   }
 
-  def importData(fixtureName: String): HakemusFixtures = {
+  def importFixture(fixtureName: String): HakemusFixtures = {
     val filename = "fixtures/hakemus/" + fixtureName + ".json"
     MongoMockData.insertData(db.underlying, MongoMockData.readJson(filename))
     this
@@ -30,6 +30,8 @@ class HakemusFixtures(config: MongoConfig) {
 }
 
 object HakemusFixtures {
+  val defaultFixtures = List("00000878229", "00000441369", "00000441370")
+
   def apply()(implicit appConfig: AppConfig) = {
     new HakemusFixtures(appConfig.settings.hakemusMongoConfig)
   }

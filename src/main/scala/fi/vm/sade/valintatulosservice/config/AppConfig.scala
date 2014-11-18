@@ -80,7 +80,7 @@ object AppConfig extends Logging {
     }
 
     protected def importFixturesToHakemusDatabase {
-      HakemusFixtures()(this).importData
+      HakemusFixtures()(this).importDefaultFixtures
     }
 
     override def stop {
@@ -88,11 +88,10 @@ object AppConfig extends Logging {
       mongo = None
     }
 
-    override lazy val settings = loadSettings.withOverride(("hakemus.mongodb.uri", "mongodb://localhost:" + EmbeddedMongo.port))
-
-    override def properties = super.properties +
-      ("sijoittelu-service.mongodb.uri" -> ("mongodb://localhost:" + EmbeddedMongo.port)) +
-      ("sijoittelu-service.mongodb.dbname" -> "sijoittelu")
+    override lazy val settings = loadSettings
+      .withOverride(("hakemus.mongodb.uri", "mongodb://localhost:" + EmbeddedMongo.port))
+      .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + EmbeddedMongo.port))
+      .withOverride(("sijoittelu-service.mongodb.dbname", "sijoittelu"))
   }
 
   /**
@@ -170,4 +169,4 @@ object AppConfig extends Logging {
 
 case class RemoteApplicationConfig(url: String, username: String, password: String, ticketConsumerPath: String, config: Config)
 
-case class MongoConfig(url: String, dbname: String, collection: String)
+case class MongoConfig(url: String, dbname: String)
