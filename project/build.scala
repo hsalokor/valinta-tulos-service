@@ -11,7 +11,7 @@ object ValintaTulosServiceBuild extends Build {
   val Name = "valinta-tulos-service"
   val Version = "0.1.0-SNAPSHOT"
   val JavaVersion = "1.8"
-  val ScalaVersion = "2.11.1"
+  val ScalaVersion = "2.11.4"
   val ScalatraVersion = "2.3.0.RC3"
   val TomcatVersion = "7.0.22"
   val SpringVersion = "3.2.9.RELEASE"
