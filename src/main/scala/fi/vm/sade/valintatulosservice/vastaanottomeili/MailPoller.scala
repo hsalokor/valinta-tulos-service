@@ -10,7 +10,7 @@ import fi.vm.sade.valintatulosservice.{Logging, ValintatulosService}
 class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosService, hakuService: HakuService, limit: Integer = 5) extends Logging {
   private val valintatulos = MongoFactory.createDB(mongoConfig)("Valintatulos")
 
-  def haut = hakuService.kaikkiHaut.map(_.oid)
+  def haut = hakuService.kaikkiHaut.filter(_.korkeakoulu).map(_.oid)
 
   def pollForMailables: List[HakemusMailStatus] = {
     pollForMailables(haut)

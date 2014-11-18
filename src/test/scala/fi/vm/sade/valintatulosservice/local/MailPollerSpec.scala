@@ -45,6 +45,6 @@ class MailPollerSpec extends Specification with ITSetup {
   // TODO: hae relevantit haut (miten?)
   // TODO: (hyväksytty+hylätty)         -> 2 candidates, 1 status (dups removed), 1 to be sent
   // TODO: (hyväksytty+hylätty) -> mark -> 1 candidate,  1 status,              , 0 to be sent
-  // TODO: vain korkeakouluhaku
+  // TODO: testaa: vain korkeakouluhaku
   // TODO: testaa limittaus ja sorttaus
 }
