@@ -15,7 +15,6 @@ import org.scalatra.swagger.Swagger
 import org.specs2.specification.{Fragments, Step}
 
 class ValintaTulosServletSpec extends ServletSpecification {
-  val hakemusFixtureImporter = HakemusFixtures()
   HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
 
   "GET /haku/:hakuId/hakemus/:hakemusId" should {
