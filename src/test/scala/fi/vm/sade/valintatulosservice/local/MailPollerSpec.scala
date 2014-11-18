@@ -2,10 +2,9 @@ package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusIdentifier, HakemusMailStatus, MailPoller}
-import fi.vm.sade.valintatulosservice.{ITSetup, ValintatulosService}
-import org.specs2.mutable.Specification
+import fi.vm.sade.valintatulosservice.{ITSpecification, ValintatulosService}
 
-class MailPollerSpec extends Specification with ITSetup {
+class MailPollerSpec extends ITSpecification {
   sequential
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
 
@@ -14,13 +13,13 @@ class MailPollerSpec extends Specification with ITSetup {
   lazy val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService)
 
   "Finds candidates" in {
-    useFixture("hyvaksytty-hylatty-toisessa-jonossa.json", hakuFixture=HakuFixtures.korkeakouluYhteishaku)
+    useFixture("hyvaksytty-hylatty-toisessa-jonossa.json")
     val hakemusId = HakemusIdentifier(hakuOid,"1.2.246.562.11.00000441369")
     poller.pollForCandidates must_== List(hakemusId, hakemusId)
   }
 
   "Finds mailables" in {
-    useFixture("hyvaksytty-hylatty-toisessa-jonossa.json", hakuFixture=HakuFixtures.korkeakouluYhteishaku)
+    useFixture("hyvaksytty-hylatty-toisessa-jonossa.json")
     val mailables: List[HakemusMailStatus] = poller.pollForMailables
     mailables.size must_== 1
     mailables(0).hakemusOid must_== "1.2.246.562.11.00000441369"
@@ -31,7 +30,7 @@ class MailPollerSpec extends Specification with ITSetup {
   }
 
   "Marks mails sent" in {
-    useFixture("hyvaksytty-hylatty-toisessa-jonossa.json", hakuFixture=HakuFixtures.korkeakouluYhteishaku)
+    useFixture("hyvaksytty-hylatty-toisessa-jonossa.json")
     var mailables: List[HakemusMailStatus] = poller.pollForMailables
     mailables.foreach(poller.markAsHandled(_))
     mailables = poller.pollForMailables

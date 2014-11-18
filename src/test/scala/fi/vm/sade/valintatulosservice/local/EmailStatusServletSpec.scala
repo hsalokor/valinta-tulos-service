@@ -1,14 +1,12 @@
 package fi.vm.sade.valintatulosservice.local
 
-import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
+import fi.vm.sade.valintatulosservice.ServletSpecification
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 
 class EmailStatusServletSpec extends ServletSpecification {
   "GET /vastaanottoposti" should {
     "Lista lähtettävistä sähköposteista" in {
-      HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
-      hakemusFixtureImporter.clear.importData("00000441369")
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
 
       get("vastaanottoposti") {
         status must_== 200

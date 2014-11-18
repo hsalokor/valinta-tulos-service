@@ -15,11 +15,9 @@ import org.scalatra.swagger.Swagger
 import org.specs2.specification.{Fragments, Step}
 
 class ValintaTulosServletSpec extends ServletSpecification {
-  HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
-
   "GET /haku/:hakuId/hakemus/:hakemusId" should {
     "palauttaa valintatulokset" in {
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
       get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
         body must_== """{"hakemusOid":"1.2.246.562.11.00000441369","hakijaOid":"1.2.246.562.24.14229104472","aikataulu":{"vastaanottoEnd":"2100-01-10T10:00:00Z","vastaanottoBufferDays":14},"hakutoiveet":[{"hakukohdeOid":"1.2.246.562.5.72607738902","tarjoajaOid":"1.2.246.562.10.591352080610","valintatapajonoOid":"14090336922663576781797489829886","valintatila":"HYVAKSYTTY","vastaanottotila":"KESKEN","ilmoittautumistila":{"ilmoittautumisaika":{"loppu":"2100-01-10T21:59:59Z"},"ilmoittautumistapa":{"nimi":{"fi":"Oili","sv":"Oili","en":"Oili"},"url":"/oili/"},"ilmoittautumistila":"EI_TEHTY","ilmoittauduttavissa":false},"vastaanotettavuustila":"VASTAANOTETTAVISSA_SITOVASTI","viimeisinValintatuloksenMuutos":"2014-08-26T16:05:23Z","jonosija":1,"varasijojaKaytetaanAlkaen":"2014-08-26T16:05:23Z","varasijojaTaytetaanAsti":"2014-08-26T16:05:23Z","julkaistavissa":true,"tilanKuvaukset":{},"pisteet":4.0},{"hakukohdeOid":"1.2.246.562.5.16303028779","tarjoajaOid":"1.2.246.562.10.455978782510","valintatapajonoOid":"","valintatila":"PERUUNTUNUT","vastaanottotila":"KESKEN","ilmoittautumistila":{"ilmoittautumisaika":{"loppu":"2100-01-10T21:59:59Z"},"ilmoittautumistapa":{"nimi":{"fi":"Oili","sv":"Oili","en":"Oili"},"url":"/oili/"},"ilmoittautumistila":"EI_TEHTY","ilmoittauduttavissa":false},"vastaanotettavuustila":"EI_VASTAANOTETTAVISSA","julkaistavissa":true,"tilanKuvaukset":{}}]}"""
       }
@@ -73,9 +71,8 @@ class ValintaTulosServletSpec extends ServletSpecification {
 
   "POST /haku:hakuId/hakemus/:hakemusId/vastaanota" should {
     "vastaanottaa opiskelupaikan" in {
-      HakuFixtures.activeFixture = HakuFixtures.korkeakouluYhteishaku
-      hakemusFixtureImporter.clear.importData("00000441369")
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
+
       post("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
         """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"VASTAANOTTANUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
         status must_== 200
@@ -100,8 +97,8 @@ class ValintaTulosServletSpec extends ServletSpecification {
     }
 
     "peruu opiskelupaikan" in {
-      hakemusFixtureImporter.clear.importData("00000441369")
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json", true)
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
+
       post("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
         """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":"PERUNUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
         status must_== 200
@@ -116,8 +113,8 @@ class ValintaTulosServletSpec extends ServletSpecification {
     }
 
     "vastaanottaa ehdollisesti" in {
-      hakemusFixtureImporter.clear.importData("00000441369")
-      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, "hyvaksytty-ylempi-varalla.json", true)
+      useFixture("hyvaksytty-ylempi-varalla.json")
+
       withFixedDateTime("15.8.2014 12:00") {
         post("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
           """{"hakukohdeOid":"1.2.246.562.5.16303028779","tila":"EHDOLLISESTI_VASTAANOTTANUT","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""".getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
