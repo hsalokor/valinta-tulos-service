@@ -8,15 +8,17 @@ import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 
 trait ITSetup {
   implicit val appConfig = new AppConfig.IT
+  lazy val hakemusFixtureImporter = HakemusFixtures()(appConfig)
 
   def useFixture(
                   fixtureName: String,
                   ohjausparametritFixture: String = OhjausparametritFixtures.vastaanottoLoppuu2100,
                   hakemusFixtures: List[String] = HakemusFixtures.defaultFixtures,
                   hakuFixture: String = HakuFixtures.korkeakouluYhteishaku) {
+
     SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, fixtureName, true)
     OhjausparametritFixtures.activeFixture = ohjausparametritFixture
     HakuFixtures.activeFixture = hakuFixture
-    hakemusFixtures.foreach(HakemusFixtures().importFixture(_))
+    hakemusFixtures.foreach(hakemusFixtureImporter.importFixture(_))
   }
 }
