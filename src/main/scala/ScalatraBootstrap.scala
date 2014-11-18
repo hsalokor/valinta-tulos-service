@@ -18,15 +18,15 @@ class ScalatraBootstrap extends LifeCycle {
     globalConfig = Some(appConfig)
     appConfig.start
     context.mount(new BuildInfoServlet, "/")
-    context.mount(new ValintatulosServlet, "/haku")
-    context.mount(new SwaggerServlet, "/swagger/*")
 
     val securityFilter = appConfig.securityContext.securityFilter
-
     context.addFilter("cas", securityFilter)
       .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/cas/*")
 
     context.mount(new ValintatulosServlet, "/cas/haku")
+
+    context.mount(new ValintatulosServlet, "/haku")
+    context.mount(new SwaggerServlet, "/swagger/*")
 
     if (appConfig.isInstanceOf[IT_externalHakemus])
       context.mount(new TestUtilServlet, "/util")
