@@ -2,17 +2,11 @@ package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.security.cas.CasTicketRequest
 import fi.vm.sade.valintatulosservice._
-import fi.vm.sade.valintatulosservice.config.AppConfig
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
-import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 import org.joda.time.DateTime
 import org.json4s.jackson.Serialization
-import org.scalatra.swagger.Swagger
-import org.specs2.specification.{Fragments, Step}
 
 class ValintaTulosServletSpec extends ServletSpecification {
   "GET /haku/:hakuId/hakemus/:hakemusId" should {
@@ -146,17 +140,16 @@ class ValintaTulosServletSpec extends ServletSpecification {
   }
 
   def vastaanota[T](tila: String, hakukohde: String = "1.2.246.562.5.72607738902")(block: => T) = {
-    post("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
-      ("""{"hakukohdeOid":""""+hakukohde+"""","tila":""""+tila+"""","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""").getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
+    postJSON("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
+      ("""{"hakukohdeOid":""""+hakukohde+"""","tila":""""+tila+"""","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""")) {
       block
     }
   }
 
   def ilmoittaudu[T](tila: String)(block: => T) = {
-    post("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/ilmoittaudu",
-      ("""{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":""""+tila+"""","muokkaaja":"OILI","selite":"Testimuokkaus"}""").getBytes("UTF-8"), Map("Content-type" -> "application/json")) {
+    postJSON("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/ilmoittaudu",
+      ("""{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":""""+tila+"""","muokkaaja":"OILI","selite":"Testimuokkaus"}""")) {
       block
     }
   }
-
 }

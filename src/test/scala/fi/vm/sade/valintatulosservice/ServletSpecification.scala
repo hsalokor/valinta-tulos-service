@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.json.JsonFormats
+import org.json4s.jackson.Serialization
 import org.scalatra.test.HttpComponentsClient
 import org.specs2.mutable.Specification
 import org.specs2.specification.{Fragments, Step}
@@ -15,6 +16,10 @@ trait ServletSpecification extends Specification with ITSetup with TimeWarp with
 
   override def map(fs: => Fragments) = {
     Step(SharedJetty.start) ^ super.map(fs)
+  }
+
+  def postJSON[T](path: String, body: String)(block: => T): T = {
+    post(path, body.getBytes("UTF-8"), Map("Content-type" -> "application/json"))(block)
   }
 }
 
