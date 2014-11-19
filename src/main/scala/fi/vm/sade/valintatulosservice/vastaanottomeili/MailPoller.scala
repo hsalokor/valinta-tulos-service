@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice.vastaanottomeili
 
+import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import fi.vm.sade.valintatulosservice.config.MongoConfig
 import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Hakutoiveentulos, Vastaanotettavuustila}
@@ -25,22 +26,16 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
     }
   }
 
-  def markAsHandled(mailContents: HakemusMailStatus) = {
+  def markAsSent(mailContents: LahetysKuittaus) = {
     val timestamp = System.currentTimeMillis()
     mailContents.hakukohteet.foreach { hakukohde =>
       val query = MongoDBObject(
         "hakemusOid" -> mailContents.hakemusOid,
-        "hakukohdeOid" -> hakukohde.hakukohdeOid
+        "hakukohdeOid" -> hakukohde
       )
-      var mailStatus = Map(
-        "previousCheck" -> timestamp
-      )
-      if (hakukohde.shouldMail) {
-        mailStatus += ("sent" -> timestamp)
-      }
       val update = Map(
         "$set" -> Map(
-          "mailStatus" -> mailStatus
+          "mailStatus.sent" -> timestamp
         )
       )
       valintatulos.update(query, update)
@@ -92,9 +87,33 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
       "mailStatus.sent" -> Map("$exists" -> false)
     )
 
-    val cursor = valintatulos.find(query).sort(
+    val candidates: List[Imports.DBObject] = valintatulos.find(query).sort(
       Map("mailStatus.previousCheck" -> 1)
-    ).limit(limit)
-    cursor.toList.map{ tulos => HakemusIdentifier(tulos.get("hakuOid").asInstanceOf[String], tulos.get("hakemusOid").asInstanceOf[String])}
+    ).limit(limit).toList
+
+    updateCheckTimestamps(candidates)
+
+    candidates.map{ tulos => HakemusIdentifier(tulos.get("hakuOid").asInstanceOf[String], tulos.get("hakemusOid").asInstanceOf[String])}
   }
+
+  private def updateCheckTimestamps(candidates: List[Imports.DBObject]) = {
+    val timestamp = System.currentTimeMillis()
+
+    val update = Map(
+      "$set" -> Map(
+        "mailStatus" -> Map(
+          "previousCheck" -> timestamp
+        )
+      )
+    )
+
+    val query = MongoDBObject(
+      "_id" -> Map(
+        "$in" -> candidates.map(_.get("_id"))
+      )
+    )
+
+    valintatulos.update(query, update)
+  }
+
 }

@@ -15,7 +15,7 @@ class MailDecorator(hakemusRepository: HakemusRepository) extends Logging {
           case Some(Hakemus(_, henkiloOid, _, Henkilotiedot(Some(kutsumanimi), Some(email)))) =>
             val deadline = new DateTime().plusMonths(1).toDate
             Some(VastaanotettavuusIlmoitus(
-              status.hakemusOid, henkiloOid, kutsumanimi, email, deadline
+              status.hakemusOid, henkiloOid, kutsumanimi, email, deadline, status.hakukohteet.filter(_.shouldMail).map(_.hakukohdeOid)
             ))
           case Some(hakemus) => // TODO: mitä jos meili puuttuu?
             logger.error("Hakemukselta puuttuu kutsumanimi tai email: " + status.hakemusOid)

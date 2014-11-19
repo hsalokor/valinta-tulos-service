@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
-import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusIdentifier, HakemusMailStatus, MailPoller}
+import fi.vm.sade.valintatulosservice.vastaanottomeili.{LahetysKuittaus, HakemusIdentifier, HakemusMailStatus, MailPoller}
 import fi.vm.sade.valintatulosservice.{ITSpecification, ValintatulosService}
 
 class MailPollerSpec extends ITSpecification {
@@ -31,7 +31,9 @@ class MailPollerSpec extends ITSpecification {
   "Marks mails sent" in {
     useFixture("hyvaksytty-hylatty-toisessa-jonossa.json")
     var mailables: List[HakemusMailStatus] = poller.pollForMailables
-    mailables.foreach(poller.markAsHandled(_))
+    mailables
+      .map{ mail => LahetysKuittaus(mail.hakemusOid, mail.hakukohteet.map(_.hakukohdeOid), List("email")) }
+      .foreach(poller.markAsSent(_))
     mailables = poller.pollForMailables
     mailables.size must_== 1
     mailables(0).anyMailToBeSent must_== false
@@ -40,7 +42,8 @@ class MailPollerSpec extends ITSpecification {
   }
 
 
-  // TODO: hae relevantit haut (miten?)
+  // TODO: testaa previosCheck-päivitys (tähän auttaisi se isompi datasetti)
+  // TODO: hae tarkemmin relevantit haut (miten?)
   // TODO: (hyväksytty+hylätty)         -> 2 candidates, 1 status (dups removed), 1 to be sent
   // TODO: (hyväksytty+hylätty) -> mark -> 1 candidate,  1 status,              , 0 to be sent
   // TODO: testaa: vain korkeakouluhaku

@@ -7,5 +7,12 @@ case class VastaanotettavuusIlmoitus(
   hakijaOid: String,
   etunimi: String,
   email: String,
-  deadline: Date
+  deadline: Date,
+  hakukohteet: List[String]
+)
+
+case class LahetysKuittaus(
+  hakemusOid: String,
+  hakukohteet: List[String],
+  mediat: List[String]
 )
