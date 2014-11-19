@@ -32,7 +32,7 @@ Alla muutama esimerkki, joissa toimitaan QA-ympäristössä.
 
 3. Kutsutaan palvelua
 
-    https://testi.virkailija.opintopolku.fi/valinta-tulos-service/cas/haku/1.2.246.562.5.2014022711042555034240/hakemus/1.2.246.562.11.00000923132?ticket=<ticket>
+    https://testi.virkailija.opintopolku.fi/valinta-tulos-service/cas/haku/<haku-id>/hakemus/<hakemus-id>?ticket=<ticket>
 
 ## Esimerkki 2: ilmoittautuminen koulutukseen
 
