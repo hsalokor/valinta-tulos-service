@@ -1,7 +1,5 @@
 package fi.vm.sade.valintatulosservice.vastaanottomeili
 
-import fi.vm.sade.valintatulosservice.domain.Hakutoiveentulos
-
 case class HakemusMailStatus(hakemusOid: String, hakukohteet: List[HakukohdeMailStatus]) {
   def anyMailToBeSent = hakukohteet.find(_.shouldMail).nonEmpty
 }

@@ -17,7 +17,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       val sijoitteluTulos: HakemuksenSijoitteluntulos = sijoittelutulosService.hakemuksenTulos(haku, hakemusOid)
         .getOrElse(tyhjäHakemuksenTulos(hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
 
-      val hakemus: Option[Hakemus] = hakemusRepository.findHakutoiveOids(hakemusOid)
+      val hakemus: Option[Hakemus] = hakemusRepository.findHakemus(hakemusOid)
       hakemus.map(julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit))
     }
   }
