@@ -18,8 +18,8 @@ trait ServletSpecification extends Specification with ITSetup with TimeWarp with
     Step(SharedJetty.start) ^ super.map(fs)
   }
 
-  def postJSON[T](path: String, body: String)(block: => T): T = {
-    post(path, body.getBytes("UTF-8"), Map("Content-type" -> "application/json"))(block)
+  def postJSON[T](path: String, body: String, headers: Map[String, String] = Map.empty)(block: => T): T = {
+    post(path, body.getBytes("UTF-8"), headers + ("Content-type" -> "application/json"))(block)
   }
 }
 

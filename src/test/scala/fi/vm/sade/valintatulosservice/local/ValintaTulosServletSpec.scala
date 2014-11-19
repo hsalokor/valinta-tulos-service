@@ -34,9 +34,7 @@ class ValintaTulosServletSpec extends ServletSpecification {
       }
     }
     "mahdolistaa pääsyn validilla tiketillä" in {
-      val ticketRequest: CasTicketRequest = appConfig.settings.securitySettings.ticketRequest
-      val ticket = appConfig.securityContext.ticketClient.getServiceTicket(ticketRequest).get.toString
-      get("cas/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369", ("ticket", ticket)) {
+      get("cas/haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369", ("ticket", getTicket)) {
         status must_== 200
       }
     }
@@ -87,6 +85,24 @@ class ValintaTulosServletSpec extends ServletSpecification {
     }
   }
 
+  "POST /cas/haku/:hakuId/hakemus/:hakemusId/ilmoittaudu" should {
+    "estää pääsyn ilman tikettiä" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
+
+      ilmoittaudu("LASNA_KOKO_LUKUVUOSI", juuri = "cas/haku") {
+        status must_== 401
+      }
+    }
+
+    "toimii tiketillä" in {
+      vastaanota("VASTAANOTTANUT") {
+        ilmoittaudu("LASNA_KOKO_LUKUVUOSI", juuri = "cas/haku", headers = Map("ticket" -> getTicket)) {
+          status must_== 200
+        }
+      }
+    }
+  }
+
   "POST /haku/:hakuId/hakemus/:hakemusId/vastaanota" should {
     "vastaanottaa opiskelupaikan" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json")
@@ -122,7 +138,7 @@ class ValintaTulosServletSpec extends ServletSpecification {
       useFixture("hyvaksytty-ylempi-varalla.json")
 
       withFixedDateTime("15.8.2014 12:00") {
-        vastaanota("EHDOLLISESTI_VASTAANOTTANUT", "1.2.246.562.5.16303028779") {
+        vastaanota("EHDOLLISESTI_VASTAANOTTANUT", hakukohde = "1.2.246.562.5.16303028779") {
           status must_== 200
 
           get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
@@ -146,10 +162,16 @@ class ValintaTulosServletSpec extends ServletSpecification {
     }
   }
 
-  def ilmoittaudu[T](tila: String)(block: => T) = {
-    postJSON("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/ilmoittaudu",
-      ("""{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":""""+tila+"""","muokkaaja":"OILI","selite":"Testimuokkaus"}""")) {
+  def ilmoittaudu[T](tila: String, juuri:String = "haku", headers: Map[String, String] = Map.empty)(block: => T) = {
+    postJSON(juuri + "/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/ilmoittaudu",
+      ("""{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":""""+tila+"""","muokkaaja":"OILI","selite":"Testimuokkaus"}"""), headers) {
       block
     }
+  }
+
+  def getTicket = {
+    val ticketRequest: CasTicketRequest = appConfig.settings.securitySettings.ticketRequest
+    val ticket = appConfig.securityContext.ticketClient.getServiceTicket(ticketRequest).get.toString
+    ticket
   }
 }
