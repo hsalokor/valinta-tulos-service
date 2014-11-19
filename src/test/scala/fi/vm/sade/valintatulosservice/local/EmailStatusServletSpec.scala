@@ -1,8 +1,6 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.valintatulosservice.ServletSpecification
-import fi.vm.sade.valintatulosservice.vastaanottomeili.HakemusMailStatus
-import org.json4s.jackson.Serialization
 
 class EmailStatusServletSpec extends ServletSpecification {
   "GET /vastaanottoposti" should {
