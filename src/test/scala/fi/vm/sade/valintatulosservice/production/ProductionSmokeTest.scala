@@ -2,11 +2,8 @@ package fi.vm.sade.valintatulosservice.production
 
 import fi.vm.sade.valintatulosservice.http.DefaultHttpClient
 import org.specs2.mutable.Specification
-import fi.vm.sade.valintatulosservice.domain.Hakemuksentulos
-import fi.vm.sade.valintatulosservice.domain.Valintatila
 
 class ProductionSmokeTest extends Specification {
-
   val hakuOid = "1.2.246.562.5.2014022711042555034240"
   val hyväksytty = "1.2.246.562.11.00000923132"
   val perunut = "1.2.246.562.11.00000901332"
