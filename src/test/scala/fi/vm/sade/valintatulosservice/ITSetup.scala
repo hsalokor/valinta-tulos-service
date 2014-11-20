@@ -16,6 +16,7 @@ trait ITSetup {
                   hakemusFixtures: List[String] = HakemusFixtures.defaultFixtures,
                   hakuFixture: String = HakuFixtures.korkeakouluYhteishaku) {
 
+    HakuFixtures.hakuOids = HakuFixtures.defaultHakuOids
     SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, fixtureName, true)
     OhjausparametritFixtures.activeFixture = ohjausparametritFixture
     HakuFixtures.activeFixture = hakuFixture

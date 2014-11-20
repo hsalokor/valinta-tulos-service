@@ -1,12 +1,12 @@
 package fi.vm.sade.valintatulosservice.performance
 
-import fi.vm.sade.sijoittelu.domain.{Sijoittelu, HakemuksenTila, Hakemus}
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtureCreator
 
 object ExampleFixture {
   val hakuOid = "1"
-  val jonoOid = "1"
+  val jonoHylatty = "1"
+  val jonoHyvaksytty = "2"
   val hakemusOid = "1"
   val hakukohdeOid = "1"
   val hakijaOid = "1"
@@ -14,17 +14,17 @@ object ExampleFixture {
   val hakutoiveIndex = 1
   val sijoitteluajoId = 1l
   val kaikkiJonotSijoiteltu = true
-  val hakemuksenTila = HakemuksenTila.HYVAKSYTTY
 
-  val valintatulos = SijoitteluFixtureCreator.newValintatulos(jonoOid, hakemusOid, hakukohdeOid, hakijaOid, hakutoiveIndex)
-  val hakemus: Hakemus = SijoitteluFixtureCreator.newHakemus(hakemusOid, hakijaOid, hakutoiveIndex, hakemuksenTila)
-  val jonot = List(SijoitteluFixtureCreator.newValintatapajono(jonoOid, List(hakemus)))
+  val valintatulosHylatty = SijoitteluFixtureCreator.newValintatulos(jonoHylatty, hakuOid, hakemusOid, hakukohdeOid, hakijaOid, hakutoiveIndex)
+  val valintatulosHyvaksytty = SijoitteluFixtureCreator.newValintatulos(jonoHyvaksytty, hakuOid, hakemusOid, hakukohdeOid, hakijaOid, hakutoiveIndex)
+
+  val jonot = List(
+    SijoitteluFixtureCreator.newValintatapajono(jonoHylatty, List(SijoitteluFixtureCreator.newHakemus(hakemusOid, hakijaOid, hakutoiveIndex, HakemuksenTila.HYLATTY))),
+    SijoitteluFixtureCreator.newValintatapajono(jonoHyvaksytty, List(SijoitteluFixtureCreator.newHakemus(hakemusOid, hakijaOid, hakutoiveIndex, HakemuksenTila.HYVAKSYTTY)))
+  )
   val hakukohde = SijoitteluFixtureCreator.newHakukohde(hakukohdeOid, tarjoajaOid, sijoitteluajoId, kaikkiJonotSijoiteltu, jonot)
   val sijoittelu: Sijoittelu = SijoitteluFixtureCreator.newSijoittelu(hakuOid, sijoitteluajoId, List(hakukohdeOid))
 
-  def apply(appConfig: AppConfig) {
-    appConfig.sijoitteluContext.sijoitteluDao.persistSijoittelu(sijoittelu)
-    appConfig.sijoitteluContext.hakukohdeDao.persistHakukohde(hakukohde)
-    appConfig.sijoitteluContext.valintatulosDao.createOrUpdateValintatulos(valintatulos)
-  }
+  val fixture = GeneratedFixture(sijoittelu, List(hakukohde), List(valintatulosHylatty, valintatulosHyvaksytty))
 }
+

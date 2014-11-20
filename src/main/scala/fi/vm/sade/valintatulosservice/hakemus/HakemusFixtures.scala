@@ -39,10 +39,10 @@ class HakemusFixtures(config: MongoConfig) {
     this
   }
 
-  def importTemplateFixture(hakemusOid: String, hakutoiveet: List[HakutoiveFixture]) = {
+  def importTemplateFixture(hakemus: HakemusFixture) = {
     val engine = new TemplateEngine
     val url = new ClassPathResource("fixtures/hakemus/hakemus-template.mustache").getURL
-    val attributes: Map[String, Any] = Map("hakemusOid" -> hakemusOid, "hakutoiveet" -> hakutoiveet)
+    val attributes: Map[String, Any] = Map("hakemusOid" -> hakemus.hakemusOid, "hakutoiveet" -> hakemus.hakutoiveet)
     val json = engine.layout(new URLTemplateSource(url), attributes)
     MongoMockData.insertData(db.underlying, JSON.parse(json).asInstanceOf[DBObject])
     this
@@ -57,4 +57,5 @@ object HakemusFixtures {
   }
 }
 
+case class HakemusFixture(hakemusOid: String, hakutoiveet: List[HakutoiveFixture])
 case class HakutoiveFixture(index: Int, tarjoajaOid: String, hakukohdeOid: String)

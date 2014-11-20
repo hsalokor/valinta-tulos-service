@@ -48,8 +48,9 @@ object SijoitteluFixtureCreator {
     hakukohde
   }
 
-  def newValintatulos(jonoOid: String, hakemusOid: String, hakukohdeOid: String, hakijaOid: String, hakutoiveIndex: Int) = {
+  def newValintatulos(jonoOid: String, hakuOid: String, hakemusOid: String, hakukohdeOid: String, hakijaOid: String, hakutoiveIndex: Int) = {
     val valintatulos = new Valintatulos()
+    valintatulos.setHakuOid(hakuOid)
     valintatulos.setValintatapajonoOid(jonoOid)
     valintatulos.setHakemusOid(hakemusOid)
     valintatulos.setHakukohdeOid(hakukohdeOid)

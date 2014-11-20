@@ -88,5 +88,5 @@ class StubbedHakuService(appConfig: AppConfig) extends HakuService with JsonHaku
       }
   }
 
-  override def kaikkiHaut = List("1.2.246.562.5.2013080813081926341928").flatMap(getHaku(_))
+  override def kaikkiHaut = HakuFixtures.hakuOids.flatMap(getHaku(_))
 }
