@@ -1,8 +1,8 @@
 package fi.vm.sade.valintatulosservice.local
 
-import fi.vm.sade.valintatulosservice.performance.{LargerFixture, ExampleFixture}
-import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
-import fi.vm.sade.valintatulosservice.vastaanottomeili.{LahetysKuittaus, HakemusIdentifier, HakemusMailStatus, MailPoller}
+import fi.vm.sade.valintatulosservice.fixture.LargerFixture
+import fi.vm.sade.valintatulosservice.tarjonta.HakuService
+import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusIdentifier, HakemusMailStatus, LahetysKuittaus, MailPoller}
 import fi.vm.sade.valintatulosservice.{ITSpecification, ValintatulosService}
 
 class MailPollerSpec extends ITSpecification {

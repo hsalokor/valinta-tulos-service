@@ -1,8 +1,8 @@
-package fi.vm.sade.valintatulosservice.performance
+package fi.vm.sade.valintatulosservice.fixture
 
-import fi.vm.sade.sijoittelu.domain.{HakemuksenTila, Valintatulos, Hakukohde, Sijoittelu}
+import fi.vm.sade.sijoittelu.domain.{HakemuksenTila, Sijoittelu}
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixtures, HakemusFixture, HakutoiveFixture}
+import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixture, HakemusFixtures, HakutoiveFixture}
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtureCreator
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 
@@ -13,7 +13,7 @@ case class GeneratedFixture(
   kaikkiJonotSijoiteltu: Boolean = true,
   hakuFixture: String = HakuFixtures.korkeakouluYhteishaku)
 {
-  import collection.JavaConversions._
+  import scala.collection.JavaConversions._
 
   val hakukohteet = hakemukset(0).hakutoiveet.map { hakutoive: HakutoiveFixture =>
     val jonot = List(

@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.performance
+package fi.vm.sade.valintatulosservice.fixture
 
 import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixture, HakutoiveFixture}
 
