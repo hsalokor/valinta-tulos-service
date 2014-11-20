@@ -1,10 +1,21 @@
 package fi.vm.sade.valintatulosservice.hakemus
 
-import com.mongodb.BasicDBObject
+import java.io.{File, FileInputStream}
+import java.util.HashMap
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.`type`.MapType
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.mongodb.{DBObject, BasicDBObject}
+import com.mongodb.util.JSON
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.config.MongoConfig
+import fi.vm.sade.valintatulosservice.domain.Hakutoive
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
+import org.fusesource.scalate.TemplateEngine
+import org.fusesource.scalate.support.{URLTemplateSource, FileTemplateSource}
+import org.springframework.core.io.{ClassPathResource, Resource}
 
 class HakemusFixtures(config: MongoConfig) {
   lazy val db = MongoFactory.createDB(config)
@@ -27,6 +38,15 @@ class HakemusFixtures(config: MongoConfig) {
     MongoMockData.insertData(db.underlying, MongoMockData.readJson(filename))
     this
   }
+
+  def importTemplateFixture(hakemusOid: String, hakutoiveet: List[HakutoiveFixture]) = {
+    val engine = new TemplateEngine
+    val url = new ClassPathResource("fixtures/hakemus/hakemus-template.mustache").getURL
+    val attributes: Map[String, Any] = Map("hakemusOid" -> hakemusOid, "hakutoiveet" -> hakutoiveet)
+    val json = engine.layout(new URLTemplateSource(url), attributes)
+    MongoMockData.insertData(db.underlying, JSON.parse(json).asInstanceOf[DBObject])
+    this
+  }
 }
 
 object HakemusFixtures {
@@ -36,3 +56,5 @@ object HakemusFixtures {
     new HakemusFixtures(appConfig.settings.hakemusMongoConfig)
   }
 }
+
+case class HakutoiveFixture(index: Int, tarjoajaOid: String, hakukohdeOid: String)

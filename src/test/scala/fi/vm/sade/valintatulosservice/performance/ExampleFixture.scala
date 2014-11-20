@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.performance
 
 import fi.vm.sade.sijoittelu.domain.{Sijoittelu, HakemuksenTila, Hakemus}
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.sijoittelu.FixtureCreator
+import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtureCreator
 
 object ExampleFixture {
   val hakuOid = "1"
@@ -16,11 +16,11 @@ object ExampleFixture {
   val kaikkiJonotSijoiteltu = true
   val hakemuksenTila = HakemuksenTila.HYVAKSYTTY
 
-  val valintatulos = FixtureCreator.newValintatulos(jonoOid, hakemusOid, hakukohdeOid, hakijaOid, hakutoiveIndex)
-  val hakemus: Hakemus = FixtureCreator.newHakemus(hakemusOid, hakijaOid, hakutoiveIndex, hakemuksenTila)
-  val jonot = List(FixtureCreator.newValintatapajono(jonoOid, List(hakemus)))
-  val hakukohde = FixtureCreator.newHakukohde(hakukohdeOid, tarjoajaOid, sijoitteluajoId, kaikkiJonotSijoiteltu, jonot)
-  val sijoittelu: Sijoittelu = FixtureCreator.newSijoittelu(hakuOid, sijoitteluajoId, List(hakukohdeOid))
+  val valintatulos = SijoitteluFixtureCreator.newValintatulos(jonoOid, hakemusOid, hakukohdeOid, hakijaOid, hakutoiveIndex)
+  val hakemus: Hakemus = SijoitteluFixtureCreator.newHakemus(hakemusOid, hakijaOid, hakutoiveIndex, hakemuksenTila)
+  val jonot = List(SijoitteluFixtureCreator.newValintatapajono(jonoOid, List(hakemus)))
+  val hakukohde = SijoitteluFixtureCreator.newHakukohde(hakukohdeOid, tarjoajaOid, sijoitteluajoId, kaikkiJonotSijoiteltu, jonot)
+  val sijoittelu: Sijoittelu = SijoitteluFixtureCreator.newSijoittelu(hakuOid, sijoitteluajoId, List(hakukohdeOid))
 
   def apply(appConfig: AppConfig) {
     appConfig.sijoitteluContext.sijoitteluDao.persistSijoittelu(sijoittelu)

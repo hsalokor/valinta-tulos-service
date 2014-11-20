@@ -5,7 +5,7 @@ import java.util.Date
 
 import fi.vm.sade.sijoittelu.domain._
 
-object FixtureCreator {
+object SijoitteluFixtureCreator {
   import collection.JavaConversions._
 
 
