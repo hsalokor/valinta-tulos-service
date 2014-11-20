@@ -17,8 +17,8 @@ class MailDecorator(hakemusRepository: HakemusRepository) extends Logging {
             Some(VastaanotettavuusIlmoitus(
               status.hakemusOid, henkiloOid, kutsumanimi, email, deadline, status.hakukohteet.filter(_.shouldMail).map(_.hakukohdeOid)
             ))
-          case Some(hakemus) => // TODO: mitä jos meili puuttuu?
-            logger.error("Hakemukselta puuttuu kutsumanimi tai email: " + status.hakemusOid)
+          case Some(hakemus) =>
+            logger.debug("Hakemukselta puuttuu kutsumanimi tai email: " + status.hakemusOid)
             None
           case _ =>
             logger.error("Hakemusta ei löydy: " + status.hakemusOid)
