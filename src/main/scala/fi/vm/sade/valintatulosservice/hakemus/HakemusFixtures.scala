@@ -40,13 +40,20 @@ class HakemusFixtures(config: MongoConfig) {
     this
   }
 
+  val filename = "fixtures/hakemus/hakemus-template.json"
+  val templateObject: BasicDBObject = MongoMockData.readJson(filename).asInstanceOf[BasicDBObject]
+
   def importTemplateFixture(hakemus: HakemusFixture) = {
-    val engine = new TemplateEngine
-    val url = new ClassPathResource("fixtures/hakemus/hakemus-template.mustache").getURL
-    val objectId: String = new ObjectId().toString
-    val attributes: Map[String, Any] = Map("hakemusOid" -> hakemus.hakemusOid, "hakutoiveet" -> hakemus.hakutoiveet, "id" -> objectId)
-    val json = engine.layout(new URLTemplateSource(url), attributes)
-    MongoMockData.insertData(db.underlying, JSON.parse(json).asInstanceOf[DBObject])
+    templateObject.put("_id", new ObjectId())
+    templateObject.put("oid", hakemus.hakemusOid)
+    val hakutoiveetDbObject = templateObject.get("answers").asInstanceOf[BasicDBObject].get("hakutoiveet").asInstanceOf[BasicDBObject]
+
+    hakemus.hakutoiveet.foreach { hakutoive =>
+      hakutoiveetDbObject.put("preference" + hakutoive.index + "-Koulutus-id", hakutoive.hakukohdeOid)
+      hakutoiveetDbObject.put("preference" + hakutoive.index + "-Opetuspiste-id", hakutoive.tarjoajaOid)
+    }
+
+    db.underlying.getCollection("application").insert(templateObject)
     this
   }
 }

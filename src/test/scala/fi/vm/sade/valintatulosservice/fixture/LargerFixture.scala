@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.fixture
 
 import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixture, HakutoiveFixture}
 
-class LargerFixture(hakukohteita: Int, hakemuksia: Int) {
+class LargerFixture(hakukohteita: Int, hakemuksia: Int, randomize: Boolean = false) {
   val hakuOid = "1"
   val sijoitteluajoId = 1l
   val kaikkiJonotSijoiteltu = true
@@ -18,6 +18,6 @@ class LargerFixture(hakukohteita: Int, hakemuksia: Int) {
     HakemusFixture(hakemusOid, hakutoiveet)
   }.toList
 
-  val fixture = GeneratedFixture(hakuOid, sijoitteluajoId, hakemukset)
+  val fixture = GeneratedFixture(hakuOid, sijoitteluajoId, hakemukset, randomize = randomize)
 }
 

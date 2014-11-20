@@ -11,17 +11,26 @@ case class GeneratedFixture(
   sijoitteluajoId: Long,
   hakemukset: List[HakemusFixture],
   kaikkiJonotSijoiteltu: Boolean = true,
-  hakuFixture: String = HakuFixtures.korkeakouluYhteishaku)
+  hakuFixture: String = HakuFixtures.korkeakouluYhteishaku,
+  randomize: Boolean = false)
 {
   import scala.collection.JavaConversions._
 
   val hakukohteet = hakemukset(0).hakutoiveet.map { hakutoive: HakutoiveFixture =>
     val jonot = List(
-      jono(hakutoive.hakukohdeOid + ".1", HakemuksenTila.HYLATTY, hakutoive.index),
-      jono(hakutoive.hakukohdeOid + ".2", HakemuksenTila.HYVAKSYTTY, hakutoive.index)
+      jono(hakutoive.hakukohdeOid + ".1", randomStatus(HakemuksenTila.HYLATTY), hakutoive.index),
+      jono(hakutoive.hakukohdeOid + ".2", randomStatus(HakemuksenTila.HYVAKSYTTY), hakutoive.index)
     )
     SijoitteluFixtureCreator.newHakukohde(hakutoive.hakukohdeOid, hakutoive.tarjoajaOid, sijoitteluajoId, kaikkiJonotSijoiteltu, jonot)
   }.toList
+
+  private def randomStatus(constantValue: HakemuksenTila) = {
+    if (randomize) {
+      if (Math.random() < .5) { HakemuksenTila.HYLATTY} else { HakemuksenTila.HYVAKSYTTY}
+    } else {
+      constantValue
+    }
+  }
 
   def jono(jonoId: String, tila: HakemuksenTila, hakutoiveIndex: Int) = {
     val hakemusObjects = hakemukset.map { hakemus =>
