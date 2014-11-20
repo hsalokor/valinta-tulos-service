@@ -19,6 +19,7 @@ trait ITSetup {
     SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, fixtureName, true)
     OhjausparametritFixtures.activeFixture = ohjausparametritFixture
     HakuFixtures.useFixture(hakuFixture)
+    hakemusFixtureImporter.clear
     hakemusFixtures.foreach(hakemusFixtureImporter.importFixture(_))
   }
 }

@@ -53,6 +53,7 @@ case class GeneratedFixture(
     HakuFixtures.useFixture(hakuFixture, sijoittelu.getHakuOid)
 
     val hakemusFixtures = HakemusFixtures()
+    hakemusFixtures.clear
     hakemukset.foreach(hakemusFixtures.importTemplateFixture(_))
 
     appConfig.sijoitteluContext.sijoitteluDao.persistSijoittelu(sijoittelu)
