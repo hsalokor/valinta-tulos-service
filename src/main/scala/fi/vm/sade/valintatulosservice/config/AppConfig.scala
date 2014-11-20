@@ -1,14 +1,13 @@
 package fi.vm.sade.valintatulosservice.config
 
-import com.typesafe.config.Config
-import fi.vm.sade.security.{ProductionSecurityContext, SecurityContext}
 import fi.vm.sade.security.ldap.LdapUser
 import fi.vm.sade.security.mock.MockSecurityContext
+import fi.vm.sade.security.{ProductionSecurityContext, SecurityContext}
 import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.mongo.{EmbeddedMongo, MongoServer}
-import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoitteluSpringContext}
 import fi.vm.sade.valintatulosservice.ohjausparametrit._
+import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoitteluSpringContext}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 
 object AppConfig extends Logging {
@@ -169,7 +168,5 @@ object AppConfig extends Logging {
     }
   }
 }
-
-case class RemoteApplicationConfig(url: String, username: String, password: String, ticketConsumerPath: String, config: Config)
 
 case class MongoConfig(url: String, dbname: String)
