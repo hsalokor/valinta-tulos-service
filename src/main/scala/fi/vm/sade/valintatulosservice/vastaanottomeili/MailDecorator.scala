@@ -1,9 +1,7 @@
 package fi.vm.sade.valintatulosservice.vastaanottomeili
 
-import java.util.Date
-
 import fi.vm.sade.valintatulosservice.Logging
-import fi.vm.sade.valintatulosservice.domain.{Henkilotiedot, Hakemus}
+import fi.vm.sade.valintatulosservice.domain.{Hakemus, Henkilotiedot}
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import org.joda.time.DateTime
 
