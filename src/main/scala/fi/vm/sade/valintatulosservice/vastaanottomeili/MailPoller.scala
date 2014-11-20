@@ -38,7 +38,7 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
           "mailStatus.sent" -> timestamp
         )
       )
-      valintatulos.update(query, update)
+      valintatulos.update(query, update, multi = true)
     }
   }
 
@@ -113,7 +113,7 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
       )
     )
 
-    valintatulos.update(query, update)
+    valintatulos.update(query, update, multi = true)
   }
 
 }

@@ -13,6 +13,7 @@ import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.config.MongoConfig
 import fi.vm.sade.valintatulosservice.domain.Hakutoive
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
+import org.bson.types.ObjectId
 import org.fusesource.scalate.TemplateEngine
 import org.fusesource.scalate.support.{URLTemplateSource, FileTemplateSource}
 import org.springframework.core.io.{ClassPathResource, Resource}
@@ -42,7 +43,8 @@ class HakemusFixtures(config: MongoConfig) {
   def importTemplateFixture(hakemus: HakemusFixture) = {
     val engine = new TemplateEngine
     val url = new ClassPathResource("fixtures/hakemus/hakemus-template.mustache").getURL
-    val attributes: Map[String, Any] = Map("hakemusOid" -> hakemus.hakemusOid, "hakutoiveet" -> hakemus.hakutoiveet)
+    val objectId: String = new ObjectId().toString
+    val attributes: Map[String, Any] = Map("hakemusOid" -> hakemus.hakemusOid, "hakutoiveet" -> hakemus.hakutoiveet, "id" -> objectId)
     val json = engine.layout(new URLTemplateSource(url), attributes)
     MongoMockData.insertData(db.underlying, JSON.parse(json).asInstanceOf[DBObject])
     this

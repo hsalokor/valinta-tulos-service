@@ -1,30 +1,28 @@
 package fi.vm.sade.valintatulosservice.local
 
-import fi.vm.sade.valintatulosservice.performance.ExampleFixture
+import fi.vm.sade.valintatulosservice.performance.{LargerFixture, ExampleFixture}
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{LahetysKuittaus, HakemusIdentifier, HakemusMailStatus, MailPoller}
 import fi.vm.sade.valintatulosservice.{ITSpecification, ValintatulosService}
 
 class MailPollerSpec extends ITSpecification {
-  val hakuOid = ExampleFixture.hakuOid
-  val hakemusOid = ExampleFixture.hakemusOid
+  val fixture = new LargerFixture(5, 5)
+
 
   lazy val hakuService = HakuService(appConfig)
   lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
   lazy val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, limit = 3)
 
-  "Finds candidates" in {
-    ExampleFixture.fixture.apply
+  "Finds candidates (limited number)" in {
+    fixture.fixture.apply
 
-    val hakemusId = HakemusIdentifier(hakuOid, hakemusOid)
-    poller.pollForCandidates must_== List(hakemusId, hakemusId)
+    poller.pollForCandidates must_== List(HakemusIdentifier("1","1"), HakemusIdentifier("1","2"), HakemusIdentifier("1","3"))
   }
 
   "Finds mailables" in {
     val mailables: List[HakemusMailStatus] = poller.pollForMailables
-    mailables.size must_== 1
-    mailables(0).hakemusOid must_== hakemusOid
-    mailables(0).hakukohteet.size must_== 1
+    mailables.size must_== 3
+    mailables(0).hakukohteet.size must_== 5
     mailables(0).hakukohteet(0).shouldMail must_== true
     mailables(0).anyMailToBeSent must_== true
   }
@@ -35,10 +33,8 @@ class MailPollerSpec extends ITSpecification {
       .map{ mail => LahetysKuittaus(mail.hakemusOid, mail.hakukohteet.map(_.hakukohdeOid), List("email")) }
       .foreach(poller.markAsSent(_))
     mailables = poller.pollForMailables
-    mailables.size must_== 1
-    mailables(0).anyMailToBeSent must_== false
-
-    poller.pollForCandidates.size must_== 1 // <- se jono, jonka tulosta ei lähetetty
+    mailables.size must_== 2
+    mailables(0).anyMailToBeSent must_== true
   }
 
 
