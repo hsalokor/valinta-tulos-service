@@ -11,7 +11,7 @@ class MailPollerSpec extends ITSpecification {
 
   lazy val hakuService = HakuService(appConfig)
   lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
-  lazy val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService)
+  lazy val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, limit = 3)
 
   "Finds candidates" in {
     ExampleFixture.fixture.apply
