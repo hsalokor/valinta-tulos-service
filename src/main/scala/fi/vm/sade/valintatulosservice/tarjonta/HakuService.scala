@@ -2,7 +2,6 @@ package fi.vm.sade.valintatulosservice.tarjonta
 
 import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
-import fi.vm.sade.valintatulosservice.config.ApplicationSettings
 import fi.vm.sade.valintatulosservice.http.DefaultHttpClient
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
 import org.json4s.jackson.JsonMethods._
@@ -16,7 +15,7 @@ trait HakuService {
 
 object HakuService {
   def apply(appConfig: AppConfig): HakuService = appConfig match {
-    case _:StubbedExternalDeps => new StubbedHakuService(appConfig)
+    case _:StubbedExternalDeps => HakuFixtures
     case _ => new CachedHakuService(new TarjontaHakuService(appConfig))
   }
 }
@@ -75,18 +74,4 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
         None
     }
   }
-}
-
-class StubbedHakuService(appConfig: AppConfig) extends HakuService with JsonHakuService {
-  override def getHaku(oid: String) = {
-    val fileName = "/fixtures/tarjonta/haku/" + HakuFixtures.activeFixture + ".json"
-    Option(getClass.getResourceAsStream(fileName))
-      .map(io.Source.fromInputStream(_).mkString)
-      .map { response =>
-        val hakuTarjonnassa = (parse(response) \ "result").extract[HakuTarjonnassa]
-        hakuTarjonnassa.toHaku.copy(oid = oid)
-      }
-  }
-
-  override def kaikkiHaut = HakuFixtures.hakuOids.flatMap(getHaku(_))
 }

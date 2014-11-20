@@ -24,7 +24,7 @@ class TestUtilServlet (implicit val appConfig: AppConfig) extends ScalatraServle
     val ohjausparametrit = paramOption("ohjausparametrit").getOrElse(OhjausparametritFixtures.vastaanottoLoppuu2100)
     OhjausparametritFixtures.activeFixture = ohjausparametrit
     val haku = paramOption("haku").getOrElse(HakuFixtures.korkeakouluYhteishaku)
-    HakuFixtures.activeFixture = haku
+    HakuFixtures.useFixture(haku)
   }
 
   error {

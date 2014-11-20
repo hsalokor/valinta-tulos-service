@@ -51,7 +51,7 @@ class ValintaTulosServletSpec extends ServletSpecification {
 
     "kun hakua ei löydy" in {
       "404" in {
-        HakuFixtures.activeFixture = "notfound"
+        HakuFixtures.useFixture("notfound")
         get("haku/1.2.246.562.5.foo") {
           status must_== 404
           body must_== "Not found"

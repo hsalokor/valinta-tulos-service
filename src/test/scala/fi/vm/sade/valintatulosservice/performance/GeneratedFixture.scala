@@ -14,8 +14,7 @@ case class GeneratedFixture(
   import collection.JavaConversions._
 
   def apply(implicit appConfig: AppConfig) {
-    HakuFixtures.activeFixture = hakuFixture
-    HakuFixtures.hakuOids = List(sijoittelu.getHakuOid)
+    HakuFixtures.useFixture(hakuFixture, sijoittelu.getHakuOid)
     val hakemuksetJaHakutoiveet = (for (hakukohde <- hakukohteet; jono <- hakukohde.getValintatapajonot.toList; hakemus <- jono.getHakemukset.toList) yield {
       (hakemus.getHakemusOid, HakutoiveFixture(hakemus.getPrioriteetti, hakukohde.getTarjoajaOid, hakukohde.getOid))
     })
