@@ -12,12 +12,14 @@ import org.springframework.context.annotation._
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer
 import org.springframework.core.env.{MapPropertySource, MutablePropertySources}
 import scala.collection.JavaConversions._
-import fi.vm.sade.sijoittelu.tulos.dao.ValintatulosDao
+import fi.vm.sade.sijoittelu.tulos.dao.{SijoitteluDao, HakukohdeDao, ValintatulosDao}
 
 class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext, hakuService: HakuService) {
   def database = context.getBean(classOf[DB])
 
   lazy val valintatulosDao = context.getBean(classOf[ValintatulosDao])
+  lazy val hakukohdeDao = context.getBean(classOf[HakukohdeDao])
+  lazy val sijoitteluDao = context.getBean(classOf[SijoitteluDao])
   lazy val raportointiService = context.getBean(classOf[RaportointiService])
   lazy val yhteenvetoService = new YhteenvetoService(raportointiService, config.ohjausparametritService)
   lazy val sijoittelutulosService = new SijoittelutulosService(yhteenvetoService)
