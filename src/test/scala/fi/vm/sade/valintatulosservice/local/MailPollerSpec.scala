@@ -13,10 +13,12 @@ class MailPollerSpec extends ITSpecification {
   lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
   lazy val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, limit = 3)
 
-  "Finds candidates (limited number)" in {
+  "Finds candidates (limited number, cycles through candidates)" in {
     fixture.fixture.apply
 
     poller.pollForCandidates must_== List(HakemusIdentifier("1","1"), HakemusIdentifier("1","2"), HakemusIdentifier("1","3"))
+    poller.pollForCandidates must_== List(HakemusIdentifier("1","4"), HakemusIdentifier("1","5"), HakemusIdentifier("1","1"))
+    poller.pollForCandidates must_== List(HakemusIdentifier("1","2"), HakemusIdentifier("1","3"), HakemusIdentifier("1","4"))
   }
 
   "Finds mailables" in {
@@ -38,10 +40,8 @@ class MailPollerSpec extends ITSpecification {
   }
 
 
-  // TODO: testaa previosCheck-päivitys (tähän auttaisi se isompi datasetti)
   // TODO: hae tarkemmin relevantit haut (miten?)
   // TODO: (hyväksytty+hylätty)         -> 2 candidates, 1 status (dups removed), 1 to be sent
   // TODO: (hyväksytty+hylätty) -> mark -> 1 candidate,  1 status,              , 0 to be sent
   // TODO: testaa: vain korkeakouluhaku
-  // TODO: testaa limittaus ja sorttaus
 }
