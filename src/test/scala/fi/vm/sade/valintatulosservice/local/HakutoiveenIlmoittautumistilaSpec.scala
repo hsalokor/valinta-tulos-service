@@ -10,13 +10,13 @@ class HakutoiveenIlmoittautumistilaSpec extends Specification {
   "Ilmoittautiminen" should {
     "should be enabled in IT" in {
       implicit val appConfig = new AppConfig.IT
-      val it = HakutoiveenIlmoittautumistila.getIlmoittautumistila(vastaanottanut, Haku("", true, true, true), None)
+      val it = HakutoiveenIlmoittautumistila.getIlmoittautumistila(vastaanottanut, Haku("", true, true, true, None, Set()), None)
       it.ilmoittauduttavissa must_== true
     }
 
     "should be disabled by default" in {
       implicit val appConfig = new AppConfig.IT_disabledIlmoittautuminen
-      val it = HakutoiveenIlmoittautumistila.getIlmoittautumistila(vastaanottanut, Haku("", true, true, true), None)
+      val it = HakutoiveenIlmoittautumistila.getIlmoittautumistila(vastaanottanut, Haku("", true, true, true, None, Set()), None)
       it.ilmoittauduttavissa must_== false
     }
   }

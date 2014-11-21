@@ -10,6 +10,10 @@ import scala.util.Try
 
 trait HakuService {
   def getHaku(oid: String): Option[Haku]
+  def findLiittyvatHaut(haku: Haku): Set[String] = {
+    val parentHaut = haku.varsinaisenHaunOid.flatMap(getHaku(_).map(parentHaku => parentHaku.sisältyvätHaut + parentHaku.oid)).getOrElse(Nil)
+    (haku.sisältyvätHaut ++ parentHaut).filterNot(_ == haku.oid)
+  }
   def kaikkiHaut: List[Haku]
 }
 
@@ -20,7 +24,7 @@ object HakuService {
   }
 }
 
-case class Haku(oid: String, korkeakoulu: Boolean, yhteishaku: Boolean, käyttääSijoittelua: Boolean)
+case class Haku(oid: String, korkeakoulu: Boolean, yhteishaku: Boolean, käyttääSijoittelua: Boolean, varsinaisenHaunOid: Option[String], sisältyvätHaut: Set[String] )
 
 protected trait JsonHakuService {
   import org.json4s._
@@ -35,11 +39,11 @@ class CachedHakuService(wrapperService: HakuService) extends HakuService {
   def kaikkiHaut: List[Haku] = all("").toList.flatten
 }
 
-private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean) {
+private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean, parentHakuOid: Option[String], sisaltyvatHaut: Set[String]) {
   def toHaku = {
     val korkeakoulu: Boolean = kohdejoukkoUri.startsWith("haunkohdejoukko_12#")
     val yhteishaku: Boolean = hakutapaUri.startsWith("hakutapa_01#")
-    Haku(oid, korkeakoulu, yhteishaku, sijoittelu)
+    Haku(oid, korkeakoulu, yhteishaku, sijoittelu, parentHakuOid, sisaltyvatHaut)
   }
 }
 

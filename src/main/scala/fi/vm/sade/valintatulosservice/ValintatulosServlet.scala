@@ -22,7 +22,7 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
     "1.3.3.1",
     Some(Vastaanottoaikataulu(Some(new DateTime()), Some(14))),
     List(
-      Hakutoiveentulos.julkaistavaVersio(HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"), Haku("5.5.5.5", true, true, true), Some(Ohjausparametrit(None, Some(DateTime.now().plusDays(30).toDate))))
+      Hakutoiveentulos.julkaistavaVersio(HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"), Haku("5.5.5.5", true, true, true, None, Set()), Some(Ohjausparametrit(None, Some(DateTime.now().plusDays(30).toDate))))
     )
   )
 

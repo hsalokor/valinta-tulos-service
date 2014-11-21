@@ -2,7 +2,7 @@
     "result" : {
         "modified" : 1411981508169,
         "modifiedBy" : "1.2.246.562.24.00000000001",
-        "oid" : "1.2.246.562.29.173465377510",
+        "oid" : "korkeakoulu-yhteishaku",
         "hakukausiUri" : "kausi_s#1",
         "hakukausiVuosi" : 2014,
         "hakutapaUri" : "hakutapa_01#1",
@@ -28,7 +28,8 @@
         "maxHakukohdes" : 6,
         "organisaatioOids" : [ "1.2.246.562.10.00000000001" ],
         "tarjoajaOids" : [ "1.2.246.562.10.00000000001" ],
-        "usePriority" : true
+        "usePriority" : true,
+        "sisaltyvatHaut" : [ "korkeakoulu-lisahaku1", "korkeakoulu-lisahaku2" ]
     },
     "status" : "OK",
     "accessRights" : {

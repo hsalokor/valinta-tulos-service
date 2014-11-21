@@ -5,6 +5,7 @@ import org.json4s.jackson.JsonMethods._
 object HakuFixtures extends HakuService with JsonHakuService {
   val defaultHakuOid = "1.2.246.562.5.2013080813081926341928"
   val korkeakouluYhteishaku = "korkeakoulu-yhteishaku"
+  val korkeakouluLisahaku1 = "korkeakoulu-lisahaku1"
   val korkeakouluErillishaku = "korkeakoulu-erillishaku"
   val toinenAsteYhteishaku = "toinen-aste-yhteishaku"
   val toinenAsteErillishakuEiSijoittelua = "toinen-aste-erillishaku-ei-sijoittelua"
@@ -24,6 +25,22 @@ object HakuFixtures extends HakuService with JsonHakuService {
       .map { response =>
       val hakuTarjonnassa = (parse(response) \ "result").extract[HakuTarjonnassa]
       hakuTarjonnassa.toHaku.copy(oid = oid)
+    }
+  }
+
+  override def findLiittyvatHaut(haku: Haku) = {
+    haku.varsinaisenHaunOid match {
+      case Some(parent) => {
+        val oldFixture = this.activeFixture
+        try {
+          this.activeFixture = parent
+          super.findLiittyvatHaut(haku)
+        }
+        finally {
+          this.activeFixture = oldFixture
+        }
+      }
+      case None => super.findLiittyvatHaut(haku)
     }
   }
 
