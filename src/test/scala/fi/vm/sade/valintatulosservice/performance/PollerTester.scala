@@ -4,17 +4,25 @@ import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.vastaanottomeili.MailPoller
-import fi.vm.sade.valintatulosservice.{Logging, ValintatulosService}
+import fi.vm.sade.valintatulosservice.{TimeWarp, Logging, ValintatulosService}
 
-object PollerTester extends App with Logging {
+object PollerTester extends App with Logging with TimeWarp {
   implicit val appConfig: AppConfig = AppConfig.fromSystemProperty
   appConfig.start
 
   val hakuService = HakuService(appConfig)
   val valintatulosService: ValintatulosService = new ValintatulosService(hakuService)
 
+  val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, limit = 100)
 
-  val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, limit = 3)
+  logger.info("Polling...")
 
-  println(poller.pollForMailables)
+  withFixedDateTime("22.11.2014 15:00") {
+    val mailables = poller.pollForMailables
+    logger.info("Got stuff")
+
+    mailables.foreach { mailStatus =>
+      println(mailStatus.hakemusOid + " -> " + mailStatus.anyMailToBeSent)
+    }
+  }
 }
