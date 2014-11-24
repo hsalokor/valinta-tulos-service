@@ -21,7 +21,7 @@ object HakuFixtures extends HakuService with JsonHakuService {
   }
 
   override def getHaku(oid: String) = {
-    getHakuFixture(oid).map(_.toHaku.copy(oid = oid))
+    getHakuFixture(oid).map(toHaku(_).copy(oid = oid))
   }
 
   private def getHakuFixture(oid: String): Option[HakuTarjonnassa] = {

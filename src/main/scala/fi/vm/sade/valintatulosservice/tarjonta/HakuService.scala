@@ -32,7 +32,13 @@ protected trait JsonHakuService {
   implicit val formats = DefaultFormats
 
   protected def toHaut(haut: List[HakuTarjonnassa]) = {
-    haut.filter(_.tila == "JULKAISTU").map(_.toHaku)
+    haut.filter{haku => haku.tila == "JULKAISTU" && haku.jarjestelmanHakulomake == true}.map(toHaku(_))
+  }
+
+  protected def toHaku(haku: HakuTarjonnassa) = {
+    val korkeakoulu: Boolean = haku.kohdejoukkoUri.startsWith("haunkohdejoukko_12#")
+    val yhteishaku: Boolean = haku.hakutapaUri.startsWith("hakutapa_01#")
+    Haku(haku.oid, korkeakoulu, yhteishaku, haku.sijoittelu, haku.parentHakuOid, haku.sisaltyvatHaut)
   }
 }
 
@@ -44,12 +50,7 @@ class CachedHakuService(wrapperService: HakuService) extends HakuService {
   def kaikkiHaut: List[Haku] = all("").toList.flatten
 }
 
-private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean, parentHakuOid: Option[String], sisaltyvatHaut: Set[String], tila: String) {
-  def toHaku = {
-    val korkeakoulu: Boolean = kohdejoukkoUri.startsWith("haunkohdejoukko_12#")
-    val yhteishaku: Boolean = hakutapaUri.startsWith("hakutapa_01#")
-    Haku(oid, korkeakoulu, yhteishaku, sijoittelu, parentHakuOid, sisaltyvatHaut)
-  }
+private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean, parentHakuOid: Option[String], sisaltyvatHaut: Set[String], tila: String, jarjestelmanHakulomake: Boolean) {
 }
 
 class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHakuService with Logging {
@@ -57,7 +58,7 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
     val url = appConfig.settings.tarjontaUrl + "/rest/v1/haku/" + oid
     fetch(url) { response =>
       val hakuTarjonnassa = (parse(response) \ "result").extract[HakuTarjonnassa]
-      hakuTarjonnassa.toHaku
+      toHaku(hakuTarjonnassa)
     }
   }
 
