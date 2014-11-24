@@ -1,5 +1,7 @@
 package fi.vm.sade.valintatulosservice.tarjonta
 
+import java.io.InputStream
+
 import org.json4s.jackson.JsonMethods._
 
 object HakuFixtures extends HakuService with JsonHakuService {
@@ -19,15 +21,18 @@ object HakuFixtures extends HakuService with JsonHakuService {
   }
 
   override def getHaku(oid: String) = {
+    getHakuFixture(oid).map(_.toHaku.copy(oid = oid))
+  }
+
+  private def getHakuFixture(oid: String): Option[HakuTarjonnassa] = {
     getHakuFixtureAsStream(oid)
       .map(io.Source.fromInputStream(_).mkString)
       .map { response =>
-      val hakuTarjonnassa = (parse(response) \ "result").extract[HakuTarjonnassa]
-      hakuTarjonnassa.toHaku.copy(oid = oid)
+        (parse(response) \ "result").extract[HakuTarjonnassa]
     }
   }
 
-  private def getHakuFixtureAsStream(oid: String) = {
+  private def getHakuFixtureAsStream(oid: String): Option[InputStream] = {
     val default = getFixtureAsStream(oid)
     if(default.isDefined) {
       default
@@ -41,5 +46,5 @@ object HakuFixtures extends HakuService with JsonHakuService {
     Option(getClass.getResourceAsStream("/fixtures/tarjonta/haku/" + baseFilename + ".json"))
   }
 
-  override def kaikkiHaut = getHaku(hakuOid).toList
+  override def kaikkiHaut = toHaut(getHakuFixture(hakuOid).toList).map(_.copy(oid = hakuOid))
 }

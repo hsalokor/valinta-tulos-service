@@ -1,8 +1,6 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.valintatulosservice.ITSpecification
-import fi.vm.sade.valintatulosservice.domain.{Henkilotiedot, Hakutoive, Hakemus}
-import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixtures, HakemusRepository}
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 
 class HakuServiceSpec extends ITSpecification {
@@ -23,5 +21,11 @@ class HakuServiceSpec extends ITSpecification {
       liittyvätHaut must_== Set("korkeakoulu-yhteishaku", "korkeakoulu-lisahaku2")
     }
 
+    "löytää kaikki haut, jotka on JULKAISTU" in {
+      HakuFixtures.useFixture(HakuFixtures.korkeakouluLisahaku1)
+      service.kaikkiHaut must_== Nil
+      HakuFixtures.useFixture(HakuFixtures.korkeakouluYhteishaku)
+      service.kaikkiHaut.size must_== 1
+    }
   }
 }

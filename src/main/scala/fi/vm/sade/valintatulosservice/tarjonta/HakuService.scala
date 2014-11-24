@@ -30,6 +30,10 @@ case class Haku(oid: String, korkeakoulu: Boolean, yhteishaku: Boolean, käyttä
 protected trait JsonHakuService {
   import org.json4s._
   implicit val formats = DefaultFormats
+
+  protected def toHaut(haut: List[HakuTarjonnassa]) = {
+    haut.filter(_.tila == "JULKAISTU").map(_.toHaku)
+  }
 }
 
 class CachedHakuService(wrapperService: HakuService) extends HakuService {
@@ -40,7 +44,7 @@ class CachedHakuService(wrapperService: HakuService) extends HakuService {
   def kaikkiHaut: List[Haku] = all("").toList.flatten
 }
 
-private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean, parentHakuOid: Option[String], sisaltyvatHaut: Set[String]) {
+private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean, parentHakuOid: Option[String], sisaltyvatHaut: Set[String], tila: String) {
   def toHaku = {
     val korkeakoulu: Boolean = kohdejoukkoUri.startsWith("haunkohdejoukko_12#")
     val yhteishaku: Boolean = hakutapaUri.startsWith("hakutapa_01#")
@@ -61,7 +65,7 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
     val url = appConfig.settings.tarjontaUrl + "/rest/v1/haku/find"
     fetch(url) { response =>
       val haut = (parse(response) \ "result").extract[List[HakuTarjonnassa]]
-      haut.map(_.toHaku)
+      toHaut(haut)
     }.getOrElse(Nil)
   }
 
