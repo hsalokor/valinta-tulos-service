@@ -19,8 +19,7 @@ object HakuFixtures extends HakuService with JsonHakuService {
   }
 
   override def getHaku(oid: String) = {
-    val fileName = "/fixtures/tarjonta/haku/" + HakuFixtures.activeFixture + ".json"
-    Option(getClass.getResourceAsStream(fileName))
+    getHakuFixtureAsStream(oid)
       .map(io.Source.fromInputStream(_).mkString)
       .map { response =>
       val hakuTarjonnassa = (parse(response) \ "result").extract[HakuTarjonnassa]
@@ -28,20 +27,18 @@ object HakuFixtures extends HakuService with JsonHakuService {
     }
   }
 
-  override def findLiittyvatHaut(haku: Haku) = {
-    haku.varsinaisenHaunOid match {
-      case Some(parent) => {
-        val oldFixture = this.activeFixture
-        try {
-          this.activeFixture = parent
-          super.findLiittyvatHaut(haku)
-        }
-        finally {
-          this.activeFixture = oldFixture
-        }
-      }
-      case None => super.findLiittyvatHaut(haku)
+  private def getHakuFixtureAsStream(oid: String) = {
+    val default = getFixtureAsStream(oid)
+    if(default.isDefined) {
+      default
     }
+    else {
+      getFixtureAsStream(activeFixture)
+    }
+  }
+
+  private def getFixtureAsStream(baseFilename: String) = {
+    Option(getClass.getResourceAsStream("/fixtures/tarjonta/haku/" + baseFilename + ".json"))
   }
 
   override def kaikkiHaut = getHaku(hakuOid).toList
