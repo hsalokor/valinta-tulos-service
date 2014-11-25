@@ -109,8 +109,13 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
     }
   }
 
+  "Kun Hakemuksia on useammassa Haussa" should {
+    "Määrärajoitus koskee kaikkia Hakuja yhteensä" in {
+      // TODO
+    }
+  }
+
   // TODO: (hyväksytty+hylätty)         -> 2 candidates, 1 status (dups removed), 1 to be sent
   // TODO: (hyväksytty+hylätty) -> mark -> 1 candidate,  1 status,              , 0 to be sent
-  // TODO: testaa: vain korkeakouluhaku
   // TODO: kantaan lista lähetysmedioista
 }
