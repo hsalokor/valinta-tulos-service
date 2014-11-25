@@ -40,15 +40,16 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
   }
 
   def pollForMailables(hakuOids: List[String] = etsiHaut, limit: Int = this.limit, excludeHakemusOids: Set[String] = Set.empty): List[HakemusMailStatus] = {
+    val candidates = pollForCandidates(hakuOids, limit, excludeHakemusOids)
     val mailables = (for {
-      candidateId: HakemusIdentifier <- pollForCandidates(hakuOids, limit, excludeHakemusOids)
+      candidateId <- candidates
       hakemuksenTulos <- fetchHakemuksentulos(candidateId)
       mailStatus = mailStatusFor(hakemuksenTulos)
       if (mailStatus.anyMailToBeSent)
     } yield {
       mailStatus
     }).toList
-    val result = if (mailables.size > 0 && mailables.size < limit) {
+    val result = if (candidates.size > 0 && mailables.size < limit) {
       logger.info("fetching more mailables")
       mailables ++ pollForMailables(hakuOids, limit = limit - mailables.size, excludeHakemusOids = excludeHakemusOids ++ mailables.map(_.hakemusOid).toSet)
     } else {
