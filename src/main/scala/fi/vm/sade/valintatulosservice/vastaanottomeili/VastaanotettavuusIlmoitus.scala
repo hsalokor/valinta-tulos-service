@@ -5,6 +5,7 @@ import java.util.Date
 case class VastaanotettavuusIlmoitus(
   hakemusOid: String,
   hakijaOid: String,
+  asiointikieli: String,
   etunimi: String,
   email: String,
   deadline: Date,

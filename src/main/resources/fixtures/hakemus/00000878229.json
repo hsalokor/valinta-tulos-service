@@ -102,6 +102,9 @@
                     "preference2-Koulutus-id-educationcode": "",
                     "preference6-Opetuspiste-id": ""
                 },
+                "lisatiedot": {
+                    "asiointikieli": "suomi"
+                },
                 "osaaminen": {},
                 "koulutustausta": {
                     "pohjakoulutus_yo_tutkinto": "fi",

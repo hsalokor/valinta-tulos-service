@@ -48,6 +48,9 @@
             "preference6-Opetuspiste-id": ""
         },
         "osaaminen": {},
+        "lisatiedot": {
+            "asiointikieli": "suomi"
+        },
         "koulutustausta": {
             "pohjakoulutus_yo_tutkinto": "fi",
             "pohjakoulutus_yo_vuosi": "2014",

@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice.hakemus
 
+import fi.vm.sade.valintatulosservice.Logging
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
@@ -16,16 +17,21 @@ object DatabaseKeys {
   val hakutoiveetKey: String = "hakutoiveet"
   val hakutoiveKeyPostfix: String = "Koulutus-id"
   val tarjoajaKeyPostfix: String = "Opetuspiste-id"
+  val lisatiedotPath: String = "answers.lisatiedot"
+  val asiointiKieliKey: String = "lisatiedot.asiointikieli"
 }
 
-class HakemusRepository()(implicit appConfig: AppConfig) {
+class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
   val application = MongoFactory.createCollection(appConfig.settings.hakemusMongoConfig, "application")
   val fields = MongoDBObject(
     DatabaseKeys.hakutoiveetPath -> 1,
     DatabaseKeys.henkilotiedotPath -> 1,
     DatabaseKeys.oidKey -> 1,
-    DatabaseKeys.personOidKey -> 1
+    DatabaseKeys.personOidKey -> 1,
+    DatabaseKeys.lisatiedotPath -> 1
   )
+
+  val kieliKoodit = Map(("suomi", "FI"), ("ruotsi", "SE"), ("englanti", "EN"))
 
   def findHakemukset(hakuOid: String): Seq[Hakemus] = {
     val query = MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid)
@@ -48,11 +54,18 @@ class HakemusRepository()(implicit appConfig: AppConfig) {
       hakemusOid <- data.getAs[String](DatabaseKeys.oidKey)
       henkiloOid <- data.getAs[String](DatabaseKeys.personOidKey)
       answers <- data.getAs[MongoDBObject](DatabaseKeys.answersKey)
+      lisatiedot <- {
+        answers.expand[String](DatabaseKeys.asiointiKieliKey)
+      }
       hakutoiveet <- answers.getAs[MongoDBObject](DatabaseKeys.hakutoiveetKey)
       henkilotiedot <- answers.getAs[MongoDBObject]("henkilotiedot")
     } yield {
-      Hakemus(hakemusOid, henkiloOid, parseHakutoiveet(hakutoiveet), parseHenkilotiedot(henkilotiedot))
+      Hakemus(hakemusOid, henkiloOid, parseAsiointikieli(""), parseHakutoiveet(hakutoiveet), parseHenkilotiedot(henkilotiedot))
     }
+  }
+
+  def parseAsiointikieli(asiointikieli: String): String = {
+    kieliKoodit.getOrElse(asiointikieli, "FI")
   }
 
   def parseHenkilotiedot(data: Imports.MongoDBObject): Henkilotiedot = {
