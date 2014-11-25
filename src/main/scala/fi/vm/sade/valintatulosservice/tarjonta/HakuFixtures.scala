@@ -46,5 +46,5 @@ object HakuFixtures extends HakuService with JsonHakuService {
     Option(getClass.getResourceAsStream("/fixtures/tarjonta/haku/" + baseFilename + ".json"))
   }
 
-  override def kaikkiHaut = toHaut(getHakuFixture(hakuOid).toList).map(_.copy(oid = hakuOid))
+  override def kaikkiJulkaistutHaut = toHaut(getHakuFixture(hakuOid).toList).map(_.copy(oid = hakuOid))
 }

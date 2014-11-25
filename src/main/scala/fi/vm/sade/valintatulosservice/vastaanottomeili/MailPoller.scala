@@ -14,7 +14,7 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
   private val valintatulos = MongoFactory.createDB(mongoConfig)("Valintatulos")
 
   def haut: List[String] = {
-    val found = hakuService.kaikkiHaut
+    val found = hakuService.kaikkiJulkaistutHaut
       .filter{haku => haku.korkeakoulu}
       .filter{haku =>
         val include = haku.hakuAjat.isEmpty || haku.hakuAjat.find { hakuaika => hakuaika.hasStarted}.isDefined

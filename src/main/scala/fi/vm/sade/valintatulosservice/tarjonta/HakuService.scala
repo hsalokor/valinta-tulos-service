@@ -18,7 +18,7 @@ trait HakuService {
     val parentHaut = haku.varsinaisenHaunOid.flatMap(getHaku(_).map(parentHaku => parentHaku.sisältyvätHaut + parentHaku.oid)).getOrElse(Nil)
     (haku.sisältyvätHaut ++ parentHaut).filterNot(_ == haku.oid)
   }
-  def kaikkiHaut: List[Haku]
+  def kaikkiJulkaistutHaut: List[Haku]
 }
 
 object HakuService {
@@ -53,10 +53,10 @@ protected trait JsonHakuService {
 
 class CachedHakuService(wrapperService: HakuService) extends HakuService {
   private val byOid = TTLOptionalMemoize.memoize(wrapperService.getHaku _, 60 * 60)
-  private val all: (String) => Option[List[Haku]] = TTLOptionalMemoize.memoize({any : String => Some(wrapperService.kaikkiHaut)}, 60 * 60)
+  private val all: (String) => Option[List[Haku]] = TTLOptionalMemoize.memoize({any : String => Some(wrapperService.kaikkiJulkaistutHaut)}, 60 * 60)
 
   override def getHaku(oid: String) = byOid(oid)
-  def kaikkiHaut: List[Haku] = all("").toList.flatten
+  def kaikkiJulkaistutHaut: List[Haku] = all("").toList.flatten
 }
 
 private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean,
@@ -73,7 +73,7 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
     }
   }
 
-  def kaikkiHaut = {
+  def kaikkiJulkaistutHaut = {
     val url = appConfig.settings.tarjontaUrl + "/rest/v1/haku/find"
     fetch(url) { response =>
       val haut = (parse(response) \ "result").extract[List[HakuTarjonnassa]]

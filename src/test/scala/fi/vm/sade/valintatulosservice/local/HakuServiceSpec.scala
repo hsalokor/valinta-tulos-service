@@ -23,9 +23,9 @@ class HakuServiceSpec extends ITSpecification {
 
     "löytää kaikki haut, jotka on JULKAISTU" in {
       HakuFixtures.useFixture(HakuFixtures.korkeakouluLisahaku1)
-      service.kaikkiHaut must_== Nil
+      service.kaikkiJulkaistutHaut must_== Nil
       HakuFixtures.useFixture(HakuFixtures.korkeakouluYhteishaku)
-      service.kaikkiHaut.size must_== 1
+      service.kaikkiJulkaistutHaut.size must_== 1
     }
   }
 }
