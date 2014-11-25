@@ -10,14 +10,14 @@ import org.json4s.jackson.JsonMethods._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottoaikataulu
 import java.util.Date
 
-case class Ohjausparametrit(vastaanottoaikataulu: Option[Vastaanottoaikataulu], ilmoittautuminenPaattyy: Option[Date])
+case class Ohjausparametrit(vastaanottoaikataulu: Option[Vastaanottoaikataulu], ilmoittautuminenPaattyy: Option[Date], hakukierrosPaattyy: Option[Date])
 
 trait OhjausparametritService {
   def ohjausparametrit(asId: String): Option[Ohjausparametrit]
 }
 
 class StubbedOhjausparametritService extends OhjausparametritService {
-  def ohjausparametrit(asId: String) = {
+  def ohjausparametrit(asId: String): Option[Ohjausparametrit] = {
     val fileName = "/fixtures/ohjausparametrit/" + OhjausparametritFixtures.activeFixture + ".json"
     Option(getClass.getResourceAsStream(fileName))
       .map(io.Source.fromInputStream(_).mkString)
@@ -55,7 +55,7 @@ class RemoteOhjausparametritService(implicit appConfig: AppConfig) extends Ohjau
 private object OhjausparametritParser extends JsonFormats {
 
   def parseOhjausparametrit(json: JValue) = {
-    Some(Ohjausparametrit(parseValintatulokset(json), parseIlmoittautuminenPaattyy(json)))
+    Some(Ohjausparametrit(parseValintatulokset(json), parseIlmoittautuminenPaattyy(json), parseHakukierrosPaattyy(json)))
   }
 
   private def parseValintatulokset(json: JValue) = {
@@ -73,6 +73,13 @@ private object OhjausparametritParser extends JsonFormats {
   private def parseIlmoittautuminenPaattyy(json: JValue) = {
     for {
       obj <- (json \ "PH_IP").toOption
+      end <- (obj \ "date").extractOpt[Long].map(new Date(_))
+    } yield end
+  }
+
+  private def parseHakukierrosPaattyy(json: JValue) = {
+    for {
+      obj <- (json \ "PH_HKP").toOption
       end <- (obj \ "date").extractOpt[Long].map(new Date(_))
     } yield end
   }

@@ -1,10 +1,12 @@
 package fi.vm.sade.valintatulosservice
 
+import java.util.Date
+
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
-import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
+import fi.vm.sade.valintatulosservice.tarjonta.{Hakuaika, Haku, HakuService}
 import org.joda.time.DateTime
 import org.json4s.Extraction
 import org.scalatra._
@@ -22,7 +24,7 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
     "1.3.3.1",
     Some(Vastaanottoaikataulu(Some(new DateTime()), Some(14))),
     List(
-      Hakutoiveentulos.julkaistavaVersio(HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"), Haku("5.5.5.5", true, true, true, None, Set()), Some(Ohjausparametrit(None, Some(DateTime.now().plusDays(30).toDate))))
+      Hakutoiveentulos.julkaistavaVersio(HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"), Haku("5.5.5.5", true, true, true, None, Set(), List(Hakuaika("12345", Some(System.currentTimeMillis()), Some(System.currentTimeMillis())))), Some(Ohjausparametrit(None, Some(DateTime.now().plusDays(30).toDate), Some(DateTime.now().plusDays(60).toDate))))
     )
   )
 

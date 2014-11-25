@@ -5,15 +5,34 @@ import com.mongodb.casbah.Imports._
 import fi.vm.sade.valintatulosservice.config.MongoConfig
 import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Hakutoiveentulos, Vastaanotettavuustila}
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
+import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.{Logging, ValintatulosService}
 import org.joda.time.DateTime
 
-class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosService, hakuService: HakuService, limit: Integer = 5, recheckIntervalHours: Int = 24) extends Logging {
+class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosService, hakuService: HakuService, ohjausparameteritService: OhjausparametritService, limit: Integer = 5, recheckIntervalHours: Int = 24) extends Logging {
   private val valintatulos = MongoFactory.createDB(mongoConfig)("Valintatulos")
 
-  def haut = {
-    val found = hakuService.kaikkiHaut.filter(_.korkeakoulu).map(_.oid)
+  def haut: List[String] = {
+    val found = hakuService.kaikkiHaut
+      .filter{haku => haku.korkeakoulu}
+      .filter{haku =>
+        val include = haku.hakuAjat.isEmpty || haku.hakuAjat.find { hakuaika => hakuaika.hasStarted}.isDefined
+        if (!include) logger.debug("Pudotetaan haku " + haku.oid + " koska hakuaika ei alkanut")
+        include
+       }
+      .filter{haku =>
+        ohjausparameteritService.ohjausparametrit(haku.oid) match {
+          case Some(Ohjausparametrit(_, _, Some(hakuKierrosPaattyy))) =>
+            val include = new DateTime().isBefore(new DateTime(hakuKierrosPaattyy))
+            if (!include) logger.debug("Pudotetaan haku " + haku.oid + " koska hakukierros päättyy " + hakuKierrosPaattyy)
+            include
+          case x =>
+            true
+        }
+      }
+      .map(_.oid)
+
     logger.info("haut=" + found.size)
     found
   }

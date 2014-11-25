@@ -2,14 +2,42 @@ package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.sijoittelu.domain.HakemuksenTila
 import fi.vm.sade.valintatulosservice.fixture._
-import fi.vm.sade.valintatulosservice.tarjonta.HakuService
+import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusIdentifier, HakemusMailStatus, LahetysKuittaus, MailPoller}
 import fi.vm.sade.valintatulosservice.{TimeWarp, ITSpecification, ValintatulosService}
 
 class MailPollerSpec extends ITSpecification with TimeWarp {
   lazy val hakuService = HakuService(appConfig)
   lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
-  lazy val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, limit = 3)
+  lazy val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 3)
+
+  "Hakujen filtteröinti" should {
+    "korkeakouluhaku -> mukaan" in {
+      new SmallFixture().apply
+      poller.haut must_== List("1")
+    }
+
+    "2.asteen haku -> ei mukaan" in {
+      new SmallFixture {
+        override def hakuFixture = HakuFixtures.toinenAsteYhteishaku
+      }.apply
+      poller.haut must_== Nil
+    }
+
+    "Jos hakuaika ei alkanut -> ei mukaan" in {
+      new SmallFixture {
+        override def hakuFixture = "korkeakoulu-yhteishaku-hakuaika-tulevaisuudessa"
+      }.apply
+      poller.haut must_== Nil
+    }
+
+    "Jos hakukierros päättynyt -> ei mukaan" in {
+      new SmallFixture{
+        override def ohjausparametritFixture = "hakukierros-loppuu-2010"
+      }.apply
+      poller.haut must_== Nil
+    }
+  }
 
   "Kun päässyt kaikkiin hakukohteisiin" should {
     val fixture = new LargerFixture(5, 5)
@@ -81,8 +109,6 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
     }
   }
 
-
-  // TODO: hae tarkemmin relevantit haut (miten?)
   // TODO: (hyväksytty+hylätty)         -> 2 candidates, 1 status (dups removed), 1 to be sent
   // TODO: (hyväksytty+hylätty) -> mark -> 1 candidate,  1 status,              , 0 to be sent
   // TODO: testaa: vain korkeakouluhaku

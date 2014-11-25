@@ -1,9 +1,12 @@
 package fi.vm.sade.valintatulosservice.tarjonta
 
+import java.util.Date
+
 import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
 import fi.vm.sade.valintatulosservice.http.{DefaultHttpRequest, DefaultHttpClient}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
+import org.joda.time.DateTime
 import org.json4s.jackson.JsonMethods._
 
 import scala.util.Try
@@ -25,7 +28,13 @@ object HakuService {
   }
 }
 
-case class Haku(oid: String, korkeakoulu: Boolean, yhteishaku: Boolean, käyttääSijoittelua: Boolean, varsinaisenHaunOid: Option[String], sisältyvätHaut: Set[String] )
+case class Haku(oid: String, korkeakoulu: Boolean, yhteishaku: Boolean, käyttääSijoittelua: Boolean, varsinaisenHaunOid: Option[String], sisältyvätHaut: Set[String], hakuAjat: List[Hakuaika] )
+case class Hakuaika(hakuaikaId: String, alkuPvm: Option[Long], loppuPvm: Option[Long]) {
+  def hasStarted = alkuPvm match {
+    case Some(alku) => new DateTime().isAfter(new DateTime(alku))
+    case _ => true
+  }
+}
 
 protected trait JsonHakuService {
   import org.json4s._
@@ -38,7 +47,7 @@ protected trait JsonHakuService {
   protected def toHaku(haku: HakuTarjonnassa) = {
     val korkeakoulu: Boolean = haku.kohdejoukkoUri.startsWith("haunkohdejoukko_12#")
     val yhteishaku: Boolean = haku.hakutapaUri.startsWith("hakutapa_01#")
-    Haku(haku.oid, korkeakoulu, yhteishaku, haku.sijoittelu, haku.parentHakuOid, haku.sisaltyvatHaut)
+    Haku(haku.oid, korkeakoulu, yhteishaku, haku.sijoittelu, haku.parentHakuOid, haku.sisaltyvatHaut, haku.hakuaikas)
   }
 }
 
@@ -50,7 +59,9 @@ class CachedHakuService(wrapperService: HakuService) extends HakuService {
   def kaikkiHaut: List[Haku] = all("").toList.flatten
 }
 
-private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean, parentHakuOid: Option[String], sisaltyvatHaut: Set[String], tila: String, jarjestelmanHakulomake: Boolean) {
+private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean,
+                                   parentHakuOid: Option[String], sisaltyvatHaut: Set[String], tila: String, jarjestelmanHakulomake: Boolean,
+                                   hakuaikas: List[Hakuaika]) {
 }
 
 class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHakuService with Logging {

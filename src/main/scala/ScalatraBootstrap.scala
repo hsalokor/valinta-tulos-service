@@ -23,7 +23,7 @@ class ScalatraBootstrap extends LifeCycle {
     lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
     lazy val vastaanottoService = new VastaanottoService(hakuService, valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
     lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
-    lazy val mailPoller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, limit = 100)
+    lazy val mailPoller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 100)
 
     globalConfig = Some(appConfig)
     appConfig.start

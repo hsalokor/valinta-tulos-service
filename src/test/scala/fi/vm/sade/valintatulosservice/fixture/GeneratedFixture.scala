@@ -4,6 +4,7 @@ import fi.vm.sade.sijoittelu.domain.{Hakemus, HakemuksenTila, Sijoittelu}
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixture, HakemusFixtures, HakutoiveFixture}
+import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtureCreator
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 
@@ -17,6 +18,8 @@ class GeneratedFixture {
   )))
 
   def hakuFixture: String = HakuFixtures.korkeakouluYhteishaku
+
+  def ohjausparametritFixture = OhjausparametritFixtures.vastaanottoLoppuu2100
 
   def kaikkiJonotSijoiteltu: Boolean = true
 
@@ -74,6 +77,7 @@ class GeneratedFixture {
     appConfig.sijoitteluContext.sijoitteluDao.persistSijoittelu(sijoittelu)
     hakukohteet.foreach(appConfig.sijoitteluContext.hakukohdeDao.persistHakukohde(_))
     valintatulokset.foreach(appConfig.sijoitteluContext.valintatulosDao.createOrUpdateValintatulos(_))
+    OhjausparametritFixtures.activeFixture = ohjausparametritFixture
   }
 }
 

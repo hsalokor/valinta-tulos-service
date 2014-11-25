@@ -1,0 +1,41 @@
+{
+  "PH_TJT": {"date": null},
+  "PH_HKLPT": {"date": null},
+  "PH_HKMT": {"date": null},
+  "PH_KKM": {
+    "dateStart": null,
+    "dateEnd": null
+  },
+  "PH_HVVPTP": {"date": null},
+  "PH_KTT": {
+    "dateStart": null,
+    "dateEnd": null
+  },
+  "PH_OLVVPKE": {
+    "dateStart": null,
+    "dateEnd": null
+  },
+  "PH_VLS": {
+    "dateStart": null,
+    "dateEnd": null
+  },
+  "PH_SS": {
+    "dateStart": null,
+    "dateEnd": null
+  },
+  "PH_JKLIP": {"date": null},
+  "PH_HKP": {"date": 1262296800000},
+  "PH_VTSSV": {"date": null},
+  "PH_VSSAV": {"date": null},
+  "PH_VTJH": {
+    "dateStart": null,
+    "dateEnd": null
+  },
+  "PH_EVR": {"date": null},
+  "PH_OPVP": {"date": 4103258400000},
+  "PH_HPVOA": {"value": 14},
+  "PH_IP": {"date": 4103258400000},
+  "target": "1.2.246.562.29.92478804245",
+  "__modified__": 1410335504391,
+  "__modifiedBy__": "1.2.246.562.24.00000000001"
+}
