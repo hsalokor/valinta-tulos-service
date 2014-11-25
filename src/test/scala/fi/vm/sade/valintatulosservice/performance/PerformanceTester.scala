@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.performance
 
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.fixture.LargerFixture
+import fi.vm.sade.valintatulosservice.fixture.{GeneratedFixture, SimpleGeneratedHakuFixture}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.{Logging, ValintatulosService}
 
@@ -11,7 +11,7 @@ object PerformanceTester extends App with Logging {
   val hakuService = HakuService(appConfig)
   appConfig.start
 
-  new LargerFixture(5, 1000).apply(appConfig)
+  new GeneratedFixture(new SimpleGeneratedHakuFixture(5, 1000)).apply(appConfig)
 
   logger.info("fixture applied")
 

@@ -8,18 +8,39 @@ import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtureCreator
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 
-class GeneratedFixture {
-  def hakuOid: String = "1"
-
-  def sijoitteluajoId: Long = 1l
-
-  def hakemukset = List(HakemuksenTulosFixture("1", List(
-    HakemuksenHakukohdeFixture("1", "1")
-  )))
+class GeneratedFixture(haut: List[GeneratedHakuFixture] = List(new GeneratedHakuFixture("1"))) {
+  def this(haku: GeneratedHakuFixture) = this(List(haku))
 
   def hakuFixture: String = HakuFixtures.korkeakouluYhteishaku
 
   def ohjausparametritFixture = OhjausparametritFixtures.vastaanottoLoppuu2100
+
+  def apply(implicit appConfig: AppConfig) {
+    HakuFixtures.useFixture(hakuFixture, haut.map(_.hakuOid))
+
+    val hakemusFixtures = HakemusFixtures()
+    hakemusFixtures.clear
+    OhjausparametritFixtures.activeFixture = ohjausparametritFixture
+
+    haut.foreach { haku =>
+      haku.hakemukset
+        .map { hakemus => HakemusFixture(hakemus.hakemusOid, hakemus.hakutoiveet.zipWithIndex.map{ case (hakutoive, index) => HakutoiveFixture(index+1, hakutoive.tarjoajaOid, hakutoive.hakukohdeOid) })}
+        .foreach(hakemusFixtures.importTemplateFixture(_))
+
+
+      MongoMockData.clear(appConfig.sijoitteluContext.database)
+      appConfig.sijoitteluContext.sijoitteluDao.persistSijoittelu(haku.sijoittelu)
+      haku.hakukohteet.foreach(appConfig.sijoitteluContext.hakukohdeDao.persistHakukohde(_))
+      haku.valintatulokset.foreach(appConfig.sijoitteluContext.valintatulosDao.createOrUpdateValintatulos(_))
+    }
+  }
+}
+class GeneratedHakuFixture(val hakuOid: String = "1") {
+  val sijoitteluajoId: Long = hakuOid.toLong
+
+  def hakemukset = List(HakemuksenTulosFixture("1", List(
+    HakemuksenHakukohdeFixture("1", "1")
+  )))
 
   def kaikkiJonotSijoiteltu: Boolean = true
 
@@ -30,7 +51,7 @@ class GeneratedFixture {
     } yield {
       (hakutoive.tarjoajaOid, hakutoive.hakukohdeOid, hakemus, index + 1)
     }).groupBy{case (tarjoaja: String, hakukohde: String, hakemus: HakemuksenTulosFixture, hakutoiveNumero: Int) => (tarjoaja, hakukohde)}
-    .map { case ((tarjoajaId, hakukohdeId), values) =>
+      .map { case ((tarjoajaId, hakukohdeId), values) =>
       val hakemuksetHakutoiveNumerolla = values.map { case (_, hakukohdeOid, hakemus, hakutoiveNumero) =>
         val jonot: List[ValintatapaJonoFixture] = hakemus.hakutoiveet.find( hakutoive => hakutoive.hakukohdeOid == hakukohdeOid).get.jonot
         (hakemus, jonot, hakutoiveNumero)
@@ -48,7 +69,7 @@ class GeneratedFixture {
       }
       SijoitteluFixtureCreator.newHakukohde(hakukohdeId, tarjoajaId, sijoitteluajoId, kaikkiJonotSijoiteltu, jonot)
     }
-    .toList
+      .toList
   }
 
   import scala.collection.JavaConversions._
@@ -62,23 +83,6 @@ class GeneratedFixture {
   }
 
   lazy val sijoittelu: Sijoittelu = SijoitteluFixtureCreator.newSijoittelu(hakuOid, sijoitteluajoId, hakukohteet.map(_.getOid))
-
-  def apply(implicit appConfig: AppConfig) {
-    HakuFixtures.useFixture(hakuFixture, sijoittelu.getHakuOid)
-
-    val hakemusFixtures = HakemusFixtures()
-    hakemusFixtures.clear
-    hakemukset
-      .map { hakemus => HakemusFixture(hakemus.hakemusOid, hakemus.hakutoiveet.zipWithIndex.map{ case (hakutoive, index) => HakutoiveFixture(index+1, hakutoive.tarjoajaOid, hakutoive.hakukohdeOid) })}
-      .foreach(hakemusFixtures.importTemplateFixture(_))
-
-
-    MongoMockData.clear(appConfig.sijoitteluContext.database)
-    appConfig.sijoitteluContext.sijoitteluDao.persistSijoittelu(sijoittelu)
-    hakukohteet.foreach(appConfig.sijoitteluContext.hakukohdeDao.persistHakukohde(_))
-    valintatulokset.foreach(appConfig.sijoitteluContext.valintatulosDao.createOrUpdateValintatulos(_))
-    OhjausparametritFixtures.activeFixture = ohjausparametritFixture
-  }
 }
 
 case class HakemuksenTulosFixture(hakemusOid: String, hakutoiveet: List[HakemuksenHakukohdeFixture])

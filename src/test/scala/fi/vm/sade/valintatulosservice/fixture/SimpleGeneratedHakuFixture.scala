@@ -1,8 +1,6 @@
 package fi.vm.sade.valintatulosservice.fixture
 
-import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixture, HakutoiveFixture}
-
-class LargerFixture(hakukohteita: Int, hakemuksia: Int) extends GeneratedFixture {
+case class SimpleGeneratedHakuFixture(hakukohteita: Int, hakemuksia: Int) extends GeneratedHakuFixture {
   private val hakutoiveet: List[HakemuksenHakukohdeFixture] = (1 to hakukohteita).map { hakukohdeNumero =>
     val hakukohdeOid = hakukohdeNumero.toString
     val tarjoajaOid = hakukohdeNumero.toString

@@ -43,8 +43,10 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
     val mailables = (for {
       candidateId: HakemusIdentifier <- pollForCandidates(hakuOids, limit, excludeHakemusOids)
       hakemuksenTulos <- fetchHakemuksentulos(candidateId)
+      mailStatus = mailStatusFor(hakemuksenTulos)
+      if (mailStatus.anyMailToBeSent)
     } yield {
-      mailStatusFor(hakemuksenTulos)
+      mailStatus
     }).toList
     val result = if (mailables.size > 0 && mailables.size < limit) {
       logger.info("fetching more mailables")

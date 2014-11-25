@@ -12,11 +12,11 @@ object HakuFixtures extends HakuService with JsonHakuService {
   val toinenAsteYhteishaku = "toinen-aste-yhteishaku"
   val toinenAsteErillishakuEiSijoittelua = "toinen-aste-erillishaku-ei-sijoittelua"
 
-  private var hakuOid = defaultHakuOid
+  private var hakuOids = List(defaultHakuOid)
   private var activeFixture = korkeakouluYhteishaku
 
-  def useFixture(fixtureName: String, hakuOid: String = defaultHakuOid) {
-    this.hakuOid = hakuOid
+  def useFixture(fixtureName: String, hakuOids: List[String] = List(defaultHakuOid)) {
+    this.hakuOids = hakuOids
     this.activeFixture = fixtureName
   }
 
@@ -46,5 +46,9 @@ object HakuFixtures extends HakuService with JsonHakuService {
     Option(getClass.getResourceAsStream("/fixtures/tarjonta/haku/" + baseFilename + ".json"))
   }
 
-  override def kaikkiJulkaistutHaut = toHaut(getHakuFixture(hakuOid).toList).map(_.copy(oid = hakuOid))
+  override def kaikkiJulkaistutHaut = {
+    hakuOids.flatMap { hakuOid =>
+      toHaut(getHakuFixture(hakuOid).toList).map(_.copy(oid = hakuOid))
+    }
+  }
 }

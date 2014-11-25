@@ -13,26 +13,26 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
 
   "Hakujen filtteröinti" should {
     "korkeakouluhaku -> mukaan" in {
-      new SmallFixture().apply
+      new GeneratedFixture(new SingleHakemusFixture()).apply
       poller.etsiHaut must_== List("1")
     }
 
     "2.asteen haku -> ei mukaan" in {
-      new SmallFixture {
+      new GeneratedFixture(new SingleHakemusFixture()) {
         override def hakuFixture = HakuFixtures.toinenAsteYhteishaku
       }.apply
       poller.etsiHaut must_== Nil
     }
 
     "Jos hakuaika ei alkanut -> ei mukaan" in {
-      new SmallFixture {
+      new GeneratedFixture(new SingleHakemusFixture()) {
         override def hakuFixture = "korkeakoulu-yhteishaku-hakuaika-tulevaisuudessa"
       }.apply
       poller.etsiHaut must_== Nil
     }
 
     "Jos hakukierros päättynyt -> ei mukaan" in {
-      new SmallFixture{
+      new GeneratedFixture(new SingleHakemusFixture()){
         override def ohjausparametritFixture = "hakukierros-loppuu-2010"
       }.apply
       poller.etsiHaut must_== Nil
@@ -40,7 +40,7 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
   }
 
   "Kun päässyt kaikkiin hakukohteisiin" should {
-    val fixture = new LargerFixture(5, 5)
+    val fixture = new GeneratedFixture(new SimpleGeneratedHakuFixture(5, 5))
 
     "Finds candidates (limited number, cycles through candidates)" in {
       fixture.apply
@@ -58,7 +58,6 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
       mailables.size must_== 3
       mailables(0).hakukohteet.size must_== 5
       mailables(0).hakukohteet(0).shouldMail must_== true
-      mailables(0).anyMailToBeSent must_== true
     }
 
     "Marks mails sent" in {
@@ -68,12 +67,11 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
         .foreach(poller.markAsSent(_))
       mailables = poller.pollForMailables()
       mailables.size must_== 2
-      mailables(0).anyMailToBeSent must_== true
     }
   }
 
   "Kun hyväksytty yhteen kohteeseen ja hylätty toisessa" in {
-    val fixture = new GeneratedFixture {
+    val fixture = new GeneratedFixture(List(new GeneratedHakuFixture() {
       override def hakemukset = List(
         HakemuksenTulosFixture("H1", List(
           HakemuksenHakukohdeFixture("1", "1"),
@@ -83,16 +81,14 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
           HakemuksenHakukohdeFixture("1", "1", List(ValintatapaJonoFixture(HakemuksenTila.HYLATTY)))
         ))
       )
-    }
-
+    }))
 
     "Meili lähetetään" in {
       fixture.apply
 
       val mailables: List[HakemusMailStatus] = poller.pollForMailables()
 
-      mailables.map(_.hakemusOid).toSet must_== Set("H2", "H1")
-      mailables.filter(_.anyMailToBeSent).map(_.hakemusOid) must_== List("H1")
+      mailables.map(_.hakemusOid).toSet must_== Set("H1")
     }
 
     // TODO: testaa Kesken -> Hyväksytty muutoksesta aiheutuva meili
