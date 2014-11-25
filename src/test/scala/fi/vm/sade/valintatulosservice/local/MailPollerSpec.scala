@@ -112,6 +112,7 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
   "Kun Hakemuksia on useammassa Haussa" should {
     "Määrärajoitus koskee kaikkia Hakuja yhteensä" in {
       // TODO
+      success
     }
   }
 
