@@ -10,10 +10,12 @@ import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.{Logging, ValintatulosService}
 import org.joda.time.DateTime
 
+import scala.collection.SeqLike
+
 class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosService, hakuService: HakuService, ohjausparameteritService: OhjausparametritService, limit: Integer = 5, recheckIntervalHours: Int = 24) extends Logging {
   private val valintatulos = MongoFactory.createDB(mongoConfig)("Valintatulos")
 
-  def haut: List[String] = {
+  def etsiHaut: List[String] = {
     val found = hakuService.kaikkiJulkaistutHaut
       .filter{haku => haku.korkeakoulu}
       .filter{haku =>
@@ -37,19 +39,21 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
     found
   }
 
-  def pollForMailables: List[HakemusMailStatus] = {
-    pollForMailables(haut)
-  }
-
-  def pollForMailables(hakuOids: List[String]): List[HakemusMailStatus] = {
+  def pollForMailables(hakuOids: List[String] = etsiHaut, limit: Int = this.limit, excludeHakemusOids: Set[String] = Set.empty): List[HakemusMailStatus] = {
     val mailables = (for {
-      candidateId: HakemusIdentifier <- pollForCandidates(hakuOids)
+      candidateId: HakemusIdentifier <- pollForCandidates(hakuOids, limit, excludeHakemusOids)
       hakemuksenTulos <- fetchHakemuksentulos(candidateId)
     } yield {
       mailStatusFor(hakemuksenTulos)
     }).toList
-    logger.info("pollForMailables found " + mailables.size + " results, " + mailables.filter(_.anyMailToBeSent).size + " actionable")
-    mailables
+    val result = if (mailables.size > 0 && mailables.size < limit) {
+      logger.info("fetching more mailables")
+      mailables ++ pollForMailables(hakuOids, limit = limit - mailables.size, excludeHakemusOids = excludeHakemusOids ++ mailables.map(_.hakemusOid).toSet)
+    } else {
+      mailables
+    }
+    logger.info("pollForMailables found " + result.size + " results, " + result.filter(_.anyMailToBeSent).size + " actionable")
+    result
   }
 
   def markAsSent(mailContents: LahetysKuittaus) = {
@@ -100,10 +104,10 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
   }
 
   def pollForCandidates: Set[HakemusIdentifier] = {
-    pollForCandidates(haut)
+    pollForCandidates(etsiHaut)
   }
 
-  def pollForCandidates(hakuOids: List[String]): Set[HakemusIdentifier] = {
+  def pollForCandidates(hakuOids: List[String], limit: Int = this.limit, excludeHakemusOids: Set[String] = Set.empty): Set[HakemusIdentifier] = {
     // TODO: Valintatulokseen tarvitaan indeksi
 
     val query = Map(
@@ -117,15 +121,21 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
       )
     )
 
-    val candidates: List[Imports.DBObject] = valintatulos.find(query).sort(
-      Map("mailStatus.previousCheck" -> 1)
-    ).limit(limit).toList
+    val candidates = valintatulos.find(query).sort(Map("mailStatus.previousCheck" -> 1))
+      .toStream
+      .filterNot { tulos =>
+        val hakemusOid = tulos.get("hakemusOid").asInstanceOf[String]
+        excludeHakemusOids.contains(hakemusOid)
+      }
+      .take(limit)
+      .toList
 
     updateCheckTimestamps(candidates)
 
     logger.info("pollCandidates found " + candidates.size + " candidates for hakuOids= " + hakuOids)
 
-    candidates.map{ tulos => HakemusIdentifier(tulos.get("hakuOid").asInstanceOf[String], tulos.get("hakemusOid").asInstanceOf[String])}
+    candidates
+      .map{ tulos => HakemusIdentifier(tulos.get("hakuOid").asInstanceOf[String], tulos.get("hakemusOid").asInstanceOf[String])}
       .toSet
   }
 

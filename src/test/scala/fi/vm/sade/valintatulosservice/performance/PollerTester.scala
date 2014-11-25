@@ -20,7 +20,7 @@ object PollerTester extends App with Logging with TimeWarp {
   withFixedDateTime("22.11.2014 15:00") {
     (1 to 5) foreach { num =>
       val mailables = Timer.timed(0, "pollForMailables") {
-        poller.pollForMailables
+        poller.pollForMailables()
       }
 
       logger.info("Got mailables")

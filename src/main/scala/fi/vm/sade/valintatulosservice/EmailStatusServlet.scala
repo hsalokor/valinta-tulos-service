@@ -18,7 +18,7 @@ class EmailStatusServlet(mailPoller: MailPoller, mailDecorator: MailDecorator)(i
     )
   get("/", operation(getVastaanottoposti)) {
     contentType = formats("json")
-    val mailStatii: List[HakemusMailStatus] = mailPoller.pollForMailables
+    val mailStatii: List[HakemusMailStatus] = mailPoller.pollForMailables()
     mailStatii.flatMap(mailDecorator.statusToMail(_))
   }
 

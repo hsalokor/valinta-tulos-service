@@ -14,28 +14,28 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
   "Hakujen filtteröinti" should {
     "korkeakouluhaku -> mukaan" in {
       new SmallFixture().apply
-      poller.haut must_== List("1")
+      poller.etsiHaut must_== List("1")
     }
 
     "2.asteen haku -> ei mukaan" in {
       new SmallFixture {
         override def hakuFixture = HakuFixtures.toinenAsteYhteishaku
       }.apply
-      poller.haut must_== Nil
+      poller.etsiHaut must_== Nil
     }
 
     "Jos hakuaika ei alkanut -> ei mukaan" in {
       new SmallFixture {
         override def hakuFixture = "korkeakoulu-yhteishaku-hakuaika-tulevaisuudessa"
       }.apply
-      poller.haut must_== Nil
+      poller.etsiHaut must_== Nil
     }
 
     "Jos hakukierros päättynyt -> ei mukaan" in {
       new SmallFixture{
         override def ohjausparametritFixture = "hakukierros-loppuu-2010"
       }.apply
-      poller.haut must_== Nil
+      poller.etsiHaut must_== Nil
     }
   }
 
@@ -54,7 +54,7 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
     }
 
     "Finds mailables" in {
-      val mailables: List[HakemusMailStatus] = poller.pollForMailables
+      val mailables: List[HakemusMailStatus] = poller.pollForMailables()
       mailables.size must_== 3
       mailables(0).hakukohteet.size must_== 5
       mailables(0).hakukohteet(0).shouldMail must_== true
@@ -62,11 +62,11 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
     }
 
     "Marks mails sent" in {
-      var mailables: List[HakemusMailStatus] = poller.pollForMailables
+      var mailables: List[HakemusMailStatus] = poller.pollForMailables()
       mailables
         .map { mail => LahetysKuittaus(mail.hakemusOid, mail.hakukohteet.map(_.hakukohdeOid), List("email"))}
         .foreach(poller.markAsSent(_))
-      mailables = poller.pollForMailables
+      mailables = poller.pollForMailables()
       mailables.size must_== 2
       mailables(0).anyMailToBeSent must_== true
     }
@@ -89,9 +89,9 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
     "Meili lähetetään" in {
       fixture.apply
 
-      val mailables: List[HakemusMailStatus] = poller.pollForMailables
+      val mailables: List[HakemusMailStatus] = poller.pollForMailables()
 
-      mailables.map(_.hakemusOid) must_== List("H2", "H1")
+      mailables.map(_.hakemusOid).toSet must_== Set("H2", "H1")
       mailables.filter(_.anyMailToBeSent).map(_.hakemusOid) must_== List("H1")
     }
 
