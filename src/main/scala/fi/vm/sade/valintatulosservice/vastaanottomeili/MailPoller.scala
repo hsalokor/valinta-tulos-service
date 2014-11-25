@@ -132,17 +132,18 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
       }
       .take(limit)
       .toList
+      .map{ tulos => HakemusIdentifier(tulos.get("hakuOid").asInstanceOf[String], tulos.get("hakemusOid").asInstanceOf[String])}
 
-    updateCheckTimestamps(candidates)
+    updateCheckTimestamps(candidates.map(_.hakemusOid))
 
     logger.info("pollCandidates found " + candidates.size + " candidates for hakuOids= " + hakuOids)
 
     candidates
-      .map{ tulos => HakemusIdentifier(tulos.get("hakuOid").asInstanceOf[String], tulos.get("hakemusOid").asInstanceOf[String])}
+
       .toSet
   }
 
-  private def updateCheckTimestamps(candidates: List[Imports.DBObject]) = {
+  private def updateCheckTimestamps(hakemusOids: List[String]) = {
     val timestamp = new DateTime().toDate
 
     val update = Map(
@@ -154,8 +155,8 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
     )
 
     val query = MongoDBObject(
-      "_id" -> Map(
-        "$in" -> candidates.map(_.get("_id"))
+      "hakemusOid" -> Map(
+        "$in" -> hakemusOids
       )
     )
 

@@ -49,17 +49,20 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
       result1.size must_== 3
 
       val result2 = poller.pollForCandidates
-      result2.size must_== 3
+      result2.size must_== 2 // next list of candidates contains the rest
       result2 must_!= result1
     }
 
     "Finds mailables" in {
+      fixture.apply
       val mailables: List[HakemusMailStatus] = poller.pollForMailables()
       mailables.size must_== 3
       mailables(0).hakukohteet.size must_== 5
+      poller.pollForMailables().size must_== 2 // the rest of the mailables returned on next call
     }
 
     "Marks mails sent" in {
+      fixture.apply
       var mailables: List[HakemusMailStatus] = poller.pollForMailables()
       mailables
         .map { mail => LahetysKuittaus(mail.hakemusOid, mail.hakukohteet.map(_.hakukohdeOid), List("email"))}
