@@ -11,7 +11,7 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
   lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
   lazy val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 3)
 
-  "Hakujen filtteröinti" should {
+  "Hakujen filtteröinti" in {
     "korkeakouluhaku -> mukaan" in {
       new GeneratedFixture(new SingleHakemusFixture()).apply
       poller.etsiHaut must_== List("1")
@@ -39,8 +39,8 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
     }
   }
 
-  "Kun päässyt kaikkiin hakukohteisiin" should {
-    val fixture = new GeneratedFixture(new SimpleGeneratedHakuFixture(5, 5))
+  "Kun päässyt kaikkiin hakukohteisiin" in {
+    lazy val fixture = new GeneratedFixture(new SimpleGeneratedHakuFixture(5, 5))
 
     "Finds candidates (limited number, cycles through candidates)" in {
       fixture.apply
@@ -57,7 +57,6 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
       val mailables: List[HakemusMailStatus] = poller.pollForMailables()
       mailables.size must_== 3
       mailables(0).hakukohteet.size must_== 5
-      mailables(0).hakukohteet(0).shouldMail must_== true
     }
 
     "Marks mails sent" in {
@@ -71,7 +70,7 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
   }
 
   "Kun hyväksytty yhteen kohteeseen ja hylätty toisessa" in {
-    val fixture = new GeneratedFixture(List(new GeneratedHakuFixture() {
+    lazy val fixture = new GeneratedFixture(List(new GeneratedHakuFixture() {
       override def hakemukset = List(
         HakemuksenTulosFixture("H1", List(
           HakemuksenHakukohdeFixture("1", "1"),
@@ -105,14 +104,20 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
     }
   }
 
-  "Kun Hakemuksia on useammassa Haussa" should {
-    "Määrärajoitus koskee kaikkia Hakuja yhteensä" in {
-      // TODO
-      success
+  "Kun Hakemuksia on useammassa Haussa" in {
+    val fixture = new GeneratedFixture(List(new SimpleGeneratedHakuFixture(1, 4, "1"), new SimpleGeneratedHakuFixture(1, 4, "2")))
+    "Tuloksia haetaan molemmista" in {
+      val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 8)
+      fixture.apply
+      poller.pollForMailables().size must_== 4 // <- molemmista hauista tulee 2 hyväksyttyä
     }
-  }
 
-  // TODO: (hyväksytty+hylätty)         -> 2 candidates, 1 status (dups removed), 1 to be sent
-  // TODO: (hyväksytty+hylätty) -> mark -> 1 candidate,  1 status,              , 0 to be sent
+    "Määrärajoitus koskee kaikkia Hakuja yhteensä" in {
+      val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 3)
+      fixture.apply
+      poller.pollForMailables().size must_== 3
+    }
+
+  }
   // TODO: kantaan lista lähetysmedioista
 }
