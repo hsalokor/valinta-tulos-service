@@ -21,14 +21,13 @@ class GeneratedFixture(haut: List[GeneratedHakuFixture] = List(new GeneratedHaku
     val hakemusFixtures = HakemusFixtures()
     hakemusFixtures.clear
     OhjausparametritFixtures.activeFixture = ohjausparametritFixture
+    MongoMockData.clear(appConfig.sijoitteluContext.database)
 
     haut.foreach { haku =>
       haku.hakemukset
         .map { hakemus => HakemusFixture(hakemus.hakemusOid, hakemus.hakutoiveet.zipWithIndex.map{ case (hakutoive, index) => HakutoiveFixture(index+1, hakutoive.tarjoajaOid, hakutoive.hakukohdeOid) })}
         .foreach(hakemusFixtures.importTemplateFixture(_))
 
-
-      MongoMockData.clear(appConfig.sijoitteluContext.database)
       appConfig.sijoitteluContext.sijoitteluDao.persistSijoittelu(haku.sijoittelu)
       haku.hakukohteet.foreach(appConfig.sijoitteluContext.hakukohdeDao.persistHakukohde(_))
       haku.valintatulokset.foreach(appConfig.sijoitteluContext.valintatulosDao.createOrUpdateValintatulos(_))
