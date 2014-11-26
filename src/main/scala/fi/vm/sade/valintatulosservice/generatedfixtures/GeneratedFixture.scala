@@ -1,6 +1,6 @@
-package fi.vm.sade.valintatulosservice.fixture
+package fi.vm.sade.valintatulosservice.generatedfixtures
 
-import fi.vm.sade.sijoittelu.domain.{Hakemus, HakemuksenTila, Sijoittelu}
+import fi.vm.sade.sijoittelu.domain.{HakemuksenTila, Hakemus, Sijoittelu}
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixture, HakemusFixtures, HakutoiveFixture}

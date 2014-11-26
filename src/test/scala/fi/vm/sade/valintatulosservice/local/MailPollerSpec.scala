@@ -1,10 +1,10 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.sijoittelu.domain.HakemuksenTila
-import fi.vm.sade.valintatulosservice.fixture._
+import fi.vm.sade.valintatulosservice.generatedfixtures._
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
-import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusIdentifier, HakemusMailStatus, LahetysKuittaus, MailPoller}
-import fi.vm.sade.valintatulosservice.{TimeWarp, ITSpecification, ValintatulosService}
+import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusMailStatus, LahetysKuittaus, MailPoller}
+import fi.vm.sade.valintatulosservice.{ITSpecification, TimeWarp, ValintatulosService}
 
 class MailPollerSpec extends ITSpecification with TimeWarp {
   lazy val hakuService = HakuService(appConfig)

@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.fixture
+package fi.vm.sade.valintatulosservice.generatedfixtures
 
 import fi.vm.sade.sijoittelu.domain.HakemuksenTila
 

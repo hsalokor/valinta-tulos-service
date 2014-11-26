@@ -1,14 +1,13 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.Vastaanotto
+import fi.vm.sade.valintatulosservice.generatedfixtures.{SimpleGeneratedHakuFixture, GeneratedFixture}
 import fi.vm.sade.valintatulosservice.json.JsonFormats
+import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
+import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
-import fi.vm.sade.valintatulosservice.ohjausparametrit.StubbedOhjausparametritService
-import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
-import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 
 class TestUtilServlet (implicit val appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats {
   options("/fixtures/apply") {
@@ -25,6 +24,11 @@ class TestUtilServlet (implicit val appConfig: AppConfig) extends ScalatraServle
     OhjausparametritFixtures.activeFixture = ohjausparametrit
     val haku = paramOption("haku").getOrElse(HakuFixtures.korkeakouluYhteishaku)
     HakuFixtures.useFixture(haku)
+  }
+
+  put("/fixtures/generate") {
+    response.addHeader("Access-Control-Allow-Origin", "*")
+    new GeneratedFixture(new SimpleGeneratedHakuFixture(5, 50)).apply
   }
 
   error {
