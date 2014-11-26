@@ -74,7 +74,7 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
   }
 
   def kaikkiJulkaistutHaut = {
-    val url = appConfig.settings.tarjontaUrl + "/rest/v1/haku/find"
+    val url = appConfig.settings.tarjontaUrl + "/rest/v1/haku/find?addHakuKohdes=false"
     fetch(url) { response =>
       val haut = (parse(response) \ "result").extract[List[HakuTarjonnassa]]
       toHaut(haut)
