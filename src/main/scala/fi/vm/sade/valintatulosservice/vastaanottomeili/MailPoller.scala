@@ -8,7 +8,7 @@ import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.{Logging, ValintatulosService}
-import org.joda.time.DateTime
+import org.joda.time.{DateTimeUtils, DateTime}
 
 import scala.collection.SeqLike
 
@@ -60,7 +60,7 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
   }
 
   def markAsSent(mailContents: LahetysKuittaus) = {
-    val timestamp = System.currentTimeMillis()
+    val timestamp = DateTimeUtils.currentTimeMillis
     mailContents.hakukohteet.foreach { hakukohde =>
       val query = MongoDBObject(
         "hakemusOid" -> mailContents.hakemusOid,
@@ -68,7 +68,8 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
       )
       val update = Map(
         "$set" -> Map(
-          "mailStatus.sent" -> timestamp
+          "mailStatus.sent" -> timestamp,
+          "mailStatus.media" -> mailContents.mediat
         )
       )
       valintatulos.update(query, update, multi = true)
@@ -138,9 +139,7 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
 
     logger.info("pollCandidates found " + candidates.size + " candidates for hakuOids= " + hakuOids)
 
-    candidates
-
-      .toSet
+    candidates.toSet
   }
 
   private def updateCheckTimestamps(hakemusOids: List[String]) = {

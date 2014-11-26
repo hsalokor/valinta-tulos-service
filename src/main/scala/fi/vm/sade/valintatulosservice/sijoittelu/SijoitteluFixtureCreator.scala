@@ -48,7 +48,7 @@ object SijoitteluFixtureCreator {
     hakukohde
   }
 
-  def newValintatulos(jonoOid: String, hakuOid: String, hakemusOid: String, hakukohdeOid: String, hakijaOid: String, hakutoiveIndex: Int) = {
+  def newValintatulos(jonoOid: String, hakuOid: String, hakemusOid: String, hakukohdeOid: String, hakijaOid: String, hakutoiveIndex: Int, julkaistavissa: Boolean = true) = {
     val valintatulos = new Valintatulos()
     valintatulos.setHakuOid(hakuOid)
     valintatulos.setValintatapajonoOid(jonoOid)
@@ -56,7 +56,7 @@ object SijoitteluFixtureCreator {
     valintatulos.setHakukohdeOid(hakukohdeOid)
     valintatulos.setHakijaOid(hakijaOid)
     valintatulos.setHakutoive(hakutoiveIndex)
-    valintatulos.setJulkaistavissa(true)
+    valintatulos.setJulkaistavissa(julkaistavissa)
     val logEntry: LogEntry = new LogEntry()
     logEntry.setLuotu(new Date)
     logEntry.setMuokkaaja(hakijaOid)
