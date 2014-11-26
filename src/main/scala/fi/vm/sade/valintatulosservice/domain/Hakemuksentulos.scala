@@ -3,7 +3,6 @@ package fi.vm.sade.valintatulosservice.domain
 import java.util.Date
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila.Ilmoittautumistila
 import fi.vm.sade.valintatulosservice.domain.Valintatila.Valintatila
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila

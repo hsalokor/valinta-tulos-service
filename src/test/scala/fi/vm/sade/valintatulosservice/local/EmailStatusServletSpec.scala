@@ -13,9 +13,7 @@ class EmailStatusServletSpec extends ServletSpecification with TimeWarp {
         get("vastaanottoposti") {
           status must_== 200
 
-          // TODO: deadline pitää laskea oikein
-
-          body must_== """[{"hakemusOid":"1.2.246.562.11.00000441369","hakijaOid":"1.2.246.562.24.14229104472","asiointikieli":"FI","etunimi":"Teppo","email":"teppo@testaaja.fi","deadline":"2014-11-10T10:00:00Z","hakukohteet":["1.2.246.562.5.72607738902"]}]"""
+          body must_== """[{"hakemusOid":"1.2.246.562.11.00000441369","hakijaOid":"1.2.246.562.24.14229104472","asiointikieli":"FI","etunimi":"Teppo","email":"teppo@testaaja.fi","deadline":"2100-01-10T10:00:00Z","hakukohteet":["1.2.246.562.5.72607738902"]}]"""
         }
       }
 

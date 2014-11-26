@@ -79,7 +79,7 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
   private def mailStatusFor(hakemuksenTulos: Hakemuksentulos): HakemusMailStatus = {
     val mailables = hakemuksenTulos.hakutoiveet.map { (hakutoive: Hakutoiveentulos) =>
       val shouldMail: Boolean = Vastaanotettavuustila.isVastaanotettavissa(hakutoive.vastaanotettavuustila) && !mailed(hakemuksenTulos, hakutoive)
-      HakukohdeMailStatus(hakutoive.hakukohdeOid, hakutoive.valintatapajonoOid, shouldMail)
+      HakukohdeMailStatus(hakutoive.hakukohdeOid, hakutoive.valintatapajonoOid, shouldMail, hakutoive.vastaanottoDeadline)
     }
     HakemusMailStatus(hakemuksenTulos.hakemusOid, mailables)
   }
