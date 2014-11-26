@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 import java.util.{Date, Optional}
 
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakijaPaginationObject, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
-import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, ValintatuloksenTila}
+import fi.vm.sade.sijoittelu.tulos.dto.{IlmoittautumisTila, HakemuksenTila, ValintatuloksenTila}
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila._
@@ -16,7 +16,7 @@ import org.joda.time.DateTime
 protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService) {
   import scala.collection.JavaConversions._
 
-  protected[sijoittelu] def hakemuksenYhteenveto(haku: Haku, hakemusOid: String): Option[HakemuksenYhteenveto] = {
+  protected[sijoittelu] def hakemuksenYhteenveto(haku: Haku, hakemusOid: String): Option[HakemuksenSijoitteluntulos] = {
     val aikataulu = ohjausparametritService.ohjausparametrit(haku.oid).flatMap(_.vastaanottoaikataulu)
 
     for (
@@ -25,7 +25,7 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
     ) yield hakemuksenYhteenveto(hakija, aikataulu)
   }
 
-  protected[sijoittelu] def hakemustenYhteenveto(haku: Haku): Option[List[HakemuksenYhteenveto]] = {
+  protected[sijoittelu] def hakemustenYhteenveto(haku: Haku): Option[List[HakemuksenSijoitteluntulos]] = {
     val aikataulu = ohjausparametritService.ohjausparametrit(haku.oid).flatMap(_.vastaanottoaikataulu)
 
     for (
@@ -36,7 +36,32 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
       ) yield hakemuksenYhteenveto(hakija, aikataulu)
   }
 
-  private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu]): HakemuksenYhteenveto = {
+
+  private def yhteenveto2Tulos(hakemuksenYhteenveto: HakemuksenYhteenveto) = {
+    val hakija = hakemuksenYhteenveto.hakija
+    val aikataulu = hakemuksenYhteenveto.aikataulu
+    HakemuksenSijoitteluntulos(hakija.getHakemusOid, hakija.getHakijaOid, hakemuksenYhteenveto.hakutoiveet.map { hakutoiveenYhteenveto =>
+      HakutoiveenSijoitteluntulos(
+        hakutoiveenYhteenveto.hakutoive.getHakukohdeOid,
+        hakutoiveenYhteenveto.hakutoive.getTarjoajaOid,
+        hakutoiveenYhteenveto.valintatapajono.getValintatapajonoOid,
+        hakutoiveenYhteenveto.valintatila,
+        hakutoiveenYhteenveto.vastaanottotila,
+        Ilmoittautumistila.withName(Option(hakutoiveenYhteenveto.valintatapajono.getIlmoittautumisTila).getOrElse(IlmoittautumisTila.EI_TEHTY).name()),
+        hakutoiveenYhteenveto.vastaanotettavuustila,
+        Option(hakutoiveenYhteenveto.viimeisinValintatuloksenMuutos.orNull),
+        Option(hakutoiveenYhteenveto.valintatapajono.getJonosija).map(_.toInt),
+        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaKaytetaanAlkaen),
+        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaTaytetaanAsti),
+        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijanNumero).map(_.toInt),
+        hakutoiveenYhteenveto.julkaistavissa,
+        hakutoiveenYhteenveto.valintatapajono.getTilanKuvaukset.toMap,
+        hakutoiveenYhteenveto.pisteet
+      )
+    })
+  }
+
+  private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu]) = {
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val jono: HakutoiveenValintatapajonoDTO = merkitseväJono(hakutoive).get
 
@@ -56,7 +81,8 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
 
       HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinValintatuloksenMuutos, pisteet)
     }
-    HakemuksenYhteenveto(hakija, aikataulu, hakutoiveidenYhteenvedot)
+
+    yhteenveto2Tulos(HakemuksenYhteenveto(hakija, aikataulu, hakutoiveidenYhteenvedot))
   }
 
   private def laskeVastaanotettavuustila(valintatila: Valintatila, vastaanottotila: Vastaanottotila): Vastaanotettavuustila.Value = {
@@ -177,6 +203,6 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
   }
 }
 
-protected[sijoittelu] case class HakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu], hakutoiveet: List[HakutoiveenYhteenveto])
+private case class HakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu], hakutoiveet: List[HakutoiveenYhteenveto])
 
-protected[sijoittelu] case class HakutoiveenYhteenveto(hakutoive: HakutoiveDTO, valintatapajono: HakutoiveenValintatapajonoDTO, valintatila: Valintatila, vastaanottotila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean, viimeisinValintatuloksenMuutos: Option[Date], pisteet: Option[BigDecimal])
+private case class HakutoiveenYhteenveto(hakutoive: HakutoiveDTO, valintatapajono: HakutoiveenValintatapajonoDTO, valintatila: Valintatila, vastaanottotila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean, viimeisinValintatuloksenMuutos: Option[Date], pisteet: Option[BigDecimal])
