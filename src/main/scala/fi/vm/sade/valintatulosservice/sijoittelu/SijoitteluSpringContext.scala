@@ -21,8 +21,7 @@ class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext, ha
   lazy val hakukohdeDao = context.getBean(classOf[HakukohdeDao])
   lazy val sijoitteluDao = context.getBean(classOf[SijoitteluDao])
   lazy val raportointiService = context.getBean(classOf[RaportointiService])
-  lazy val yhteenvetoService = new YhteenvetoService(raportointiService, config.ohjausparametritService)
-  lazy val sijoittelutulosService = new SijoittelutulosService(yhteenvetoService)
+  lazy val sijoittelutulosService = new SijoittelutulosService(raportointiService, config.ohjausparametritService)
   lazy val valintatulosRepository = new ValintatulosRepository(valintatulosDao)
 }
 
