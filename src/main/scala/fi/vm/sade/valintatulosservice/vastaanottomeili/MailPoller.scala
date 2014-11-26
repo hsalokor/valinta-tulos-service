@@ -12,7 +12,7 @@ import org.joda.time.DateTime
 
 import scala.collection.SeqLike
 
-class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosService, hakuService: HakuService, ohjausparameteritService: OhjausparametritService, limit: Integer = 5, recheckIntervalHours: Int = 24) extends Logging {
+class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosService, hakuService: HakuService, ohjausparameteritService: OhjausparametritService, val limit: Integer, recheckIntervalHours: Int = 24) extends Logging {
   private val valintatulos = MongoFactory.createDB(mongoConfig)("Valintatulos")
 
   def etsiHaut: List[String] = {

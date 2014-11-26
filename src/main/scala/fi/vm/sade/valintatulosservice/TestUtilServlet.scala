@@ -28,7 +28,9 @@ class TestUtilServlet (implicit val appConfig: AppConfig) extends ScalatraServle
 
   put("/fixtures/generate") {
     response.addHeader("Access-Control-Allow-Origin", "*")
-    new GeneratedFixture(new SimpleGeneratedHakuFixture(5, 50)).apply
+    val hakemuksia: Int = params.get("hakemuksia").map(_.toInt).getOrElse(50)
+    val hakukohteita: Int = params.get("hakukohteita").map(_.toInt).getOrElse(5)
+    new GeneratedFixture(new SimpleGeneratedHakuFixture(hakukohteita, hakemuksia)).apply
   }
 
   error {

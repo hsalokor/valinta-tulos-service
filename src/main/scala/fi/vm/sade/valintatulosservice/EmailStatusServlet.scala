@@ -16,9 +16,11 @@ class EmailStatusServlet(mailPoller: MailPoller, mailDecorator: MailDecorator)(i
     summary "Palauttaa lähetysvalmiit mailit"
     notes "Ei parametrejä."
     )
+
   get("/", operation(getVastaanottoposti)) {
     contentType = formats("json")
-    val mailStatii: List[HakemusMailStatus] = mailPoller.pollForMailables()
+    val limit: Int = params.get("limit").map(_.toInt).getOrElse(mailPoller.limit)
+    val mailStatii: List[HakemusMailStatus] = mailPoller.pollForMailables(limit = limit)
     mailStatii.flatMap(mailDecorator.statusToMail(_))
   }
 
