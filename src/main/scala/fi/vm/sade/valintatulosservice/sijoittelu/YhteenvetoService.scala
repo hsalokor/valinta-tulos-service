@@ -36,53 +36,37 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
       ) yield hakemuksenYhteenveto(hakija, aikataulu)
   }
 
-
-  private def yhteenveto2Tulos(hakemuksenYhteenveto: HakemuksenYhteenveto) = {
-    val hakija = hakemuksenYhteenveto.hakija
-    val aikataulu = hakemuksenYhteenveto.aikataulu
-    HakemuksenSijoitteluntulos(hakija.getHakemusOid, hakija.getHakijaOid, hakemuksenYhteenveto.hakutoiveet.map { hakutoiveenYhteenveto =>
-      HakutoiveenSijoitteluntulos(
-        hakutoiveenYhteenveto.hakutoive.getHakukohdeOid,
-        hakutoiveenYhteenveto.hakutoive.getTarjoajaOid,
-        hakutoiveenYhteenveto.valintatapajono.getValintatapajonoOid,
-        hakutoiveenYhteenveto.valintatila,
-        hakutoiveenYhteenveto.vastaanottotila,
-        Ilmoittautumistila.withName(Option(hakutoiveenYhteenveto.valintatapajono.getIlmoittautumisTila).getOrElse(IlmoittautumisTila.EI_TEHTY).name()),
-        hakutoiveenYhteenveto.vastaanotettavuustila,
-        Option(hakutoiveenYhteenveto.viimeisinValintatuloksenMuutos.orNull),
-        Option(hakutoiveenYhteenveto.valintatapajono.getJonosija).map(_.toInt),
-        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaKaytetaanAlkaen),
-        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijojaTaytetaanAsti),
-        Option(hakutoiveenYhteenveto.valintatapajono.getVarasijanNumero).map(_.toInt),
-        hakutoiveenYhteenveto.julkaistavissa,
-        hakutoiveenYhteenveto.valintatapajono.getTilanKuvaukset.toMap,
-        hakutoiveenYhteenveto.pisteet
-      )
-    })
-  }
-
   private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu]) = {
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val jono: HakutoiveenValintatapajonoDTO = merkitseväJono(hakutoive).get
-
       var valintatila: Valintatila = jononValintatila(jono, hakutoive)
-
       val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos)
-
       val vastaanottotila: Vastaanottotila = laskeVastaanottotila(valintatila, jono.getVastaanottotieto, aikataulu, viimeisinValintatuloksenMuutos)
-
       valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
-
       val vastaanotettavuustila = laskeVastaanotettavuustila(valintatila, vastaanottotila)
-
       val julkaistavissa = jono.getVastaanottotieto != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa
-
       val pisteet = Option(jono.getPisteet).map((p: java.math.BigDecimal) => new BigDecimal(p))
 
-      HakutoiveenYhteenveto(hakutoive, jono, valintatila, vastaanottotila, vastaanotettavuustila, julkaistavissa, viimeisinValintatuloksenMuutos, pisteet)
+      HakutoiveenSijoitteluntulos(
+        hakutoive.getHakukohdeOid,
+        hakutoive.getTarjoajaOid,
+        jono.getValintatapajonoOid,
+        valintatila,
+        vastaanottotila,
+        Ilmoittautumistila.withName(Option(jono.getIlmoittautumisTila).getOrElse(IlmoittautumisTila.EI_TEHTY).name()),
+        vastaanotettavuustila,
+        Option(viimeisinValintatuloksenMuutos.orNull),
+        Option(jono.getJonosija).map(_.toInt),
+        Option(jono.getVarasijojaKaytetaanAlkaen),
+        Option(jono.getVarasijojaTaytetaanAsti),
+        Option(jono.getVarasijanNumero).map(_.toInt),
+        julkaistavissa,
+        jono.getTilanKuvaukset.toMap,
+        pisteet
+      )
     }
 
-    yhteenveto2Tulos(HakemuksenYhteenveto(hakija, aikataulu, hakutoiveidenYhteenvedot))
+    HakemuksenSijoitteluntulos(hakija.getHakemusOid, hakija.getHakijaOid, hakutoiveidenYhteenvedot)
   }
 
   private def laskeVastaanotettavuustila(valintatila: Valintatila, vastaanottotila: Vastaanottotila): Vastaanotettavuustila.Value = {
@@ -202,7 +186,3 @@ protected[sijoittelu] class YhteenvetoService(raportointiService: RaportointiSer
     }
   }
 }
-
-private case class HakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu], hakutoiveet: List[HakutoiveenYhteenveto])
-
-private case class HakutoiveenYhteenveto(hakutoive: HakutoiveDTO, valintatapajono: HakutoiveenValintatapajonoDTO, valintatila: Valintatila, vastaanottotila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean, viimeisinValintatuloksenMuutos: Option[Date], pisteet: Option[BigDecimal])
