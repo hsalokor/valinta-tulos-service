@@ -5,8 +5,12 @@ import java.text.SimpleDateFormat
 import org.joda.time.DateTimeUtils
 
 trait TimeWarp {
+  def parseDate(dateTime: String) = {
+    new SimpleDateFormat("d.M.yyyy HH:mm").parse(dateTime)
+  }
+
   def getMillisFromTime(dateTime: String) = {
-    new SimpleDateFormat("d.M.yyyy HH:mm").parse(dateTime).getTime
+    parseDate(dateTime).getTime
   }
 
   def withFixedDateTime[T](dateTime: String)(f: => T):T = {

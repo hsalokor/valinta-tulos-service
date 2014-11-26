@@ -1,5 +1,7 @@
 package fi.vm.sade.valintatulosservice.local
 
+import java.util.Date
+
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
@@ -167,6 +169,13 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
         }
 
+        "vastaanoton deadline näytetään" in {
+          withFixedDateTime("26.11.2014 12:00") {
+            useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
+            getHakutoive("1.2.246.562.5.16303028779").vastaanottoDeadline must_== Some(parseDate("10.1.2100 12:00"))
+          }
+        }
+
         "ei vastaanottanut määräaikana" in {
           "sijoittelu ei ole ehtinyt muuttamaan tulosta" in {
             useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
@@ -240,6 +249,10 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
         }
 
+        "vastaanoton deadlinea ei näytetä" in {
+          useFixture("hylatty-jonot-valmiit.json", hakuFixture = hakuFixture)
+          getHakutoive("1.2.246.562.5.72607738902").vastaanottoDeadline must_== None
+        }
       }
     }
   }

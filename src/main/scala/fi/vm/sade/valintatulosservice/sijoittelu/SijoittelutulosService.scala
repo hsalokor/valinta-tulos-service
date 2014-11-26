@@ -39,7 +39,7 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
       val jono: HakutoiveenValintatapajonoDTO = merkitseväJono(hakutoive).get
       var valintatila: Valintatila = jononValintatila(jono, hakutoive)
       val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos)
-      val vastaanottoDeadline: Option[DateTime] = laskeVastaanottoDeadline(aikataulu, viimeisinValintatuloksenMuutos)
+      val vastaanottoDeadline: Option[DateTime] = laskeVastaanottoDeadline(aikataulu, viimeisinValintatuloksenMuutos, valintatila)
       val vastaanottotila: Vastaanottotila = laskeVastaanottotila(valintatila, jono.getVastaanottotieto, aikataulu, vastaanottoDeadline)
       valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
       val vastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, vastaanottotila)
@@ -147,13 +147,15 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
   }
 
 
-  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinValintatuloksenMuutos: Option[Date]): Option[DateTime] = {
-    aikataulu.map { case Vastaanottoaikataulu(Some(deadlineAsDate), buffer) =>
-      val deadline = new DateTime(deadlineAsDate)
-      viimeisinValintatuloksenMuutos.map(new DateTime(_).plusDays(buffer.getOrElse(0))) match {
-        case Some(muutosDeadline) if muutosDeadline.isAfter(deadline) => muutosDeadline
-        case _ => deadline
-      }
+  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinValintatuloksenMuutos: Option[Date], valintatila: Valintatila): Option[DateTime] = {
+    (aikataulu) match {
+      case Some(Vastaanottoaikataulu(Some(deadlineAsDate), buffer)) if Valintatila.isHyväksytty(valintatila) =>
+        Some{val deadline = new DateTime(deadlineAsDate)
+        viimeisinValintatuloksenMuutos.map(new DateTime(_).plusDays(buffer.getOrElse(0))) match {
+          case Some(muutosDeadline) if muutosDeadline.isAfter(deadline) => muutosDeadline
+          case _ => deadline
+        }}
+      case _ => None
     }
   }
 
