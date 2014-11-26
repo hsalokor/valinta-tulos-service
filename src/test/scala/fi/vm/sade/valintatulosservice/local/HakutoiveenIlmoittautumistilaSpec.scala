@@ -7,7 +7,7 @@ import org.specs2.mutable.Specification
 
 class HakutoiveenIlmoittautumistilaSpec extends Specification {
   val vastaanottanut = HakutoiveenSijoitteluntulos.kesken("","").copy(vastaanottotila = Vastaanottotila.vastaanottanut)
-  "Ilmoittautiminen" should {
+  "Ilmoittautuminen" should {
     "should be enabled in IT" in {
       implicit val appConfig = new AppConfig.IT
       val it = HakutoiveenIlmoittautumistila.getIlmoittautumistila(vastaanottanut, Haku("", true, true, true, None, Set(), Nil), None)
