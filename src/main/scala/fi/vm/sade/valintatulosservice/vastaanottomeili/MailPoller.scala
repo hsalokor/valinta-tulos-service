@@ -1,6 +1,5 @@
 package fi.vm.sade.valintatulosservice.vastaanottomeili
 
-import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import fi.vm.sade.valintatulosservice.config.MongoConfig
 import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Hakutoiveentulos, Vastaanotettavuustila}
@@ -8,9 +7,7 @@ import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.{Logging, ValintatulosService}
-import org.joda.time.{DateTimeUtils, DateTime}
-
-import scala.collection.SeqLike
+import org.joda.time.{DateTime, DateTimeUtils}
 
 class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosService, hakuService: HakuService, ohjausparameteritService: OhjausparametritService, val limit: Integer, recheckIntervalHours: Int = 24) extends Logging {
   private val valintatulos = MongoFactory.createDB(mongoConfig)("Valintatulos")
@@ -19,7 +16,7 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
     val found = hakuService.kaikkiJulkaistutHaut
       .filter{haku => haku.korkeakoulu}
       .filter{haku =>
-        val include = haku.hakuAjat.isEmpty || haku.hakuAjat.find { hakuaika => hakuaika.hasStarted}.isDefined
+        val include = haku.hakuAjat.isEmpty || haku.hakuAjat.exists(hakuaika => hakuaika.hasStarted)
         if (!include) logger.debug("Pudotetaan haku " + haku.oid + " koska hakuaika ei alkanut")
         include
        }
@@ -45,7 +42,7 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
       candidateId <- candidates
       hakemuksenTulos <- fetchHakemuksentulos(candidateId)
       mailStatus = mailStatusFor(hakemuksenTulos)
-      if (mailStatus.anyMailToBeSent)
+      if mailStatus.anyMailToBeSent
     } yield {
       mailStatus
     }).toList
@@ -55,7 +52,7 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
     } else {
       mailables
     }
-    logger.info("pollForMailables found " + result.size + " results, " + result.filter(_.anyMailToBeSent).size + " actionable")
+    logger.info("pollForMailables found " + result.size + " results, " + result.count(_.anyMailToBeSent) + " actionable")
     result
   }
 
