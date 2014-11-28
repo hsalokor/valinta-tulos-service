@@ -1,15 +1,13 @@
 import java.util
 import javax.servlet.{DispatcherType, ServletContext}
 
-import fi.vm.sade.security.CasLdapFilter
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.config.AppConfig
-import fi.vm.sade.valintatulosservice.config.AppConfig.{IT, StubbedExternalDeps, AppConfig, IT_externalHakemus}
+import fi.vm.sade.valintatulosservice.config.AppConfig._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{MailDecorator, MailPoller}
 import org.scalatra._
-import org.scalatra.swagger.Swagger
 
 class ScalatraBootstrap extends LifeCycle {
 
@@ -39,7 +37,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new ValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
     context.mount(new SwaggerServlet, "/swagger/*")
 
-    if (appConfig.isInstanceOf[IT])
+    if (appConfig.isInstanceOf[IT] || appConfig.isInstanceOf[Dev])
       context.mount(new TestUtilServlet, "/util")
   }
 
