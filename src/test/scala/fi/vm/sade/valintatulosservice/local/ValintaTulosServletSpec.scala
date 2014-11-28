@@ -80,7 +80,23 @@ class ValintaTulosServletSpec extends ServletSpecification {
       useFixture("hyvaksytty-kesken-julkaistavissa.json")
 
       ilmoittaudu("LASNA_KOKO_LUKUVUOSI") {
-        status must_== 500
+        body must_== "Hakutoive ei ole ilmottauduttavissa: {\"ilmoittautumisaika\":{\"loppu\":\"2100-01-10T21:59:59Z\"},\"ilmoittautumistapa\":{\"nimi\":{\"fi\":\"Oili\",\"sv\":\"Oili\",\"en\":\"Oili\"},\"url\":\"/oili/\"},\"ilmoittautumistila\":\"EI_TEHTY\",\"ilmoittauduttavissa\":false}"
+        status must_== 400
+      }
+    }
+
+    "raportoi virheellisen pyynnön" in {
+      postJSON("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/ilmoittaudu",
+        ("oops")) {
+        body must startWith("No usable value for hakukohdeOid")
+        status must_== 400
+      }
+    }
+
+    "raportoi puuttuvan/väärän content-typen" in {
+      ilmoittaudu("LASNA_KOKO_LUKUVUOSI", headers = Map(("Content-type" -> "application/xml"))) {
+        body must startWith("Only application/json accepted")
+        status must_== 415
       }
     }
   }

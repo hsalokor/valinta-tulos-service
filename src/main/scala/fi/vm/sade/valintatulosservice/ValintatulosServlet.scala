@@ -7,8 +7,9 @@ import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
 import fi.vm.sade.valintatulosservice.tarjonta.{Hakuaika, Haku, HakuService}
+import org.codehaus.jackson.JsonParseException
 import org.joda.time.DateTime
-import org.json4s.Extraction
+import org.json4s.{MappingException, Extraction}
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
@@ -77,6 +78,8 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
   )
   post("/:hakuOid/hakemus/:hakemusOid/vastaanota", operation(postVastaanottoSwagger)) {
+    checkJsonContentType
+
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
     val vastaanotto = parsedBody.extract[Vastaanotto]
@@ -100,6 +103,7 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
     )
   post("/:hakuOid/hakemus/:hakemusOid/ilmoittaudu", operation(postIlmoittautuminenSwagger)) {
+    checkJsonContentType
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
     val ilmoittautuminen = parsedBody.extract[Ilmoittautuminen]
@@ -113,11 +117,24 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
     serveStaticResource() getOrElse resourceNotFound()
   }
 
+  def checkJsonContentType = {
+    request.contentType match {
+      case Some(ct) if ct.startsWith("application/json") =>
+      case _ => halt(415, "Only application/json accepted");
+    }
+  }
+
   error {
     case e => {
-      logger.error(request.getMethod + " " + requestPath, e);
-      response.setStatus(500)
-      "500 Internal Server Error"
+      val bodyDesc = if (request.body.length > 0) { " (body: " + request.body + ")"} else ""
+      logger.error(request.getMethod + " " + requestPath + bodyDesc, e);
+      if (e.isInstanceOf[IllegalStateException] || e.isInstanceOf[IllegalArgumentException] || e.isInstanceOf[MappingException]) {
+        response.setStatus(400)
+        e.getMessage
+      } else {
+        response.setStatus(500)
+        "500 Internal Server Error"
+      }
     }
   }
 }
