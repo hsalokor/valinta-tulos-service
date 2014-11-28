@@ -12,7 +12,7 @@ class IlmoittautumisService(valintatulosService: ValintatulosService, tulokset: 
     val hakutoive = valintatulosService.hakutoive(hakuOid, hakemusOid, ilmoittautuminen.hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakemusta tai hakutoivetta ei löydy"))
 
     if(!hakutoive.ilmoittautumistila.ilmoittauduttavissa)  {
-      throw new IllegalStateException(s"""Hakutoive ei ole ilmottauduttavissa: ${Serialization.write(hakutoive.ilmoittautumistila)}""")
+      throw new IllegalArgumentException(s"""Hakutoive ei ole ilmottauduttavissa: ${Serialization.write(hakutoive.ilmoittautumistila)}""")
     }
     val sopivatTilat = Array(VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI)
 
