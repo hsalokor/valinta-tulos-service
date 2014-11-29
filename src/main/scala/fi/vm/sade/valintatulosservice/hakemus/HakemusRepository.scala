@@ -49,6 +49,15 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
     res.flatMap(parseHakemus(_))
   }
 
+  def findHakemukset(hakuOid: String, personOid: String): List[Hakemus] = {
+    val query = MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid, DatabaseKeys.personOidKey -> personOid)
+    val cursor = application.find(query, fields)
+    (for {
+      hakemus <- cursor
+      h <- parseHakemus(hakemus)
+    } yield { h }).toList
+  }
+
   def parseHakemus(data: Imports.MongoDBObject): Option[Hakemus] = {
     for {
       hakemusOid <- data.getAs[String](DatabaseKeys.oidKey)

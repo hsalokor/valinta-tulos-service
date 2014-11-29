@@ -124,6 +124,15 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
     }
 
     def testitKaikilleHakutyypeille(hakuFixture: String) = {
+
+      "henkilön hakemusten haun tulosten haku" in {
+        "palauttaa henkilön hakemuksen" in {
+          useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
+          val tulokset = valintatulosService.hakemuksentuloksetByPerson(hakuOid, "1.2.246.562.24.14229104472")
+          tulokset.map(_.hakemusOid) must_== List("1.2.246.562.11.00000441369")
+        }
+      }
+
       "sijoittelusta puuttuvat hakutoiveet" in {
         "näytetään keskeneräisinä" in {
           useFixture("hylatty-jonot-valmiit.json", hakuFixture = hakuFixture)
