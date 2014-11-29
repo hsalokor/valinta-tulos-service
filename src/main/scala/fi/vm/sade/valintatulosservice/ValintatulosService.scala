@@ -52,12 +52,6 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     Hakemuksentulos(h.oid, sijoitteluTulos.hakijaOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullisetTulokset)
   }
 
-  def hakutoive(hakuOid: String, hakemusOid: String, hakukohdeOid: String): Option[Hakutoiveentulos] = {
-    val hakemuksenTulos: Option[Hakemuksentulos] = hakemuksentulos(hakuOid, hakemusOid)
-
-    hakemuksenTulos.flatMap(_.hakutoiveet.find(_.hakukohdeOid == hakukohdeOid))
-  }
-
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, "", Nil)
 
   private def korkeakouluSpecial(tulokset: List[Hakutoiveentulos], haku: Haku) = {

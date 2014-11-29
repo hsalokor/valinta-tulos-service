@@ -9,7 +9,8 @@ import org.json4s.jackson.Serialization
 
 class IlmoittautumisService(valintatulosService: ValintatulosService, tulokset: ValintatulosRepository) extends JsonFormats {
   def ilmoittaudu(hakuOid: String, hakemusOid: String, ilmoittautuminen: Ilmoittautuminen) {
-    val hakutoive = valintatulosService.hakutoive(hakuOid, hakemusOid, ilmoittautuminen.hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakemusta tai hakutoivetta ei löydy"))
+    val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
+    val hakutoive = hakemuksenTulos.findHakutoive(ilmoittautuminen.hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
 
     if(!hakutoive.ilmoittautumistila.ilmoittauduttavissa)  {
       throw new IllegalArgumentException(s"""Hakutoive ei ole ilmottauduttavissa: ${Serialization.write(hakutoive.ilmoittautumistila)}""")
