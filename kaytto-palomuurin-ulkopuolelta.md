@@ -49,7 +49,7 @@ POST-pyynnön URL
 POST-pyynnön sisältö
 
 ```json
-{"hakukohdeOid":"<hakukohde>","tila":"LASNA_KOKO_LUKUVUOSI","muokkaaja":"OILI","selite":"Testimuokkaus"}
+{"hakukohdeOid":"<hakukohde>","tila":"LASNA_KOKO_LUKUVUOSI","muokkaaja":"henkilö:<oid>","selite":"Ilmoittautuminen Oili palvelussa"}
 ```
 
 Service ticket toimitetaan `ticket` headerissa.
