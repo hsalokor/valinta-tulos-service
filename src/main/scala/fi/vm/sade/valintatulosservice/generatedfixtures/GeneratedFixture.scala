@@ -54,19 +54,21 @@ class GeneratedHakuFixture(val hakuOid: String = "1") {
 
   def kaikkiJonotSijoiteltu: Boolean = true
 
-  lazy val hakukohteet = {
-    (for {
+  lazy val hakukohteet: List[Hakukohde] = {
+    val grouped: Map[(String, String), List[(String, String, HakemuksenTulosFixture, Int)]] = (for {
       hakemus <- hakemukset
       (hakutoive, index) <- hakemus.hakutoiveet.zipWithIndex
     } yield {
       (hakutoive.tarjoajaOid, hakutoive.hakukohdeOid, hakemus, index + 1)
-    }).groupBy{case (tarjoaja: String, hakukohde: String, hakemus: HakemuksenTulosFixture, hakutoiveNumero: Int) => (tarjoaja, hakukohde)}
-      .map { case ((tarjoajaId, hakukohdeId), values) =>
+    }).groupBy { case (tarjoaja: String, hakukohde: String, hakemus: HakemuksenTulosFixture, hakutoiveNumero: Int) => (tarjoaja, hakukohde)}
+
+    val mapped: Iterable[Hakukohde] = grouped
+      .map { case ((tarjoajaId, hakukohdeId), values) => {
       val hakemuksetHakutoiveNumerolla = values.map { case (_, hakukohdeOid, hakemus, hakutoiveNumero) =>
-        val jonot: List[ValintatapaJonoFixture] = hakemus.hakutoiveet.find( hakutoive => hakutoive.hakukohdeOid == hakukohdeOid).get.jonot
+        val jonot: List[ValintatapaJonoFixture] = hakemus.hakutoiveet.find(hakutoive => hakutoive.hakukohdeOid == hakukohdeOid).get.jonot
         (hakemus, jonot, hakutoiveNumero)
       }
-      val jonoja = hakemuksetHakutoiveNumerolla.map { case (hakemus, jonot, hakutoiveNumero) => jonot.length }.max
+      val jonoja = hakemuksetHakutoiveNumerolla.map { case (hakemus, jonot, hakutoiveNumero) => jonot.length}.max
       val jonot = (1 to jonoja).toList.map { jonoNumero =>
         val hakemukset: List[Hakemus] = for {
           (hakemus, jonot, hakutoiveNumero) <- hakemuksetHakutoiveNumerolla
@@ -79,7 +81,8 @@ class GeneratedHakuFixture(val hakuOid: String = "1") {
       }
       SijoitteluFixtureCreator.newHakukohde(hakukohdeId, tarjoajaId, sijoitteluajoId, kaikkiJonotSijoiteltu, jonot)
     }
-      .toList
+    }
+    mapped.toList
   }
 
   def julkaistavissa(hakukohde: Hakukohde, hakemus: Hakemus) = {
@@ -93,10 +96,10 @@ class GeneratedHakuFixture(val hakuOid: String = "1") {
 
   import scala.collection.JavaConversions._
 
-  lazy val valintatulokset = for {
-    hakukohde <- hakukohteet
-    jono: Valintatapajono <- hakukohde.getValintatapajonot
-    hakemus: Hakemus <- jono.getHakemukset
+  lazy val valintatulokset: Stream[Valintatulos] = for {
+    hakukohde <- hakukohteet.toStream
+    jono: Valintatapajono <- hakukohde.getValintatapajonot.toStream
+    hakemus: Hakemus <- jono.getHakemukset.toStream
   } yield {
     SijoitteluFixtureCreator.newValintatulos(jono.getOid, hakuOid, hakemus.getHakemusOid, hakukohde.getOid, hakemus.getHakijaOid, hakemus.getPrioriteetti, julkaistavissa(hakukohde, hakemus))
   }
