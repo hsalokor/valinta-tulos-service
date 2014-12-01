@@ -12,17 +12,17 @@ import scala.util.Random
  * @param hakemuksia
  * @param hakuOid
  */
-case class RandomizedGeneratedHakuFixture(hakukohteita: Int, hakemuksia: Int, kohteitaPerHakemus: Int = 5, override val hakuOid: String = "1") extends GeneratedHakuFixture(hakuOid) {
+case class RandomizedGeneratedHakuFixture(hakukohteita: Int, hakemuksia: Int, kohteitaPerHakemus: Int = 5, jonojaPerKohde: Int = 2, override val hakuOid: String = "1") extends GeneratedHakuFixture(hakuOid) {
   val random = new Random()
   override val hakemukset: List[HakemuksenTulosFixture] = (1 to hakemuksia).map { hakemusNumero =>
-    val hakutoiveet: List[HakemuksenHakukohdeFixture] = (1 to hakukohteita).map { prio =>
+    val hakutoiveet: List[HakemuksenHakukohdeFixture] = (1 to kohteitaPerHakemus).map { prio =>
       val hakukohdeNumero = random.nextInt(hakukohteita) + 1
       val hakukohdeOid = hakukohdeNumero.toString
       val tarjoajaOid = hakukohdeNumero.toString
       val totalIndex = (hakemusNumero-1) * hakukohteita + (hakukohdeNumero-1)
       val tila = if (prio % 2 == 0) { HakemuksenTila.HYVAKSYTTY } else { HakemuksenTila.HYLATTY}
 
-      HakemuksenHakukohdeFixture(tarjoajaOid, hakukohdeOid, jonot = List(ValintatapaJonoFixture(tila)))
+      HakemuksenHakukohdeFixture(tarjoajaOid, hakukohdeOid, jonot = (1 to jonojaPerKohde).map{ _ => ValintatapaJonoFixture(tila)}.toList)
     }.toList
 
     val hakemusOid = hakuOid + "." + hakemusNumero.toString

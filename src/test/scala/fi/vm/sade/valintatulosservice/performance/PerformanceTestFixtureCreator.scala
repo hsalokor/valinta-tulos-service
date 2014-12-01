@@ -11,7 +11,7 @@ object PerformanceTestFixtureCreator extends App with Logging {
   val hakuService = HakuService(appConfig)
   appConfig.start
 
-  private val randomData: RandomizedGeneratedHakuFixture = new RandomizedGeneratedHakuFixture(100, 100000)
+  private val randomData: RandomizedGeneratedHakuFixture = new RandomizedGeneratedHakuFixture(100, 100000, kohteitaPerHakemus = 5)
 
   new GeneratedFixture(randomData).apply(appConfig)
 
