@@ -32,17 +32,31 @@ class GeneratedFixture(haut: List[GeneratedHakuFixture] = List(new GeneratedHaku
     haut.foreach { haku =>
       logger.info("Generating for Haku " + haku.hakuOid)
       logger.info("Valintatulos...")
-      haku.valintatulokset.foreach(appConfig.sijoitteluContext.valintatulosDao.createOrUpdateValintatulos(_))
+      insertWithProgress(haku.valintatulokset)(appConfig.sijoitteluContext.valintatulosDao.createOrUpdateValintatulos(_))
       logger.info("Sijoittelu...")
       appConfig.sijoitteluContext.sijoitteluDao.persistSijoittelu(haku.sijoittelu)
       logger.info("Hakukohde...")
-      haku.hakukohteet.foreach(appConfig.sijoitteluContext.hakukohdeDao.persistHakukohde(_))
+      insertWithProgress(haku.hakukohteet)(appConfig.sijoitteluContext.hakukohdeDao.persistHakukohde(_))
       logger.info("Hakemus-kantaan...")
       haku.hakemukset
         .map { hakemus => HakemusFixture(hakemus.hakemusOid, hakemus.hakutoiveet.zipWithIndex.map{ case (hakutoive, index) => HakutoiveFixture(index+1, hakutoive.tarjoajaOid, hakutoive.hakukohdeOid) })}
         .foreach(hakemusFixtures.importTemplateFixture(_))
     }
     logger.info("Done")
+  }
+
+  private def insertWithProgress[X](items: Iterable[X])(block: (X => Any)) {
+    var checked = System.currentTimeMillis()
+    items.zipWithIndex.foreach { case (item, index) =>
+      if (index % 10 == 0) {
+        val now = System.currentTimeMillis()
+        if (now - checked > 1000) {
+          print("\r" + index)
+          checked = now
+        }
+      }
+      block(item)
+    }
   }
 }
 class GeneratedHakuFixture(val hakuOid: String = "1") {
