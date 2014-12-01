@@ -49,11 +49,10 @@ object AppConfig extends Logging {
    * Dev profile, uses local mongo db
    */
   class Dev extends AppConfig with ExampleTemplatedProps with CasLdapSecurity with StubbedExternalDeps {
-    override def properties = super.properties +
-      ("sijoittelu-service.mongodb.uri" -> "mongodb://localhost:27017") +
-      ("sijoittelu-service.mongodb.dbname" -> "sijoittelu")
-
-    override lazy val settings = loadSettings.withOverride(("hakemus.mongodb.uri", "mongodb://localhost:27017"))
+    override lazy val settings = loadSettings
+      .withOverride(("hakemus.mongodb.uri", "mongodb://localhost:27017"))
+      .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:27017"))
+      .withOverride("sijoittelu-service.mongodb.dbname", "sijoittelu")
   }
 
   /**
