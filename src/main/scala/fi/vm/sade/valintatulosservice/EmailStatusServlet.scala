@@ -21,7 +21,7 @@ class EmailStatusServlet(mailPoller: MailPoller, mailDecorator: MailDecorator)(i
     contentType = formats("json")
     val limit: Int = params.get("limit").map(_.toInt).getOrElse(mailPoller.limit)
     val mailStatii: List[HakemusMailStatus] = mailPoller.pollForMailables(limit = limit)
-    mailStatii.flatMap(mailDecorator.statusToMail(_))
+    mailStatii.flatMap(mailDecorator.statusToMail)
   }
 
   lazy val postVastaanottoposti: OperationBuilder = (apiOperation[Unit]("postMailit")
@@ -31,7 +31,7 @@ class EmailStatusServlet(mailPoller: MailPoller, mailDecorator: MailDecorator)(i
 
   post("/", operation(postVastaanottoposti)) {
     val kuitatut = parsedBody.extract[List[LahetysKuittaus]]
-    kuitatut.foreach(mailPoller.markAsSent(_))
+    kuitatut.foreach(mailPoller.markAsSent)
   }
 
 }
