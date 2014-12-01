@@ -6,18 +6,14 @@ import fi.vm.sade.valintatulosservice.generatedfixtures.{RandomizedGeneratedHaku
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.{Logging, ValintatulosService}
 
-object PerformanceTester extends App with Logging {
+object PerformanceTestFixtureCreator extends App with Logging {
   implicit val appConfig: AppConfig = new AppConfig.Dev
   val hakuService = HakuService(appConfig)
   appConfig.start
 
-  new GeneratedFixture(new RandomizedGeneratedHakuFixture(100, 1000)).apply(appConfig)
+  private val randomData: RandomizedGeneratedHakuFixture = new RandomizedGeneratedHakuFixture(100, 100000)
+
+  new GeneratedFixture(randomData).apply(appConfig)
 
   logger.info("fixture applied")
-
-  val haku = hakuService.getHaku("1").get
-
-  println(new ValintatulosService(hakuService).hakemuksentulos("1", "1"))
-
-  // TODO: tämä vielä ihan vaiheessa
 }

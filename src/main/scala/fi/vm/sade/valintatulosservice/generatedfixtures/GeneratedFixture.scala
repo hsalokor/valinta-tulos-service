@@ -2,13 +2,16 @@ package fi.vm.sade.valintatulosservice.generatedfixtures
 
 import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
+import fi.vm.sade.valintatulosservice.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixture, HakemusFixtures, HakutoiveFixture}
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtureCreator
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 
-class GeneratedFixture(haut: List[GeneratedHakuFixture] = List(new GeneratedHakuFixture("1"))) {
+import scala.collection.immutable.Iterable
+
+class GeneratedFixture(haut: List[GeneratedHakuFixture] = List(new GeneratedHakuFixture("1"))) extends Logging {
   def this(haku: GeneratedHakuFixture) = this(List(haku))
 
   def hakuFixture: String = HakuFixtures.korkeakouluYhteishaku
@@ -19,19 +22,27 @@ class GeneratedFixture(haut: List[GeneratedHakuFixture] = List(new GeneratedHaku
     HakuFixtures.useFixture(hakuFixture, haut.map(_.hakuOid))
 
     val hakemusFixtures = HakemusFixtures()
+    logger.info("Clearing...")
     hakemusFixtures.clear
     OhjausparametritFixtures.activeFixture = ohjausparametritFixture
     MongoMockData.clear(appConfig.sijoitteluContext.database)
 
+    logger.info("Iterating...")
+
     haut.foreach { haku =>
+      logger.info("Generating for Haku " + haku.hakuOid)
+      logger.info("Valintatulos...")
+      haku.valintatulokset.foreach(appConfig.sijoitteluContext.valintatulosDao.createOrUpdateValintatulos(_))
+      logger.info("Sijoittelu...")
+      appConfig.sijoitteluContext.sijoitteluDao.persistSijoittelu(haku.sijoittelu)
+      logger.info("Hakukohde...")
+      haku.hakukohteet.foreach(appConfig.sijoitteluContext.hakukohdeDao.persistHakukohde(_))
+      logger.info("Hakemus-kantaan...")
       haku.hakemukset
         .map { hakemus => HakemusFixture(hakemus.hakemusOid, hakemus.hakutoiveet.zipWithIndex.map{ case (hakutoive, index) => HakutoiveFixture(index+1, hakutoive.tarjoajaOid, hakutoive.hakukohdeOid) })}
         .foreach(hakemusFixtures.importTemplateFixture(_))
-
-      appConfig.sijoitteluContext.sijoitteluDao.persistSijoittelu(haku.sijoittelu)
-      haku.hakukohteet.foreach(appConfig.sijoitteluContext.hakukohdeDao.persistHakukohde(_))
-      haku.valintatulokset.foreach(appConfig.sijoitteluContext.valintatulosDao.createOrUpdateValintatulos(_))
     }
+    logger.info("Done")
   }
 }
 class GeneratedHakuFixture(val hakuOid: String = "1") {
