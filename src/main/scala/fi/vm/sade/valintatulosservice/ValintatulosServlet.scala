@@ -1,13 +1,11 @@
 package fi.vm.sade.valintatulosservice
 
-import java.util.Date
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
-import fi.vm.sade.valintatulosservice.tarjonta.{Hakuaika, Haku, HakuService}
-import org.codehaus.jackson.JsonParseException
+import fi.vm.sade.valintatulosservice.tarjonta.{Hakuaika, Haku}
 import org.joda.time.DateTime
 import org.json4s.{MappingException, Extraction}
 import org.scalatra._
@@ -44,7 +42,7 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
     val hakemusOid = params("hakemusOid")
     valintatulosService.hakemuksentulos(hakuOid, hakemusOid) match {
       case Some(tulos) => tulos
-      case _ => NotFound("Not found")
+      case _ => NotFound("error" -> "Not found")
     }
   }
 
@@ -59,7 +57,7 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
     val hakuOid = params("hakuOid")
     valintatulosService.hakemustenTulos(hakuOid) match {
       case Some(tulos) => tulos
-      case _ => NotFound("Not found")
+      case _ => NotFound("error" -> "Not found")
     }
   }
 
@@ -80,7 +78,6 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
   )
   post("/:hakuOid/hakemus/:hakemusOid/vastaanota", operation(postVastaanottoSwagger)) {
     checkJsonContentType
-
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
     val vastaanotto = parsedBody.extract[Vastaanotto]

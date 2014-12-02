@@ -21,7 +21,7 @@ class ValintaTulosServletSpec extends ServletSpecification {
       "404" in {
         get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.LOLLERSTRÖM") {
           status must_== 404
-          body must_== "Not found"
+          body must_== """{"error":"Not found"}"""
         }
       }
     }
@@ -54,7 +54,7 @@ class ValintaTulosServletSpec extends ServletSpecification {
         HakuFixtures.useFixture("notfound")
         get("haku/1.2.246.562.5.foo") {
           status must_== 404
-          body must_== "Not found"
+          body must_== """{"error":"Not found"}"""
         }
       }
     }

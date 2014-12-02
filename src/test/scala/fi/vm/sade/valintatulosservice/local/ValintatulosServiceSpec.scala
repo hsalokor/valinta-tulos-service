@@ -1,7 +1,5 @@
 package fi.vm.sade.valintatulosservice.local
 
-import java.util.Date
-
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
