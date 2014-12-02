@@ -8,6 +8,7 @@ import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import org.joda.time.{DateTime, LocalDate}
 import org.junit.runner.RunWith
+import org.specs2.execute.Result
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -287,12 +288,17 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
     success
   }
 
-  private def expectFailure[T](block: => T) = {
+  private def expectFailure[T](block: => T): Result = expectFailure[T](None)(block)
+
+  private def expectFailure[T](assertErrorMsg: Option[String])(block: => T): Result = {
     try {
       block
       failure("Expected exception")
     } catch {
-      case e: IllegalArgumentException => success
+      case e: IllegalArgumentException => assertErrorMsg match {
+        case Some(msg) => e.getMessage must_== msg
+        case None => success
+      }
     }
   }
 }
