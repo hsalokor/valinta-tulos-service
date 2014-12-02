@@ -10,13 +10,17 @@ trait ITSetup {
   implicit val appConfig = new AppConfig.IT
   lazy val hakemusFixtureImporter = HakemusFixtures()(appConfig)
 
-  def useFixture(
-                  fixtureName: String,
-                  ohjausparametritFixture: String = OhjausparametritFixtures.vastaanottoLoppuu2100,
-                  hakemusFixtures: List[String] = HakemusFixtures.defaultFixtures,
-                  hakuFixture: String = HakuFixtures.korkeakouluYhteishaku) {
+  def useFixture(fixtureName: String,
+                 extraFixtureNames: List[String] = List(),
+                 ohjausparametritFixture: String = OhjausparametritFixtures.vastaanottoLoppuu2100,
+                 hakemusFixtures: List[String] = HakemusFixtures.defaultFixtures,
+                 hakuFixture: String = HakuFixtures.korkeakouluYhteishaku) {
 
     SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, fixtureName, true)
+    extraFixtureNames.map(fixtureName =>
+      SijoitteluFixtures.importFixture(appConfig.sijoitteluContext.database, fixtureName, false)
+    )
+
     OhjausparametritFixtures.activeFixture = ohjausparametritFixture
     HakuFixtures.useFixture(hakuFixture)
     hakemusFixtureImporter.clear

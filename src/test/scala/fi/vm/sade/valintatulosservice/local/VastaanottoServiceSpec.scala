@@ -60,7 +60,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
     "vastaanoton aikataulu" in {
       "vastaanotto onnistuu jos viimeisin muutos on bufferin sisään" in {
-        useFixture("hyvaksytty-kesken-julkaistavissa.json", "vastaanotto-loppunut", hakuFixture = hakuFixture)
+        useFixture("hyvaksytty-kesken-julkaistavissa.json", ohjausparametritFixture = "vastaanotto-loppunut", hakuFixture = hakuFixture)
         withFixedDateTime("9.9.2014 19:01") {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
@@ -71,7 +71,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
 
       "vastaanotto ei onnistu deadlinen jälkeen jos vastaanottobufferia ei ole annettu" in {
-        useFixture("hyvaksytty-kesken-julkaistavissa.json", "ei-vastaanotto-bufferia", hakuFixture = hakuFixture)
+        useFixture("hyvaksytty-kesken-julkaistavissa.json", ohjausparametritFixture = "ei-vastaanotto-bufferia", hakuFixture = hakuFixture)
         withFixedDateTime("1.9.2014 12:01") {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotetu_määräaikana
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
@@ -82,7 +82,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       }
 
       "vastaanotto ei onnistu jos viimeisin muutos on bufferin jälkeen" in {
-        useFixture("hyvaksytty-kesken-julkaistavissa.json", "vastaanotto-loppunut", hakuFixture = hakuFixture)
+        useFixture("hyvaksytty-kesken-julkaistavissa.json", ohjausparametritFixture = "vastaanotto-loppunut", hakuFixture = hakuFixture)
         withFixedDateTime("9.9.2014 19:10") {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotetu_määräaikana
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
