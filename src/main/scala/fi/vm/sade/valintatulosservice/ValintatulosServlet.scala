@@ -77,6 +77,7 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
   )
   post("/:hakuOid/hakemus/:hakemusOid/vastaanota", operation(postVastaanottoSwagger)) {
+    contentType = formats("json")
     checkJsonContentType
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
@@ -101,6 +102,7 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
     )
   post("/:hakuOid/hakemus/:hakemusOid/ilmoittaudu", operation(postIlmoittautuminenSwagger)) {
+    contentType = formats("json")
     checkJsonContentType
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
@@ -118,7 +120,7 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
   def checkJsonContentType = {
     request.contentType match {
       case Some(ct) if ct.startsWith("application/json") =>
-      case _ => halt(415, "Only application/json accepted");
+      case _ => halt(415, "error" -> "Only application/json accepted")
     }
   }
 
@@ -127,11 +129,9 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
       val bodyDesc = if (request.body.length > 0) { " (body: " + request.body + ")"} else ""
       logger.error(request.getMethod + " " + requestPath + bodyDesc, e);
       if (e.isInstanceOf[IllegalStateException] || e.isInstanceOf[IllegalArgumentException] || e.isInstanceOf[MappingException]) {
-        response.setStatus(400)
-        e.getMessage
+        BadRequest("error" -> e.getMessage)
       } else {
-        response.setStatus(500)
-        "500 Internal Server Error"
+        InternalServerError("error" -> "500 Internal Server Error")
       }
     }
   }
