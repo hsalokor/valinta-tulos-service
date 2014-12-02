@@ -114,7 +114,7 @@
   "Valintatulos": [
     {
       "_id": {
-        "$oid": "53fc8613e4b0b0b110900235"
+        "$oid": "54fc8613e4b0b0b110900235"
       },
       "className": "fi.vm.sade.sijoittelu.domain.Valintatulos",
       "valintatapajonoOid": "14090336922663576781797489829886",
@@ -139,7 +139,7 @@
     },
     {
       "_id": {
-        "$oid": "53fc8613e4b0b0b110900236"
+        "$oid": "54fc8613e4b0b0b110900236"
       },
       "className": "fi.vm.sade.sijoittelu.domain.Valintatulos",
       "valintatapajonoOid": "14090336922663576781797489829887",
