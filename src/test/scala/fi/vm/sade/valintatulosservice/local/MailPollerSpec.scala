@@ -8,7 +8,7 @@ import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusMailStatus, LahetysKuittaus, MailPoller}
 import fi.vm.sade.valintatulosservice.{ITSpecification, TimeWarp, ValintatulosService}
-import org.bson.BSONObject
+import org.joda.time.DateTime
 
 class MailPollerSpec extends ITSpecification with TimeWarp {
   lazy val hakuService = HakuService(appConfig)
@@ -46,18 +46,7 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
   "Kun päässyt kaikkiin hakukohteisiin" in {
     lazy val fixture = new GeneratedFixture(new SimpleGeneratedHakuFixture(5, 5))
 
-    "Finds candidates (limited number, cycles through candidates)" in {
-      fixture.apply
-
-      val result1 = poller.pollForCandidates
-      result1.size must_== 3
-
-      val result2 = poller.pollForCandidates
-      result2.size must_== 2 // next list of candidates contains the rest
-      result2 must_!= result1
-    }
-
-    "Finds mailables" in {
+    "Meili lähetetään" in {
       fixture.apply
       val mailables: List[HakemusMailStatus] = poller.pollForMailables()
       mailables.size must_== 3
@@ -65,21 +54,31 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
       poller.pollForMailables().size must_== 2 // the rest of the mailables returned on next call
     }
 
-    "Marks mails sent" in {
+    "Meili merkitään lähetetyksi, eikä hakemusta tarkisteta enää uudelleen" in {
       val timestamp = System.currentTimeMillis()
       withFixedDateTime(timestamp) {
         fixture.apply
         val mailables: List[HakemusMailStatus] = poller.pollForMailables()
-        mailables
-          .map { mail => LahetysKuittaus(mail.hakemusOid, mail.hakukohteet.map(_.hakukohdeOid), List("email"))}
-          .foreach(poller.markAsSent(_))
+        markMailablesSent(mailables)
 
+        // Tarkistetaan: kannassa merkitty lähetetyksi
         verifyMailSent(mailables(0).hakemusOid, mailables(0).hakukohteet(0).hakukohdeOid, timestamp)
 
         val nextMailables = poller.pollForMailables()
         nextMailables.size must_== 2
+        markMailablesSent(nextMailables)
+
+        withFixedDateTime(new DateTime(timestamp).plusDays(2).getMillis) {
+          poller.pollForCandidates.size must_== 0
+        }
       }
     }
+  }
+
+  private def markMailablesSent(mailables: List[HakemusMailStatus]) {
+    mailables
+      .map { mail => LahetysKuittaus(mail.hakemusOid, mail.hakukohteet.map(_.hakukohdeOid), List("email"))}
+      .foreach(poller.markAsSent(_))
   }
 
   "Kun hyväksytty yhteen kohteeseen ja hylätty toisessa" in {
@@ -97,25 +96,45 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
 
     "Meili lähetetään" in {
       fixture.apply
-
       val mailables: List[HakemusMailStatus] = poller.pollForMailables()
-
       mailables.map(_.hakemusOid).toSet must_== Set("H1")
     }
 
-    "Samaa ei tarkisteta uudelleen ennen 24H kulumista" in {
+    "Hylätty tulos merkitään käsitellyksi, eikä tarkisteta uudelleen" in {
       fixture.apply
       withFixedDateTime("10.10.2014 0:00") {
-        poller.pollForCandidates.map(_.hakemusOid) must_== Set("H1", "H2")
+        val mailables: List[HakemusMailStatus] = poller.pollForMailables()
+        mailables.map(_.hakemusOid).toSet must_== Set("H1")
+        markMailablesSent(mailables)
         poller.pollForCandidates.map(_.hakemusOid) must_== Set.empty
         withFixedDateTime("11.10.2014 1:00") {
-          poller.pollForCandidates.map(_.hakemusOid) must_== Set("H1", "H2")
+          poller.pollForCandidates.map(_.hakemusOid) must_== Set.empty
         }
       }
     }
   }
 
-  "Kun hakemus KESKEN-tilassa" in {
+  "Kun hakija on varalla" in {
+    lazy val fixture = new GeneratedFixture(List(new GeneratedHakuFixture() {
+      override def hakemukset = List(
+        HakemuksenTulosFixture("H1", List(
+          HakemuksenHakukohdeFixture("1", "1", List(ValintatapaJonoFixture(HakemuksenTila.VARALLA)))
+        ))
+      )
+    }))
+
+    "Meiliä ei lähetetä ja tilanne tarkistetaan 24h päästä uudelleen" in {
+      fixture.apply
+      withFixedDateTime("10.10.2014 0:00") {
+        poller.pollForMailables().map(_.hakemusOid) must_== Nil
+        withFixedDateTime("11.10.2014 1:00") {
+          poller.pollForCandidates.map(_.hakemusOid) must_== Set("H1")
+        }
+      }
+    }
+  }
+
+  "Kun hakemuksen tulosta ei ole julkaistu" in {
     lazy val fixture = new GeneratedFixture(List(new GeneratedHakuFixture() {
       override def hakemukset = List(
         HakemuksenTulosFixture("H1", List(
@@ -127,6 +146,11 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
     "Meiliä ei lähetetä" in {
       fixture.apply
       poller.pollForMailables() must_== Nil
+    }
+
+    "Hakemusta ei edes tarkisteta tarkemmin" in {
+      fixture.apply
+      poller.pollForCandidates.map(_.hakemusOid) must_== Set.empty
     }
   }
 

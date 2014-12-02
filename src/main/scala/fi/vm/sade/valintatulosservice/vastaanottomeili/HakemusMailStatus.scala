@@ -6,6 +6,12 @@ case class HakemusMailStatus(hakemusOid: String, hakukohteet: List[HakukohdeMail
   def anyMailToBeSent = hakukohteet.find(_.shouldMail).nonEmpty
 }
 
-case class HakukohdeMailStatus(hakukohdeOid: String, valintatapajonoOid: String, shouldMail: Boolean, deadline: Option[Date])
+case class HakukohdeMailStatus(hakukohdeOid: String, valintatapajonoOid: String, status: MailStatus.Value, deadline: Option[Date]) {
+  def shouldMail = status == MailStatus.SHOULD_MAIL
+}
 
 case class HakemusIdentifier(hakuOid: String, hakemusOid: String)
+
+object MailStatus extends Enumeration {
+  val NOT_MAILED, MAILED, SHOULD_MAIL, NEVER_MAIL = Value
+}

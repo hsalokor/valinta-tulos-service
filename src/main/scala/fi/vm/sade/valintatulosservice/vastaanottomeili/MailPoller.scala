@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.vastaanottomeili
 
 import com.mongodb.casbah.Imports._
 import fi.vm.sade.valintatulosservice.config.MongoConfig
-import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Hakutoiveentulos, Vastaanotettavuustila}
+import fi.vm.sade.valintatulosservice.domain.{Valintatila, Hakemuksentulos, Hakutoiveentulos, Vastaanotettavuustila}
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
@@ -38,14 +38,22 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
 
   def pollForMailables(hakuOids: List[String] = etsiHaut, limit: Int = this.limit, excludeHakemusOids: Set[String] = Set.empty): List[HakemusMailStatus] = {
     val candidates = pollForCandidates(hakuOids, limit, excludeHakemusOids)
-    val mailables = (for {
+    val statii: Set[HakemusMailStatus] = (for {
       candidateId <- candidates
       hakemuksenTulos <- fetchHakemuksentulos(candidateId)
-      mailStatus = mailStatusFor(hakemuksenTulos)
-      if mailStatus.anyMailToBeSent
     } yield {
-      mailStatus
-    }).toList
+      mailStatusFor(hakemuksenTulos)
+    })
+    val mailables = statii.filter(_.anyMailToBeSent).toList
+
+    for {
+      hakemus <- statii
+      hakukohde <- hakemus.hakukohteet
+      if (hakukohde.status == MailStatus.NEVER_MAIL)
+    } {
+      markAsNonMailable(hakemus, hakukohde)
+    }
+
     val result = if (candidates.size > 0 && mailables.size < limit) {
       logger.info("fetching more mailables")
       mailables ++ pollForMailables(hakuOids, limit = limit - mailables.size, excludeHakemusOids = excludeHakemusOids ++ mailables.map(_.hakemusOid).toSet)
@@ -56,27 +64,43 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
     result
   }
 
-  def markAsSent(mailContents: LahetysKuittaus) = {
-    val timestamp = DateTimeUtils.currentTimeMillis
+  def markAsNonMailable(hakemus: HakemusMailStatus, hakukohde: HakukohdeMailStatus) = {
+    markAsSent(hakemus.hakemusOid, hakukohde.hakukohdeOid, Nil)
+  }
+
+  def markAsSent(mailContents: LahetysKuittaus) {
     mailContents.hakukohteet.foreach { hakukohde =>
-      val query = MongoDBObject(
-        "hakemusOid" -> mailContents.hakemusOid,
-        "hakukohdeOid" -> hakukohde
-      )
-      val update = Map(
-        "$set" -> Map(
-          "mailStatus.sent" -> timestamp,
-          "mailStatus.media" -> mailContents.mediat
-        )
-      )
-      valintatulos.update(query, update, multi = true)
+      markAsSent(mailContents.hakemusOid, hakukohde, mailContents.mediat)
     }
+  }
+
+  private def markAsSent(hakemusOid: String, hakuKohdeOid: String, sentViaMedias: List[String]) {
+    val timestamp = DateTimeUtils.currentTimeMillis
+    val query = MongoDBObject(
+      "hakemusOid" -> hakemusOid,
+      "hakukohdeOid" -> hakuKohdeOid
+    )
+    val update = Map(
+      "$set" -> Map(
+        "mailStatus.sent" -> timestamp,
+        "mailStatus.media" -> sentViaMedias
+      )
+    )
+    valintatulos.update(query, update, multi = true)
   }
 
   private def mailStatusFor(hakemuksenTulos: Hakemuksentulos): HakemusMailStatus = {
     val mailables = hakemuksenTulos.hakutoiveet.map { (hakutoive: Hakutoiveentulos) =>
-      val shouldMail: Boolean = Vastaanotettavuustila.isVastaanotettavissa(hakutoive.vastaanotettavuustila) && !mailed(hakemuksenTulos, hakutoive)
-      HakukohdeMailStatus(hakutoive.hakukohdeOid, hakutoive.valintatapajonoOid, shouldMail, hakutoive.vastaanottoDeadline)
+      val status = if (mailed(hakemuksenTulos, hakutoive)) {
+        MailStatus.MAILED
+      } else if (Vastaanotettavuustila.isVastaanotettavissa(hakutoive.vastaanotettavuustila)) {
+        MailStatus.SHOULD_MAIL
+      } else if (!Valintatila.isHyväksytty(hakutoive.valintatila) && Valintatila.isFinal(hakutoive.valintatila)) {
+        MailStatus.NEVER_MAIL
+      } else {
+        MailStatus.NOT_MAILED
+      }
+      HakukohdeMailStatus(hakutoive.hakukohdeOid, hakutoive.valintatapajonoOid, status, hakutoive.vastaanottoDeadline)
     }
     HakemusMailStatus(hakemuksenTulos.hakemusOid, mailables)
   }
