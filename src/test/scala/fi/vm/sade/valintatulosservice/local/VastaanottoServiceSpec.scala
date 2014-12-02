@@ -171,14 +171,35 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       }
     }
 
-    "vastaanota kun lisähaussa jo vastaanottanut -> ERROR" in {
+    "vastaanota lisähaussa, kun varsinaisessa haussa jo ehdollisesti vastaanottanut -> ERROR" in {
+      useFixture("hyvaksytty-vastaanottanut-ehdollisesti.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
+      expectFailure(Some("Väärä vastaanottotila toisen haun 1.2.246.562.5.2013080813081926341928 kohteella 1.2.246.562.5.16303028779: EHDOLLISESTI_VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT 1.2.246.562.14.2014022408541751568934)")) {
+        vastaanota("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230", "1.2.246.562.14.2014022408541751568934", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      }
+    }
+
+    "vastaanota varsinaisessa haussa, kun lisähaussa jo vastaanottanut -> ERROR" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture)
       expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT 1.2.246.562.5.72607738902)")) {
         vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
       }
     }
 
-    "vastaanota kun lisähaussa jo vastaanottanut ehdollisesti -> ERROR" in {
+    "peruminen varsinaisessa haussa, kun lisähaussa jo vastaanottanut, onnistuu" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture)
+      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.perunut, muokkaaja, selite)
+    }
+
+    "vastaanota ehdollisesti varsinaisessa haussa, kun lisähaussa jo vastaanottanut -> ERROR" in {
+      useFixture("hyvaksytty-ylempi-varalla.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture)
+      withFixedDateTime("15.8.2014 12:00") {
+        expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: VASTAANOTTANUT (yritetty muutos: EHDOLLISESTI_VASTAANOTTANUT 1.2.246.562.5.16303028779)")) {
+          vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
+        }
+      }
+    }
+
+    "vastaanota varsinaisessa haussa, kun lisähaussa jo vastaanottanut ehdollisesti -> ERROR" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut-ehdollisesti.json"), hakuFixture = hakuFixture)
       expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: EHDOLLISESTI_VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT 1.2.246.562.5.72607738902)")) {
         vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
