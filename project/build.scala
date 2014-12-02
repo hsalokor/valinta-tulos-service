@@ -29,7 +29,7 @@ object ValintaTulosServiceBuild extends Build {
       scalaVersion := ScalaVersion,
       javacOptions ++= Seq("-source", JavaVersion, "-target", JavaVersion),
       scalacOptions ++= Seq("-target:jvm-1.7", "-deprecation"),
-      resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository",
+      resolvers += Resolver.mavenLocal,
       resolvers += Classpaths.typesafeReleases,
       resolvers += "oph-sade-artifactory-releases" at "https://artifactory.oph.ware.fi/artifactory/oph-sade-release-local",
       resolvers += "oph-sade-artifactory-snapshots" at "https://artifactory.oph.ware.fi/artifactory/oph-sade-snapshot-local",
