@@ -62,7 +62,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       .map(korkeakouluSpecial)
       .tulokset
 
-    Hakemuksentulos(h.oid, sijoitteluTulos.hakijaOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullisetTulokset)
+    Hakemuksentulos(haku.oid, h.oid, sijoitteluTulos.hakijaOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullisetTulokset)
   }
 
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, "", Nil)

@@ -21,6 +21,7 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
   protected val applicationDescription = "Valintatulosten REST API"
 
   lazy val exampleHakemuksenTulos = Hakemuksentulos(
+    "2.2.2.2",
     "4.3.2.1",
     "1.3.3.1",
     Some(Vastaanottoaikataulu(Some(new DateTime()), Some(14))),
