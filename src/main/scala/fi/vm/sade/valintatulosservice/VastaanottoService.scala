@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila._
 import fi.vm.sade.sijoittelu.domain._
-import fi.vm.sade.valintatulosservice.domain.{Vastaanottotila, Hakutoiveentulos, Vastaanotettavuustila, Vastaanotto}
+import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 
@@ -15,11 +15,13 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
 
     val tila: ValintatuloksenTila = ValintatuloksenTila.valueOf(vastaanotto.tila.toString)
     tarkistaVastaanotettavuus(hakutoive, tila)
-    tarkistaLiittyvatHaut(haku, hakemuksenTulos.hakijaOid, tila, hakutoive)
+    val muutHakemukset = korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku, hakemuksenTulos.hakijaOid, tila)
+    tarkistaEttaEiVastaanottoja(muutHakemukset, tila, hakutoive)
     tulokset.modifyValintatulos(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, tila.name, vastaanotto.muokkaaja, vastaanotto.selite) { valintatulos => {
         valintatulos.setTila(vastaanotaSitovastiJosKorkeakouluYhteishaku(haku, tila))
       }
     }
+    peruMuutHyvaksytyt(muutHakemukset, vastaanotto, haku)
   }
 
   private def tarkistaVastaanotettavuus(hakutoive: Hakutoiveentulos, tila: ValintatuloksenTila) {
@@ -34,14 +36,39 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     }
   }
 
-  private def tarkistaLiittyvatHaut(haku: Haku, personOid: String, tila: ValintatuloksenTila, hakutoive: Hakutoiveentulos) {
+  private def korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku: Haku, personOid: String, tila: ValintatuloksenTila): Set[Hakemuksentulos] = {
     if(haku.korkeakoulu && haku.yhteishaku && List(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT).contains(tila)) {
-      val liittyvatHaut = hakuService.findLiittyvatHaut(haku)
-      liittyvatHaut.flatMap(valintatulosService.hakemuksentuloksetByPerson(_, personOid)).map { tulos =>
-        val vastaanotettu = tulos.hakutoiveet.find(toive => List(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(toive.vastaanottotila))
-        if(vastaanotettu.isDefined) {
-          throw new IllegalArgumentException("Väärä vastaanottotila toisen haun " + tulos.hakuOid + " kohteella " + vastaanotettu.get.hakukohdeOid + ": " + vastaanotettu.get.vastaanottotila + " (yritetty muutos: " + tila + " " + hakutoive.hakukohdeOid + ")")
-        }
+      hakuService.findLiittyvatHaut(haku).flatMap(valintatulosService.hakemuksentuloksetByPerson(_, personOid))
+    }
+    else {
+      Set()
+    }
+  }
+
+  private def tarkistaEttaEiVastaanottoja(muutHakemukset: Set[Hakemuksentulos], tila: ValintatuloksenTila, hakutoive: Hakutoiveentulos) {
+    muutHakemukset.map { tulos =>
+      val vastaanotettu = tulos.hakutoiveet.find(toive => List(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(toive.vastaanottotila))
+      if(vastaanotettu.isDefined) {
+        throw new IllegalArgumentException("Väärä vastaanottotila toisen haun " + tulos.hakuOid + " kohteella " + vastaanotettu.get.hakukohdeOid + ": " + vastaanotettu.get.vastaanottotila + " (yritetty muutos: " + tila + " " + hakutoive.hakukohdeOid + ")")
+      }
+    }
+  }
+
+  private def peruMuutHyvaksytyt(muutHakemukset: Set[Hakemuksentulos], vastaanotto: Vastaanotto, vastaanotonHaku: Haku) {
+    muutHakemukset.map { hakemus =>
+      val peruttavatKohteet = hakemus.hakutoiveet.filter(toive =>
+        Valintatila.isHyväksytty(toive.valintatila) && toive.vastaanottotila == Vastaanottotila.kesken
+      )
+      peruttavatKohteet.map{kohde =>
+        tulokset.modifyValintatulos(
+          kohde.hakukohdeOid,
+          kohde.valintatapajonoOid,
+          hakemus.hakemusOid,
+          ValintatuloksenTila.PERUUTETTU.toString,
+          vastaanotto.muokkaaja,
+          vastaanotto.tila + " paikan " + vastaanotto.hakukohdeOid + " toisesta hausta " + vastaanotonHaku.oid
+        )
+        {valintatulos =>  valintatulos.setTila(ValintatuloksenTila.PERUUTETTU)}
       }
     }
   }

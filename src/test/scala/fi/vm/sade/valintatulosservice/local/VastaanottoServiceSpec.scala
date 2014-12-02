@@ -163,9 +163,32 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)}
     }
 
-    "vastaanota, kun lisähaussa vastaanottavissa -> lisähaun vastaanotto ei enää sen jälkeen onnistu" in {
+    "vastaanota varsinaisessa haussa, kun lisähaussa vastaanottavissa -> lisähaun paikka peruuntuu" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
+      hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
       vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
+      lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.peruutettu
+      lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.peruutettu
+      val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(lisaHaunTulos.hakutoiveet(0).hakukohdeOid, lisaHaunTulos.hakutoiveet(0).valintatapajonoOid, lisaHaunTulos.hakemusOid)
+      assertSecondLogEntry(valintatulos, "PERUUTETTU", "VASTAANOTTANUT paikan 1.2.246.562.5.72607738902 toisesta hausta 1.2.246.562.5.2013080813081926341928")
+    }
+
+    "vastaanota ehdollisesti varsinaisessa haussa, kun lisähaussa vastaanottavissa -> lisähaun paikka peruuntuu" in {
+      useFixture("hyvaksytty-ylempi-varalla.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
+      hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
+      withFixedDateTime("15.8.2014 12:00") {
+        vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
+        val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
+        lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.peruutettu
+        lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.peruutettu
+        val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(lisaHaunTulos.hakutoiveet(0).hakukohdeOid, lisaHaunTulos.hakutoiveet(0).valintatapajonoOid, lisaHaunTulos.hakemusOid)
+        assertSecondLogEntry(valintatulos, "PERUUTETTU", "EHDOLLISESTI_VASTAANOTTANUT paikan 1.2.246.562.5.16303028779 toisesta hausta 1.2.246.562.5.2013080813081926341928")
+      }
+    }
+
+    "vastaanota lisähaussa, kun varsinaisessa haussa jo vastaanottanut -> ERROR" in {
+      useFixture("hyvaksytty-vastaanottanut.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
       expectFailure(Some("Väärä vastaanottotila toisen haun 1.2.246.562.5.2013080813081926341928 kohteella 1.2.246.562.5.72607738902: VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT 1.2.246.562.14.2014022408541751568934)")) {
         vastaanota("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230", "1.2.246.562.14.2014022408541751568934", Vastaanottotila.vastaanottanut, muokkaaja, selite)
       }
