@@ -7,9 +7,9 @@ object SijoitteluFixtures {
   def importFixture(db: DB, fixtureName: String, clear: Boolean = false) {
     if (clear) {
       MongoMockData.clear(db)
+      val base = MongoMockData.readJson("fixtures/sijoittelu/sijoittelu-basedata.json")
+      MongoMockData.insertData(db, base)
     }
-    val base = MongoMockData.readJson("fixtures/sijoittelu/sijoittelu-basedata.json")
-    MongoMockData.insertData(db, base)
     val tulokset = MongoMockData.readJson("fixtures/sijoittelu/" + fixtureName)
     MongoMockData.insertData(db, tulokset)
   }
