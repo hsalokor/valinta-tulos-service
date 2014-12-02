@@ -121,17 +121,10 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
     }
 
     "Valintatuloksen muutoslogi"  in {
-      import scala.collection.JavaConversions._
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
       vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
       val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
-      val logEntries: List[LogEntry] = valintatulos.getLogEntries.toList
-      logEntries.size must_== 2
-      val logEntry: LogEntry = logEntries(1)
-      logEntry.getMuutos must_== "VASTAANOTTANUT"
-      logEntry.getSelite must_== selite
-      logEntry.getMuokkaaja must_== muokkaaja
-      new LocalDate(logEntry.getLuotu) must_== new LocalDate
+      assertSecondLogEntry(valintatulos, "VASTAANOTTANUT", selite)
     }
   }
 
@@ -322,5 +315,16 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
         case None => success
       }
     }
+  }
+
+  private def assertSecondLogEntry(valintatulos: Valintatulos, tila: String, selite: String): Result = {
+    import scala.collection.JavaConversions._
+    val logEntries: List[LogEntry] = valintatulos.getLogEntries.toList
+    logEntries.size must_== 2
+    val logEntry: LogEntry = logEntries(1)
+    logEntry.getMuutos must_== tila
+    logEntry.getSelite must_== selite
+    logEntry.getMuokkaaja must_== muokkaaja
+    new LocalDate(logEntry.getLuotu) must_== new LocalDate(System.currentTimeMillis())
   }
 }
