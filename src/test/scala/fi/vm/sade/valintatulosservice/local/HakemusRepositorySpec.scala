@@ -25,5 +25,13 @@ class HakemusRepositorySpec extends ITSpecification {
         Henkilotiedot(Some("Teppo"), Some("teppo@testaaja.fi")))
       )
     }
+
+    "palauttaa kaikki henkilön tiettyyn hakuun liittyvät Hakemukset" in {
+      val hakemukset = repo.findHakemukset("korkeakoulu-lisahaku1", "1.2.246.562.24.14229104472")
+      hakemukset must_== List(Hakemus("1.2.246.562.11.00000878230", "1.2.246.562.24.14229104472", "FI",
+          List(Hakutoive("1.2.246.562.14.2013120515524070995659", "1.2.246.562.10.83122281013"), Hakutoive("1.2.246.562.14.2014022408541751568934", "1.2.246.562.10.83122281012")),
+        Henkilotiedot(Some("Teppo"), None))
+      )
+    }
   }
 }
