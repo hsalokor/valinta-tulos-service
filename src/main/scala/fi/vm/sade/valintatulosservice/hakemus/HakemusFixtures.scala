@@ -59,7 +59,7 @@ class HakemusFixtures(config: MongoConfig) {
 }
 
 object HakemusFixtures {
-  val defaultFixtures = List("00000878229", "00000441369", "00000441370")
+  val defaultFixtures = List("00000878229", "00000441369", "00000441370", "00000878230")
 
   def apply()(implicit appConfig: AppConfig) = {
     new HakemusFixtures(appConfig.settings.hakemusMongoConfig)
