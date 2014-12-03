@@ -8,9 +8,11 @@ class EmailStatusServletSpec extends ServletSpecification with TimeWarp {
 
   "GET /vastaanottoposti" should {
     "Tyhjä lista lähtettävistä sähköposteista" in {
-      get("vastaanottoposti") {
-        status must_== 200
-        body must_== """[]"""
+      withFixedDateTime("10.10.2214 12:00") {
+        get("vastaanottoposti") {
+          status must_== 200
+          body must_== """[]"""
+        }
       }
     }
   }
