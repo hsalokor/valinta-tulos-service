@@ -13,13 +13,13 @@ class IlmoittautumisService(valintatulosService: ValintatulosService, tulokset: 
     val hakutoive = hakemuksenTulos.findHakutoive(ilmoittautuminen.hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
 
     if(!hakutoive.ilmoittautumistila.ilmoittauduttavissa)  {
-      throw new IllegalArgumentException(s"""Hakutoive ei ole ilmottauduttavissa: ${Serialization.write(hakutoive.ilmoittautumistila)}""")
+      throw new IllegalArgumentException(s"""Hakutoive ${ilmoittautuminen.hakukohdeOid} ei ole ilmoittauduttavissa: ilmoittautumisaika: ${Serialization.write(hakutoive.ilmoittautumistila.ilmoittautumisaika)}, ilmoittautumistila: ${hakutoive.ilmoittautumistila.ilmoittautumistila}, valintatila: ${hakutoive.valintatila}, vastaanottotila: ${hakutoive.vastaanottotila}""")
     }
     val sopivatTilat = Array(VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI)
 
     tulokset.modifyValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, ilmoittautuminen.tila.toString, ilmoittautuminen.muokkaaja, ilmoittautuminen.selite) { valintatulos =>
       if(!sopivatTilat.contains(valintatulos.getTila)) {
-        throw new IllegalArgumentException(s"""Valintatulokselle, jonka tila on ${valintatulos.getTila} ei voi tallentaa ilmoittautumistietoa""")
+        throw new IllegalArgumentException(s"""Valintatulokselle (kohde: ${hakutoive.hakukohdeOid}, jono: ${hakutoive.valintatapajonoOid}, hakemus: ${hakemusOid}), jonka vastaanottotila on ${valintatulos.getTila} ei voi tallentaa ilmoittautumistietoa""")
       }
       valintatulos.setIlmoittautumisTila(IlmoittautumisTila.valueOf(ilmoittautuminen.tila.toString))
     }

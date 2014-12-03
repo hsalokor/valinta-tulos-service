@@ -80,7 +80,7 @@ class ValintaTulosServletSpec extends ServletSpecification {
       useFixture("hyvaksytty-kesken-julkaistavissa.json")
 
       ilmoittaudu("LASNA_KOKO_LUKUVUOSI") {
-        body must_== """{"error":"Hakutoive ei ole ilmottauduttavissa: {\"ilmoittautumisaika\":{\"loppu\":\"2100-01-10T21:59:59Z\"},\"ilmoittautumistapa\":{\"nimi\":{\"fi\":\"Oili\",\"sv\":\"Oili\",\"en\":\"Oili\"},\"url\":\"/oili/\"},\"ilmoittautumistila\":\"EI_TEHTY\",\"ilmoittauduttavissa\":false}"}"""
+        body must_== """{"error":"Hakutoive 1.2.246.562.5.72607738902 ei ole ilmoittauduttavissa: ilmoittautumisaika: {\"loppu\":\"2100-01-10T21:59:59Z\"}, ilmoittautumistila: EI_TEHTY, valintatila: HYVAKSYTTY, vastaanottotila: KESKEN"}"""
         status must_== 400
       }
     }
