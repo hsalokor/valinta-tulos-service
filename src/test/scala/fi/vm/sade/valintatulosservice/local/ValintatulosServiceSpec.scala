@@ -186,12 +186,12 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
         "ei vastaanottanut määräaikana" in {
           "sijoittelu ei ole ehtinyt muuttamaan tulosta" in {
             useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
-            checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.perunut, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+            checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.peruuntunut, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
           }
           "sijoittelu on muuttanut tuloksen" in {
             useFixture("perunut-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
             val hakutoive = getHakutoive("1.2.246.562.5.72607738902")
-            checkHakutoiveState(hakutoive, Valintatila.perunut, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+            checkHakutoiveState(hakutoive, Valintatila.peruuntunut, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
             hakutoive.tilanKuvaukset("FI") must_== "Peruuntunut, ei vastaanottanut määräaikana"
           }
         }
