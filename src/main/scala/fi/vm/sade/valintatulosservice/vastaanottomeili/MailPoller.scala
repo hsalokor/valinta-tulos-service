@@ -22,8 +22,8 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
        }
       .filter{haku =>
         ohjausparameteritService.ohjausparametrit(haku.oid) match {
-          case Some(Ohjausparametrit(_, _, Some(hakuKierrosPaattyy))) =>
-            val include = new DateTime().isBefore(new DateTime(hakuKierrosPaattyy))
+          case Some(Ohjausparametrit(_, _, _, Some(hakuKierrosPaattyy))) =>
+            val include = new DateTime().isBefore(hakuKierrosPaattyy)
             if (!include) logger.debug("Pudotetaan haku " + haku.oid + " koska hakukierros päättyy " + hakuKierrosPaattyy)
             include
           case x =>

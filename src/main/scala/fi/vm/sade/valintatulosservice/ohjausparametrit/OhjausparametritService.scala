@@ -10,7 +10,7 @@ import org.json4s.jackson.JsonMethods._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottoaikataulu
 import java.util.Date
 
-case class Ohjausparametrit(vastaanottoaikataulu: Option[Vastaanottoaikataulu], ilmoittautuminenPaattyy: Option[Date], hakukierrosPaattyy: Option[Date])
+case class Ohjausparametrit(vastaanottoaikataulu: Option[Vastaanottoaikataulu], varasijaSaannotAstuvatVoimaan: Option[DateTime], ilmoittautuminenPaattyy: Option[DateTime], hakukierrosPaattyy: Option[DateTime])
 
 trait OhjausparametritService {
   def ohjausparametrit(asId: String): Option[Ohjausparametrit]
@@ -55,14 +55,19 @@ class RemoteOhjausparametritService(implicit appConfig: AppConfig) extends Ohjau
 private object OhjausparametritParser extends JsonFormats {
 
   def parseOhjausparametrit(json: JValue) = {
-    Some(Ohjausparametrit(parseValintatulokset(json), parseIlmoittautuminenPaattyy(json), parseHakukierrosPaattyy(json)))
+    Some(Ohjausparametrit(parseVastaanottoaikataulu(json), parseVarasijaSaannotAstuvatVoimaan(json), parseIlmoittautuminenPaattyy(json), parseHakukierrosPaattyy(json)))
   }
 
-  private def parseValintatulokset(json: JValue) = {
-    val vastaanottoEnd = for {
-      obj <- (json \ "PH_OPVP").toOption
-      end <- (obj \ "date").extractOpt[Long].map(new DateTime(_))
-    } yield end
+  private def parseDateTime(json: JValue, key: String): Option[DateTime] = {
+    for {
+      obj <- (json \ key).toOption
+      date <- (obj \ "date").extractOpt[Long].map(new DateTime(_))
+    } yield date
+
+  }
+
+  private def parseVastaanottoaikataulu(json: JValue) = {
+    val vastaanottoEnd = parseDateTime(json, "PH_OPVP")
     val vastaanottoBufferDays = for {
       obj <- (json \ "PH_HPVOA").toOption
       end <- (obj \ "value").extractOpt[Int]
@@ -70,18 +75,10 @@ private object OhjausparametritParser extends JsonFormats {
     Some(Vastaanottoaikataulu(vastaanottoEnd, vastaanottoBufferDays))
   }
 
-  private def parseIlmoittautuminenPaattyy(json: JValue) = {
-    for {
-      obj <- (json \ "PH_IP").toOption
-      end <- (obj \ "date").extractOpt[Long].map(new Date(_))
-    } yield end
-  }
+  private def parseVarasijaSaannotAstuvatVoimaan(json: JValue) = parseDateTime(json, "PH_VSSAV")
 
-  private def parseHakukierrosPaattyy(json: JValue) = {
-    for {
-      obj <- (json \ "PH_HKP").toOption
-      end <- (obj \ "date").extractOpt[Long].map(new Date(_))
-    } yield end
-  }
+  private def parseIlmoittautuminenPaattyy(json: JValue) = parseDateTime(json, "PH_IP")
+
+  private def parseHakukierrosPaattyy(json: JValue) =  parseDateTime(json, "PH_HKP")
 }
 
