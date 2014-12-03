@@ -37,7 +37,7 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
 
     "Jos hakukierros päättynyt -> ei mukaan" in {
       new GeneratedFixture(new SingleHakemusFixture()){
-        override def ohjausparametritFixture = "hakukierros-loppuu-2010"
+        override def ohjausparametritFixture = "hakukierros-paattynyt-2010"
       }.apply
       poller.etsiHaut must_== Nil
     }
