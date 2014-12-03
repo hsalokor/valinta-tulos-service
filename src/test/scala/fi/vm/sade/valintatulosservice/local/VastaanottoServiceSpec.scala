@@ -5,6 +5,7 @@ import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import org.joda.time.{DateTime, LocalDate}
 import org.junit.runner.RunWith
@@ -190,14 +191,12 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
     "vastaanota ehdollisesti varsinaisessa haussa, kun lisähaussa vastaanottavissa -> lisähaun paikka peruuntuu" in {
       useFixture("hyvaksytty-ylempi-varalla.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
       hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
-      withFixedDateTime("15.8.2014 12:00") {
-        vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
-        val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
-        lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.peruutettu
-        lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.peruutettu
-        val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(lisaHaunTulos.hakutoiveet(0).hakukohdeOid, lisaHaunTulos.hakutoiveet(0).valintatapajonoOid, lisaHaunTulos.hakemusOid)
-        assertSecondLogEntry(valintatulos, "PERUUTETTU", "EHDOLLISESTI_VASTAANOTTANUT paikan 1.2.246.562.5.16303028779 toisesta hausta 1.2.246.562.5.2013080813081926341928")
-      }
+      vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
+      val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
+      lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.peruutettu
+      lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.peruutettu
+      val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(lisaHaunTulos.hakutoiveet(0).hakukohdeOid, lisaHaunTulos.hakutoiveet(0).valintatapajonoOid, lisaHaunTulos.hakemusOid)
+      assertSecondLogEntry(valintatulos, "PERUUTETTU", "EHDOLLISESTI_VASTAANOTTANUT paikan 1.2.246.562.5.16303028779 toisesta hausta 1.2.246.562.5.2013080813081926341928")
     }
 
     "vastaanota lisähaussa, kun varsinaisessa haussa jo vastaanottanut -> ERROR" in {
@@ -228,10 +227,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
     "vastaanota ehdollisesti varsinaisessa haussa, kun lisähaussa jo vastaanottanut -> ERROR" in {
       useFixture("hyvaksytty-ylempi-varalla.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture)
-      withFixedDateTime("15.8.2014 12:00") {
-        expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: VASTAANOTTANUT (yritetty muutos: EHDOLLISESTI_VASTAANOTTANUT 1.2.246.562.5.16303028779)")) {
-          vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
-        }
+      expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: VASTAANOTTANUT (yritetty muutos: EHDOLLISESTI_VASTAANOTTANUT 1.2.246.562.5.16303028779)")) {
+        vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
       }
     }
 
@@ -242,39 +239,35 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       }
     }
 
-    "vastaanota ehdollisesti kun aikaparametri ei lauennut" in {
-      useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
+    "vastaanota ehdollisesti kun varasija säännöt eivät ole vielä voimassa" in {
+      useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture, ohjausparametritFixture = OhjausparametritFixtures.varasijasaannotEiVielaVoimassa)
       expectFailure {
         vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
       }
     }
 
-    "vastaanota ehdollisesti kun aikaparametri lauennut" in {
+    "vastaanota ehdollisesti kun varasija säännöt voimassa" in {
       useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
-      withFixedDateTime("15.8.2014 12:00") {
-        hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
-        hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
-        vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
-        hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
-        hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
-        hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
-        hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
-      }
+      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
+      hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
+      vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
+      hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
+      hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
     }
 
-    "vastaanota sitovasti kun aikaparametri lauennut" in {
+    "vastaanota sitovasti kun varasija säännöt voimassa" in {
       useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
-      withFixedDateTime("15.8.2014 12:00") {
-        vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
-        val yhteenveto = hakemuksenTulos
-        yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
-        yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.vastaanottanut
-        yhteenveto.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
+      vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      val yhteenveto = hakemuksenTulos
+      yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
+      yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.vastaanottanut
+      yhteenveto.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
 
-        yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
-        yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
-        yhteenveto.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
-      }
+      yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
+      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      yhteenveto.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
     }
 
     "ilmoittautuminen" in {

@@ -154,19 +154,17 @@ class ValintaTulosServletSpec extends ServletSpecification {
     "vastaanottaa ehdollisesti" in {
       useFixture("hyvaksytty-ylempi-varalla.json")
 
-      withFixedDateTime("15.8.2014 12:00") {
-        vastaanota("EHDOLLISESTI_VASTAANOTTANUT", hakukohde = "1.2.246.562.5.16303028779") {
-          status must_== 200
+      vastaanota("EHDOLLISESTI_VASTAANOTTANUT", hakukohde = "1.2.246.562.5.16303028779") {
+        status must_== 200
 
-          get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
-            val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
-            tulos.hakutoiveet.head.valintatila must_== Valintatila.varalla
-            tulos.hakutoiveet.head.vastaanottotila.toString must_== "KESKEN"
-            tulos.hakutoiveet.last.vastaanottotila.toString must_== "EHDOLLISESTI_VASTAANOTTANUT"
-            val muutosAika = tulos.hakutoiveet.last.viimeisinValintatuloksenMuutos.get
-            tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.before(muutosAika) must beTrue
-            muutosAika.getTime() must be ~ (System.currentTimeMillis() +/- 2000)
-          }
+        get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
+          val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
+          tulos.hakutoiveet.head.valintatila must_== Valintatila.varalla
+          tulos.hakutoiveet.head.vastaanottotila.toString must_== "KESKEN"
+          tulos.hakutoiveet.last.vastaanottotila.toString must_== "EHDOLLISESTI_VASTAANOTTANUT"
+          val muutosAika = tulos.hakutoiveet.last.viimeisinValintatuloksenMuutos.get
+          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.before(muutosAika) must beTrue
+          muutosAika.getTime() must be ~ (System.currentTimeMillis() +/- 2000)
         }
       }
     }

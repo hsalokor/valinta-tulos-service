@@ -6,7 +6,7 @@ import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
-import org.joda.time.LocalDate
+import org.joda.time.DateTime
 
 class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjausparametritService: OhjausparametritService, hakemusRepository: HakemusRepository, hakuService: HakuService)(implicit appConfig: AppConfig) {
   def this(hakuService: HakuService)(implicit appConfig: AppConfig) = this(appConfig.sijoitteluContext.sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), hakuService)
@@ -57,7 +57,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       }.getOrElse(HakutoiveenSijoitteluntulos.kesken(toive.oid, toive.tarjoajaOid))
     }.map(Hakutoiveentulos.julkaistavaVersio(_, haku, ohjausparametrit))
 
-    val lopullisetTulokset = Välitulos(tulokset, haku)
+    val lopullisetTulokset = Välitulos(tulokset, haku, ohjausparametrit)
       .map(peruValmistaAlemmatKeskeneräiset)
       .map(korkeakouluSpecial)
       .tulokset
@@ -67,13 +67,11 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
 
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, "", Nil)
 
-  private def korkeakouluSpecial(tulokset: List[Hakutoiveentulos], haku: Haku) = {
-    def aikaparametriLauennut(tulos: Hakutoiveentulos): Boolean = {
-      (tulos.varasijojaKaytetaanAlkaen, tulos.varasijojaTaytetaanAsti) match {
-        case (Some(käytetäänAlkaen), Some(käytetäänAsti)) =>
-          val today: LocalDate = new LocalDate
-          !today.isBefore(new LocalDate(käytetäänAlkaen)) && !today.isAfter(new LocalDate(käytetäänAsti))
-        case _ => false
+  private def korkeakouluSpecial(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+    val ehdollinenVastaanottoMahdollista: Boolean = {
+      ohjausparametrit.getOrElse(Ohjausparametrit(None, None, None, None)).varasijaSaannotAstuvatVoimaan match {
+        case None => true
+        case Some(varasijaSaannotAstuvatVoimaan) => varasijaSaannotAstuvatVoimaan.isBefore(new DateTime())
       }
     }
 
@@ -88,7 +86,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
             // Peru vastaanotettua paikkaa alemmat hyväksytyt hakutoiveet
             tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
           else if (firstVaralla >= 0 && index > firstVaralla) {
-           if(aikaparametriLauennut(tulos))
+           if(ehdollinenVastaanottoMahdollista)
             // Ehdollinen vastaanotto mahdollista
             tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti)
            else
@@ -108,7 +106,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     }
   }
 
-  private def peruValmistaAlemmatKeskeneräiset(tulokset: List[Hakutoiveentulos], haku: Haku) = {
+  private def peruValmistaAlemmatKeskeneräiset(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     if (haku.käyttääSijoittelua) {
       val firstFinished = tulokset.indexWhere { t =>
         Valintatila.isHyväksytty(t.valintatila) || List(Valintatila.perunut, Valintatila.peruutettu, Valintatila.peruuntunut).contains(t.valintatila)
@@ -124,9 +122,9 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     }
   }
 
-  case class Välitulos(tulokset: List[Hakutoiveentulos], haku: Haku) {
-    def map(f: (List[Hakutoiveentulos], Haku) => List[Hakutoiveentulos]) = {
-      Välitulos(f(tulokset, haku), haku)
+  case class Välitulos(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) {
+    def map(f: (List[Hakutoiveentulos], Haku, Option[Ohjausparametrit]) => List[Hakutoiveentulos]) = {
+      Välitulos(f(tulokset, haku, ohjausparametrit), haku, ohjausparametrit)
     }
   }
 }
