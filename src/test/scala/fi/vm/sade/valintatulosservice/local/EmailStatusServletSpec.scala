@@ -8,7 +8,8 @@ class EmailStatusServletSpec extends ServletSpecification with TimeWarp {
 
   "GET /vastaanottoposti" should {
     "Tyhjä lista lähtettävistä sähköposteista" in {
-      withFixedDateTime("10.10.2214 12:00") {
+      useFixture("hylatty-ei-valintatulosta.json")
+      withFixedDateTime("10.10.2014 12:00") {
         get("vastaanottoposti") {
           status must_== 200
           body must_== """[]"""
@@ -16,7 +17,7 @@ class EmailStatusServletSpec extends ServletSpecification with TimeWarp {
       }
     }
   }
-  
+
   "GET /vastaanottoposti" should {
     "Lista lähtettävistä sähköposteista" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json")
@@ -35,7 +36,7 @@ class EmailStatusServletSpec extends ServletSpecification with TimeWarp {
     "Merkitsee postitukset tehdyiksi" in {
       get("vastaanottoposti") {
         val mailsToSend = Serialization.read[List[VastaanotettavuusIlmoitus]](body)
-        val kuittaukset = mailsToSend.map{ mail =>
+        val kuittaukset = mailsToSend.map { mail =>
           LahetysKuittaus(mail.hakemusOid, mail.hakukohteet, List("email"))
         }
         postJSON("vastaanottoposti", Serialization.write(kuittaukset)) {
