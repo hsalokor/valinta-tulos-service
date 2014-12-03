@@ -105,7 +105,7 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
         case ValintatuloksenTila.PERUUTETTU =>
           Vastaanottotila.peruutettu
         case ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA =>
-          Vastaanottotila.ei_vastaanotetu_määräaikana
+          Vastaanottotila.ei_vastaanotettu_määräaikana
         case ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT =>
           Vastaanottotila.ehdollisesti_vastaanottanut
         case ValintatuloksenTila.VASTAANOTTANUT_LASNA =>
@@ -121,7 +121,7 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
 
     val vastaanottotila = (convertVastaanottotila(ifNull(vastaanottotieto, ValintatuloksenTila.KESKEN)), vastaanottoDeadline) match {
       case (Vastaanottotila.kesken, Some(deadline)) if Valintatila.isHyväksytty(valintatila) && new DateTime().isAfter(deadline) =>
-        Vastaanottotila.ei_vastaanotetu_määräaikana
+        Vastaanottotila.ei_vastaanotettu_määräaikana
       case (tila, _) =>
         tila
     }
@@ -135,7 +135,7 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
       Valintatila.perunut
     } else if (Vastaanottotila.peruutettu == vastaanottotila) {
       Valintatila.peruutettu
-    } else if (Vastaanottotila.ei_vastaanotetu_määräaikana == vastaanottotila) {
+    } else if (Vastaanottotila.ei_vastaanotettu_määräaikana == vastaanottotila) {
       Valintatila.perunut
     } else {
       valintatila
