@@ -126,11 +126,12 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
 
   error {
     case e => {
-      val bodyDesc = if (request.body.length > 0) { " (body: " + request.body + ")"} else ""
-      logger.error(request.getMethod + " " + requestPath + bodyDesc, e);
+      val desc = request.getMethod + " " + requestPath + (if (request.body.length > 0) { " (body: " + request.body + ")"} else "")
       if (e.isInstanceOf[IllegalStateException] || e.isInstanceOf[IllegalArgumentException] || e.isInstanceOf[MappingException]) {
+        logger.warn(desc + ": " + e.toString);
         BadRequest("error" -> e.getMessage)
       } else {
+        logger.error(desc, e);
         InternalServerError("error" -> "500 Internal Server Error")
       }
     }
