@@ -38,8 +38,9 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val jono: HakutoiveenValintatapajonoDTO = merkitseväJono(hakutoive).get
       var valintatila: Valintatila = jononValintatila(jono, hakutoive)
-      val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos)
-      val vastaanottoDeadline: Option[DateTime] = laskeVastaanottoDeadline(aikataulu, viimeisinValintatuloksenMuutos, valintatila)
+      val viimeisinHakemuksenTilanMuutos: Option[Date] = Option(jono.getHakemuksenTilanViimeisinMuutos())
+      val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos())
+      val vastaanottoDeadline: Option[DateTime] = laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos, viimeisinValintatuloksenMuutos, valintatila)
       val vastaanottotila: Vastaanottotila = laskeVastaanottotila(valintatila, jono.getVastaanottotieto, aikataulu, vastaanottoDeadline)
       valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
       val vastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, vastaanottotila)
@@ -55,7 +56,8 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
         vastaanottoDeadline.map(_.toDate),
         Ilmoittautumistila.withName(Option(jono.getIlmoittautumisTila).getOrElse(IlmoittautumisTila.EI_TEHTY).name()),
         vastaanotettavuustila,
-        Option(viimeisinValintatuloksenMuutos.orNull),
+        viimeisinHakemuksenTilanMuutos,
+        viimeisinValintatuloksenMuutos,
         Option(jono.getJonosija).map(_.toInt),
         Option(jono.getVarasijojaKaytetaanAlkaen),
         Option(jono.getVarasijojaTaytetaanAsti),
@@ -147,14 +149,20 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
   }
 
 
-  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinValintatuloksenMuutos: Option[Date], valintatila: Valintatila): Option[DateTime] = {
+  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], viimeisinValintatuloksenMuutos: Option[Date], valintatila: Valintatila): Option[DateTime] = {
     (aikataulu) match {
-      case Some(Vastaanottoaikataulu(Some(deadlineAsDate), buffer)) if Valintatila.isHyväksytty(valintatila) =>
-        Some{val deadline = new DateTime(deadlineAsDate)
-        viimeisinValintatuloksenMuutos.map(new DateTime(_).plusDays(buffer.getOrElse(0))) match {
-          case Some(muutosDeadline) if muutosDeadline.isAfter(deadline) => muutosDeadline
-          case _ => deadline
-        }}
+      case Some(Vastaanottoaikataulu(Some(deadline), buffer)) if Valintatila.isHyväksytty(valintatila) =>
+        Some{
+          val deadlineFromHakemuksenTilanMuutos = viimeisinHakemuksenTilanMuutos.map(new DateTime(_).plusDays(buffer.getOrElse(0)).withTime(23,59,59,59))
+          val deadlineFromValintatuloksenMuutos = viimeisinValintatuloksenMuutos.map(new DateTime(_).plusDays(buffer.getOrElse(0)).withTime(23,59,59,59))
+          (deadlineFromHakemuksenTilanMuutos, deadlineFromValintatuloksenMuutos) match {
+            case (Some(hakemuksenMuutos), Some(valintatuloksenMuutos)) if hakemuksenMuutos.isAfter(deadline) && (hakemuksenMuutos.isAfter(valintatuloksenMuutos) || hakemuksenMuutos.isEqual(valintatuloksenMuutos)) => hakemuksenMuutos
+            case (Some(hakemuksenMuutos), Some(valintatuloksenMuutos)) if valintatuloksenMuutos.isAfter(deadline) && valintatuloksenMuutos.isAfter(hakemuksenMuutos) => valintatuloksenMuutos
+            case (Some(muutosDeadline), None) if muutosDeadline.isAfter(deadline) => muutosDeadline
+            case (None, Some(muutosDeadline)) if muutosDeadline.isAfter(deadline) => muutosDeadline
+            case _ => deadline
+          }
+        }
       case _ => None
     }
   }

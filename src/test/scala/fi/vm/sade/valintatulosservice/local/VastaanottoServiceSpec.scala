@@ -71,9 +71,9 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
     }
 
     "vastaanoton aikataulu" in {
-      "vastaanotto onnistuu jos viimeisin muutos on bufferin sisään" in {
+      "vastaanotto onnistuu jos viimeisin valintatuloksen muutos on bufferin sisään" in {
         useFixture("hyvaksytty-kesken-julkaistavissa.json", ohjausparametritFixture = "vastaanotto-loppunut", hakuFixture = hakuFixture)
-        withFixedDateTime("9.9.2014 19:01") {
+        withFixedDateTime("9.9.2014 23:58") {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
           vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
@@ -81,6 +81,15 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
         }
       }
 
+      "vastaanotto onnistuu jos viimeisin hakemuksen tilan muutos on bufferin sisään" in {
+        useFixture("hyvaksytty-varasijalta-kesken-julkaistavissa.json", ohjausparametritFixture = "vastaanotto-loppunut", hakuFixture = hakuFixture)
+        withFixedDateTime("10.9.2014 23:58") {
+          hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+          hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
+          vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+          hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
+        }
+      }
 
       "vastaanotto ei onnistu deadlinen jälkeen jos vastaanottobufferia ei ole annettu" in {
         useFixture("hyvaksytty-kesken-julkaistavissa.json", ohjausparametritFixture = "ei-vastaanotto-bufferia", hakuFixture = hakuFixture)
@@ -93,9 +102,9 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
         }
       }
 
-      "vastaanotto ei onnistu jos viimeisin muutos on bufferin jälkeen" in {
+      "vastaanotto ei onnistu jos viimeisin valintatuloksen muutos on bufferin jälkeen" in {
         useFixture("hyvaksytty-kesken-julkaistavissa.json", ohjausparametritFixture = "vastaanotto-loppunut", hakuFixture = hakuFixture)
-        withFixedDateTime("9.9.2014 19:10") {
+        withFixedDateTime("10.9.2014 00:00") {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotettu_määräaikana
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
           expectFailure {
