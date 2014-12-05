@@ -137,8 +137,6 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
       Valintatila.perunut
     } else if (Vastaanottotila.peruutettu == vastaanottotila) {
       Valintatila.peruutettu
-    } else if (Vastaanottotila.ei_vastaanotettu_määräaikana == vastaanottotila) {
-      Valintatila.peruuntunut
     } else {
       valintatila
     }

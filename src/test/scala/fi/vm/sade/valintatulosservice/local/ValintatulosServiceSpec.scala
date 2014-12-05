@@ -50,7 +50,7 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
         "ylempi varalla, kun varasijasäännöt voimassa, mutta vastaanotto päättynyt -> ei vastaanotettavissa" in {
           useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture, ohjausparametritFixture =  "vastaanotto-loppunut")
           checkHakutoiveState(getHakutoive(("1.2.246.562.5.72607738902")), Valintatila.varalla, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.peruuntunut, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
         }
       }
     }
@@ -189,12 +189,12 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
         "ei vastaanottanut määräaikana" in {
           "sijoittelu ei ole ehtinyt muuttamaan tulosta" in {
             useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
-            checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.peruuntunut, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+            checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
           }
           "sijoittelu on muuttanut tuloksen" in {
             useFixture("perunut-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
             val hakutoive = getHakutoive("1.2.246.562.5.72607738902")
-            checkHakutoiveState(hakutoive, Valintatila.peruuntunut, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+            checkHakutoiveState(hakutoive, Valintatila.perunut, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
             hakutoive.tilanKuvaukset("FI") must_== "Peruuntunut, ei vastaanottanut määräaikana"
           }
         }
