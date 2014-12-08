@@ -72,7 +72,7 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
             "henkilö: 5.5.5.5",
             "kuvaus mitä kautta muokkaus tehty"
         )
-      ))
+      )) + ".\nMahdolliset vastaanottotilat: " + vastaanottoService.sallitutVastaanottotilat
     parameter pathParam[String]("hakuOid").description("Haun oid")
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
   )
@@ -97,7 +97,8 @@ class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoS
         "henkilö: 5.5.5.5",
         "kuvaus mitä kautta muokkaus tehty"
       )
-    ))
+    )) + ".\nMahdolliset ilmoittautumistilat: " + Ilmoittautumistila.values
+
     parameter pathParam[String]("hakuOid").description("Haun oid")
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
     )

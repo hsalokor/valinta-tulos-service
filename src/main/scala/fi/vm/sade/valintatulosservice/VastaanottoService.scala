@@ -8,6 +8,8 @@ import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 
 class VastaanottoService(hakuService: HakuService, valintatulosService: ValintatulosService, tulokset: ValintatulosRepository) {
 
+  val sallitutVastaanottotilat: Set[ValintatuloksenTila] = Set(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT, PERUNUT)
+
   def vastaanota(hakuOid: String, hakemusOid: String, vastaanotto: Vastaanotto) {
     val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException("Hakua ei löydy"))
     val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
@@ -25,7 +27,7 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
   }
 
   private def tarkistaVastaanotettavuus(hakutoive: Hakutoiveentulos, tila: ValintatuloksenTila) {
-    if (!List(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT, PERUNUT).contains(tila)) {
+    if (!sallitutVastaanottotilat.contains(tila)) {
       throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + tila)
     }
     if (List(VASTAANOTTANUT, PERUNUT).contains(tila) && !List(Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, Vastaanotettavuustila.vastaanotettavissa_sitovasti).contains(hakutoive.vastaanotettavuustila)) {
