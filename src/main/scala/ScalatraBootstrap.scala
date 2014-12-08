@@ -31,10 +31,11 @@ class ScalatraBootstrap extends LifeCycle {
     context.addFilter("cas", securityFilter)
       .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/cas/*")
 
-    context.mount(new ValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/cas/haku")
     context.mount(new EmailStatusServlet(mailPoller, new MailDecorator(new HakemusRepository())), "/vastaanottoposti")
 
     context.mount(new ValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
+    context.mount(new ValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/cas/haku")
+
     context.mount(new SwaggerServlet, "/swagger/*")
 
     if (appConfig.isInstanceOf[IT] || appConfig.isInstanceOf[Dev])
