@@ -8,7 +8,9 @@ import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 import org.joda.time.DateTime
 
-class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjausparametritService: OhjausparametritService, hakemusRepository: HakemusRepository, hakuService: HakuService)(implicit appConfig: AppConfig) {
+private object HakemustenTulosHakuLock
+
+class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjausparametritService: OhjausparametritService, hakemusRepository: HakemusRepository, hakuService: HakuService)(implicit appConfig: AppConfig) extends Logging {
   def this(hakuService: HakuService)(implicit appConfig: AppConfig) = this(appConfig.sijoitteluContext.sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), hakuService)
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
@@ -36,17 +38,26 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
   }
 
   def hakemustenTulos(hakuOid: String): Option[Seq[Hakemuksentulos]] = {
-    for (
-      haku <- hakuService.getHaku(hakuOid)
-    ) yield {
-      val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-      val sijoitteluTulokset = sijoittelutulosService.hakemustenTulos(haku).groupBy(_.hakemusOid).mapValues(_.head)
-      for (
-        hakemus: Hakemus <- hakemusRepository.findHakemukset(hakuOid)
-      ) yield {
-        val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
-        julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
+    logger.info("Waiting to start fetching hakemusten tulos for haku: " + hakuOid)
+    try {
+      HakemustenTulosHakuLock.synchronized {
+        logger.info("Start fetching hakemusten tulos for haku: " + hakuOid)
+        for (
+          haku <- hakuService.getHaku(hakuOid)
+        ) yield {
+          val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
+          val sijoitteluTulokset = sijoittelutulosService.hakemustenTulos(haku).groupBy(_.hakemusOid).mapValues(_.head)
+          for (
+            hakemus: Hakemus <- hakemusRepository.findHakemukset(hakuOid)
+          ) yield {
+            val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
+            julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
+          }
+        }
       }
+    }
+    finally {
+      logger.info("Finished fetching hakemusten tulos for haku: " + hakuOid)
     }
   }
 
