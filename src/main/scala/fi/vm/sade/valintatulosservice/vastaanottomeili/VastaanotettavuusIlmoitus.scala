@@ -8,7 +8,7 @@ case class VastaanotettavuusIlmoitus(
   asiointikieli: String,
   etunimi: String,
   email: String,
-  deadline: Date,
+  deadline: Option[Date],
   hakukohteet: List[String]
 )
 
