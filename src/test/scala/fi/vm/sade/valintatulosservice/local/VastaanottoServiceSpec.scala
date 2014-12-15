@@ -213,10 +213,10 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
       vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
       val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
-      lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.peruutettu
-      lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.peruutettu
+      lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
+      lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.perunut
       val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(lisaHaunTulos.hakutoiveet(0).hakukohdeOid, lisaHaunTulos.hakutoiveet(0).valintatapajonoOid, lisaHaunTulos.hakemusOid)
-      assertSecondLogEntry(valintatulos, "PERUUTETTU", "VASTAANOTTANUT paikan 1.2.246.562.5.72607738902 toisesta hausta 1.2.246.562.5.2013080813081926341928")
+      assertSecondLogEntry(valintatulos, "PERUNUT", "VASTAANOTTANUT paikan 1.2.246.562.5.72607738902 toisesta hausta 1.2.246.562.5.2013080813081926341928")
     }
 
     "vastaanota ehdollisesti varsinaisessa haussa, kun lisähaussa vastaanottavissa -> lisähaun paikka peruuntuu" in {
@@ -224,10 +224,10 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
       vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
       val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
-      lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.peruutettu
-      lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.peruutettu
+      lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
+      lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.perunut
       val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(lisaHaunTulos.hakutoiveet(0).hakukohdeOid, lisaHaunTulos.hakutoiveet(0).valintatapajonoOid, lisaHaunTulos.hakemusOid)
-      assertSecondLogEntry(valintatulos, "PERUUTETTU", "EHDOLLISESTI_VASTAANOTTANUT paikan 1.2.246.562.5.16303028779 toisesta hausta 1.2.246.562.5.2013080813081926341928")
+      assertSecondLogEntry(valintatulos, "PERUNUT", "EHDOLLISESTI_VASTAANOTTANUT paikan 1.2.246.562.5.16303028779 toisesta hausta 1.2.246.562.5.2013080813081926341928")
     }
 
     "vastaanota lisähaussa, kun varsinaisessa haussa jo vastaanottanut -> ERROR" in {

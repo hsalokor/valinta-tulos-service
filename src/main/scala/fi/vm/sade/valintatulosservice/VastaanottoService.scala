@@ -66,11 +66,11 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
           kohde.hakukohdeOid,
           kohde.valintatapajonoOid,
           hakemus.hakemusOid,
-          ValintatuloksenTila.PERUUTETTU.toString,
+          ValintatuloksenTila.PERUNUT.toString,
           vastaanotto.muokkaaja,
           vastaanotto.tila + " paikan " + vastaanotto.hakukohdeOid + " toisesta hausta " + vastaanotonHaku.oid
         )
-        {valintatulos =>  valintatulos.setTila(ValintatuloksenTila.PERUUTETTU)}
+        {valintatulos =>  valintatulos.setTila(ValintatuloksenTila.PERUNUT)}
       }
     }
   }
