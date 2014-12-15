@@ -1,22 +1,18 @@
 package fi.vm.sade.valintatulosservice
 
-
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
-import fi.vm.sade.valintatulosservice.tarjonta.{Hakuaika, Haku}
+import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakuaika}
 import org.joda.time.DateTime
-import org.json4s.{MappingException, Extraction}
+import org.json4s.{Extraction, MappingException}
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 
-class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoService: VastaanottoService, ilmoittautumisService: IlmoittautumisService)(implicit val swagger: Swagger, appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
-
-  override def applicationName = Some("cas/haku")
-  protected val applicationDescription = "Valintatulosten REST API"
+abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoService: VastaanottoService, ilmoittautumisService: IlmoittautumisService)(implicit val swagger: Swagger, appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
 
   lazy val exampleHakemuksenTulos = Hakemuksentulos(
     "2.2.2.2",

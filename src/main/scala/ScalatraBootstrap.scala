@@ -27,13 +27,13 @@ class ScalatraBootstrap extends LifeCycle {
     appConfig.start
     context.mount(new BuildInfoServlet, "/")
 
-    context.mount(new ValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
+    context.mount(new PrivateValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
     context.mount(new EmailStatusServlet(mailPoller, new MailDecorator(new HakemusRepository())), "/vastaanottoposti")
 
     val securityFilter = appConfig.securityContext.securityFilter
     context.addFilter("cas", securityFilter)
       .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/cas/*")
-    context.mount(new ValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/cas/haku")
+    context.mount(new PublicValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/cas/haku")
 
     context.mount(new SwaggerServlet, "/swagger/*")
 
