@@ -12,4 +12,11 @@ class TarjontaIntegrationTest extends Specification {
       haku.yhteishaku must_== true
     }
   }
+
+  "HakuService fail case" should {
+    "return None for non existing haku ID" in {
+      val haku = new TarjontaHakuService(new AppConfig.IT).getHaku("987654321")
+      haku must_== None
+    }
+  }
 }

@@ -7,6 +7,7 @@ import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExtern
 import fi.vm.sade.valintatulosservice.http.{DefaultHttpRequest, DefaultHttpClient}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
 import org.joda.time.DateTime
+import org.json4s.JsonAST.JValue
 import org.json4s.jackson.JsonMethods._
 
 import scala.util.Try
@@ -65,7 +66,14 @@ private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiU
 }
 
 class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHakuService with Logging {
-  def getHaku(oid: String) = {
+
+  def parseStatus(json: String): Option[String] = {
+    for {
+      status <- (parse(json) \ "status").extractOpt[String]
+    } yield status
+  }
+
+  def getHaku(oid: String): Option[Haku] = {
     val url = appConfig.settings.tarjontaUrl + "/rest/v1/haku/" + oid
     fetch(url) { response =>
       val hakuTarjonnassa = (parse(response) \ "result").extract[HakuTarjonnassa]
@@ -88,10 +96,16 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
       .responseWithHeaders
 
     responseCode match {
-      case 200 =>
-        val parsed = Try(parse(resultString))
-        if (parsed.isFailure) logger.error(s"Error parsing response from: $resultString", parsed.failed.get)
-        parsed.toOption
+      case 200 => {
+        parseStatus(resultString) match {
+          case Some(status) if status.equals("NOT_FOUND") => None
+          case _ => {
+            val parsed = Try(parse(resultString))
+            if(parsed.isFailure) logger.error(s"Error parsing response from: $resultString", parsed.failed.get)
+            parsed.toOption
+          }
+        }
+      }
       case _ =>
         logger.warn("Get haku from " + url + " failed with status " + responseCode)
         None
