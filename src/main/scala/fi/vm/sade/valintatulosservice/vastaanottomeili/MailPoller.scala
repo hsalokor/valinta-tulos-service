@@ -131,8 +131,6 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
   }
 
   def pollForCandidates(hakuOids: List[String], limit: Int = this.limit, excludeHakemusOids: Set[String] = Set.empty): Set[HakemusIdentifier] = {
-    // TODO: Valintatulokseen tarvitaan indeksi
-
     val query = Map(
       "hakuOid" -> Map("$in" -> hakuOids),
       "tila" -> "KESKEN",
