@@ -106,8 +106,6 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
   }
 
   private def mailed(hakemus: Hakemuksentulos, hakutoive: Hakutoiveentulos) = {
-    // TODO: Valintatulokseen tarvitaan indeksi, tai lähetetty-tieto domain-olioihin
-
     val query = Map(
       "hakukohdeOid" -> hakutoive.hakukohdeOid,
       "hakemusOid" -> hakemus.hakemusOid,
