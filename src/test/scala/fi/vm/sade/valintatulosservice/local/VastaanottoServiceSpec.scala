@@ -164,13 +164,6 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
         }
       }
     }
-
-    "Valintatuloksen muutoslogi"  in {
-      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
-      vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
-      val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
-      assertSecondLogEntry(valintatulos, "VASTAANOTTANUT", selite)
-    }
   }
 
   "korkeakoulujen yhteishaku" in {
@@ -301,6 +294,13 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       yhteenveto.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
     }
 
+    "Valintatuloksen muutoslogi"  in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
+      vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
+      assertSecondLogEntry(valintatulos, "VASTAANOTTANUT_SITOVASTI", selite)
+    }
+
     "ilmoittautuminen" in {
       "onnistuu ja tarjotaaan oilia, jos vastaanottanut" in {
         useFixture("hyvaksytty-vastaanottanut.json", hakuFixture = hakuFixture)
@@ -357,6 +357,13 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
     "vastaanota varsinaisessa haussa, kun lisähaussa jo vastaanottanut, onnistuu" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture)
       vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+    }
+
+    "Valintatuloksen muutoslogi"  in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
+      vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
+      assertSecondLogEntry(valintatulos, "VASTAANOTTANUT", selite)
     }
 
     "ilmoittautuminen" in {

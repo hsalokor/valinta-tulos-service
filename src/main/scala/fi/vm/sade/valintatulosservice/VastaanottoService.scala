@@ -19,8 +19,9 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     tarkistaVastaanotettavuus(hakutoive, tila)
     val muutHakemukset = korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku, hakemuksenTulos.hakijaOid, tila)
     tarkistaEttaEiVastaanottoja(muutHakemukset, tila, hakutoive)
-    tulokset.modifyValintatulos(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, tila.name, vastaanotto.muokkaaja, vastaanotto.selite) { valintatulos => {
-        valintatulos.setTila(vastaanotaSitovastiJosKorkeakouluYhteishaku(haku, tila))
+    val tallennettavaTila = vastaanotaSitovastiJosKorkeakouluYhteishaku(haku, tila)
+    tulokset.modifyValintatulos(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, tallennettavaTila.name, vastaanotto.muokkaaja, vastaanotto.selite) { valintatulos => {
+        valintatulos.setTila(tallennettavaTila)
       }
     }
     peruMuutHyvaksytyt(muutHakemukset, vastaanotto, haku)
