@@ -144,7 +144,7 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
       )
     )
 
-    val candidates = valintatulos.find(query).sort(Map("mailStatus.previousCheck" -> 1))
+    val candidates = valintatulos.find(query)
       .filterNot { tulos =>
         val hakemusOid = tulos.get("hakemusOid").asInstanceOf[String]
         excludeHakemusOids.contains(hakemusOid)
