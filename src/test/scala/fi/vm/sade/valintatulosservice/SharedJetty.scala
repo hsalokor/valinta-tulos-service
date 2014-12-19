@@ -1,6 +1,5 @@
 package fi.vm.sade.valintatulosservice
-
-import fi.vm.sade.valintatulosservice.tcp.PortChecker
+import fi.vm.sade.utils.tcp.PortChecker
 
 object SharedJetty {
    private lazy val jettyLauncher = new JettyLauncher(PortChecker.findFreeLocalPort, Some("it"))
