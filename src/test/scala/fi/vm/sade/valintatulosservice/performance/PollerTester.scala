@@ -23,7 +23,7 @@ object PollerTester extends App with Logging with TimeWarp {
 
   //withFixedDateTime("22.11.2014 15:00") {
     do {
-      val mailables: List[HakemusMailStatus] = Timer.timed(0, "pollForMailables") {
+      val mailables: List[HakemusMailStatus] = Timer.timed("pollForMailables") {
         poller.pollForMailables()
       }
       added = mailables.size
