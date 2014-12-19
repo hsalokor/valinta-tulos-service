@@ -1,10 +1,12 @@
 package fi.vm.sade.valintatulosservice.performance
 
+import fi.vm.sade.utils.Timer
+import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusMailStatus, MailPoller}
-import fi.vm.sade.valintatulosservice.{Timer, TimeWarp, Logging, ValintatulosService}
+import fi.vm.sade.valintatulosservice.{TimeWarp, ValintatulosService}
 
 object PollerTester extends App with Logging with TimeWarp {
   implicit val appConfig: AppConfig = AppConfig.fromSystemProperty

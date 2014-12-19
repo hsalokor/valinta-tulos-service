@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
+import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{LahetysKuittaus, MailDecorator, HakemusMailStatus, MailPoller}
 import org.scalatra.ScalatraServlet

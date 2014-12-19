@@ -1,12 +1,13 @@
 package fi.vm.sade.valintatulosservice.vastaanottomeili
 
 import com.mongodb.casbah.Imports._
+import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.MongoConfig
 import fi.vm.sade.valintatulosservice.domain.{Valintatila, Hakemuksentulos, Hakutoiveentulos, Vastaanotettavuustila}
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import fi.vm.sade.valintatulosservice.{Logging, ValintatulosService}
+import fi.vm.sade.valintatulosservice.ValintatulosService
 import org.joda.time.{DateTime, DateTimeUtils}
 
 class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosService, hakuService: HakuService, ohjausparameteritService: OhjausparametritService, val limit: Integer, recheckIntervalHours: Int = 24) extends Logging {

@@ -1,10 +1,11 @@
 package fi.vm.sade.valintatulosservice.performance
 
+import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{LahetysKuittaus, HakemusMailStatus, MailPoller}
-import fi.vm.sade.valintatulosservice.{Logging, ValintatulosService}
+import fi.vm.sade.valintatulosservice.ValintatulosService
 
 object MailPollerPerformanceTester extends App with Logging {
   implicit val appConfig: AppConfig = new AppConfig.Dev

@@ -1,13 +1,10 @@
 package fi.vm.sade.valintatulosservice.tarjonta
 
-import java.util.Date
-
-import fi.vm.sade.valintatulosservice.Logging
+import fi.vm.sade.utils.http.DefaultHttpRequest
+import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
-import fi.vm.sade.valintatulosservice.http.{DefaultHttpRequest, DefaultHttpClient}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
 import org.joda.time.DateTime
-import org.json4s.JsonAST.JValue
 import org.json4s.jackson.JsonMethods._
 
 import scala.util.Try

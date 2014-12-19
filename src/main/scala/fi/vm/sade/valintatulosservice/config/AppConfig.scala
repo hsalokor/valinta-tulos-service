@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.config
 import fi.vm.sade.security.ldap.LdapUser
 import fi.vm.sade.security.mock.MockSecurityContext
 import fi.vm.sade.security.{ProductionSecurityContext, SecurityContext}
-import fi.vm.sade.valintatulosservice.Logging
+import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.mongo.{EmbeddedMongo, MongoServer}
 import fi.vm.sade.valintatulosservice.ohjausparametrit._

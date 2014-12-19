@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
+import fi.vm.sade.utils.slf4j.Logging
 import org.scalatra._
 
 class BuildInfoServlet extends ScalatraServlet with Logging {

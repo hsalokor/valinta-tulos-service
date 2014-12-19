@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.generatedfixtures
 
 import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
-import fi.vm.sade.valintatulosservice.Logging
+import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixture, HakemusFixtures, HakutoiveFixture}
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures

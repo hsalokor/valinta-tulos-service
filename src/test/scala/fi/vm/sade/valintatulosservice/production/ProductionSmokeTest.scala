@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.production
 
-import fi.vm.sade.valintatulosservice.http.DefaultHttpClient
+import fi.vm.sade.utils.http.DefaultHttpClient
 import org.specs2.mutable.Specification
 
 class ProductionSmokeTest extends Specification {

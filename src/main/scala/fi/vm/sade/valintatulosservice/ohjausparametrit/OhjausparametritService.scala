@@ -1,14 +1,13 @@
 package fi.vm.sade.valintatulosservice.ohjausparametrit
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.http.DefaultHttpClient
+import fi.vm.sade.utils.http.DefaultHttpClient
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
 import org.joda.time.DateTime
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottoaikataulu
-import java.util.Date
 
 case class Ohjausparametrit(vastaanottoaikataulu: Option[Vastaanottoaikataulu], varasijaSaannotAstuvatVoimaan: Option[DateTime], ilmoittautuminenPaattyy: Option[DateTime], hakukierrosPaattyy: Option[DateTime])
 

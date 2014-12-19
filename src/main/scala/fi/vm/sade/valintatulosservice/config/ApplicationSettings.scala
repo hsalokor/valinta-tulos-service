@@ -3,7 +3,8 @@ package fi.vm.sade.valintatulosservice.config
 import java.io.File
 
 import com.typesafe.config._
-import fi.vm.sade.valintatulosservice.{SecuritySettings, Logging}
+import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.SecuritySettings
 
 import scala.collection.JavaConversions._
 
