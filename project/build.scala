@@ -47,8 +47,6 @@ object ValintaTulosServiceBuild extends Build {
         "org.apache.tomcat.embed" % "tomcat-embed-core"         % TomcatVersion % "container;test",
         "org.apache.tomcat.embed" % "tomcat-embed-logging-juli" % TomcatVersion % "container;test",
         "org.apache.tomcat.embed" % "tomcat-embed-jasper"       % TomcatVersion % "container;test",
-        "org.json4s" %% "json4s-jackson" % "3.2.10",
-        "org.json4s" %% "json4s-ext" % "3.2.10",
         "org.springframework" % "spring-jms" % SpringVersion, // <- patch for spring-core-3.1.3 transitive dep
         "org.springframework" % "spring-core" % SpringVersion,
         "org.springframework" % "spring-context" % SpringVersion,
@@ -67,7 +65,6 @@ object ValintaTulosServiceBuild extends Build {
         "fi.vm.sade.valintaperusteet" % "valintaperusteet" % "1.0-SNAPSHOT",
         "fi.vm.sade.sijoittelu" % "sijoittelu-algoritmi-domain" % "1.0-SNAPSHOT",
         "com.google.guava" % "guava" % "15.0",
-        "org.scalaj" %% "scalaj-http" % "0.3.15",
         "fi.vm.sade" %% "scala-security" % "0.1.0-SNAPSHOT"
       ),
       artifactName <<= (name in (Compile, packageWar)) { projectName =>

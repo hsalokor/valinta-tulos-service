@@ -5,7 +5,7 @@ import org.json4s._
 
 class LanguageMapSerializer extends CustomSerializer[LanguageMap](format => (
   {
-    case obj : JObject => obj.extract[LanguageMap](JsonFormats.genericFormats, Manifest.classType(classOf[LanguageMap]))
+    case obj : JObject => obj.extract[LanguageMap](JsonFormats.jsonFormats, Manifest.classType(classOf[LanguageMap]))
   },
   {
     case map: LanguageMap @unchecked =>
