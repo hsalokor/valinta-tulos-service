@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice.config
 import fi.vm.sade.security.ldap.LdapUser
 import fi.vm.sade.security.mock.MockSecurityContext
 import fi.vm.sade.security.{ProductionSecurityContext, SecurityContext}
+import fi.vm.sade.utils.config.{ApplicationSettingsLoader, ConfigTemplateProcessor}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.mongo.{EmbeddedMongo, MongoServer}
@@ -12,6 +13,7 @@ import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 
 object AppConfig extends Logging {
   def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
+  private implicit val settingsParser = ApplicationSettingsParser
 
   def fromOptionalString(profile: Option[String]) = {
     fromString(profile.getOrElse(getProfileProperty))
@@ -110,7 +112,7 @@ object AppConfig extends Logging {
 
   trait ExternalProps {
     def configFile = System.getProperty("user.home") + "/oph-configuration/valinta-tulos-service.properties"
-    lazy val settings = ApplicationSettings.loadSettings(configFile)
+    lazy val settings = ApplicationSettingsLoader.loadSettings(configFile)
   }
 
   trait ExampleTemplatedProps extends AppConfig with TemplatedProps {
@@ -120,7 +122,7 @@ object AppConfig extends Logging {
   trait TemplatedProps {
     logger.info("Using template variables from " + templateAttributesFile)
     lazy val settings = loadSettings
-    def loadSettings = ConfigTemplateProcessor.createSettings(templateAttributesFile)
+    def loadSettings = ConfigTemplateProcessor.createSettings("valinta-tulos-service", templateAttributesFile, ApplicationSettingsParser)
     def templateAttributesFile: String
   }
 
@@ -168,4 +170,3 @@ object AppConfig extends Logging {
   }
 }
 
-case class MongoConfig(url: String, dbname: String)

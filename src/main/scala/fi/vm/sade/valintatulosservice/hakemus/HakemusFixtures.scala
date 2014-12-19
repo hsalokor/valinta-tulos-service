@@ -9,8 +9,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.mongodb.{DBObject, BasicDBObject}
 import com.mongodb.util.JSON
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
+import fi.vm.sade.utils.config.MongoConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.config.MongoConfig
 import fi.vm.sade.valintatulosservice.domain.Hakutoive
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import org.bson.types.ObjectId

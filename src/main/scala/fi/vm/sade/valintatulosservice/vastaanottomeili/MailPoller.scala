@@ -1,8 +1,8 @@
 package fi.vm.sade.valintatulosservice.vastaanottomeili
 
 import com.mongodb.casbah.Imports._
+import fi.vm.sade.utils.config.MongoConfig
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.config.MongoConfig
 import fi.vm.sade.valintatulosservice.domain.{Valintatila, Hakemuksentulos, Hakutoiveentulos, Vastaanotettavuustila}
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
