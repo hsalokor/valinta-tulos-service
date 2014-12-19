@@ -122,7 +122,7 @@ object AppConfig extends Logging {
   trait TemplatedProps {
     logger.info("Using template variables from " + templateAttributesFile)
     lazy val settings = loadSettings
-    def loadSettings = ConfigTemplateProcessor.createSettings("valinta-tulos-service", templateAttributesFile, ApplicationSettingsParser)
+    def loadSettings = ConfigTemplateProcessor.createSettings("valinta-tulos-service", templateAttributesFile)
     def templateAttributesFile: String
   }
 
