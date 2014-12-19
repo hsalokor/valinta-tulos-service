@@ -4,9 +4,10 @@ import fi.vm.sade.security.ldap.LdapUser
 import fi.vm.sade.security.mock.MockSecurityContext
 import fi.vm.sade.security.{ProductionSecurityContext, SecurityContext}
 import fi.vm.sade.utils.config.{ApplicationSettingsLoader, ConfigTemplateProcessor}
+import fi.vm.sade.utils.mongo.{EmbeddedMongo, MongoServer}
 import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.utils.tcp.PortFromSystemPropertyOrFindFree
 import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
-import fi.vm.sade.valintatulosservice.mongo.{EmbeddedMongo, MongoServer}
 import fi.vm.sade.valintatulosservice.ohjausparametrit._
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoitteluSpringContext}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
@@ -14,6 +15,7 @@ import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 object AppConfig extends Logging {
   def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
   private implicit val settingsParser = ApplicationSettingsParser
+  private val embeddedMongoPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.embeddedmongo.port")
 
   def fromOptionalString(profile: Option[String]) = {
     fromString(profile.getOrElse(getProfileProperty))
@@ -64,7 +66,7 @@ object AppConfig extends Logging {
     private var mongo: Option[MongoServer] = None
 
     override def start {
-      mongo = EmbeddedMongo.start
+      mongo = EmbeddedMongo.start(embeddedMongoPortChooser)
       try {
         importFixturesToSijoitteluDatabase
         importFixturesToHakemusDatabase
@@ -89,8 +91,8 @@ object AppConfig extends Logging {
     }
 
     override lazy val settings = loadSettings
-      .withOverride(("hakemus.mongodb.uri", "mongodb://localhost:" + EmbeddedMongo.port))
-      .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + EmbeddedMongo.port))
+      .withOverride(("hakemus.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
+      .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
       .withOverride(("sijoittelu-service.mongodb.dbname", "sijoittelu"))
   }
 
@@ -100,7 +102,7 @@ object AppConfig extends Logging {
   class IT_externalHakemus extends IT {
     override lazy val settings = loadSettings
       .withOverride("hakemus.mongodb.uri", "mongodb://localhost:" + System.getProperty("hakemus.embeddedmongo.port", "28018"))
-      .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + EmbeddedMongo.port))
+      .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
       .withOverride(("sijoittelu-service.mongodb.dbname", "sijoittelu"))
     
     override def importFixturesToHakemusDatabase { /* Don't import initial fixtures, as database is considered external */ }

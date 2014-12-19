@@ -50,7 +50,6 @@ object ValintaTulosServiceBuild extends Build {
         "org.springframework" % "spring-jms" % SpringVersion, // <- patch for spring-core-3.1.3 transitive dep
         "org.springframework" % "spring-core" % SpringVersion,
         "org.springframework" % "spring-context" % SpringVersion,
-        "de.flapdoodle.embed" % "de.flapdoodle.embed.mongo" % "1.46.0",
         "org.mongodb" %% "casbah" % "2.7.3",
         "org.mongodb.morphia" % "morphia" % "0.108",
         "fi.vm.sade.sijoittelu" % "sijoittelu-tulos-service" % "1.0-SNAPSHOT" excludeAll(
