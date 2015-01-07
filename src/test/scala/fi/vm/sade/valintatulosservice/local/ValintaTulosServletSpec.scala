@@ -172,14 +172,14 @@ class ValintaTulosServletSpec extends ServletSpecification {
 
   def vastaanota[T](tila: String, hakukohde: String = "1.2.246.562.5.72607738902")(block: => T) = {
     postJSON("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/vastaanota",
-      ("""{"hakukohdeOid":""""+hakukohde+"""","tila":""""+tila+"""","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""")) {
+      """{"hakukohdeOid":""""+hakukohde+"""","tila":""""+tila+"""","muokkaaja":"Teppo Testi","selite":"Testimuokkaus"}""") {
       block
     }
   }
 
   def ilmoittaudu[T](tila: String, juuri:String = "haku", headers: Map[String, String] = Map.empty)(block: => T) = {
     postJSON(juuri + "/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369/ilmoittaudu",
-      ("""{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":""""+tila+"""","muokkaaja":"OILI","selite":"Testimuokkaus"}"""), headers) {
+      """{"hakukohdeOid":"1.2.246.562.5.72607738902","tila":""""+tila+"""","muokkaaja":"OILI","selite":"Testimuokkaus"}""", headers) {
       block
     }
   }
