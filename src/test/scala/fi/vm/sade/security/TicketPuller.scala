@@ -1,6 +1,6 @@
 package fi.vm.sade.security
 
-import fi.vm.sade.security.cas.CasClient
+import fi.vm.sade.utils.cas.CasClient
 import fi.vm.sade.valintatulosservice.SecuritySettings
 import fi.vm.sade.valintatulosservice.config.AppConfig.LocalTestingWithTemplatedVars
 

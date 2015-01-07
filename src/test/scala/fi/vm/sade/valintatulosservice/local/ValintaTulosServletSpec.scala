@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.local
 
-import fi.vm.sade.security.cas.CasTicketRequest
+import fi.vm.sade.utils.cas.CasTicketRequest
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures

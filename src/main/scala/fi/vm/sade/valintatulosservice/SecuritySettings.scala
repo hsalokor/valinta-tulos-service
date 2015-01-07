@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice
 
 import com.typesafe.config.Config
-import fi.vm.sade.security.cas.{CasConfig, CasTicketRequest}
+import fi.vm.sade.utils.cas.{CasConfig, CasTicketRequest}
 import fi.vm.sade.security.ldap.LdapConfig
 
 class SecuritySettings(c: Config) {

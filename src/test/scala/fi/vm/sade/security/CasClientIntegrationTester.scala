@@ -1,6 +1,6 @@
 package fi.vm.sade.security
 
-import fi.vm.sade.security.cas._
+import fi.vm.sade.utils.cas._
 import fi.vm.sade.valintatulosservice.config.AppConfig.LocalTestingWithTemplatedVars
 import org.specs2.mutable.Specification
 
