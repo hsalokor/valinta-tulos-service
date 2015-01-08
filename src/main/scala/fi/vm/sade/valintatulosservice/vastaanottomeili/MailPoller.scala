@@ -56,12 +56,12 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
     }
 
     val result = if (candidates.size > 0 && mailables.size < limit) {
-      logger.info("fetching more mailables")
+      logger.debug("fetching more mailables")
       mailables ++ pollForMailables(hakuOids, limit = limit - mailables.size, excludeHakemusOids = excludeHakemusOids ++ mailables.map(_.hakemusOid).toSet)
     } else {
       mailables
     }
-    logger.info("pollForMailables found " + result.size + " results, " + result.count(_.anyMailToBeSent) + " actionable")
+    logger.debug("pollForMailables found " + result.size + " results, " + result.count(_.anyMailToBeSent) + " actionable")
     result
   }
 
