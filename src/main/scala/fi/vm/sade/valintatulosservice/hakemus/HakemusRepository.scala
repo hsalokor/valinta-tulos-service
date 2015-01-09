@@ -63,18 +63,16 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
       hakemusOid <- data.getAs[String](DatabaseKeys.oidKey)
       henkiloOid <- data.getAs[String](DatabaseKeys.personOidKey)
       answers <- data.getAs[MongoDBObject](DatabaseKeys.answersKey)
-      lisatiedot <- {
-        answers.expand[String](DatabaseKeys.asiointiKieliKey)
-      }
+      asiointikieli = parseAsiointikieli(answers.expand[String](DatabaseKeys.asiointiKieliKey))
       hakutoiveet <- answers.getAs[MongoDBObject](DatabaseKeys.hakutoiveetKey)
       henkilotiedot <- answers.getAs[MongoDBObject]("henkilotiedot")
     } yield {
-      Hakemus(hakemusOid, henkiloOid, parseAsiointikieli(""), parseHakutoiveet(hakutoiveet), parseHenkilotiedot(henkilotiedot))
+      Hakemus(hakemusOid, henkiloOid, asiointikieli, parseHakutoiveet(hakutoiveet), parseHenkilotiedot(henkilotiedot))
     }
   }
 
-  def parseAsiointikieli(asiointikieli: String): String = {
-    kieliKoodit.getOrElse(asiointikieli, "FI")
+  def parseAsiointikieli(asiointikieli: Option[String]): String = {
+    kieliKoodit.getOrElse(asiointikieli.getOrElse(""), "FI")
   }
 
   def parseHenkilotiedot(data: Imports.MongoDBObject): Henkilotiedot = {
