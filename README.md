@@ -17,9 +17,13 @@ Eclipseen:
 
 `./sbt eclipse`
 
-... tai IDEAan:
+... tai IDEA 13:
 
 `./sbt 'gen-idea no-sbt-build-module'`
+
+... tai IDEA 14:
+
+File > Import project (SBT)
 
 ### Yksikkötestit
 
