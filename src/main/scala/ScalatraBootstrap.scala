@@ -38,7 +38,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new SwaggerServlet, "/swagger/*")
 
     if (appConfig.isInstanceOf[IT] || appConfig.isInstanceOf[Dev])
-      context.mount(new TestUtilServlet, "/util")
+      context.mount(new FixtureServlet, "/util")
   }
 
   override def destroy(context: ServletContext) = {

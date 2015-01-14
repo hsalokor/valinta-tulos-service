@@ -10,7 +10,7 @@ import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
 
-class TestUtilServlet (implicit val appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats {
+class FixtureServlet (implicit val appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats {
   options("/fixtures/apply") {
     response.addHeader("Access-Control-Allow-Origin", "*")
     response.addHeader("Access-Control-Allow-Methods", "PUT")
