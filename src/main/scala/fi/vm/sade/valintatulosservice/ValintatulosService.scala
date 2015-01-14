@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
+import fi.vm.sade.utils.Timer
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
@@ -39,10 +40,8 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
   }
 
   def hakemustenTulos(hakuOid: String): Option[Seq[Hakemuksentulos]] = {
-    logger.info("Waiting to start fetching hakemusten tulos for haku: " + hakuOid)
-    try {
+    Timer.timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) {
       HakemustenTulosHakuLock.synchronized {
-        logger.info("Start fetching hakemusten tulos for haku: " + hakuOid)
         for (
           haku <- hakuService.getHaku(hakuOid)
         ) yield {
@@ -56,9 +55,6 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
           }
         }
       }
-    }
-    finally {
-      logger.info("Finished fetching hakemusten tulos for haku: " + hakuOid)
     }
   }
 
