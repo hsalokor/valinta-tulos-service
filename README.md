@@ -31,7 +31,7 @@ File > Import project (SBT)
 
 testit on jaettu ympäristöjen mukaan alipaketteihin.
 Esim. jos haluat ajaa vain lokaali testit niin aja:
-`sbt "testOnly fi.vm.sade.valintatulosservice.local.*"`
+`./sbt "testOnly fi.vm.sade.valintatulosservice.local.*"`
 
 ### War-paketointi
 
