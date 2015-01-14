@@ -40,7 +40,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
   }
 
   def hakemustenTulos(hakuOid: String): Option[Seq[Hakemuksentulos]] = {
-    Timer.timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) {
+    Timer.timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
       HakemustenTulosHakuLock.synchronized {
         for (
           haku <- hakuService.getHaku(hakuOid)
@@ -55,7 +55,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
           }
         }
       }
-    }
+    )
   }
 
   private def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(h:Hakemus)(implicit appConfig: AppConfig) = {
