@@ -24,6 +24,6 @@ trait ITSetup {
     OhjausparametritFixtures.activeFixture = ohjausparametritFixture
     HakuFixtures.useFixture(hakuFixture)
     hakemusFixtureImporter.clear
-    hakemusFixtures.foreach(hakemusFixtureImporter.importFixture(_))
+    hakemusFixtures.foreach(hakemusFixtureImporter.importFixture)
   }
 }
