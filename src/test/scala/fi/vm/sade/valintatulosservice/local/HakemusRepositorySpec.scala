@@ -33,5 +33,15 @@ class HakemusRepositorySpec extends ITSpecification {
         Henkilotiedot(Some("Teppo"), None))
       )
     }
+
+    "palauttaa yksittäisen Hakemuksen jolla on eri asiointikieli" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakemusFixtures = HakemusFixtures.defaultFixtures)
+
+      val hakutoiveet = repo.findHakemus("1.2.246.562.11.00000878229-SE")
+      hakutoiveet must_== Some(Hakemus("1.2.246.562.11.00000878229-SE", "1.2.246.562.24.14229104472", "SE",
+        List(Hakutoive("1.2.246.562.20.83060182827", "1.2.246.562.10.83122281013"), Hakutoive("1.2.246.562.10.83122281012", "1.2.246.562.10.83122281012")),
+        Henkilotiedot(Some("Teppo"), None)
+      ))
+    }
   }
 }
