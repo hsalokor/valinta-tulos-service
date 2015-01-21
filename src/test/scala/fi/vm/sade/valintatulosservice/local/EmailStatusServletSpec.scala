@@ -5,10 +5,19 @@ import fi.vm.sade.valintatulosservice.{ServletSpecification, TimeWarp}
 import org.json4s.jackson.Serialization
 
 class EmailStatusServletSpec extends ServletSpecification with TimeWarp {
-
   "GET /vastaanottoposti" should {
-    "Tyhjä lista lähtettävistä sähköposteista" in {
-      useFixture("hylatty-ei-valintatulosta.json")
+    "Lista lähetettävistä sähköposteista" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakemusFixtures = List("00000441369"))
+
+      withFixedDateTime("10.10.2014 12:00") {
+        get("vastaanottoposti") {
+          status must_== 200
+          body must_== """[{"hakemusOid":"1.2.246.562.11.00000441369","hakijaOid":"1.2.246.562.24.14229104472","asiointikieli":"FI","etunimi":"Teppo","email":"teppo@testaaja.fi","deadline":"2100-01-10T10:00:00Z","hakukohteet":["1.2.246.562.5.72607738902"]}]"""
+        }
+      }
+    }
+    "Tyhjä lista lähetettävistä sähköposteista, kun ei lähetettävää" in {
+      useFixture("hylatty-ei-valintatulosta.json", hakemusFixtures = List("00000441369"))
       withFixedDateTime("10.10.2014 12:00") {
         get("vastaanottoposti") {
           status must_== 200
@@ -16,17 +25,25 @@ class EmailStatusServletSpec extends ServletSpecification with TimeWarp {
         }
       }
     }
-  }
 
-  "GET /vastaanottoposti" should {
-    "Lista lähtettävistä sähköposteista" in {
-      useFixture("hyvaksytty-kesken-julkaistavissa.json")
+    "Kun email-osoite puuttuu" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakemusFixtures = List("00000441369-no-email"))
 
       withFixedDateTime("10.10.2014 12:00") {
         get("vastaanottoposti") {
           status must_== 200
+          body must_== """[]"""
+        }
+      }
+    }
 
-          body must_== """[{"hakemusOid":"1.2.246.562.11.00000441369","hakijaOid":"1.2.246.562.24.14229104472","asiointikieli":"FI","etunimi":"Teppo","email":"teppo@testaaja.fi","deadline":"2100-01-10T10:00:00Z","hakukohteet":["1.2.246.562.5.72607738902"]}]"""
+    "Kun henkilötunnus puuttuu" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakemusFixtures = List("00000441369-no-hetu"))
+
+      withFixedDateTime("10.10.2014 12:00") {
+        get("vastaanottoposti") {
+          status must_== 200
+          body must_== """[]"""
         }
       }
     }

@@ -76,7 +76,7 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
   }
 
   def parseHenkilotiedot(data: Imports.MongoDBObject): Henkilotiedot = {
-    Henkilotiedot(emptyStringToNone(data.getAs[String]("Kutsumanimi")), emptyStringToNone(data.getAs[String]("Sähköposti")))
+    Henkilotiedot(emptyStringToNone(data.getAs[String]("Kutsumanimi")), emptyStringToNone(data.getAs[String]("Sähköposti")), data.getAs[String]("Henkilotunnus").isDefined)
   }
 
   def parseHakutoiveet(data: Imports.MongoDBObject): List[Hakutoive] = {

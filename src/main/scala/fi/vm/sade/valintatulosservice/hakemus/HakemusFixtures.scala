@@ -20,6 +20,7 @@ import org.springframework.core.io.{ClassPathResource, Resource}
 
 class HakemusFixtures(config: MongoConfig) {
   lazy val db = MongoFactory.createDB(config)
+  private val templateObject: BasicDBObject = MongoMockData.readJson("fixtures/hakemus/hakemus-template.json").asInstanceOf[BasicDBObject]
 
   if (config.url.indexOf("localhost") < 0)
     throw new IllegalArgumentException("HakemusFixtureImporter can only be used with IT profile")
@@ -39,9 +40,6 @@ class HakemusFixtures(config: MongoConfig) {
     MongoMockData.insertData(db.underlying, MongoMockData.readJson(filename))
     this
   }
-
-  val filename = "fixtures/hakemus/hakemus-template.json"
-  val templateObject: BasicDBObject = MongoMockData.readJson(filename).asInstanceOf[BasicDBObject]
 
   def importTemplateFixture(hakemus: HakemusFixture) = {
     templateObject.put("_id", new ObjectId())
