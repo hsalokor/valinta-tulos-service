@@ -48,7 +48,7 @@ object HakuFixtures extends HakuService with JsonHakuService {
 
   override def kaikkiJulkaistutHaut = {
     hakuOids.flatMap { hakuOid =>
-      toHaut(getHakuFixture(hakuOid).toList).map(_.copy(oid = hakuOid))
+      getHakuFixture(hakuOid).toList.filter {_.julkaistu}.map(toHaku(_).copy(oid = hakuOid))
     }
   }
 }

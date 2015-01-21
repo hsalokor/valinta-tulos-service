@@ -4,6 +4,7 @@ import fi.vm.sade.utils.http.DefaultHttpRequest
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
+import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures._
 import org.joda.time.DateTime
 import org.json4s.jackson.JsonMethods._
 
@@ -38,10 +39,6 @@ protected trait JsonHakuService {
   import org.json4s._
   implicit val formats = DefaultFormats
 
-  protected def toHaut(haut: List[HakuTarjonnassa]) = {
-    haut.filter{haku => haku.tila == "JULKAISTU" && haku.jarjestelmanHakulomake == true}.map(toHaku(_))
-  }
-
   protected def toHaku(haku: HakuTarjonnassa) = {
     val korkeakoulu: Boolean = haku.kohdejoukkoUri.startsWith("haunkohdejoukko_12#")
     val yhteishaku: Boolean = haku.hakutapaUri.startsWith("hakutapa_01#")
@@ -58,8 +55,11 @@ class CachedHakuService(wrapperService: HakuService) extends HakuService {
 }
 
 private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean,
-                                   parentHakuOid: Option[String], sisaltyvatHaut: Set[String], tila: String, jarjestelmanHakulomake: Boolean,
+                                   parentHakuOid: Option[String], sisaltyvatHaut: Set[String], tila: String,
                                    hakuaikas: List[Hakuaika]) {
+  def julkaistu = {
+    tila == "JULKAISTU"
+  }
 }
 
 class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHakuService with Logging {
@@ -82,7 +82,7 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
     val url = appConfig.settings.tarjontaUrl + "/rest/v1/haku/find?addHakuKohdes=false"
     fetch(url) { response =>
       val haut = (parse(response) \ "result").extract[List[HakuTarjonnassa]]
-      toHaut(haut)
+      haut.filter(_.julkaistu).map(toHaku(_))
     }.getOrElse(Nil)
   }
 
