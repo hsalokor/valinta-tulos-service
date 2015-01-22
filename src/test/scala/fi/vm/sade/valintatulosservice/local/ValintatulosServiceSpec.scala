@@ -139,13 +139,21 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           useFixture("hylatty-jonot-valmiit.json", hakuFixture = hakuFixture)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          hakemuksenTulos.hakijaOid must_== "1.2.246.562.24.14229104472"
         }
 
         "koko hakemus puuttuu sijoittelusta" in {
           "näytetään tulos \"kesken\"" in {
             sijoitteluFixtures.clearFixtures
             checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+            hakemuksenTulos.hakijaOid must_== "1.2.246.562.24.14229104472"
           }
+        }
+
+        "hakijaOid puuttuu sijoittelusta" in {
+          useFixture("hakija-oid-puuttuu.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+          hakemuksenTulos.hakijaOid must_== "1.2.246.562.24.14229104472"
         }
       }
 

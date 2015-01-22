@@ -9,7 +9,7 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 
 case class HakemuksenSijoitteluntulos (
   hakemusOid: String,
-  hakijaOid: String,
+  hakijaOid: Option[String],
   hakutoiveet: List[HakutoiveenSijoitteluntulos]
 )
 case class HakutoiveenSijoitteluntulos(

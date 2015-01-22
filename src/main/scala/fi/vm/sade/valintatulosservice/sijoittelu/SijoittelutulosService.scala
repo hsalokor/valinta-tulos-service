@@ -10,6 +10,7 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
 import fi.vm.sade.valintatulosservice.tarjonta.Haku
+import org.apache.commons.lang.StringUtils
 import org.joda.time.DateTime
 
 class SijoittelutulosService(raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService) {
@@ -68,7 +69,7 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
       )
     }
 
-    HakemuksenSijoitteluntulos(hakija.getHakemusOid, hakija.getHakijaOid, hakutoiveidenYhteenvedot)
+    HakemuksenSijoitteluntulos(hakija.getHakemusOid, Option(StringUtils.trimToNull(hakija.getHakijaOid)), hakutoiveidenYhteenvedot)
   }
 
   private def laskeVastaanotettavuustila(valintatila: Valintatila, vastaanottotila: Vastaanottotila): Vastaanotettavuustila.Value = {
