@@ -140,6 +140,13 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
         }
+
+        "koko hakemus puuttuu sijoittelusta" in {
+          "näytetään tulos \"kesken\"" in {
+            sijoitteluFixtures.clearFixtures
+            checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          }
+        }
       }
 
       "hyväksytty" in {

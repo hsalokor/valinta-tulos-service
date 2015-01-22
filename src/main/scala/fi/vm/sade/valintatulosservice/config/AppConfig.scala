@@ -78,7 +78,7 @@ object AppConfig extends Logging {
     }
 
     protected def importFixturesToSijoitteluDatabase {
-      SijoitteluFixtures.importFixture(sijoitteluContext.database, "hyvaksytty-kesken-julkaistavissa.json")
+      SijoitteluFixtures(sijoitteluContext.database).importFixture("hyvaksytty-kesken-julkaistavissa.json")
     }
 
     protected def importFixturesToHakemusDatabase {
