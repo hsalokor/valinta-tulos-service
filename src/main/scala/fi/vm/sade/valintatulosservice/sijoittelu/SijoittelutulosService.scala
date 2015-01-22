@@ -25,15 +25,23 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
     ) yield hakemuksenYhteenveto(hakija, aikataulu)
   }
 
-  def hakemustenTulos(haku: Haku) = {
-    val aikataulu = ohjausparametritService.ohjausparametrit(haku.oid).flatMap(_.vastaanottoaikataulu)
+  def hakemustenTulos(hakuOid: String) = {
+    val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
 
     for (
-      sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid)).toList;
+      sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)).toList;
       hakija <- Option(raportointiService.hakemukset(sijoitteluAjo, null, null, null, null, null, null)).map(_.getResults.toList).getOrElse(Nil)
     ) yield hakemuksenYhteenveto(hakija, aikataulu)
   }
 
+  def hakemustenTulos(hakuOid: String, hakukohdeOid: String) = {
+    val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
+
+    for (
+      sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)).toList;
+      hakija <- Option(raportointiService.hakemukset(sijoitteluAjo, null, null, null, List(hakukohdeOid), null, null)).map(_.getResults.toList).getOrElse(Nil)
+    ) yield hakemuksenYhteenveto(hakija, aikataulu)
+  }
 
   private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu]): HakemuksenSijoitteluntulos = {
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>

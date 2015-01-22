@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice.hakemus
 
+import com.mongodb.BasicDBObjectBuilder
 import fi.vm.sade.utils.slf4j.Logging
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
@@ -12,6 +13,12 @@ object DatabaseKeys {
   val personOidKey: String = "personOid"
   val applicationSystemIdKey: String = "applicationSystemId"
   val hakutoiveetPath: String = "answers.hakutoiveet"
+  val hakutoive1Path: String = hakutoiveetPath + ".preference1-Koulutus-id"
+  val hakutoive2Path: String = hakutoiveetPath + ".preference2-Koulutus-id"
+  val hakutoive3Path: String = hakutoiveetPath + ".preference3-Koulutus-id"
+  val hakutoive4Path: String = hakutoiveetPath + ".preference4-Koulutus-id"
+  val hakutoive5Path: String = hakutoiveetPath + ".preference5-Koulutus-id"
+  val hakutoive6Path: String = hakutoiveetPath + ".preference6-Koulutus-id"
   val henkilotiedotPath: String = "answers.henkilotiedot"
   val answersKey: String = "answers"
   val hakutoiveetKey: String = "hakutoiveet"
@@ -56,6 +63,27 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
       hakemus <- cursor
       h <- parseHakemus(hakemus)
     } yield { h }).toList
+  }
+
+  def findHakemuksetByHakukohde(hakuOid: String, hakukohdeOid: String): List[Hakemus] = {
+    val query = MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid,
+      "$or" -> List(
+        MongoDBObject(DatabaseKeys.hakutoive1Path -> hakukohdeOid),
+        MongoDBObject(DatabaseKeys.hakutoive2Path -> hakukohdeOid),
+          MongoDBObject(DatabaseKeys.hakutoive3Path -> hakukohdeOid),
+            MongoDBObject(DatabaseKeys.hakutoive4Path -> hakukohdeOid),
+              MongoDBObject(DatabaseKeys.hakutoive5Path -> hakukohdeOid),
+                MongoDBObject(DatabaseKeys.hakutoive6Path -> hakukohdeOid)))
+
+    val cursor = application.find(query, fields)
+
+    val hkms: List[Hakemus] =
+    (for {
+      hakemus <- cursor
+      h <- parseHakemus(hakemus)
+    } yield { h }).toList
+
+    return hkms;
   }
 
   def parseHakemus(data: Imports.MongoDBObject): Option[Hakemus] = {

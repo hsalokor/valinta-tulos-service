@@ -46,7 +46,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
           haku <- hakuService.getHaku(hakuOid)
         ) yield {
           val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-          val sijoitteluTulokset = sijoittelutulosService.hakemustenTulos(haku).groupBy(_.hakemusOid).mapValues(_.head)
+          val sijoitteluTulokset = sijoittelutulosService.hakemustenTulos(hakuOid).groupBy(_.hakemusOid).mapValues(_.head)
           for (
             hakemus: Hakemus <- hakemusRepository.findHakemukset(hakuOid)
           ) yield {
@@ -57,7 +57,24 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       }
     )
   }
-
+  def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String): Option[Seq[Hakemuksentulos]] = {
+    Timer.timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
+      HakemustenTulosHakuLock.synchronized {
+        for (
+           haku <- hakuService.getHaku(hakuOid)
+        ) yield {
+          val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
+          val sijoitteluTulokset = sijoittelutulosService.hakemustenTulos(hakuOid,hakukohdeOid).groupBy(_.hakemusOid).mapValues(_.head)
+          for (
+            hakemus: Hakemus <- hakemusRepository.findHakemuksetByHakukohde(hakuOid,hakukohdeOid)
+          ) yield {
+            val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
+            julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
+          }
+        }
+      }
+    )
+  }
   private def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(h:Hakemus)(implicit appConfig: AppConfig) = {
     val tulokset = h.toiveet.map { toive =>
       sijoitteluTulos.hakutoiveet.find { t =>

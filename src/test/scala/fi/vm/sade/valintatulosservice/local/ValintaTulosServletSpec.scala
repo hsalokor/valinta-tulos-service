@@ -9,6 +9,26 @@ import org.joda.time.DateTime
 import org.json4s.jackson.Serialization
 
 class ValintaTulosServletSpec extends ServletSpecification {
+  "GET /haku/:hakuOid/hakukohde/:hakukohdeOid" should {
+    "palauttaa yksittäisen hakukohteen valintatulokset" in {
+      SijoitteluFixtures(appConfig.sijoitteluContext.database).importFixture("hyvaksytty-kesken-julkaistavissa.json", true)
+      get("haku/1.2.246.562.5.2013080813081926341928/hakukohde/1.2.246.562.5.72607738902") {
+        status must_== 200
+        body must_== """[{"hakuOid":"1.2.246.562.5.2013080813081926341928","hakemusOid":"1.2.246.562.11.00000441369","hakijaOid":"1.2.246.562.24.14229104472","aikataulu":{"vastaanottoEnd":"2100-01-10T10:00:00Z","vastaanottoBufferDays":14},"hakutoiveet":[{"hakukohdeOid":"1.2.246.562.5.72607738902","tarjoajaOid":"1.2.246.562.10.591352080610","valintatapajonoOid":"14090336922663576781797489829886","valintatila":"HYVAKSYTTY","vastaanottotila":"KESKEN","ilmoittautumistila":{"ilmoittautumisaika":{"loppu":"2100-01-10T21:59:59Z"},"ilmoittautumistapa":{"nimi":{"fi":"Oili","sv":"Oili","en":"Oili"},"url":"/oili/"},"ilmoittautumistila":"EI_TEHTY","ilmoittauduttavissa":false},"vastaanotettavuustila":"VASTAANOTETTAVISSA_SITOVASTI","vastaanottoDeadline":"2100-01-10T10:00:00Z","viimeisinHakemuksenTilanMuutos":"2014-08-26T15:12:40Z","viimeisinValintatuloksenMuutos":"2014-08-26T16:05:23Z","jonosija":1,"varasijojaKaytetaanAlkaen":"2014-08-26T16:05:23Z","varasijojaTaytetaanAsti":"2014-08-26T16:05:23Z","julkaistavissa":true,"tilanKuvaukset":{},"pisteet":4.0},{"hakukohdeOid":"1.2.246.562.5.16303028779","tarjoajaOid":"1.2.246.562.10.455978782510","valintatapajonoOid":"","valintatila":"PERUUNTUNUT","vastaanottotila":"KESKEN","ilmoittautumistila":{"ilmoittautumisaika":{"loppu":"2100-01-10T21:59:59Z"},"ilmoittautumistapa":{"nimi":{"fi":"Oili","sv":"Oili","en":"Oili"},"url":"/oili/"},"ilmoittautumistila":"EI_TEHTY","ilmoittauduttavissa":false},"vastaanotettavuustila":"EI_VASTAANOTETTAVISSA","julkaistavissa":true,"tilanKuvaukset":{}}]}]"""
+      }
+    }
+
+    "kun hakukohdetta ei löydy" in {
+      "404" in {
+        HakuFixtures.useFixture("notfound")
+        get("haku/1.2.246.562.5.2013080813081926341928/hakukohde/1.2.246.562.5.foo") {
+          status must_== 404
+          body must_== """{"error":"Not found"}"""
+        }
+      }
+    }
+  }
+
   "GET /haku/:hakuId/hakemus/:hakemusId" should {
     "palauttaa valintatulokset" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json")
@@ -39,7 +59,6 @@ class ValintaTulosServletSpec extends ServletSpecification {
       }
     }
   }
-
   "GET /haku/:hakuOid" should {
     "palauttaa koko haun valintatulokset" in {
       SijoitteluFixtures(appConfig.sijoitteluContext.database).importFixture("hyvaksytty-kesken-julkaistavissa.json", true)
@@ -59,6 +78,7 @@ class ValintaTulosServletSpec extends ServletSpecification {
       }
     }
   }
+
 
   "POST /haku/:hakuId/hakemus/:hakemusId/ilmoittaudu" should {
     "merkitsee ilmoittautuneeksi" in {

@@ -57,7 +57,22 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
       case _ => NotFound("error" -> "Not found")
     }
   }
-
+  get("/:hakuOid/hakukohde/:hakukohdeOid", operation(getHakukohteenHakemuksetSwagger)) {
+    contentType = formats("json")
+    val hakuOid = params("hakuOid")
+    val hakukohdeOid = params("hakukohdeOid")
+    valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid) match {
+      case Some(tulos) => tulos
+      case _ => NotFound("error" -> "Not found")
+    }
+  }
+  lazy val getHakukohteenHakemuksetSwagger: OperationBuilder = (apiOperation[Unit]("getHakukohteenHakemukset")
+    summary "Hae hakukohteen kaikkien hakemusten tulokset."
+    notes "Palauttaa tyyppiä Seq[Hakemuksentulos]. Esim:\n" +
+    pretty(Extraction.decompose(Seq(exampleHakemuksenTulos)))
+    parameter pathParam[String]("hakuOid").description("Haun oid")
+    parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
+  )
   val postVastaanottoSwagger: OperationBuilder = (apiOperation[Unit]("getHakemus")
     summary "Tallenna hakukohteelle uusi vastaanottotila"
     // Real body param type cannot be used because of unsupported scala enumerations: https://github.com/scalatra/scalatra/issues/343
