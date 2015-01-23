@@ -38,7 +38,7 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
     DatabaseKeys.lisatiedotPath -> 1
   )
 
-  val kieliKoodit = Map(("suomi", "FI"), ("ruotsi", "SE"), ("englanti", "EN"))
+  val kieliKoodit = Map(("suomi", "FI"), ("ruotsi", "SV"), ("englanti", "EN"))
 
   def findHakemukset(hakuOid: String): Seq[Hakemus] = {
     val query = MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid)
