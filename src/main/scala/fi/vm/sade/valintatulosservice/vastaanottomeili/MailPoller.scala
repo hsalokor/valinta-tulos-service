@@ -39,18 +39,18 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
 
   def pollForMailables(hakuOids: List[String] = etsiHaut, limit: Int = this.limit, excludeHakemusOids: Set[String] = Set.empty): List[HakemusMailStatus] = {
     val candidates = pollForCandidates(hakuOids, limit, excludeHakemusOids)
-    val statii: Set[HakemusMailStatus] = (for {
+    val statii: Set[HakemusMailStatus] = for {
       candidateId <- candidates
       hakemuksenTulos <- fetchHakemuksentulos(candidateId)
     } yield {
       mailStatusFor(hakemuksenTulos)
-    })
+    }
     val mailables = statii.filter(_.anyMailToBeSent).toList
 
     for {
       hakemus <- statii
       hakukohde <- hakemus.hakukohteet
-      if (hakukohde.status == MailStatus.NEVER_MAIL)
+      if hakukohde.status == MailStatus.NEVER_MAIL
     } {
       markAsNonMailable(hakemus, hakukohde)
     }
