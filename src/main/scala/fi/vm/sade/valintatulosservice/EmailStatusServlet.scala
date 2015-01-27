@@ -33,6 +33,7 @@ class EmailStatusServlet(mailPoller: MailPoller, mailDecorator: MailDecorator)(i
 
   post("/", operation(postVastaanottoposti)) {
     val kuitatut = parsedBody.extract[List[LahetysKuittaus]]
+    logger.info("got confirmation for hakemusOids: " + kuitatut.map(_.hakemusOid).mkString(","))
     kuitatut.foreach(mailPoller.markAsSent)
   }
 
