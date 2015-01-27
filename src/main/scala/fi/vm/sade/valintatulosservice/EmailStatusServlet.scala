@@ -33,7 +33,10 @@ class EmailStatusServlet(mailPoller: MailPoller, mailDecorator: MailDecorator)(i
 
   post("/", operation(postVastaanottoposti)) {
     val kuitatut = parsedBody.extract[List[LahetysKuittaus]]
-    logger.info("got confirmation for hakemusOids: " + kuitatut.map(_.hakemusOid).mkString(","))
+    if (kuitatut.isEmpty) {
+      throw new IllegalArgumentException("got confirmation of 0 applications")
+    }
+    logger.info("got confirmation for " + kuitatut.size + " applications: " + kuitatut.map(_.hakemusOid).mkString(","))
     kuitatut.foreach(mailPoller.markAsSent)
   }
 
