@@ -45,20 +45,24 @@ class EmailStatusServletSpec extends ServletSpecification with TimeWarp {
 
   "POST /vastaanottoposti" should {
     "Merkitsee postitukset tehdyiksi" in {
-      get("vastaanottoposti") {
-        val mailsToSend = Serialization.read[List[VastaanotettavuusIlmoitus]](body)
-        val kuittaukset = mailsToSend.map { mail =>
-          LahetysKuittaus(mail.hakemusOid, mail.hakukohteet, List("email"))
-        }
-        postJSON("vastaanottoposti", Serialization.write(kuittaukset)) {
-          status must_== 200
-          verifyEmptyListOfEmails
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakemusFixtures = List("00000441369"))
+      withFixedDateTime("10.10.2014 12:00") {
+        get("vastaanottoposti") {
+          val mailsToSend = Serialization.read[List[VastaanotettavuusIlmoitus]](body)
+          mailsToSend.isEmpty must_== false
+          withFixedDateTime("12.10.2014 12:00") {
+            val kuittaukset = mailsToSend.map { mail =>
+              LahetysKuittaus(mail.hakemusOid, mail.hakukohteet, List("email"))
+            }
+            postJSON("vastaanottoposti", Serialization.write(kuittaukset)) {
+              status must_== 200
+              verifyEmptyListOfEmails
+            }
+          }
         }
       }
     }
   }
-
-
 
   def verifyEmptyListOfEmails = {
     verifyEmails { emails => emails must_== "[]"}
