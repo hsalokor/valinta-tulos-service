@@ -1,15 +1,14 @@
 package fi.vm.sade.valintatulosservice.tarjonta
 
-import fi.vm.sade.utils.http.DefaultHttpRequest
+import fi.vm.sade.utils.http.DefaultHttpClient
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
-import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures._
 import org.joda.time.DateTime
 import org.json4s.jackson.JsonMethods._
 
 import scala.util.Try
-import scalaj.http.{Http, HttpOptions}
+import scalaj.http.HttpOptions
 
 trait HakuService {
   def getHaku(oid: String): Option[Haku]
@@ -87,10 +86,11 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
   }
 
   private def fetch[T](url: String)(parse: (String => T)): Option[T] = {
-    val (responseCode, _, resultString) = new DefaultHttpRequest(Http.get(url)
-      .options(HttpOptions.connTimeout(30000))
-      .option(HttpOptions.readTimeout(120000)))
-      .responseWithHeaders
+    val (responseCode, _, resultString) = DefaultHttpClient.httpGet(
+      url,
+      HttpOptions.connTimeout(30000),
+      HttpOptions.readTimeout(120000)
+    ).responseWithHeaders
 
     responseCode match {
       case 200 => {
