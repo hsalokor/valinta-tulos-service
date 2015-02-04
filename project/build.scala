@@ -78,12 +78,15 @@ object ValintaTulosServiceBuild extends Build {
       artifactPath in (Compile, packageWar) ~= { defaultPath =>
         file("target") / defaultPath.getName
       },
+      testFrameworks := Seq(TestFrameworks.Specs2),
       testOptions in Test := Seq(Tests.Filter(s => s.endsWith("Test") || s.endsWith("Spec"))),
       testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console")
     ) ++ container.deploy(
       "/valinta-tulos-service" -> projectRef
     )
-  ).settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
+  )
+  .disablePlugins(plugins.JUnitXmlReportPlugin)
+  .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
   lazy val projectRef: ProjectReference = project
 
 }
