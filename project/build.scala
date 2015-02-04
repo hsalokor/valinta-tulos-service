@@ -79,7 +79,7 @@ object ValintaTulosServiceBuild extends Build {
         file("target") / defaultPath.getName
       },
       testOptions in Test := Seq(Tests.Filter(s => s.endsWith("Test") || s.endsWith("Spec"))),
-      testOptions in Test += Tests.Argument("junitxml", "console")
+      testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console")
     ) ++ container.deploy(
       "/valinta-tulos-service" -> projectRef
     )
