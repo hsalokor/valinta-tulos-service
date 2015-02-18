@@ -78,6 +78,12 @@ object ValintaTulosServiceBuild extends Build {
           newName + "." + artifact.extension
       },
       credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
+      publishTo := {
+        if (Version.trim.endsWith("SNAPSHOT"))
+          Some("snapshots" at artifactory + "/oph-sade-snapshot-local;build.timestamp=" + new java.util.Date().getTime)
+        else
+          Some("releases" at artifactory + "/oph-sade-release-local")
+      },
       artifactPath in (Compile, packageWar) ~= { defaultPath =>
         file("target") / defaultPath.getName
       },
