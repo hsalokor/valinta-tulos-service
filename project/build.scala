@@ -4,7 +4,6 @@ import sbtbuildinfo.Plugin._
 import com.earldouglas.xsbtwebplugin.WebPlugin
 import com.earldouglas.xsbtwebplugin.WebPlugin.container
 import com.earldouglas.xsbtwebplugin.PluginKeys._
-import aether.Aether._
 
 object ValintaTulosServiceBuild extends Build {
   val Organization = "fi.vm.sade"
@@ -23,7 +22,7 @@ object ValintaTulosServiceBuild extends Build {
   lazy val project = Project (
     "valinta-tulos-service",
     file("."),
-    settings = Defaults.coreDefaultSettings ++ WebPlugin.webSettings ++ buildInfoSettings ++ aetherPublishSettings
+    settings = Defaults.coreDefaultSettings ++ WebPlugin.webSettings ++ buildInfoSettings
       ++ Seq(
       organization := Organization,
       name := Name,
