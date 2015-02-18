@@ -79,7 +79,7 @@ object ValintaTulosServiceBuild extends Build {
       credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
       publishTo := {
         if (Version.trim.endsWith("SNAPSHOT"))
-          Some("snapshots" at artifactory + "/oph-sade-snapshot-local")
+          Some("snapshots" at artifactory + "/oph-sade-snapshot-local;build.timestamp=" + new java.util.Date().getTime)
         else
           Some("releases" at artifactory + "/oph-sade-release-local")
       },
