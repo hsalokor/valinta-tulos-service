@@ -4,6 +4,7 @@ import sbtbuildinfo.Plugin._
 import com.earldouglas.xsbtwebplugin.WebPlugin
 import com.earldouglas.xsbtwebplugin.WebPlugin.container
 import com.earldouglas.xsbtwebplugin.PluginKeys._
+import aether.Aether._
 
 object ValintaTulosServiceBuild extends Build {
   val Organization = "fi.vm.sade"
@@ -22,7 +23,7 @@ object ValintaTulosServiceBuild extends Build {
   lazy val project = Project (
     "valinta-tulos-service",
     file("."),
-    settings = Defaults.coreDefaultSettings ++ WebPlugin.webSettings ++ buildInfoSettings
+    settings = Defaults.coreDefaultSettings ++ WebPlugin.webSettings ++ buildInfoSettings ++ aetherPublishSettings
       ++ Seq(
       organization := Organization,
       name := Name,
@@ -77,12 +78,6 @@ object ValintaTulosServiceBuild extends Build {
           newName + "." + artifact.extension
       },
       credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
-      publishTo := {
-        if (Version.trim.endsWith("SNAPSHOT"))
-          Some("snapshots" at artifactory + "/oph-sade-snapshot-local;build.timestamp=" + new java.util.Date().getTime)
-        else
-          Some("releases" at artifactory + "/oph-sade-release-local")
-      },
       artifactPath in (Compile, packageWar) ~= { defaultPath =>
         file("target") / defaultPath.getName
       },
