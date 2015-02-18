@@ -15,7 +15,7 @@ object ValintaTulosServiceBuild extends Build {
   val ScalatraVersion = "2.3.0.RC3"
   val TomcatVersion = "7.0.22"
   val SpringVersion = "3.2.9.RELEASE"
-  val artifactory = "https://artifactory.oph.ware.fi/artifactory"
+  val artifactory = "https://artifactory.oph.ware.fi/artifactory/"
 
   if(!System.getProperty("java.version").startsWith(JavaVersion)) {
     throw new IllegalStateException("Wrong java version (required " + JavaVersion + "): " + System.getProperty("java.version"))
@@ -80,9 +80,9 @@ object ValintaTulosServiceBuild extends Build {
       credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
       publishTo := {
         if (Version.trim.endsWith("SNAPSHOT"))
-          Some("snapshots" at artifactory + "/oph-sade-snapshot-local;build.timestamp=" + new java.util.Date().getTime)
+          Some("snapshots" at artifactory + "oph-sade-snapshot-local;build.timestamp=" + new java.util.Date().getTime)
         else
-          Some("releases" at artifactory + "/oph-sade-release-local")
+          Some("releases" at artifactory + "oph-sade-release-local")
       },
       artifactPath in (Compile, packageWar) ~= { defaultPath =>
         file("target") / defaultPath.getName
