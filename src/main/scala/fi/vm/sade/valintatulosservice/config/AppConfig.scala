@@ -72,7 +72,6 @@ object AppConfig extends Logging {
         importFixturesToHakemusDatabase
       } catch {
         case e: Exception =>
-          stop
           throw e
       }
     }

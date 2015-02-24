@@ -6,7 +6,7 @@ import org.scalatra._
 class BuildInfoServlet extends ScalatraServlet with Logging {
 
   get("/") {
-    BuildInfo.name
+    "valinta-tulos-service"
   }
 
   notFound {
