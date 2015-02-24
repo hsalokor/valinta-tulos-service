@@ -9,33 +9,15 @@ Rajapinnan kautta voi valintatulosten lisäksi lisätä hakemuksen hakukohteelle
 
 Alkuvaiheessa rajapinta toteutetaan käyttäen tietovarastona sijoittelu-tietokantaa. Tavoitteena on jatkossa siirtää tulokset uuteen yhteiseen tietokantaan.
 
-## SBT-buildi
-
-### Generoi projekti
-
-Eclipseen:
-
-`./sbt eclipse`
-
-... tai IDEA 13:
-
-`./sbt 'gen-idea no-sbt-build-module'`
-
-... tai IDEA 14:
-
-File > Import project (SBT)
+## Maven-buildi
 
 ### Yksikkötestit
 
-`./sbt test`
-
-testit on jaettu ympäristöjen mukaan alipaketteihin.
-Esim. jos haluat ajaa vain lokaali testit niin aja:
-`./sbt "testOnly fi.vm.sade.valintatulosservice.local.*"`
+`mvn test`
 
 ### War-paketointi
 
-`./sbt package`
+`mvn package`
 
 ### Käynnistä IDEAsta/Eclipsestä
 
@@ -49,11 +31,11 @@ externalHakemus-profiililla omatsivut-mocha-testien ajamista varten: `-Dvalintat
 
 IT-profiililla, eli embedded mongo-kannalla
 
-`./sbt "test:run-main fi.vm.sade.valintatulosservice.JettyLauncher" -Dvalintatulos.profile=it`
+`mvn tomcat7:run -Dvalintatulos.profile=it`
 
 externalHakemus-profiililla omatsivut-mocha-testien ajamista varten
 
-`./sbt "test:run-main fi.vm.sade.valintatulosservice.JettyLauncher" -Dvalintatulos.profile=it-externalHakemus`
+`mvn tomcat7:run -Dvalintatulos.profile=it-externalHakemus`
 
 ### Avaa selaimessa
 
