@@ -11,9 +11,15 @@ Alkuvaiheessa rajapinta toteutetaan käyttäen tietovarastona sijoittelu-tietoka
 
 ## Maven-buildi
 
-### Yksikkötestit
+### Testit
+
+Aja kaikki testit
 
 `mvn test`
+
+Aja vain paikalliset testit (ei tuotantoa tai testiympäristöä vasten):
+
+`mvn test '-Dtest=fi.vm.sade.valintatulosservice.local.**'`
 
 ### War-paketointi
 
