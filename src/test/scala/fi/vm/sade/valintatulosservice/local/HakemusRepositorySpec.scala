@@ -3,7 +3,10 @@ package fi.vm.sade.valintatulosservice.local
 import fi.vm.sade.valintatulosservice.ITSpecification
 import fi.vm.sade.valintatulosservice.domain.{Hakemus, Hakutoive, Henkilotiedot}
 import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixtures, HakemusRepository}
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class HakemusRepositorySpec extends ITSpecification {
   val repo = new HakemusRepository()
 

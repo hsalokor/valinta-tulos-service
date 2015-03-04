@@ -3,8 +3,11 @@ package fi.vm.sade.valintatulosservice.local
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.tarjonta.Haku
+import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class HakutoiveenIlmoittautumistilaSpec extends Specification {
   val vastaanottanut = HakutoiveenSijoitteluntulos.kesken("","").copy(vastaanottotila = Vastaanottotila.vastaanottanut)
   "Ilmoittautuminen" should {
