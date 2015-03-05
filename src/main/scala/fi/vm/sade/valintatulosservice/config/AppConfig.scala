@@ -1,5 +1,7 @@
 package fi.vm.sade.valintatulosservice.config
 
+import java.io.File
+import java.net.URL
 import fi.vm.sade.security.ldap.LdapUser
 import fi.vm.sade.security.mock.MockSecurityContext
 import fi.vm.sade.security.{ProductionSecurityContext, SecurityContext}
@@ -47,6 +49,7 @@ object AppConfig extends Logging {
    * Templated profile, uses config template with vars file located by system property valintatulos.vars
    */
   class LocalTestingWithTemplatedVars(val templateAttributesFile: String = System.getProperty("valintatulos.vars")) extends AppConfig with TemplatedProps with CasLdapSecurity {
+    override def templateAttributesURL = new File(templateAttributesFile).toURI.toURL
   }
 
   /**
@@ -117,14 +120,17 @@ object AppConfig extends Logging {
   }
 
   trait ExampleTemplatedProps extends AppConfig with TemplatedProps {
-    def templateAttributesFile = "src/main/resources/oph-configuration/dev-vars.yml"
+    def templateAttributesURL = getClass.getResource("/oph-configuration/dev-vars.yml")
   }
 
   trait TemplatedProps {
-    logger.info("Using template variables from " + templateAttributesFile)
+    logger.info("Using template variables from " + templateAttributesURL)
     lazy val settings = loadSettings
-    def loadSettings = ConfigTemplateProcessor.createSettings("valinta-tulos-service", templateAttributesFile)
-    def templateAttributesFile: String
+    def loadSettings = ConfigTemplateProcessor.createSettings(
+      getClass.getResource("/oph-configuration/valinta-tulos-service.properties.template"),
+      templateAttributesURL
+    )
+    def templateAttributesURL: URL
   }
 
   trait AppConfig {
