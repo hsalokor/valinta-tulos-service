@@ -37,11 +37,7 @@ externalHakemus-profiililla omatsivut-mocha-testien ajamista varten: `-Dvalintat
 
 IT-profiililla, eli embedded mongo-kannalla
 
-`mvn tomcat7:run -Dvalintatulos.profile=it`
-
-externalHakemus-profiililla omatsivut-mocha-testien ajamista varten
-
-`mvn tomcat7:run -Dvalintatulos.profile=it-externalHakemus`
+`mvn exec:java -Dvalintatulos.profile=it`
 
 ### Avaa selaimessa
 
