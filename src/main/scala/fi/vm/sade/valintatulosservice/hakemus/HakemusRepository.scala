@@ -87,7 +87,7 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
     return hkms;
   }
 
-  def parseHakemus(data: Imports.MongoDBObject): Option[Hakemus] = {
+  private def parseHakemus(data: Imports.MongoDBObject): Option[Hakemus] = {
     for {
       hakemusOid <- data.getAs[String](DatabaseKeys.oidKey)
       hakuOid <- data.getAs[String](DatabaseKeys.applicationSystemIdKey)
@@ -101,15 +101,15 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
     }
   }
 
-  def parseAsiointikieli(asiointikieli: Option[String]): String = {
+  private def parseAsiointikieli(asiointikieli: Option[String]): String = {
     kieliKoodit.getOrElse(asiointikieli.getOrElse(""), "FI")
   }
 
-  def parseHenkilotiedot(data: Imports.MongoDBObject): Henkilotiedot = {
+  private def parseHenkilotiedot(data: Imports.MongoDBObject): Henkilotiedot = {
     Henkilotiedot(emptyStringToNone(data.getAs[String]("Kutsumanimi")), emptyStringToNone(data.getAs[String]("Sähköposti")), data.getAs[String]("Henkilotunnus").isDefined)
   }
 
-  def parseHakutoiveet(data: Imports.MongoDBObject): List[Hakutoive] = {
+  private def parseHakutoiveet(data: Imports.MongoDBObject): List[Hakutoive] = {
     data.filter { case (key, value) =>
       key.endsWith(DatabaseKeys.hakutoiveKeyPostfix) && !value.asInstanceOf[String].isEmpty
     }.toList.sortWith {
