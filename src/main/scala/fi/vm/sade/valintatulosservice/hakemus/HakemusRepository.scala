@@ -33,6 +33,7 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
   val fields = MongoDBObject(
     DatabaseKeys.hakutoiveetPath -> 1,
     DatabaseKeys.henkilotiedotPath -> 1,
+    DatabaseKeys.applicationSystemIdKey -> 1,
     DatabaseKeys.oidKey -> 1,
     DatabaseKeys.personOidKey -> 1,
     DatabaseKeys.lisatiedotPath -> 1
@@ -57,11 +58,11 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
   }
 
   def findHakemukset(hakuOid: String, personOid: String): List[Hakemus] = {
-    val query = MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid, DatabaseKeys.personOidKey -> personOid)
+    val query = MongoDBObject(DatabaseKeys.personOidKey -> personOid)
     val cursor = application.find(query, fields)
     (for {
       hakemus <- cursor
-      h <- parseHakemus(hakemus)
+      h <- parseHakemus(hakemus).filter(parsed => hakuOid.equals(parsed.hakuOid))
     } yield { h }).toList
   }
 
@@ -89,13 +90,14 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
   def parseHakemus(data: Imports.MongoDBObject): Option[Hakemus] = {
     for {
       hakemusOid <- data.getAs[String](DatabaseKeys.oidKey)
+      hakuOid <- data.getAs[String](DatabaseKeys.applicationSystemIdKey)
       henkiloOid <- data.getAs[String](DatabaseKeys.personOidKey)
       answers <- data.getAs[MongoDBObject](DatabaseKeys.answersKey)
       asiointikieli = parseAsiointikieli(answers.expand[String](DatabaseKeys.asiointiKieliKey))
       hakutoiveet <- answers.getAs[MongoDBObject](DatabaseKeys.hakutoiveetKey)
       henkilotiedot <- answers.getAs[MongoDBObject]("henkilotiedot")
     } yield {
-      Hakemus(hakemusOid, henkiloOid, asiointikieli, parseHakutoiveet(hakutoiveet), parseHenkilotiedot(henkilotiedot))
+      Hakemus(hakemusOid, hakuOid, henkiloOid, asiointikieli, parseHakutoiveet(hakutoiveet), parseHenkilotiedot(henkilotiedot))
     }
   }
 
