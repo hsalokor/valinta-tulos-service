@@ -28,6 +28,7 @@ object DatabaseKeys {
   val asiointiKieliKey: String = "lisatiedot.asiointikieli"
 }
 
+@deprecated("Should be removed ASAP. Has no idea of indexes. Also has no idea of search structures")
 class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
   val application = MongoFactory.createCollection(appConfig.settings.hakemusMongoConfig, "application")
   val fields = MongoDBObject(
