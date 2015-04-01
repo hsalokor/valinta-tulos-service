@@ -1,12 +1,14 @@
 package fi.vm.sade.valintatulosservice.mongo
 
-import com.mongodb.casbah.{MongoClient, MongoClientURI}
+import com.mongodb.casbah.{ReadPreference, MongoClient, MongoClientURI}
 import fi.vm.sade.utils.config.MongoConfig
 
 object MongoFactory {
 
   def createDB(config: MongoConfig) = {
-    MongoClient(MongoClientURI(config.url))(config.dbname)
+    val client = MongoClient(MongoClientURI(config.url))
+    client.setReadPreference(ReadPreference.SecondaryPreferred)
+    client(config.dbname)
   }
 
   def createCollection(config: MongoConfig, collection: String) = {
