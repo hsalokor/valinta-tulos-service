@@ -38,7 +38,7 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
 
   def findHakemukset(hakuOid: String): Seq[Hakemus] = {
     val query = MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid)
-    val cursor = application.find(query, fields).snapshot()
+    val cursor = application.find(query, fields)
     (for {
       hakemus <- cursor
       h <- parseHakemus(hakemus)
@@ -55,7 +55,7 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
   def findHakemukset(hakuOid: String, personOid: String): List[Hakemus] = {
     val query = MongoDBObject(DatabaseKeys.personOidKey -> personOid,
     DatabaseKeys.applicationSystemIdKey -> hakuOid)
-    val cursor = application.find(query, fields).snapshot()
+    val cursor = application.find(query, fields)
     (for {
       hakemus <- cursor
       h <- parseHakemus(hakemus)
@@ -66,7 +66,7 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
     val query = MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid,
       DatabaseKeys.hakutoiveetSearchPath -> hakukohdeOid)
 
-    val cursor = application.find(query, fields).snapshot()
+    val cursor = application.find(query, fields)
 
     val hkms: List[Hakemus] =
     (for {
