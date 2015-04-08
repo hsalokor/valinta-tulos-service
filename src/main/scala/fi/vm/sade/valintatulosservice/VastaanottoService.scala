@@ -77,7 +77,7 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
   }
 
   private def vastaanotaSitovastiJosKorkeakouluYhteishaku(haku: Haku, tila: ValintatuloksenTila): ValintatuloksenTila = {
-    if(tila == VASTAANOTTANUT && haku.korkeakoulu && haku.yhteishaku) {
+    if(tila == VASTAANOTTANUT && haku.korkeakoulu) {
       ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI
     }
     else {
