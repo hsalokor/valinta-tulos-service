@@ -84,7 +84,7 @@ object AppConfig extends Logging {
     }
 
     protected def importFixturesToHakemusDatabase {
-      HakemusFixtures()(this).importDefaultFixtures
+      HakemusFixtures()(this).clear.importDefaultFixtures
     }
 
     override def stop {

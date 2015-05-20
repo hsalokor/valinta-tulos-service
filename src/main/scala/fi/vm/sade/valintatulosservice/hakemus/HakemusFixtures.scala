@@ -6,9 +6,10 @@ import java.util.HashMap
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.`type`.MapType
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.mongodb.{DBObject, BasicDBObject}
+import com.mongodb._
 import com.mongodb.util.JSON
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
+import fi.vm.sade.utils.Timer
 import fi.vm.sade.utils.config.MongoConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.Hakutoive
@@ -37,8 +38,23 @@ class HakemusFixtures(config: MongoConfig) {
 
   def importFixture(fixtureName: String): HakemusFixtures = {
     val filename = "fixtures/hakemus/" + fixtureName + ".json"
-    MongoMockData.insertData(db.underlying, MongoMockData.readJson(filename))
+    val data: DBObject = MongoMockData.readJson(filename)
+    insertData(db.underlying, data)
     this
+  }
+
+  private def insertData(db: DB, data: DBObject) {
+    import scala.collection.JavaConversions._
+    for (collection <- data.keySet) {
+      val collectionData: BasicDBList = data.get(collection).asInstanceOf[BasicDBList]
+      val c: DBCollection = db.getCollection(collection)
+      import scala.collection.JavaConversions._
+      for (dataObject <- collectionData) {
+        val dbObject: DBObject = dataObject.asInstanceOf[DBObject]
+        val id: AnyRef = dbObject.get("_id")
+        c.insert(dbObject)
+      }
+    }
   }
 
   def importTemplateFixture(hakemus: HakemusFixture) = {
