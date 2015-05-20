@@ -80,11 +80,12 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       sijoitteluTulos.hakutoiveet.find { t =>
         t.hakukohdeOid == toive.oid
       }.getOrElse(HakutoiveenSijoitteluntulos.kesken(toive.oid, toive.tarjoajaOid))
-    }.map(Hakutoiveentulos.julkaistavaVersio(_, haku, ohjausparametrit))
+    }.map(Hakutoiveentulos.julkaistavaVersioSijoittelunTuloksesta(_, haku, ohjausparametrit))
 
     val lopullisetTulokset = Välitulos(tulokset, haku, ohjausparametrit)
-      .map(peruValmistaAlemmatKeskeneräiset)
-      .map(korkeakouluSpecial)
+      .map(näytäJulkaisematontaAlemmatPeruutetutKeskeneräisinä)
+      .map(peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua)
+      .map(sovellaKorkeakoulujenYhteishaunSääntöjä)
       .tulokset
 
     Hakemuksentulos(haku.oid, h.oid, sijoitteluTulos.hakijaOid.getOrElse(h.henkiloOid), ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullisetTulokset)
@@ -92,7 +93,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
 
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, None, Nil)
 
-  private def korkeakouluSpecial(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+  private def sovellaKorkeakoulujenYhteishaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     val ehdollinenVastaanottoMahdollista: Boolean = {
       ohjausparametrit.getOrElse(Ohjausparametrit(None, None, None, None)).varasijaSaannotAstuvatVoimaan match {
         case None => true
@@ -131,7 +132,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     }
   }
 
-  private def peruValmistaAlemmatKeskeneräiset(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+  private def peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     if (haku.käyttääSijoittelua) {
       val firstFinished = tulokset.indexWhere { t =>
         Valintatila.isHyväksytty(t.valintatila) || List(Valintatila.perunut, Valintatila.peruutettu, Valintatila.peruuntunut).contains(t.valintatila)
@@ -144,6 +145,14 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       }
     } else {
       tulokset
+    }
+  }
+
+  private def näytäJulkaisematontaAlemmatPeruutetutKeskeneräisinä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+    val firstJulkaisematon = tulokset.indexWhere (!_.julkaistavissa)
+    tulokset.zipWithIndex.map {
+      case (tulos, index) if (index > firstJulkaisematon && tulos.valintatila == Valintatila.peruuntunut) => tulos.toKesken
+      case (tulos, _) => tulos
     }
   }
 

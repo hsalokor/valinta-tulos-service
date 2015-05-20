@@ -30,49 +30,51 @@ case class Hakutoiveentulos(hakukohdeOid: String,
                             julkaistavissa: Boolean,
                             tilanKuvaukset: Map[String, String],
                             pisteet: Option[BigDecimal]
-                            )
+                            ) {
+
+  def toKesken = {
+    copy(
+        valintatila = Valintatila.kesken,
+        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa,
+        vastaanottoDeadline = None,
+        viimeisinValintatuloksenMuutos = None,
+        jonosija = None,
+        varasijanumero = None,
+        julkaistavissa = false,
+        tilanKuvaukset = Map(),
+        pisteet = None
+    )
+  }
+
+  def julkaistavaVersio = {
+    if (julkaistavissa) {
+      this
+    } else {
+      toKesken
+    }
+  }
+}
 
 object Hakutoiveentulos {
-  def julkaistavaVersio(tulos: HakutoiveenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(implicit appConfig: AppConfig) = {
-    if(tulos.julkaistavissa)
-      Hakutoiveentulos(
-        tulos.hakukohdeOid,
-        tulos.tarjoajaOid,
-        tulos.valintatapajonoOid,
-        tulos.valintatila,
-        tulos.vastaanottotila,
-        HakutoiveenIlmoittautumistila.getIlmoittautumistila(tulos, haku, ohjausparametrit),
-        tulos.vastaanotettavuustila,
-        tulos.vastaanottoDeadline,
-        tulos.viimeisinHakemuksenTilanMuutos,
-        tulos.viimeisinValintatuloksenMuutos,
-        tulos.jonosija,
-        tulos.varasijojaKaytetaanAlkaen,
-        tulos.varasijojaTaytetaanAsti,
-        tulos.varasijanumero,
-        tulos.julkaistavissa,
-        tulos.tilanKuvaukset,
-        tulos.pisteet
-      )
-    else
-      Hakutoiveentulos(
-        tulos.hakukohdeOid,
-        tulos.tarjoajaOid,
-        tulos.valintatapajonoOid,
-        Valintatila.kesken,
-        tulos.vastaanottotila,
-        HakutoiveenIlmoittautumistila.getIlmoittautumistila(tulos, haku, ohjausparametrit),
-        Vastaanotettavuustila.ei_vastaanotettavissa,
-        None,
-        None,
-        None,
-        None,
-        tulos.varasijojaKaytetaanAlkaen,
-        tulos.varasijojaTaytetaanAsti,
-        None,
-        false,
-        Map(),
-        tulos.pisteet
-      )
+  def julkaistavaVersioSijoittelunTuloksesta(tulos: HakutoiveenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(implicit appConfig: AppConfig) = {
+    Hakutoiveentulos(
+      tulos.hakukohdeOid,
+      tulos.tarjoajaOid,
+      tulos.valintatapajonoOid,
+      tulos.valintatila,
+      tulos.vastaanottotila,
+      HakutoiveenIlmoittautumistila.getIlmoittautumistila(tulos, haku, ohjausparametrit),
+      tulos.vastaanotettavuustila,
+      tulos.vastaanottoDeadline,
+      tulos.viimeisinHakemuksenTilanMuutos,
+      tulos.viimeisinValintatuloksenMuutos,
+      tulos.jonosija,
+      tulos.varasijojaKaytetaanAlkaen,
+      tulos.varasijojaTaytetaanAsti,
+      tulos.varasijanumero,
+      tulos.julkaistavissa,
+      tulos.tilanKuvaukset,
+      tulos.pisteet
+    ).julkaistavaVersio
   }
 }

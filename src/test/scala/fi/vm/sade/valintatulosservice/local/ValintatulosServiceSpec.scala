@@ -279,6 +279,14 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           getHakutoive("1.2.246.562.5.72607738902").vastaanottoDeadline must_== None
         }
       }
+
+      "peruuntunut" in {
+        "ylempi julkaisematon -> näytetään keskeneräisenä" in {
+          useFixture("julkaisematon-peruuntunut.json", hakuFixture = hakuFixture, hakemusFixtures = List( "00000441369-3"))
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+        }
+      }
     }
   }
 
