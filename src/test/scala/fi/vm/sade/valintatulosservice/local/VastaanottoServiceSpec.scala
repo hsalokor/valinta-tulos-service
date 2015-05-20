@@ -263,14 +263,14 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       }
     }
 
-    "vastaanota ehdollisesti kun varasija säännöt eivät ole vielä voimassa" in {
+    "vastaanota ehdollisesti kun varasijasäännöt eivät ole vielä voimassa" in {
       useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture, ohjausparametritFixture = OhjausparametritFixtures.varasijasaannotEiVielaVoimassa)
       expectFailure {
         vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
       }
     }
 
-    "vastaanota ehdollisesti kun varasija säännöt voimassa" in {
+    "vastaanota ehdollisesti kun varasijasäännöt voimassa" in {
       useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
       hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
       hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
@@ -281,7 +281,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
     }
 
-    "vastaanota sitovasti kun varasija säännöt voimassa" in {
+    "vastaanota sitovasti kun varasijasäännöt voimassa" in {
       useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
       vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
       val yhteenveto = hakemuksenTulos
