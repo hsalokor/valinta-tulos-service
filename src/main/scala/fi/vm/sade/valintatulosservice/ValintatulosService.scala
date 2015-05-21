@@ -86,6 +86,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       .map(näytäJulkaisematontaAlemmatPeruutetutKeskeneräisinä)
       .map(peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua)
       .map(sovellaKorkeakoulujenYhteishaunSääntöjä)
+      .map(piilotaKuvauksetKeskeneräisiltä)
       .tulokset
 
     Hakemuksentulos(haku.oid, h.oid, sijoitteluTulos.hakijaOid.getOrElse(h.henkiloOid), ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullisetTulokset)
@@ -153,6 +154,13 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     tulokset.zipWithIndex.map {
       case (tulos, index) if (index > firstJulkaisematon && tulos.valintatila == Valintatila.peruuntunut) => tulos.toKesken
       case (tulos, _) => tulos
+    }
+  }
+
+  private def piilotaKuvauksetKeskeneräisiltä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+    tulokset.map {
+      case h if h.valintatila == Valintatila.kesken => h.copy(tilanKuvaukset = Map())
+      case h => h
     }
   }
 

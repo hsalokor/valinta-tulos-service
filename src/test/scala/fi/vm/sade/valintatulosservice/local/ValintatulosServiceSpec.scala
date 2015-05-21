@@ -165,7 +165,9 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
 
         "Valintatulos kesken (ei julkaistavissa)" in {
           useFixture("hyvaksytty-kesken.json", hakuFixture = hakuFixture)
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+          val hakutoive: Hakutoiveentulos = getHakutoive("1.2.246.562.5.72607738902")
+          checkHakutoiveState(hakutoive, Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+          hakutoive.tilanKuvaukset.isEmpty must_== true
         }
 
         "Valintatulos julkaistavissa" in {
@@ -256,7 +258,9 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
       "hylätty" in {
         "jonoja sijoittelematta" in {
           useFixture("hylatty-jonoja-kesken.json", hakuFixture = hakuFixture)
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          val hakutoive: Hakutoiveentulos = getHakutoive("1.2.246.562.5.72607738902")
+          checkHakutoiveState(hakutoive, Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          hakutoive.tilanKuvaukset.isEmpty must_== true
         }
 
         "jonot sijoiteltu" in {
