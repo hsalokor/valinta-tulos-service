@@ -29,7 +29,7 @@ class EmailStatusServletSpec extends ServletSpecification with TimeWarp {
 
       // tarkistetaan, että lähetetään myöhemmin jos email on lisätty
       withFixedDateTime("12.10.2014 12:00") {
-        hakemusFixtureImporter.importFixture("00000441369")
+        hakemusFixtureImporter.clear.importFixture("00000441369")
         verifyNonEmptyListOfEmails
       }
     }
