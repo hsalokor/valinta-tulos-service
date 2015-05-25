@@ -8,8 +8,8 @@ object Valintatila extends Enumeration {
   val varalla = Value("VARALLA")
   val peruutettu = Value("PERUUTETTU")
   val perunut = Value("PERUNUT")
-  val hylätty = Value("HYLATTY")
   val peruuntunut = Value("PERUUNTUNUT")
+  val hylätty = Value("HYLATTY")
   val kesken = Value("KESKEN")
 
   def isHyväksytty(tila: Valintatila) = {

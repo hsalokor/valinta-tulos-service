@@ -282,6 +282,11 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           useFixture("hylatty-jonot-valmiit.json", hakuFixture = hakuFixture)
           getHakutoive("1.2.246.562.5.72607738902").vastaanottoDeadline must_== None
         }
+
+        "toisessa jonossa peruuntunut -> näytetään peruuntuneena" in {
+          useFixture("hylatty-toisessa-jonossa-peruuntunut.json", hakuFixture = hakuFixture)
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.peruuntunut, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        }
       }
 
       "peruuntunut" in {
