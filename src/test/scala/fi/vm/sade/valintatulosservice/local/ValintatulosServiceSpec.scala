@@ -285,6 +285,11 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
       }
 
       "peruuntunut" in {
+        "julkaistu tulos" in {
+          useFixture("peruuntunut.json", hakuFixture = hakuFixture, hakemusFixtures = List( "00000441369-3"))
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.peruuntunut, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+        }
+
         "ylempi julkaisematon -> näytetään keskeneräisenä" in {
           useFixture("julkaisematon-peruuntunut.json", hakuFixture = hakuFixture, hakemusFixtures = List( "00000441369-3"))
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)

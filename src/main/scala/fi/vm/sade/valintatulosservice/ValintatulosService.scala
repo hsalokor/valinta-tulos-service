@@ -152,7 +152,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
   private def näytäJulkaisematontaAlemmatPeruutetutKeskeneräisinä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     val firstJulkaisematon = tulokset.indexWhere (!_.julkaistavissa)
     tulokset.zipWithIndex.map {
-      case (tulos, index) if (index > firstJulkaisematon && tulos.valintatila == Valintatila.peruuntunut) => tulos.toKesken
+      case (tulos, index) if (firstJulkaisematon >= 0 && index > firstJulkaisematon && tulos.valintatila == Valintatila.peruuntunut) => tulos.toKesken
       case (tulos, _) => tulos
     }
   }
