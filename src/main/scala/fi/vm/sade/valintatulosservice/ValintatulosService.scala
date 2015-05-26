@@ -161,7 +161,8 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
 
   private def näytäVarasijaltaHyväksytytHyväksyttyinäJosVarasijasäännötEiVoimassa(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     tulokset.map {
-      case tulos if tulos.valintatila == Valintatila.varasijalta_hyväksytty && !ehdollinenVastaanottoMahdollista(ohjausparametrit) => tulos.copy(valintatila = Valintatila.hyväksytty)
+      case tulos if tulos.valintatila == Valintatila.varasijalta_hyväksytty && !ehdollinenVastaanottoMahdollista(ohjausparametrit) =>
+        tulos.copy(valintatila = Valintatila.hyväksytty, tilanKuvaukset = Map.empty)
       case tulos => tulos
     }
   }

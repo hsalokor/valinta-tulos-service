@@ -91,7 +91,12 @@
                                     "tila": "VARASIJALTA_HYVAKSYTTY"
                                 }
                             ],
-                            "hyvaksyttyHarkinnanvaraisesti": false
+                            "hyvaksyttyHarkinnanvaraisesti": false,
+                            "tilanKuvaukset": {
+                                "FI": "Testi",
+                                "SV": "Testi",
+                                "EN": "Testi"
+                            }
                         }
                     ]
                 },
