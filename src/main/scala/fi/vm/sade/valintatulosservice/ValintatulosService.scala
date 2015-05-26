@@ -117,7 +117,8 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
             // Ehdollinen vastaanotto mahdollista
             tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti)
            else
-            tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
+            // Ehdollinen vastaanotto ei vielä mahdollista, näytetään keskeneräisenä
+            tulos.toKesken
           }
           else if (firstKesken >= 0 && index > firstKesken)
             tulos.toKesken
