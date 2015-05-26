@@ -157,12 +157,18 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
         }
       }
 
-      "hyväksytty" in {
-        "hyvaksytty varasijalta, Valintatulos julkaistavissa" in {
+      "hyväksytty varasijalta" in {
+        "varasijasäännöt ei vielä voimassa -> näytetään hyväksyttynä" in {
+          useFixture("hyvaksytty-varasijalta-julkaistavissa.json", hakuFixture = hakuFixture, ohjausparametritFixture = OhjausparametritFixtures.varasijasaannotEiVielaVoimassa)
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
+        }
+        "varasijasäännöt voimassa -> näytetään varasijalta hyväksyttynä" in {
           useFixture("hyvaksytty-varasijalta-julkaistavissa.json", hakuFixture = hakuFixture)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.varasijalta_hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
         }
+      }
 
+      "hyväksytty" in {
         "Valintatulos kesken (ei julkaistavissa)" in {
           useFixture("hyvaksytty-kesken.json", hakuFixture = hakuFixture)
           val hakutoive: Hakutoiveentulos = getHakutoive("1.2.246.562.5.72607738902")

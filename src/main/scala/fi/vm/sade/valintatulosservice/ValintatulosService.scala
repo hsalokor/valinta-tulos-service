@@ -85,6 +85,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     val lopullisetTulokset = Välitulos(tulokset, haku, ohjausparametrit)
       .map(näytäJulkaisematontaAlemmatPeruutetutKeskeneräisinä)
       .map(peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua)
+      .map(näytäVarasijaltaHyväksytytHyväksyttyinäJosVarasijasäännötEiVoimassa)
       .map(sovellaKorkeakoulujenYhteishaunSääntöjä)
       .map(piilotaKuvauksetKeskeneräisiltä)
       .tulokset
@@ -95,13 +96,6 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, None, Nil)
 
   private def sovellaKorkeakoulujenYhteishaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
-    val ehdollinenVastaanottoMahdollista: Boolean = {
-      ohjausparametrit.getOrElse(Ohjausparametrit(None, None, None, None)).varasijaSaannotAstuvatVoimaan match {
-        case None => true
-        case Some(varasijaSaannotAstuvatVoimaan) => varasijaSaannotAstuvatVoimaan.isBefore(new DateTime())
-      }
-    }
-
     if (haku.korkeakoulu && haku.yhteishaku) {
       val firstVaralla = tulokset.indexWhere(_.valintatila == Valintatila.varalla)
       val firstVastaanotettu = tulokset.indexWhere(_.vastaanottotila == Vastaanottotila.vastaanottanut)
@@ -113,7 +107,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
             // Peru vastaanotettua paikkaa alemmat hyväksytyt hakutoiveet
             tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
           else if (firstVaralla >= 0 && index > firstVaralla) {
-           if(ehdollinenVastaanottoMahdollista)
+           if(ehdollinenVastaanottoMahdollista(ohjausparametrit))
             // Ehdollinen vastaanotto mahdollista
             tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti)
            else
@@ -162,6 +156,20 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     tulokset.map {
       case h if h.valintatila == Valintatila.kesken => h.copy(tilanKuvaukset = Map())
       case h => h
+    }
+  }
+
+  private def näytäVarasijaltaHyväksytytHyväksyttyinäJosVarasijasäännötEiVoimassa(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+    tulokset.map {
+      case tulos if tulos.valintatila == Valintatila.varasijalta_hyväksytty && !ehdollinenVastaanottoMahdollista(ohjausparametrit) => tulos.copy(valintatila = Valintatila.hyväksytty)
+      case tulos => tulos
+    }
+  }
+
+  private def ehdollinenVastaanottoMahdollista(ohjausparametrit: Option[Ohjausparametrit]): Boolean = {
+    ohjausparametrit.getOrElse(Ohjausparametrit(None, None, None, None)).varasijaSaannotAstuvatVoimaan match {
+      case None => true
+      case Some(varasijaSaannotAstuvatVoimaan) => varasijaSaannotAstuvatVoimaan.isBefore(new DateTime())
     }
   }
 
