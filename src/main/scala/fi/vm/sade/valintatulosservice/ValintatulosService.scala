@@ -154,7 +154,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
 
   private def piilotaKuvauksetKeskeneräisiltä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     tulokset.map {
-      case h if h.valintatila == Valintatila.kesken => h.copy(tilanKuvaukset = Map())
+      case h if h.valintatila == Valintatila.kesken => h.copy(tilanKuvaukset = Map.empty)
       case h => h
     }
   }
