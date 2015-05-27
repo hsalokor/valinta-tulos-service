@@ -93,9 +93,9 @@
                             ],
                             "hyvaksyttyHarkinnanvaraisesti": false,
                             "tilanKuvaukset": {
-                                "FI": "Testi",
-                                "SV": "Testi",
-                                "EN": "Testi"
+                                "FI": "Hyväksytty varasijalta",
+                                "SV": "Hyväksytty varasijalta",
+                                "EN": "Hyväksytty varasijalta"
                             }
                         }
                     ]
