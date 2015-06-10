@@ -5,6 +5,7 @@ import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.{Henkilotiedot, Hakutoive, Hakemus}
+import fi.vm.sade.valintatulosservice.hakemus.DatabaseKeys.tarjoajaIdKeyPostfix
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 
 object DatabaseKeys {
@@ -16,8 +17,10 @@ object DatabaseKeys {
   val henkilotiedotPath: String = "answers.henkilotiedot"
   val answersKey: String = "answers"
   val hakutoiveetKey: String = "hakutoiveet"
-  val hakutoiveKeyPostfix: String = "Koulutus-id"
-  val tarjoajaKeyPostfix: String = "Opetuspiste-id"
+  val hakutoiveIdKeyPostfix: String = "Koulutus-id"
+  val tarjoajaIdKeyPostfix: String = "Opetuspiste-id"
+  val hakutoiveKeyPostfix: String = "Koulutus"
+  val tarjoajaKeyPostfix: String = "Opetuspiste"
   val lisatiedotPath: String = "answers.lisatiedot"
   val asiointiKieliKey: String = "lisatiedot.asiointikieli"
 }
@@ -101,23 +104,24 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
 
   private def parseHakutoiveet(data: Imports.MongoDBObject): List[Hakutoive] = {
     data.filter { case (key, value) =>
-      key.endsWith(DatabaseKeys.hakutoiveKeyPostfix) && !value.asInstanceOf[String].isEmpty
-    }.toList.sortWith {
-      _._1 < _._1
+      key.endsWith(DatabaseKeys.hakutoiveIdKeyPostfix) && !value.asInstanceOf[String].isEmpty
+    }.toList.sortBy {
+      _._1
     }.map {
       case (hakukohdeKey, hakuKohdeOid) => {
-       Hakutoive(hakuKohdeOid.asInstanceOf[String], parseTarjoajaOid(data, hakukohdeKey))
+       Hakutoive(hakuKohdeOid.asInstanceOf[String],
+         parseHakukohdeField(data, hakukohdeKey, tarjoajaIdKeyPostfix),
+         parseHakukohdeField(data, hakukohdeKey, DatabaseKeys.hakutoiveKeyPostfix),
+         parseHakukohdeField(data, hakukohdeKey, DatabaseKeys.tarjoajaKeyPostfix))
       }
     }
   }
 
-  def parseTarjoajaOid(data: MongoDBObject, hakukohdeKey: String): String = {
+  def parseHakukohdeField(data: MongoDBObject, hakukohdeKey: String, postfix: String): String = {
     data.find {
-      case (tarjoajaKey, tarjoajaOId) =>  {
-        hakukohdeKey.regionMatches(0, tarjoajaKey, 0, 11) && tarjoajaKey.endsWith(DatabaseKeys.tarjoajaKeyPostfix)
-      }
+      case (key, value) =>  hakukohdeKey.regionMatches(0, key, 0, 11) && key.endsWith(postfix)
     }.map {
-      case (_, tarjoajaOid) => tarjoajaOid.asInstanceOf[String]
+      case (key, value) => value.asInstanceOf[String]
     }.getOrElse("")
   }
 

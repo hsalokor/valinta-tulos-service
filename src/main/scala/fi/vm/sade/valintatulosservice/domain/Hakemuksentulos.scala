@@ -14,7 +14,9 @@ case class Hakemuksentulos(hakuOid: String, hakemusOid: String, hakijaOid: Strin
 }
 
 case class Hakutoiveentulos(hakukohdeOid: String,
+                            hakukohdeNimi: String,
                             tarjoajaOid: String,
+                            tarjoajaNimi: String,
                             valintatapajonoOid: String,
                             valintatila: Valintatila,
                             vastaanottotila: Vastaanottotila,
@@ -56,10 +58,12 @@ case class Hakutoiveentulos(hakukohdeOid: String,
 }
 
 object Hakutoiveentulos {
-  def julkaistavaVersioSijoittelunTuloksesta(tulos: HakutoiveenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(implicit appConfig: AppConfig) = {
+  def julkaistavaVersioSijoittelunTuloksesta(tulos: HakutoiveenSijoitteluntulos, hakutoive: Hakutoive, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(implicit appConfig: AppConfig): Hakutoiveentulos = {
     Hakutoiveentulos(
       tulos.hakukohdeOid,
+      hakutoive.nimi,
       tulos.tarjoajaOid,
+      hakutoive.tarjoajaNimi,
       tulos.valintatapajonoOid,
       tulos.valintatila,
       tulos.vastaanottotila,

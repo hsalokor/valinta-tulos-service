@@ -75,12 +75,14 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       }
     )
   }
-  private def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(h:Hakemus)(implicit appConfig: AppConfig) = {
+  private def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(h:Hakemus)(implicit appConfig: AppConfig): Hakemuksentulos = {
     val tulokset = h.toiveet.map { toive =>
-      sijoitteluTulos.hakutoiveet.find { t =>
+      val hakutoiveenSijoittelunTulos: HakutoiveenSijoitteluntulos = sijoitteluTulos.hakutoiveet.find { t =>
         t.hakukohdeOid == toive.oid
       }.getOrElse(HakutoiveenSijoitteluntulos.kesken(toive.oid, toive.tarjoajaOid))
-    }.map(Hakutoiveentulos.julkaistavaVersioSijoittelunTuloksesta(_, haku, ohjausparametrit))
+
+      Hakutoiveentulos.julkaistavaVersioSijoittelunTuloksesta(hakutoiveenSijoittelunTulos, toive, haku, ohjausparametrit)
+    }
 
     val lopullisetTulokset = Välitulos(tulokset, haku, ohjausparametrit)
       .map(näytäJulkaisematontaAlemmatPeruutetutKeskeneräisinä)
