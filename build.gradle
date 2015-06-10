@@ -25,7 +25,7 @@ task(zipIt, type: Zip) {
 
     destinationDir new File(buildDir, "distributions")
     archiveName zipFileName
-    from 'src/main/resources'
+    from 'server/src/main/resources'
     from 'target'
 }
 
