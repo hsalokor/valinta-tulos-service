@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.sijoittelu.domain.IlmoittautumisTila
 import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila.{VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI}
-import fi.vm.sade.valintatulosservice.domain.Ilmoittautuminen
+import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
 import org.json4s.jackson.Serialization

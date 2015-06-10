@@ -81,7 +81,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
         t.hakukohdeOid == toive.oid
       }.getOrElse(HakutoiveenSijoitteluntulos.kesken(toive.oid, toive.tarjoajaOid))
 
-      Hakutoiveentulos.julkaistavaVersioSijoittelunTuloksesta(hakutoiveenSijoittelunTulos, toive, haku, ohjausparametrit)
+      ValintatulosKonvertteri.julkaistavaVersioSijoittelunTuloksesta(hakutoiveenSijoittelunTulos, toive, haku, ohjausparametrit)
     }
 
     val lopullisetTulokset = Välitulos(tulokset, haku, ohjausparametrit)
@@ -182,6 +182,8 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     }
   }
 }
+
+
 
 
 
