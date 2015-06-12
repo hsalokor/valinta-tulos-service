@@ -56,7 +56,7 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
   get("/:hakuOid", operation(getHakemuksetSwagger)) {
     contentType = formats("json")
     val hakuOid = params("hakuOid")
-    valintatulosService.hakemustenTulos(hakuOid) match {
+    valintatulosService.hakemustenTulosByHaku(hakuOid) match {
       case Some(tulos) => tulos
       case _ => NotFound("error" -> "Not found")
     }

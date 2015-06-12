@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.utils.Timer
+import fi.vm.sade.utils.Timer.timed
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
@@ -39,16 +40,16 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     }.getOrElse(List())
   }
 
-  def hakemustenTulos(hakuOid: String): Option[Seq[Hakemuksentulos]] = {
-    Timer.timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
+  def hakemustenTulosByHaku(hakuOid: String): Option[Seq[Hakemuksentulos]] = {
+    timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
       HakemustenTulosHakuLock.synchronized {
         for (
           haku <- hakuService.getHaku(hakuOid)
         ) yield {
           val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-          val sijoitteluTulokset = sijoittelutulosService.hakemustenTulos(hakuOid).groupBy(_.hakemusOid).mapValues(_.head)
+          val sijoitteluTulokset = timed("Fetch sijoittelun tulos", 1000) { sijoittelutulosService.hakemustenTulos(hakuOid).groupBy(_.hakemusOid).mapValues(_.head) }
           for (
-            hakemus: Hakemus <- hakemusRepository.findHakemukset(hakuOid)
+            hakemus: Hakemus <- timed("Fetch hakemukset", 1000) { hakemusRepository.findHakemukset(hakuOid) }
           ) yield {
             val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
             julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
@@ -58,13 +59,13 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     )
   }
   def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String): Option[Seq[Hakemuksentulos]] = {
-    Timer.timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
+    timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
       HakemustenTulosHakuLock.synchronized {
         for (
            haku <- hakuService.getHaku(hakuOid)
         ) yield {
           val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-          val sijoitteluTulokset = sijoittelutulosService.hakemustenTulos(hakuOid,hakukohdeOid).groupBy(_.hakemusOid).mapValues(_.head)
+          val sijoitteluTulokset =  timed("Fetch sijoittelun tulos", 1000) { sijoittelutulosService.hakemustenTulos(hakuOid,hakukohdeOid).groupBy(_.hakemusOid).mapValues(_.head) }
           for (
             hakemus: Hakemus <- hakemusRepository.findHakemuksetByHakukohde(hakuOid,hakukohdeOid)
           ) yield {

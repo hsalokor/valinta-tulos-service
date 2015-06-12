@@ -25,7 +25,7 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
     ) yield hakemuksenYhteenveto(hakija, aikataulu)
   }
 
-  def hakemustenTulos(hakuOid: String) = {
+  def hakemustenTulos(hakuOid: String): List[HakemuksenSijoitteluntulos] = {
     val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
 
     for (
