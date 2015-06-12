@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice.hakemus
 
 import fi.vm.sade.utils.slf4j.Logging
-import com.mongodb.casbah.Imports
+import com.mongodb.casbah.{commons, Imports}
 import com.mongodb.casbah.Imports._
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.{Henkilotiedot, Hakutoive, Hakemus}
@@ -39,45 +39,27 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
 
   val kieliKoodit = Map(("suomi", "FI"), ("ruotsi", "SV"), ("englanti", "EN"))
 
-  def findHakemukset(hakuOid: String): Seq[Hakemus] = {
-    val query = MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid)
-    val cursor = application.find(query, fields)
-    (for {
-      hakemus <- cursor
-      h <- parseHakemus(hakemus)
-    } yield { h }).toList
+  def findHakemukset(hakuOid: String): Stream[Hakemus] = {
+    findHakemuksetByQuery(MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid))
   }
 
   def findHakemus(hakemusOid: String): Option[Hakemus] = {
-    val query = MongoDBObject(DatabaseKeys.oidKey -> hakemusOid)
-    val res = application.findOne(query, fields)
-
-    res.flatMap(parseHakemus(_))
+    findHakemuksetByQuery(MongoDBObject(DatabaseKeys.oidKey -> hakemusOid)).headOption
   }
 
-  def findHakemukset(hakuOid: String, personOid: String): List[Hakemus] = {
-    val query = MongoDBObject(DatabaseKeys.personOidKey -> personOid,
-    DatabaseKeys.applicationSystemIdKey -> hakuOid)
-    val cursor = application.find(query, fields)
-    (for {
-      hakemus <- cursor
-      h <- parseHakemus(hakemus)
-    } yield { h }).toList
+  def findHakemukset(hakuOid: String, personOid: String): Stream[Hakemus] = {
+    findHakemuksetByQuery(MongoDBObject(DatabaseKeys.personOidKey -> personOid, DatabaseKeys.applicationSystemIdKey -> hakuOid))
   }
 
-  def findHakemuksetByHakukohde(hakuOid: String, hakukohdeOid: String): List[Hakemus] = {
-    val query = MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid,
-      DatabaseKeys.hakutoiveetSearchPath -> hakukohdeOid)
+  def findHakemuksetByHakukohde(hakuOid: String, hakukohdeOid: String): Stream[Hakemus] = {
+    findHakemuksetByQuery(MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid, DatabaseKeys.hakutoiveetSearchPath -> hakukohdeOid))
+  }
 
+  def findHakemuksetByQuery(query: commons.Imports.DBObject): Stream[Hakemus] = {
     val cursor = application.find(query, fields)
 
-    val hkms: List[Hakemus] =
-    (for {
-      hakemus <- cursor
-      h <- parseHakemus(hakemus)
-    } yield { h }).toList
-
-    return hkms;
+    (for {hakemus <- cursor
+          h <- parseHakemus(hakemus)} yield {h}).toStream
   }
 
   private def parseHakemus(data: Imports.MongoDBObject): Option[Hakemus] = {
