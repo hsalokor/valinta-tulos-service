@@ -17,7 +17,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
   def this(hakuService: HakuService)(implicit appConfig: AppConfig) = this(appConfig.sijoitteluContext.sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), hakuService)
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
-    fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemus(hakemusOid).toSeq, (haku, hakemukset) => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid).toSeq).flatMap(_.headOption)
+    fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemus(hakemusOid).toStream, (haku, hakemukset) => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid).toSeq).flatMap(_.headOption)
   }
 
   def hakemuksentuloksetByPerson(hakuOid: String, personOid: String): List[Hakemuksentulos] = {
@@ -41,7 +41,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     )
   }
 
-  private def fetchTulokset(hakuOid: String, getHakemukset: Haku => Seq[Hakemus], getSijoittelunTulos: (Haku, Seq[Hakemus]) =>  Seq[HakemuksenSijoitteluntulos]) = {
+  private def fetchTulokset(hakuOid: String, getHakemukset: Haku => Stream[Hakemus], getSijoittelunTulos: (Haku, Seq[Hakemus]) => Seq[HakemuksenSijoitteluntulos]): Option[Stream[Hakemuksentulos]] = {
     for (
       haku <- hakuService.getHaku(hakuOid)
     ) yield {
