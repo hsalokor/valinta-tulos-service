@@ -17,65 +17,46 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
   def this(hakuService: HakuService)(implicit appConfig: AppConfig) = this(appConfig.sijoitteluContext.sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), hakuService)
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
-    hakuService.getHaku(hakuOid).flatMap { haku =>
-      val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-      val sijoitteluTulos: HakemuksenSijoitteluntulos = sijoittelutulosService.hakemuksenTulos(haku, hakemusOid)
-        .getOrElse(tyhjäHakemuksenTulos(hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
-
-      val hakemus: Option[Hakemus] = hakemusRepository.findHakemus(hakemusOid)
-      hakemus.map(julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit))
-    }
+    fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemus(hakemusOid).toSeq, (haku, hakemukset) => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid).toSeq).flatMap(_.headOption)
   }
 
   def hakemuksentuloksetByPerson(hakuOid: String, personOid: String): List[Hakemuksentulos] = {
-    hakuService.getHaku(hakuOid).map{ haku =>
-      for {
-        hakemus <- hakemusRepository.findHakemukset(hakuOid, personOid)
-      } yield {
-        val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-        val sijoitteluTulos: HakemuksenSijoitteluntulos = sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid)
-          .getOrElse(tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
-        julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
-      }
-    }.getOrElse(List())
+    fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemukset(hakuOid, personOid), (haku, hakemukset) => hakemukset.flatMap(hakemus => sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid)))
+      .map(_.toList).getOrElse(List.empty)
   }
 
   def hakemustenTulosByHaku(hakuOid: String): Option[Seq[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
       HakemustenTulosHakuLock.synchronized {
-        for (
-          haku <- hakuService.getHaku(hakuOid)
-        ) yield {
-          val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-          val sijoitteluTulokset = timed("Fetch sijoittelun tulos", 1000) { sijoittelutulosService.hakemustenTulos(hakuOid).groupBy(_.hakemusOid).mapValues(_.head) }
-          for (
-            hakemus: Hakemus <- timed("Fetch hakemukset", 1000) { hakemusRepository.findHakemukset(hakuOid) }
-          ) yield {
-            val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
-            julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
-          }
-        }
+        fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemukset(hakuOid), (haku, hakemukset) => sijoittelutulosService.hakemustenTulos(hakuOid))
       }
     )
   }
+
   def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String): Option[Seq[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
       HakemustenTulosHakuLock.synchronized {
-        for (
-           haku <- hakuService.getHaku(hakuOid)
-        ) yield {
-          val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-          val sijoitteluTulokset =  timed("Fetch sijoittelun tulos", 1000) { sijoittelutulosService.hakemustenTulos(hakuOid,hakukohdeOid).groupBy(_.hakemusOid).mapValues(_.head) }
-          for (
-            hakemus: Hakemus <- hakemusRepository.findHakemuksetByHakukohde(hakuOid,hakukohdeOid)
-          ) yield {
-            val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
-            julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
-          }
-        }
+        fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemuksetByHakukohde(hakuOid,hakukohdeOid), (haku, hakemukset) => sijoittelutulosService.hakemustenTulos(hakuOid,hakukohdeOid))
       }
     )
   }
+
+  private def fetchTulokset(hakuOid: String, getHakemukset: Haku => Seq[Hakemus], getSijoittelunTulos: (Haku, Seq[Hakemus]) =>  Seq[HakemuksenSijoitteluntulos]) = {
+    for (
+      haku <- hakuService.getHaku(hakuOid)
+    ) yield {
+      val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
+      val hakemukset = timed("Fetch hakemukset", 1000) { getHakemukset(haku) }
+      val sijoitteluTulokset = timed("Fetch sijoittelun tulos", 1000) { getSijoittelunTulos(haku, hakemukset).groupBy(_.hakemusOid).mapValues(_.head) }
+      for (
+        hakemus: Hakemus <- hakemukset
+      ) yield {
+        val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
+        julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
+      }
+    }
+  }
+
   private def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(h:Hakemus)(implicit appConfig: AppConfig): Hakemuksentulos = {
     val tulokset = h.toiveet.map { toive =>
       val hakutoiveenSijoittelunTulos: HakutoiveenSijoitteluntulos = sijoitteluTulos.hakutoiveet.find { t =>
