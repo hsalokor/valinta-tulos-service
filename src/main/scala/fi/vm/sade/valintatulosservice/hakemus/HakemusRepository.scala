@@ -39,27 +39,27 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
 
   val kieliKoodit = Map(("suomi", "FI"), ("ruotsi", "SV"), ("englanti", "EN"))
 
-  def findHakemukset(hakuOid: String): Stream[Hakemus] = {
+  def findHakemukset(hakuOid: String): Iterator[Hakemus] = {
     findHakemuksetByQuery(MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid))
   }
 
   def findHakemus(hakemusOid: String): Option[Hakemus] = {
-    findHakemuksetByQuery(MongoDBObject(DatabaseKeys.oidKey -> hakemusOid)).headOption
+    findHakemuksetByQuery(MongoDBObject(DatabaseKeys.oidKey -> hakemusOid)).toStream.headOption
   }
 
-  def findHakemukset(hakuOid: String, personOid: String): Stream[Hakemus] = {
+  def findHakemukset(hakuOid: String, personOid: String): Iterator[Hakemus] = {
     findHakemuksetByQuery(MongoDBObject(DatabaseKeys.personOidKey -> personOid, DatabaseKeys.applicationSystemIdKey -> hakuOid))
   }
 
-  def findHakemuksetByHakukohde(hakuOid: String, hakukohdeOid: String): Stream[Hakemus] = {
+  def findHakemuksetByHakukohde(hakuOid: String, hakukohdeOid: String): Iterator[Hakemus] = {
     findHakemuksetByQuery(MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid, DatabaseKeys.hakutoiveetSearchPath -> hakukohdeOid))
   }
 
-  def findHakemuksetByQuery(query: commons.Imports.DBObject): Stream[Hakemus] = {
+  def findHakemuksetByQuery(query: commons.Imports.DBObject): Iterator[Hakemus] = {
     val cursor = application.find(query, fields)
 
     (for {hakemus <- cursor
-          h <- parseHakemus(hakemus)} yield {h}).toStream
+          h <- parseHakemus(hakemus)} yield {h})
   }
 
   private def parseHakemus(data: Imports.MongoDBObject): Option[Hakemus] = {
