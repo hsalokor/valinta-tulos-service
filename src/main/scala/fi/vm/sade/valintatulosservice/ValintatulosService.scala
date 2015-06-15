@@ -17,27 +17,27 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
   def this(hakuService: HakuService)(implicit appConfig: AppConfig) = this(appConfig.sijoitteluContext.sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), hakuService)
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
-    fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemus(hakemusOid).toStream, (haku, hakemukset) => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid).toSeq).flatMap(_.headOption)
+    fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemus(hakemusOid).iterator, (haku, hakemukset) => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid).toSeq).flatMap(_.toSeq.headOption)
   }
 
   def hakemuksentuloksetByPerson(hakuOid: String, personOid: String): List[Hakemuksentulos] = {
-    fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemukset(hakuOid, personOid), (haku, hakemukset) => hakemukset.flatMap(hakemus => sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid)))
+    fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemukset(hakuOid, personOid), (haku, hakemukset) => hakemukset.toStream.flatMap(hakemus => sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid)))
       .map(_.toList).getOrElse(List.empty)
   }
 
-  def hakemustenTulosByHaku(hakuOid: String): Option[Stream[Hakemuksentulos]] = {
+  def hakemustenTulosByHaku(hakuOid: String): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
       fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemukset(hakuOid), (haku, hakemukset) => sijoittelutulosService.hakemustenTulos(hakuOid))
     )
   }
 
-  def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String): Option[Stream[Hakemuksentulos]] = {
+  def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
       fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemuksetByHakukohde(hakuOid,hakukohdeOid), (haku, hakemukset) => sijoittelutulosService.hakemustenTulos(hakuOid,hakukohdeOid))
     )
   }
 
-  private def fetchTulokset(hakuOid: String, getHakemukset: Haku => Stream[Hakemus], getSijoittelunTulos: (Haku, Seq[Hakemus]) => Seq[HakemuksenSijoitteluntulos]): Option[Stream[Hakemuksentulos]] = {
+  private def fetchTulokset(hakuOid: String, getHakemukset: Haku => Iterator[Hakemus], getSijoittelunTulos: (Haku, Iterator[Hakemus]) => Seq[HakemuksenSijoitteluntulos]): Option[Iterator[Hakemuksentulos]] = {
     for (
       haku <- hakuService.getHaku(hakuOid)
     ) yield {
