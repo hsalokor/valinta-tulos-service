@@ -22,7 +22,7 @@ class HakemusRepositorySpec extends ITSpecification {
     }
 
     "palauttaa kaikki Hakuun liittyvät Hakemukset" in {
-      val hakemukset = repo.findHakemukset("1.2.246.562.5.2013080813081926341928")
+      val hakemukset = repo.findHakemukset("1.2.246.562.5.2013080813081926341928").toList
       hakemukset must_== Seq(Hakemus("1.2.246.562.11.00000441369", "1.2.246.562.5.2013080813081926341928", "1.2.246.562.24.14229104472", "FI",
         List(Hakutoive("1.2.246.562.5.72607738902", "1.2.246.562.10.591352080610", "stevari amk hakukohde", "Saimaan ammattikorkeakoulu, Skinnarilan kampus, Lappeenranta"), Hakutoive("1.2.246.562.5.16303028779", "1.2.246.562.10.455978782510", "", "")),
         Henkilotiedot(Some("Teppo"), Some("teppo@testaaja.fi"), true))
@@ -30,7 +30,7 @@ class HakemusRepositorySpec extends ITSpecification {
     }
 
     "palauttaa kaikki henkilön tiettyyn hakuun liittyvät Hakemukset" in {
-      val hakemukset = repo.findHakemukset("korkeakoulu-lisahaku1", "1.2.246.562.24.14229104472")
+      val hakemukset = repo.findHakemukset("korkeakoulu-lisahaku1", "1.2.246.562.24.14229104472").toList
       hakemukset must_== List(Hakemus("1.2.246.562.11.00000878230", "korkeakoulu-lisahaku1", "1.2.246.562.24.14229104472", "FI",
           List(Hakutoive("1.2.246.562.14.2013120515524070995659", "1.2.246.562.10.83122281013", "stevari amk hakukohde", "Saimaan ammattikorkeakoulu, Skinnarilan kampus, Lappeenranta"), Hakutoive("1.2.246.562.14.2014022408541751568934", "1.2.246.562.10.83122281012", "", "")),
         Henkilotiedot(Some("Teppo"), None, true))
