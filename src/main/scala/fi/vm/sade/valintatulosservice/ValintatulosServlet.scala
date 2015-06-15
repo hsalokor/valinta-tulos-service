@@ -1,10 +1,9 @@
 package fi.vm.sade.valintatulosservice
 
-import java.io.{PrintWriter, OutputStreamWriter, BufferedWriter}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.json.{JsonStreamWriter, JsonFormats}
+import fi.vm.sade.valintatulosservice.json.{JsonFormats, JsonStreamWriter}
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakuaika}
 import org.joda.time.DateTime
@@ -57,13 +56,11 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
   get("/:hakuOid", operation(getHakemuksetSwagger)) {
     contentType = formats("json")
     val hakuOid = params("hakuOid")
-    HakemustenTulosHakuLock.synchronized {
-      valintatulosService.hakemustenTulosByHaku(hakuOid) match {
-        case Some(tulos: Seq[Hakemuksentulos]) =>
-          JsonStreamWriter.writeJsonStream(tulos, response.writer)
-        case _ =>
-          NotFound("error" -> "Not found")
-      }
+    valintatulosService.hakemustenTulosByHaku(hakuOid) match {
+      case Some(tulos: Seq[Hakemuksentulos]) =>
+        JsonStreamWriter.writeJsonStream(tulos, response.writer)
+      case _ =>
+        NotFound("error" -> "Not found")
     }
   }
 
@@ -71,11 +68,9 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     contentType = formats("json")
     val hakuOid = params("hakuOid")
     val hakukohdeOid = params("hakukohdeOid")
-    HakemustenTulosHakuLock.synchronized {
-      valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid) match {
-        case Some(tulos) => JsonStreamWriter.writeJsonStream(tulos, response.writer)
-        case _ => NotFound("error" -> "Not found")
-      }
+    valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid) match {
+      case Some(tulos) => JsonStreamWriter.writeJsonStream(tulos, response.writer)
+      case _ => NotFound("error" -> "Not found")
     }
   }
   lazy val getHakukohteenHakemuksetSwagger: OperationBuilder = (apiOperation[Unit]("getHakukohteenHakemukset")
