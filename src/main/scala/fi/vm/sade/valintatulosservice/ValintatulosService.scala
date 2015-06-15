@@ -25,19 +25,15 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       .map(_.toList).getOrElse(List.empty)
   }
 
-  def hakemustenTulosByHaku(hakuOid: String): Option[Seq[Hakemuksentulos]] = {
+  def hakemustenTulosByHaku(hakuOid: String): Option[Stream[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
-      HakemustenTulosHakuLock.synchronized {
-        fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemukset(hakuOid), (haku, hakemukset) => sijoittelutulosService.hakemustenTulos(hakuOid))
-      }
+      fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemukset(hakuOid), (haku, hakemukset) => sijoittelutulosService.hakemustenTulos(hakuOid))
     )
   }
 
-  def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String): Option[Seq[Hakemuksentulos]] = {
+  def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String): Option[Stream[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
-      HakemustenTulosHakuLock.synchronized {
-        fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemuksetByHakukohde(hakuOid,hakukohdeOid), (haku, hakemukset) => sijoittelutulosService.hakemustenTulos(hakuOid,hakukohdeOid))
-      }
+      fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemuksetByHakukohde(hakuOid,hakukohdeOid), (haku, hakemukset) => sijoittelutulosService.hakemustenTulos(hakuOid,hakukohdeOid))
     )
   }
 
