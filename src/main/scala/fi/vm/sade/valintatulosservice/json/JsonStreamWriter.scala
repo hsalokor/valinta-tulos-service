@@ -5,7 +5,7 @@ import java.io.PrintWriter
 import org.json4s.Formats
 
 object JsonStreamWriter {
-  def writeJsonStream(objects: Iterator[AnyRef], writer: PrintWriter)(implicit formats: Formats): Unit = {
+  def writeJsonStream(objects: Stream[AnyRef], writer: PrintWriter)(implicit formats: Formats): Unit = {
     writer.print("[")
     objects.zipWithIndex.foreach { case (item, index) =>
       if (index > 0) {

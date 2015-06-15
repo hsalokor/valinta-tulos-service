@@ -57,16 +57,27 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
   get("/:hakuOid", operation(getHakemuksetSwagger)) {
     contentType = formats("json")
     val hakuOid = params("hakuOid")
-    serveStreamingResults({ valintatulosService.hakemustenTulosByHaku(hakuOid) })
+    HakemustenTulosHakuLock.synchronized {
+      valintatulosService.hakemustenTulosByHaku(hakuOid) match {
+        case Some(tulos: Seq[Hakemuksentulos]) =>
+          JsonStreamWriter.writeJsonStream(tulos, response.writer)
+        case _ =>
+          NotFound("error" -> "Not found")
+      }
+    }
   }
 
   get("/:hakuOid/hakukohde/:hakukohdeOid", operation(getHakukohteenHakemuksetSwagger)) {
     contentType = formats("json")
     val hakuOid = params("hakuOid")
     val hakukohdeOid = params("hakukohdeOid")
-    serveStreamingResults({ valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid) })
+    HakemustenTulosHakuLock.synchronized {
+      valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid) match {
+        case Some(tulos) => JsonStreamWriter.writeJsonStream(tulos, response.writer)
+        case _ => NotFound("error" -> "Not found")
+      }
+    }
   }
-
   lazy val getHakukohteenHakemuksetSwagger: OperationBuilder = (apiOperation[Unit]("getHakukohteenHakemukset")
     summary "Hae hakukohteen kaikkien hakemusten tulokset."
     notes "Palauttaa tyyppiä Seq[Hakemuksentulos]. Esim:\n" +
@@ -149,15 +160,6 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
       } else {
         logger.error(desc, e);
         InternalServerError("error" -> "500 Internal Server Error")
-      }
-    }
-  }
-
-  private def serveStreamingResults(fetchData: => Option[Iterator[Hakemuksentulos]]): Any = {
-    HakemustenTulosHakuLock.synchronized {
-      fetchData match {
-        case Some(tulos) => JsonStreamWriter.writeJsonStream(tulos, response.writer)
-        case _ => NotFound("error" -> "Not found")
       }
     }
   }
