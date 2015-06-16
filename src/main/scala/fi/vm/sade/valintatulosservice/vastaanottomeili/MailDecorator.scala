@@ -17,7 +17,7 @@ class MailDecorator(hakemusRepository: HakemusRepository) extends Logging {
               status.hakemusOid, henkiloOid, asiointikieli, kutsumanimi, email, deadline, mailables.map(_.hakukohdeOid)
             ))
           case Some(hakemus) =>
-            logger.debug("Hakemukselta puuttuu kutsumanimi tai email: " + status.hakemusOid)
+            logger.warn("Hakemukselta puuttuu kutsumanimi tai email: " + status.hakemusOid)
             None
           case _ =>
             logger.error("Hakemusta ei löydy: " + status.hakemusOid)
