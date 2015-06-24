@@ -178,7 +178,7 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
     for {
       viimeisinMuutos <- viimeisinMuutosOption
       buffer <- bufferOption
-    } yield new DateTime(viimeisinMuutos).plusDays(buffer).withTime(23, 59, 59, 59)
+    } yield new DateTime(viimeisinMuutos).plusDays(buffer).withTime(14, 59, 59, 59)
   }
 
   private def ifNull[T](value: T, defaultValue: T): T = {
