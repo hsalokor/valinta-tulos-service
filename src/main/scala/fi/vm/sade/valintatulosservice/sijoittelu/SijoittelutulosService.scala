@@ -160,8 +160,8 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
     (aikataulu) match {
       case Some(Vastaanottoaikataulu(Some(deadline), buffer)) if Valintatila.isHyväksytty(valintatila) =>
         Some{
-          val deadlineFromHakemuksenTilanMuutos = getDeadlineWithBuffer(viimeisinHakemuksenTilanMuutos, buffer)
-          val deadlineFromValintatuloksenMuutos = getDeadlineWithBuffer(viimeisinValintatuloksenMuutos, buffer)
+          val deadlineFromHakemuksenTilanMuutos = getDeadlineWithBuffer(viimeisinHakemuksenTilanMuutos, buffer, deadline)
+          val deadlineFromValintatuloksenMuutos = getDeadlineWithBuffer(viimeisinValintatuloksenMuutos, buffer, deadline)
           (deadlineFromHakemuksenTilanMuutos, deadlineFromValintatuloksenMuutos) match {
             case (Some(hakemuksenMuutos), Some(valintatuloksenMuutos)) if hakemuksenMuutos.isAfter(deadline) && (hakemuksenMuutos.isAfter(valintatuloksenMuutos) || hakemuksenMuutos.isEqual(valintatuloksenMuutos)) => hakemuksenMuutos
             case (Some(hakemuksenMuutos), Some(valintatuloksenMuutos)) if valintatuloksenMuutos.isAfter(deadline) && valintatuloksenMuutos.isAfter(hakemuksenMuutos) => valintatuloksenMuutos
@@ -174,11 +174,11 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
     }
   }
 
-  private def getDeadlineWithBuffer(viimeisinMuutosOption: Option[Date], bufferOption: Option[Int]): Option[DateTime] = {
+  private def getDeadlineWithBuffer(viimeisinMuutosOption: Option[Date], bufferOption: Option[Int], deadline: DateTime): Option[DateTime] = {
     for {
       viimeisinMuutos <- viimeisinMuutosOption
       buffer <- bufferOption
-    } yield new DateTime(viimeisinMuutos).plusDays(buffer).withTime(14, 59, 59, 59)
+    } yield new DateTime(viimeisinMuutos).plusDays(buffer).withTime(deadline.getHourOfDay, deadline.getMinuteOfHour, deadline.getSecondOfMinute, deadline.getMillisOfSecond)
   }
 
   private def ifNull[T](value: T, defaultValue: T): T = {

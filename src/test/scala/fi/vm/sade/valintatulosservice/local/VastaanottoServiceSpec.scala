@@ -73,7 +73,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
     "vastaanoton aikataulu" in {
       "vastaanotto onnistuu jos viimeisin valintatuloksen muutos on bufferin sisään" in {
         useFixture("hyvaksytty-kesken-julkaistavissa.json", ohjausparametritFixture = "vastaanotto-loppunut", hakuFixture = hakuFixture)
-        withFixedDateTime("9.9.2014 14:58") {
+        withFixedDateTime("9.9.2014 11:58") {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
           vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
@@ -83,7 +83,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
       "vastaanotto ei onnistu jos ei bufferia annettu ollenkaan, vaikka vastaanotto samana päivänä kuin muutos" in {
         useFixture("hyvaksytty-varasijalta-kesken-julkaistavissa.json", ohjausparametritFixture = "ei-vastaanotto-bufferia", hakuFixture = hakuFixture)
-        withFixedDateTime("02.9.2014 14:58") {
+        withFixedDateTime("02.9.2014 11:58") {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotettu_määräaikana
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
           expectFailure {
@@ -94,7 +94,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
       "vastaanotto onnistuu jos viimeisin hakemuksen tilan muutos on bufferin sisään" in {
         useFixture("hyvaksytty-varasijalta-kesken-julkaistavissa.json", ohjausparametritFixture = "vastaanotto-loppunut", hakuFixture = hakuFixture)
-        withFixedDateTime("16.9.2014 14:58") {
+        withFixedDateTime("16.9.2014 11:58") {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
           vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
@@ -104,7 +104,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
       "vastaanotto ei onnistu jos viimeisin hakemuksen tilan muutos ei ole bufferin sisään" in {
         useFixture("hyvaksytty-varasijalta-kesken-julkaistavissa.json", ohjausparametritFixture = "vastaanotto-loppunut", hakuFixture = hakuFixture)
-        withFixedDateTime("16.9.2014 15:00") {
+        withFixedDateTime("16.9.2014 12:01") {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotettu_määräaikana
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
           expectFailure {
