@@ -152,7 +152,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
             {ilmoittaudu(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, läsnä_koko_lukuvuosi, muokkaaja, selite)}
         }
 
-        "kahteen kertaan ilmoittatuminen" in {
+        "kahteen kertaan ilmoittautuminen" in {
           useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
           vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
