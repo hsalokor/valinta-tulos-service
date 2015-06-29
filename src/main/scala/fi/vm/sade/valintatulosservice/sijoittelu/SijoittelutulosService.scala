@@ -197,7 +197,13 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
       }
     }
 
-    hakutoive.getHakutoiveenValintatapajonot.toList.sorted(ordering).headOption
+    val orderedJonot: List[HakutoiveenValintatapajonoDTO] = hakutoive.getHakutoiveenValintatapajonot.toList.sorted(ordering)
+    val headOption: Option[HakutoiveenValintatapajonoDTO] = orderedJonot.headOption
+    headOption.map(jono => {
+      val tila: Valintatila = fromHakemuksenTila(jono.getTila)
+      if (tila.equals(Valintatila.hylätty)) jono.setTilanKuvaukset(orderedJonot.last.getTilanKuvaukset)
+      jono
+    })
   }
 
   def fromOptional[T](opt: Optional[T]) = {
