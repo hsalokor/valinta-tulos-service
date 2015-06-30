@@ -297,6 +297,15 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           useFixture("hylatty-toisessa-jonossa-peruuntunut.json", hakuFixture = hakuFixture)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.peruuntunut, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
         }
+
+        "näytetään viimeisen jonon hylkäysperuste" in {
+          useFixture("hylatty-peruste-viimeisesta-jonosta.json", hakuFixture = hakuFixture)
+          val hakutoive: Hakutoiveentulos = getHakutoive("1.2.246.562.5.72607738902")
+          val kuvaukset: Map[String, String] = hakutoive.tilanKuvaukset
+          kuvaukset.get("FI").get must_== "Toinen jono"
+          kuvaukset.get("SV").get must_== "Toinen jono sv"
+          kuvaukset.get("EN").get must_== "Toinen jono en"
+        }
       }
 
       "peruuntunut" in {
