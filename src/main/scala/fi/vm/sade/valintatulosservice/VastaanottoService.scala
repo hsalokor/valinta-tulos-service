@@ -14,16 +14,24 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException("Hakua ei löydy"))
     val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
     val hakutoive = hakemuksenTulos.findHakutoive(vastaanotto.hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
+    val tila = ValintatuloksenTila.valueOf(vastaanotto.tila.toString)
 
-    val tila: ValintatuloksenTila = ValintatuloksenTila.valueOf(vastaanotto.tila.toString)
     tarkistaVastaanotettavuus(hakutoive, tila)
+
     val muutHakemukset = korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku, hakemuksenTulos.hakijaOid, tila)
+
     tarkistaEttaEiVastaanottoja(muutHakemukset, tila, hakutoive)
+
     val tallennettavaTila = vastaanotaSitovastiJosKorkeakouluYhteishaku(haku, tila)
-    tulokset.modifyValintatulos(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, tallennettavaTila.name, vastaanotto.muokkaaja, vastaanotto.selite) { valintatulos => {
-        valintatulos.setTila(tallennettavaTila)
-      }
-    }
+    tulokset.modifyValintatulos(
+      vastaanotto.hakukohdeOid,
+      hakutoive.valintatapajonoOid,
+      hakemusOid,
+      tallennettavaTila.name,
+      vastaanotto.muokkaaja,
+      vastaanotto.selite
+    ) { valintatulos => valintatulos.setTila(tallennettavaTila) }
+
     peruMuutHyvaksytyt(muutHakemukset, vastaanotto, haku)
   }
 
@@ -39,30 +47,28 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     }
   }
 
-  private def korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku: Haku, personOid: String, tila: ValintatuloksenTila): Set[Hakemuksentulos] = {
-    if(haku.korkeakoulu && haku.yhteishaku && List(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT).contains(tila)) {
+  private def korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku: Haku, personOid: String, tila: ValintatuloksenTila): Set[Hakemuksentulos] =
+    if (haku.korkeakoulu && haku.yhteishaku && List(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT).contains(tila)) {
       hakuService.findLiittyvatHaut(haku).flatMap(valintatulosService.hakemuksentuloksetByPerson(_, personOid))
-    }
-    else {
+    } else {
       Set()
     }
-  }
 
   private def tarkistaEttaEiVastaanottoja(muutHakemukset: Set[Hakemuksentulos], tila: ValintatuloksenTila, hakutoive: Hakutoiveentulos) {
-    muutHakemukset.map { tulos =>
+    muutHakemukset.foreach(tulos => {
       val vastaanotettu = tulos.hakutoiveet.find(toive => List(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(toive.vastaanottotila))
-      if(vastaanotettu.isDefined) {
+      if (vastaanotettu.isDefined) {
         throw new IllegalArgumentException("Väärä vastaanottotila toisen haun " + tulos.hakuOid + " kohteella " + vastaanotettu.get.hakukohdeOid + ": " + vastaanotettu.get.vastaanottotila + " (yritetty muutos: " + tila + " " + hakutoive.hakukohdeOid + ")")
       }
-    }
+    })
   }
 
   private def peruMuutHyvaksytyt(muutHakemukset: Set[Hakemuksentulos], vastaanotto: Vastaanotto, vastaanotonHaku: Haku) {
-    muutHakemukset.map { hakemus =>
+    muutHakemukset.foreach(hakemus => {
       val peruttavatKohteet = hakemus.hakutoiveet.filter(toive =>
         Valintatila.isHyväksytty(toive.valintatila) && toive.vastaanottotila == Vastaanottotila.kesken
       )
-      peruttavatKohteet.map{kohde =>
+      peruttavatKohteet.foreach(kohde =>
         tulokset.modifyValintatulos(
           kohde.hakukohdeOid,
           kohde.valintatapajonoOid,
@@ -70,18 +76,15 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
           ValintatuloksenTila.PERUNUT.toString,
           vastaanotto.muokkaaja,
           vastaanotto.tila + " paikan " + vastaanotto.hakukohdeOid + " toisesta hausta " + vastaanotonHaku.oid
-        )
-        {valintatulos =>  valintatulos.setTila(ValintatuloksenTila.PERUNUT)}
-      }
-    }
+        ) { valintatulos => valintatulos.setTila(ValintatuloksenTila.PERUNUT) }
+      )
+    })
   }
 
-  private def vastaanotaSitovastiJosKorkeakouluYhteishaku(haku: Haku, tila: ValintatuloksenTila): ValintatuloksenTila = {
-    if(tila == VASTAANOTTANUT && haku.korkeakoulu) {
+  private def vastaanotaSitovastiJosKorkeakouluYhteishaku(haku: Haku, tila: ValintatuloksenTila): ValintatuloksenTila =
+    if (tila == VASTAANOTTANUT && haku.korkeakoulu) {
       ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI
-    }
-    else {
+    } else {
       tila
     }
-  }
 }
