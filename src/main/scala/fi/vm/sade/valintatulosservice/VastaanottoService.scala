@@ -35,6 +35,11 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     peruMuutHyvaksytyt(muutHakemukset, vastaanotto, haku)
   }
 
+  def vastaanotaHakukohde(personOid: String, vastaanotto: Vastaanotto) {
+    val hakemuksenTulos = valintatulosService.hakemustenTulosByHakukohdeAndPerson(vastaanotto.hakukohdeOid, personOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
+    vastaanota(hakemuksenTulos.hakuOid, hakemuksenTulos.hakemusOid, vastaanotto)
+  }
+
   private def tarkistaVastaanotettavuus(hakutoive: Hakutoiveentulos, tila: ValintatuloksenTila) {
     if (!sallitutVastaanottotilat.contains(tila)) {
       throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + tila)

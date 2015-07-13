@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 
 import java.util.{Date, Optional}
 
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakijaPaginationObject, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, IlmoittautumisTila, ValintatuloksenTila}
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.domain.Valintatila._

@@ -1,6 +1,5 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.utils.Timer
 import fi.vm.sade.utils.Timer.timed
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
@@ -34,8 +33,28 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
 
   def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
-      fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemuksetByHakukohde(hakuOid,hakukohdeOid), (haku) => sijoittelutulosService.hakemustenTulos(hakuOid,hakukohdeOid))
+      fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid), (haku) => sijoittelutulosService.hakemustenTulos(hakuOid, hakukohdeOid))
     )
+  }
+
+  def hakemustenTulosByHakukohdeAndPerson(hakukohdeOid: String, personOid: String): Option[Hakemuksentulos] = {
+    timed(s"Fetch hakemusten tulos for hakukohde: $hakukohdeOid and person: $personOid", 1000) {
+      val hakemukset = hakemusRepository.findHakemuksetByHakukohdeAndPerson(hakukohdeOid, personOid)
+      if (hakemukset.nonEmpty) {
+        Some({
+          val hakemus = hakemukset.next()
+          val hakuOid = hakemus.hakuOid
+          val haku = hakuService.getHaku(hakuOid).getOrElse(throw new Exception(s"haku $hakuOid not found"))
+          val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
+          val sijoitteluTulos = timed("Fetch sijoittelun tulos", 1000) {
+            sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid)
+          }.getOrElse(tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
+          julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
+        })
+      } else {
+        None
+      }
+    }
   }
 
   private def fetchTulokset(hakuOid: String, getHakemukset: Haku => Iterator[Hakemus], getSijoittelunTulos: (Haku) => Seq[HakemuksenSijoitteluntulos]): Option[Iterator[Hakemuksentulos]] = {

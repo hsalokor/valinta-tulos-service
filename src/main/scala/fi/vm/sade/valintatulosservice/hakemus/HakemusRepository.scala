@@ -55,11 +55,15 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
     findHakemuksetByQuery(MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid, DatabaseKeys.hakutoiveetSearchPath -> hakukohdeOid))
   }
 
+  def findHakemuksetByHakukohdeAndPerson(hakukohdeOid: String, personOid: String): Iterator[Hakemus] = {
+    findHakemuksetByQuery(MongoDBObject(DatabaseKeys.hakutoiveetSearchPath -> hakukohdeOid, DatabaseKeys.personOidKey -> personOid))
+  }
+
   def findHakemuksetByQuery(query: commons.Imports.DBObject): Iterator[Hakemus] = {
     val cursor = application.find(query, fields)
 
-    (for {hakemus <- cursor
-          h <- parseHakemus(hakemus)} yield {h})
+    for (hakemus <- cursor;
+         h <- parseHakemus(hakemus)) yield h
   }
 
   private def parseHakemus(data: Imports.MongoDBObject): Option[Hakemus] = {
