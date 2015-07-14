@@ -19,50 +19,51 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
   val vastaanotettavissaHakuKohdeOid = "1.2.246.562.5.72607738902"
   val hakemusOid: String = "1.2.246.562.11.00000441369"
   val muokkaaja: String = "Teppo Testi"
+  val personOid: String = "1.2.246.562.24.14229104472"
   val selite: String = "Testimuokkaus"
   val ilmoittautumisaikaPaattyy2100: Ilmoittautumisaika = Ilmoittautumisaika(None, Some(new DateTime(2100, 1, 10, 23, 59, 59, 999)))
 
   def kaikkienHakutyyppienTestit(hakuFixture: String) = {
     "vastaanota hyväksytty julkaistu tulos" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
-      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
     }
 
     "virhetilanteet" in {
       "vastaanota aiemmin vastaanotettu" in {
         useFixture("hyvaksytty-vastaanottanut.json", hakuFixture = hakuFixture)
-        expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)}
+        expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)}
       }
 
       "hakemusta ei löydy" in {
         useFixture("hyvaksytty-ei-valintatulosta.json", hakuFixture = hakuFixture)
-        expectFailure { vastaanota(hakuOid, hakemusOid + 1, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)}
+        expectFailure { vastaanota(hakuOid, hakemusOid + 1, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)}
       }
 
       "hakukohdetta ei löydy" in {
         useFixture("hyvaksytty-ei-valintatulosta.json", hakuFixture = hakuFixture)
-        expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid + 1, Vastaanottotila.vastaanottanut, muokkaaja, selite)}
+        expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid + 1, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)}
       }
 
       "vastaanotto ilman valintatulosta" in {
         useFixture("hyvaksytty-ei-valintatulosta.json", hakuFixture = hakuFixture)
         hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
-        expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)}
+        expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)}
         success
       }
 
       "peruminen ilman valintatulosta " in {
         useFixture("hyvaksytty-ei-valintatulosta.json", hakuFixture = hakuFixture)
         hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
-        expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.perunut, muokkaaja, selite)}
+        expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.perunut, muokkaaja, selite, personOid)}
         success
       }
 
       "paikan peruminen varsinaisessa haussa, kun lisähaussa vastaanottavissa, ei peru lisähaun paikkoja" in {
         useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
         hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
-        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.perunut, muokkaaja, selite)
+        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.perunut, muokkaaja, selite, personOid)
         hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
         val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
         lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
@@ -76,7 +77,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
         withFixedDateTime("9.9.2014 12:00") {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
-          vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+          vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
         }
       }
@@ -87,7 +88,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotettu_määräaikana
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
           expectFailure {
-            vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+            vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
           }
         }
       }
@@ -97,7 +98,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
         withFixedDateTime("16.9.2014 12:00") {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
-          vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+          vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
         }
       }
@@ -108,7 +109,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotettu_määräaikana
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
           expectFailure {
-            vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+            vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
           }
         }
       }
@@ -119,7 +120,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotettu_määräaikana
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
           expectFailure {
-            vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+            vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
           }
         }
       }
@@ -130,7 +131,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ei_vastaanotettu_määräaikana
           hakemuksenTulos.hakutoiveet(0).vastaanotettavuustila  must_== Vastaanotettavuustila.ei_vastaanotettavissa
           expectFailure {
-            vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+            vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
           }
         }
       }
@@ -140,7 +141,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       "virhetilanteet" in {
         "ilmoittautuminen peruttuun kohteeseen" in {
           useFixture("hyvaksytty-ilmoitettu.json", hakuFixture = hakuFixture)
-          vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.perunut, muokkaaja, selite)
+          vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.perunut, muokkaaja, selite, personOid)
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
           expectFailure(Some("""Hakutoive 1.2.246.562.5.72607738902 ei ole ilmoittauduttavissa: ilmoittautumisaika: {"loppu":"2100-01-10T21:59:59Z"}, ilmoittautumistila: EI_TEHTY, valintatila: PERUNUT, vastaanottotila: PERUNUT"""))
             {ilmoittaudu(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, läsnä_koko_lukuvuosi, muokkaaja, selite)}
@@ -154,7 +155,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
         "kahteen kertaan ilmoittautuminen" in {
           useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
-          vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+          vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
           hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
           ilmoittaudu(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, läsnä_koko_lukuvuosi, muokkaaja, selite)
           hakemuksenTulos.hakutoiveet(0).ilmoittautumistila.ilmoittautumistila must_== Ilmoittautumistila.läsnä_koko_lukuvuosi
@@ -173,7 +174,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
     "vastaanota ylempi kun kaksi hyvaksyttyä -> alemmat peruuntuvat" in {
       useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixtures = List("00000441369-3"))
-      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val yhteenveto = hakemuksenTulos
       yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
@@ -186,7 +187,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
     "vastaanota alempi kun kaksi hyväksyttyä -> muut peruuntuvat" in {
       useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixtures = List("00000441369-3"))
-      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738904", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738904", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val yhteenveto = hakemuksenTulos
       yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
@@ -198,13 +199,13 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
     "vastaanota ehdollisesti vastaanotettu -> ERROR" in {
       useFixture("hyvaksytty-vastaanottanut-ehdollisesti.json", hakuFixture = hakuFixture)
-      expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)}
+      expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)}
     }
 
     "vastaanota varsinaisessa haussa, kun lisähaussa vastaanottavissa -> lisähaun paikka peruuntuu" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
       hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
-      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
       lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
       lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.perunut
@@ -215,7 +216,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
     "vastaanota ehdollisesti varsinaisessa haussa, kun lisähaussa vastaanottavissa -> lisähaun paikka peruuntuu" in {
       useFixture("hyvaksytty-ylempi-varalla.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
       hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
-      vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
+      vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
       val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
       lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
       lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.perunut
@@ -226,47 +227,47 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
     "vastaanota lisähaussa, kun varsinaisessa haussa jo vastaanottanut -> ERROR" in {
       useFixture("hyvaksytty-vastaanottanut.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
       expectFailure(Some("Väärä vastaanottotila toisen haun 1.2.246.562.5.2013080813081926341928 kohteella 1.2.246.562.5.72607738902: VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT 1.2.246.562.14.2014022408541751568934)")) {
-        vastaanota("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230", "1.2.246.562.14.2014022408541751568934", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+        vastaanota("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230", "1.2.246.562.14.2014022408541751568934", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       }
     }
 
     "vastaanota lisähaussa, kun varsinaisessa haussa jo ehdollisesti vastaanottanut -> ERROR" in {
       useFixture("hyvaksytty-vastaanottanut-ehdollisesti.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
       expectFailure(Some("Väärä vastaanottotila toisen haun 1.2.246.562.5.2013080813081926341928 kohteella 1.2.246.562.5.16303028779: EHDOLLISESTI_VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT 1.2.246.562.14.2014022408541751568934)")) {
-        vastaanota("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230", "1.2.246.562.14.2014022408541751568934", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+        vastaanota("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230", "1.2.246.562.14.2014022408541751568934", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       }
     }
 
     "vastaanota varsinaisessa haussa, kun lisähaussa jo vastaanottanut -> ERROR" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture)
       expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT 1.2.246.562.5.72607738902)")) {
-        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       }
     }
 
     "peruminen varsinaisessa haussa, kun lisähaussa jo vastaanottanut, onnistuu" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture)
-      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.perunut, muokkaaja, selite)
+      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.perunut, muokkaaja, selite, personOid)
     }
 
     "vastaanota ehdollisesti varsinaisessa haussa, kun lisähaussa jo vastaanottanut -> ERROR" in {
       useFixture("hyvaksytty-ylempi-varalla.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture)
       expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: VASTAANOTTANUT (yritetty muutos: EHDOLLISESTI_VASTAANOTTANUT 1.2.246.562.5.16303028779)")) {
-        vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
+        vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
       }
     }
 
     "vastaanota varsinaisessa haussa, kun lisähaussa jo vastaanottanut ehdollisesti -> ERROR" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut-ehdollisesti.json"), hakuFixture = hakuFixture)
       expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: EHDOLLISESTI_VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT 1.2.246.562.5.72607738902)")) {
-        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       }
     }
 
     "vastaanota ehdollisesti kun varasijasäännöt eivät ole vielä voimassa" in {
       useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture, ohjausparametritFixture = OhjausparametritFixtures.varasijasaannotEiVielaVoimassa)
       expectFailure {
-        vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
+        vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
       }
     }
 
@@ -274,7 +275,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
       hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
       hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
-      vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite)
+      vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
       hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
       hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
@@ -283,7 +284,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
     "vastaanota sitovasti kun varasijasäännöt voimassa" in {
       useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
-      vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val yhteenveto = hakemuksenTulos
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
       yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.vastaanottanut
@@ -296,7 +297,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
     "Valintatuloksen muutoslogi"  in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
-      vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
       assertSecondLogEntry(valintatulos, "VASTAANOTTANUT_SITOVASTI", selite)
     }
@@ -343,7 +344,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
     "vastaanota alempi kun kaksi hyvaksyttya -> muut eivät peruunnut" in {
       useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixtures = List("00000441369-3"))
-      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738904", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738904", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val yhteenveto = hakemuksenTulos
       yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
@@ -356,12 +357,12 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
     "vastaanota varsinaisessa haussa, kun lisähaussa jo vastaanottanut, onnistuu" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture)
-      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
     }
 
     "Valintatuloksen muutoslogi"  in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
-      vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite)
+      vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
       assertSecondLogEntry(valintatulos, "VASTAANOTTANUT", selite)
     }
@@ -387,8 +388,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
   private def hakemuksenTulos: Hakemuksentulos = hakemuksenTulos(hakuOid, hakemusOid)
   private def hakemuksenTulos(hakuOid: String, hakemusOid: String) = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).get
 
-  private def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: String, selite: String) = {
-    vastaanottoService.vastaanota(hakuOid, hakemusOid, Vastaanotto(hakukohdeOid, tila, muokkaaja, selite))
+  private def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: String, selite: String, personOid: String) = {
+    vastaanottoService.vastaanota(hakuOid, hakemusOid, Vastaanotto(hakukohdeOid, tila, muokkaaja, selite, personOid))
     success
   }
 

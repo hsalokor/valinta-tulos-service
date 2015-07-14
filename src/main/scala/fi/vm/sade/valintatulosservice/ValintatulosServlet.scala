@@ -1,10 +1,9 @@
 package fi.vm.sade.valintatulosservice
 
-import java.io.{PrintWriter, OutputStreamWriter, BufferedWriter}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.json.{JsonStreamWriter, JsonFormats}
+import fi.vm.sade.valintatulosservice.json.{JsonFormats, JsonStreamWriter}
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakuaika}
 import org.joda.time.DateTime
@@ -74,30 +73,6 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     parameter pathParam[String]("hakuOid").description("Haun oid")
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
   )
-  val postVastaanottoSwagger: OperationBuilder = (apiOperation[Unit]("getHakemus")
-    summary "Tallenna hakukohteelle uusi vastaanottotila"
-    // Real body param type cannot be used because of unsupported scala enumerations: https://github.com/scalatra/scalatra/issues/343
-    notes "Bodyssä tulee antaa tieto hakukohteen vastaanotttilan muutoksesta Vastaanotto tyyppinä. Esim:\n" +
-      pretty(Extraction.decompose(
-        Vastaanotto(
-            "1.2.3.4",
-            Vastaanottotila.vastaanottanut,
-            "henkilö: 5.5.5.5",
-            "kuvaus mitä kautta muokkaus tehty"
-        )
-      )) + ".\nMahdolliset vastaanottotilat: " + vastaanottoService.sallitutVastaanottotilat
-    parameter pathParam[String]("hakuOid").description("Haun oid")
-    parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
-  )
-  post("/:hakuOid/hakemus/:hakemusOid/vastaanota", operation(postVastaanottoSwagger)) {
-    contentType = formats("json")
-    checkJsonContentType
-    val hakuOid = params("hakuOid")
-    val hakemusOid = params("hakemusOid")
-    val vastaanotto = parsedBody.extract[Vastaanotto]
-
-    vastaanottoService.vastaanota(hakuOid, hakemusOid, vastaanotto)
-  }
 
   val postIlmoittautuminenSwagger: OperationBuilder = (apiOperation[Unit]("ilmoittaudu")
     summary "Tallenna hakukohteelle uusi ilmoittautumistila"
