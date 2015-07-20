@@ -22,9 +22,8 @@ class EmailStatusServlet(mailPoller: MailPoller, mailDecorator: MailDecorator)(i
     contentType = formats("json")
     val limit: Int = params.get("limit").map(_.toInt).getOrElse(mailPoller.limit)
     val mailStatii: List[HakemusMailStatus] = mailPoller.pollForMailables(limit = limit)
-    logger.info("pollForMailables found " + mailStatii.size + " results, " + mailStatii.count(_.anyMailToBeSent) + " actionable")
     val mails = mailStatii.flatMap(mailDecorator.statusToMail)
-    logger.info(s"${mails.size} statuses converted to mail")
+    logger.info("{} statuses converted to {} mails", mailStatii.size, mails.size)
     mails
   }
 

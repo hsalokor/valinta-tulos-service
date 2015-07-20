@@ -33,7 +33,8 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
       }
       .map(_.oid)
 
-    logger.info("haut=" + found.size)
+
+    logger.info("haut {}", org.json4s.jackson.Serialization.write(found)(fi.vm.sade.valintatulosservice.json.JsonFormats.jsonFormats))
     found
   }
 
@@ -46,6 +47,7 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
       mailStatusFor(hakemuksenTulos)
     }
     val mailables = statii.filter(_.anyMailToBeSent).toList
+    logger.info("found {} mailables from {} candidates", mailables.size, candidates.size)
 
     for {
       hakemus <- statii
@@ -55,14 +57,12 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
       markAsNonMailable(hakemus, hakukohde)
     }
 
-    val result = if (candidates.size > 0 && mailables.size < limit) {
+    if (candidates.size > 0 && mailables.size < limit) {
       logger.debug("fetching more mailables")
       mailables ++ pollForMailables(hakuOids, limit = limit - mailables.size, excludeHakemusOids = excludeHakemusOids ++ mailables.map(_.hakemusOid).toSet)
     } else {
       mailables
     }
-    logger.debug("pollForMailables found " + result.size + " results, " + result.count(_.anyMailToBeSent) + " actionable")
-    result
   }
 
   def markAsNonMailable(hakemus: HakemusMailStatus, hakukohde: HakukohdeMailStatus) = {
@@ -153,8 +153,6 @@ class MailPoller(mongoConfig: MongoConfig, valintatulosService: ValintatulosServ
       .map{ tulos => HakemusIdentifier(tulos.get("hakuOid").asInstanceOf[String], tulos.get("hakemusOid").asInstanceOf[String])}
 
     updateCheckTimestamps(candidates.map(_.hakemusOid))
-
-    logger.info("pollCandidates found " + candidates.size + " candidates for hakuOids= " + hakuOids)
 
     candidates.toSet
   }
