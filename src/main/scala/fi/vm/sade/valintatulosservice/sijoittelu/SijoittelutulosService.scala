@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 
 import java.util.{Date, Optional}
 
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakijaPaginationObject, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, IlmoittautumisTila, ValintatuloksenTila}
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
@@ -49,7 +49,7 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
       var valintatila: Valintatila = jononValintatila(jono, hakutoive)
       val viimeisinHakemuksenTilanMuutos: Option[Date] = Option(jono.getHakemuksenTilanViimeisinMuutos())
       val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos())
-      val vastaanottoDeadline: Option[DateTime] = laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos, viimeisinValintatuloksenMuutos, valintatila)
+      val vastaanottoDeadline: Option[DateTime] = laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos, valintatila)
       val vastaanottotila: Vastaanottotila = laskeVastaanottotila(valintatila, jono.getVastaanottotieto, aikataulu, vastaanottoDeadline)
       valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
       val vastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, vastaanottotila)
@@ -156,12 +156,11 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
   }
 
 
-  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], viimeisinValintatuloksenMuutos: Option[Date], valintatila: Valintatila): Option[DateTime] = {
+  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], valintatila: Valintatila): Option[DateTime] = {
     (aikataulu) match {
       case Some(Vastaanottoaikataulu(Some(deadlineFromHaku), buffer)) if Valintatila.isHyväksytty(valintatila) =>
         val deadlineFromHakemuksenTilanMuutos = getDeadlineWithBuffer(viimeisinHakemuksenTilanMuutos, buffer, deadlineFromHaku)
-        val deadlineFromValintatuloksenMuutos = getDeadlineWithBuffer(viimeisinValintatuloksenMuutos, buffer, deadlineFromHaku)
-        val deadlines = Some(deadlineFromHaku) ++ deadlineFromHakemuksenTilanMuutos ++ deadlineFromValintatuloksenMuutos
+        val deadlines = Some(deadlineFromHaku) ++ deadlineFromHakemuksenTilanMuutos
         Some(deadlines.maxBy((a: DateTime) => a.getMillis))
       case _ => None
     }
