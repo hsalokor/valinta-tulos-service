@@ -72,7 +72,6 @@ class ValintatulosMongoCollection(mongoConfig: MongoConfig) {
   private def updateValintatulos(hakemusOid: String, hakuKohdeOid: String, fields: Map[Imports.JSFunction, Any]): Unit = {
     val query = MongoDBObject("hakemusOid" -> hakemusOid, "hakukohdeOid" -> hakuKohdeOid)
     val update = Map("$set" -> fields)
-    println("update valintatulos: " + fields)
     valintatulos.update(query, update, multi = true)
   }
 
