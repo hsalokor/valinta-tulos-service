@@ -8,7 +8,7 @@ import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 
-class EmailStatusServlet(mailPoller: MailPoller, mailDecorator: MailDecorator)(implicit val swagger: Swagger) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
+class EmailStatusServlet(mailPoller: MailPoller, valintatulosCollection: ValintatulosMongoCollection, mailDecorator: MailDecorator)(implicit val swagger: Swagger) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
 
   override def applicationName = Some("vastaanottoposti")
   protected val applicationDescription = "Mail poller REST API"
@@ -38,7 +38,7 @@ class EmailStatusServlet(mailPoller: MailPoller, mailDecorator: MailDecorator)(i
       throw new IllegalArgumentException("got confirmation of 0 applications")
     }
     logger.info("got confirmation for " + kuitatut.size + " applications: " + kuitatut.map(_.hakemusOid).mkString(","))
-    kuitatut.foreach(mailPoller.markAsSent)
+    kuitatut.foreach(valintatulosCollection.markAsSent)
   }
 
 }

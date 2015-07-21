@@ -5,7 +5,7 @@ import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain.{Hakemus, Henkilotiedot}
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 
-class MailDecorator(hakemusRepository: HakemusRepository, mailPoller: MailPoller) extends Logging {
+class MailDecorator(hakemusRepository: HakemusRepository, valintatulosCollection: ValintatulosMongoCollection) extends Logging {
   def statusToMail(status: HakemusMailStatus): Option[VastaanotettavuusIlmoitus] = {
     status.anyMailToBeSent match {
       case true => {
@@ -19,13 +19,13 @@ class MailDecorator(hakemusRepository: HakemusRepository, mailPoller: MailPoller
           case Some(hakemus) =>
             logger.warn("Hakemukselta puuttuu kutsumanimi tai email: " + status.hakemusOid)
             status.hakukohteet.filter(_.shouldMail).foreach {
-              mailPoller.addMessage(status, _,  "Hakemukselta puuttuu kutsumanimi tai email")
+              valintatulosCollection.addMessage(status, _,  "Hakemukselta puuttuu kutsumanimi tai email")
             }
             None
           case _ =>
             logger.error("Hakemusta ei löydy: " + status.hakemusOid)
             status.hakukohteet.filter(_.shouldMail).foreach {
-              mailPoller.addMessage(status, _,  "Hakemusta ei löydy")
+              valintatulosCollection.addMessage(status, _,  "Hakemusta ei löydy")
             }
             None
         }
