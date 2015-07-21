@@ -158,18 +158,11 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
 
   private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], viimeisinValintatuloksenMuutos: Option[Date], valintatila: Valintatila): Option[DateTime] = {
     (aikataulu) match {
-      case Some(Vastaanottoaikataulu(Some(deadline), buffer)) if Valintatila.isHyväksytty(valintatila) =>
-        Some{
-          val deadlineFromHakemuksenTilanMuutos = getDeadlineWithBuffer(viimeisinHakemuksenTilanMuutos, buffer, deadline)
-          val deadlineFromValintatuloksenMuutos = getDeadlineWithBuffer(viimeisinValintatuloksenMuutos, buffer, deadline)
-          (deadlineFromHakemuksenTilanMuutos, deadlineFromValintatuloksenMuutos) match {
-            case (Some(hakemuksenMuutos), Some(valintatuloksenMuutos)) if hakemuksenMuutos.isAfter(deadline) && (hakemuksenMuutos.isAfter(valintatuloksenMuutos) || hakemuksenMuutos.isEqual(valintatuloksenMuutos)) => hakemuksenMuutos
-            case (Some(hakemuksenMuutos), Some(valintatuloksenMuutos)) if valintatuloksenMuutos.isAfter(deadline) && valintatuloksenMuutos.isAfter(hakemuksenMuutos) => valintatuloksenMuutos
-            case (Some(muutosDeadline), None) if muutosDeadline.isAfter(deadline) => muutosDeadline
-            case (None, Some(muutosDeadline)) if muutosDeadline.isAfter(deadline) => muutosDeadline
-            case _ => deadline
-          }
-        }
+      case Some(Vastaanottoaikataulu(Some(deadlineFromHaku), buffer)) if Valintatila.isHyväksytty(valintatila) =>
+        val deadlineFromHakemuksenTilanMuutos = getDeadlineWithBuffer(viimeisinHakemuksenTilanMuutos, buffer, deadlineFromHaku)
+        val deadlineFromValintatuloksenMuutos = getDeadlineWithBuffer(viimeisinValintatuloksenMuutos, buffer, deadlineFromHaku)
+        val deadlines = Some(deadlineFromHaku) ++ deadlineFromHakemuksenTilanMuutos ++ deadlineFromValintatuloksenMuutos
+        Some(deadlines.maxBy((a: DateTime) => a.getMillis))
       case _ => None
     }
   }
