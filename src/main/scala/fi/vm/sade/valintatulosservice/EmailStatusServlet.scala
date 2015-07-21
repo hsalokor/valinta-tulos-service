@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.json.JsonFormats
-import fi.vm.sade.valintatulosservice.vastaanottomeili.{LahetysKuittaus, MailDecorator, HakemusMailStatus, MailPoller}
+import fi.vm.sade.valintatulosservice.vastaanottomeili._
 import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
@@ -22,7 +22,7 @@ class EmailStatusServlet(mailPoller: MailPoller, mailDecorator: MailDecorator)(i
     contentType = formats("json")
     val limit: Int = params.get("limit").map(_.toInt).getOrElse(mailPoller.limit)
     val mailStatii: List[HakemusMailStatus] = mailPoller.pollForMailables(limit = limit)
-    val mails = mailStatii.flatMap(mailDecorator.statusToMail)
+    val mails: List[VastaanotettavuusIlmoitus] = mailStatii.flatMap(mailDecorator.statusToMail)
     logger.info("{} statuses converted to {} mails", mailStatii.size, mails.size)
     mails
   }
