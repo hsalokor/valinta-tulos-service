@@ -89,6 +89,6 @@ Palvelu `valinta-tulos-emailer` käyttää valinta-tulos-serviceä hakemaan list
 
 Yksinkertaistetusti pollauksessa haetaan ensimmäisessä vaiheessa joukko kandidaattituloksia Valintatulos-collectionista (sijoittelun mongossa). Kandidaatteihin merkitään `mailStatus.previousCheck` -kenttään aikaleima, jonka avulla samat kandidaatit blokataan seuraavista kyselyistä.
 
-Tarkistusaikaleimojen nollauksen voi tehdä mongoon seuraavasti:
+Tarkistusaikaleimojen nollauksen voi tehdä mongoon seuraavasti (muokkaa minimiaikaleima sopivaksi):
 
-    db.Valintatulos.update({"mailStatus.previousCheck": {$exists: true}}, {$unset: {"mailStatus.previousCheck": ""}}, {multi: true})
+    db.Valintatulos.update({"mailStatus.previousCheck": {"$gte": ISODate("2015-07-20T18:00:00.000Z")}}, {$unset: {"mailStatus.previousCheck": ""}}, {multi:true})
