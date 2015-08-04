@@ -17,6 +17,7 @@ import fi.vm.sade.sijoittelu.tulos.dao.{SijoitteluDao, HakukohdeDao, Valintatulo
 class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext, hakuService: HakuService) {
   def database = context.getBean(classOf[DB])
 
+  lazy val morphiaDs = context.getBean(classOf[Datastore])
   lazy val valintatulosDao = context.getBean(classOf[ValintatulosDao])
   lazy val hakukohdeDao = context.getBean(classOf[HakukohdeDao])
   lazy val sijoitteluDao = context.getBean(classOf[SijoitteluDao])

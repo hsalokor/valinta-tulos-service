@@ -32,7 +32,7 @@ class GeneratedFixture(haut: List[GeneratedHakuFixture] = List(new GeneratedHaku
     haut.foreach { haku =>
       logger.info("Generating for Haku " + haku.hakuOid)
       logger.info("Valintatulos...")
-      insertWithProgress(haku.valintatulokset)(appConfig.sijoitteluContext.valintatulosDao.createOrUpdateValintatulos(_))
+      insertWithProgress(haku.valintatulokset)(valintatulos => appConfig.sijoitteluContext.morphiaDs.save[Valintatulos](valintatulos))
       logger.info("Sijoittelu...")
       appConfig.sijoitteluContext.sijoitteluDao.persistSijoittelu(haku.sijoittelu)
       logger.info("Hakukohde...")
