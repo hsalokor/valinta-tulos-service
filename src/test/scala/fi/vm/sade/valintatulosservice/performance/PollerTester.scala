@@ -5,7 +5,7 @@ import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusMailStatus, MailPoller}
+import fi.vm.sade.valintatulosservice.vastaanottomeili.{ValintatulosMongoCollection, HakemusMailStatus, MailPoller}
 import fi.vm.sade.valintatulosservice.{TimeWarp, ValintatulosService}
 
 object PollerTester extends App with Logging with TimeWarp {
@@ -14,8 +14,8 @@ object PollerTester extends App with Logging with TimeWarp {
 
   val hakuService = HakuService(appConfig)
   val valintatulosService: ValintatulosService = new ValintatulosService(hakuService)
-
-  val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 100)
+  lazy val valintatulokset = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
+  val poller = new MailPoller(valintatulokset, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 100)
 
   logger.info("Polling...")
   var total = 0

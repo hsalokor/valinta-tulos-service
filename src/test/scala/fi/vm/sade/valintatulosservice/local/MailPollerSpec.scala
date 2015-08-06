@@ -6,7 +6,7 @@ import fi.vm.sade.sijoittelu.domain.HakemuksenTila
 import fi.vm.sade.valintatulosservice.generatedfixtures._
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
-import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusMailStatus, LahetysKuittaus, MailPoller}
+import fi.vm.sade.valintatulosservice.vastaanottomeili._
 import fi.vm.sade.valintatulosservice.{ITSpecification, TimeWarp, ValintatulosService}
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
@@ -16,7 +16,8 @@ import org.specs2.runner.JUnitRunner
 class MailPollerSpec extends ITSpecification with TimeWarp {
   lazy val hakuService = HakuService(appConfig)
   lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
-  lazy val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 3)
+  lazy val valintatulokset = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
+  lazy val poller = new MailPoller(valintatulokset, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 3)
 
   "Hakujen filtteröinti" in {
     "korkeakouluhaku -> mukaan" in {
@@ -72,7 +73,7 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
         markMailablesSent(nextMailables)
 
         withFixedDateTime(new DateTime(timestamp).plusDays(2).getMillis) {
-          poller.pollForCandidates.size must_== 0
+          pollForCandidates.size must_== 0
         }
       }
     }
@@ -81,7 +82,7 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
   private def markMailablesSent(mailables: List[HakemusMailStatus]) {
     mailables
       .map { mail => LahetysKuittaus(mail.hakemusOid, mail.hakukohteet.map(_.hakukohdeOid), List("email"))}
-      .foreach(poller.markAsSent(_))
+      .foreach(valintatulokset.markAsSent(_))
   }
 
   "Kun hyväksytty yhteen kohteeseen ja hylätty toisessa" in {
@@ -109,9 +110,9 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
         val mailables: List[HakemusMailStatus] = poller.pollForMailables()
         mailables.map(_.hakemusOid).toSet must_== Set("H1")
         markMailablesSent(mailables)
-        poller.pollForCandidates.map(_.hakemusOid) must_== Set.empty
+        pollForCandidates.map(_.hakemusOid) must_== Set.empty
         withFixedDateTime("11.10.2014 1:00") {
-          poller.pollForCandidates.map(_.hakemusOid) must_== Set.empty
+          pollForCandidates.map(_.hakemusOid) must_== Set.empty
         }
       }
     }
@@ -131,7 +132,7 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
       withFixedDateTime("10.10.2014 0:00") {
         poller.pollForMailables().map(_.hakemusOid) must_== Nil
         withFixedDateTime("11.10.2014 1:00") {
-          poller.pollForCandidates.map(_.hakemusOid) must_== Set("H1")
+          pollForCandidates.map(_.hakemusOid) must_== Set("H1")
         }
       }
     }
@@ -153,20 +154,20 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
 
     "Hakemusta ei edes tarkisteta tarkemmin" in {
       fixture.apply
-      poller.pollForCandidates.map(_.hakemusOid) must_== Set.empty
+      pollForCandidates.map(_.hakemusOid) must_== Set.empty
     }
   }
 
   "Kun Hakemuksia on useammassa Haussa" in {
     val fixture = new GeneratedFixture(List(new SimpleGeneratedHakuFixture(1, 4, "1"), new SimpleGeneratedHakuFixture(1, 4, "2")))
     "Tuloksia haetaan molemmista" in {
-      val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 8)
+      val poller = new MailPoller(valintatulokset, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 8)
       fixture.apply
       poller.pollForMailables().size must_== 4 // <- molemmista hauista tulee 2 hyväksyttyä
     }
 
     "Määrärajoitus koskee kaikkia Hakuja yhteensä" in {
-      val poller = new MailPoller(appConfig.settings.valintatulosMongoConfig, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 3)
+      val poller = new MailPoller(valintatulokset, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 3)
       fixture.apply
       poller.pollForMailables().size must_== 3
     }
@@ -182,4 +183,9 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
     result.expand[Long]("mailStatus.sent") must_== Some(timestamp)
     result.expand[List[String]]("mailStatus.media") must_== Some(List("email"))
   }
+
+  private def pollForCandidates: Set[HakemusIdentifier] = {
+    valintatulokset.pollForCandidates(poller.etsiHaut, poller.limit)
+  }
+
 }
