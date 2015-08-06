@@ -17,11 +17,11 @@ class IlmoittautumisService(valintatulosService: ValintatulosService, tulokset: 
     }
     val sopivatTilat = Array(VASTAANOTTANUT, VASTAANOTTANUT_SITOVASTI)
 
-    tulokset.modifyValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, ilmoittautuminen.tila.toString, ilmoittautuminen.muokkaaja, ilmoittautuminen.selite) { valintatulos =>
+    tulokset.modifyValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid) { valintatulos =>
       if(!sopivatTilat.contains(valintatulos.getTila)) {
         throw new IllegalArgumentException(s"""Valintatulokselle (kohde: ${hakutoive.hakukohdeOid}, jono: ${hakutoive.valintatapajonoOid}, hakemus: ${hakemusOid}), jonka vastaanottotila on ${valintatulos.getTila} ei voi tallentaa ilmoittautumistietoa""")
       }
-      valintatulos.setIlmoittautumisTila(IlmoittautumisTila.valueOf(ilmoittautuminen.tila.toString))
+      valintatulos.setIlmoittautumisTila(IlmoittautumisTila.valueOf(ilmoittautuminen.tila.toString), ilmoittautuminen.selite, ilmoittautuminen.muokkaaja)
     }
   }
 }
