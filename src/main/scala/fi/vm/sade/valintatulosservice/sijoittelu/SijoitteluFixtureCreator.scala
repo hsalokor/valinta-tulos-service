@@ -49,20 +49,16 @@ object SijoitteluFixtureCreator {
   }
 
   def newValintatulos(jonoOid: String, hakuOid: String, hakemusOid: String, hakukohdeOid: String, hakijaOid: String, hakutoiveIndex: Int, julkaistavissa: Boolean = true) = {
-    val valintatulos = new Valintatulos()
-    valintatulos.setHakuOid(hakuOid)
-    valintatulos.setValintatapajonoOid(jonoOid)
-    valintatulos.setHakemusOid(hakemusOid)
-    valintatulos.setHakukohdeOid(hakukohdeOid)
-    valintatulos.setHakijaOid(hakijaOid)
-    valintatulos.setHakutoive(hakutoiveIndex)
-    valintatulos.setJulkaistavissa(julkaistavissa)
-    val logEntry: LogEntry = new LogEntry()
-    logEntry.setLuotu(new Date)
-    logEntry.setMuokkaaja(hakijaOid)
-    logEntry.setMuutos("KESKEN")
-    logEntry.setSelite("testing")
-    valintatulos.getLogEntries.add(logEntry)
+    val valintatulos = new Valintatulos(
+      jonoOid,
+      hakemusOid,
+      hakukohdeOid,
+      hakijaOid,
+      hakuOid,
+      hakutoiveIndex
+    )
+    valintatulos.setJulkaistavissa(julkaistavissa, "testing", hakijaOid)
+    valintatulos.setTila(ValintatuloksenTila.KESKEN, "testing", hakijaOid)
     valintatulos
   }
 

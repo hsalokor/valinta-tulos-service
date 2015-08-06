@@ -26,11 +26,8 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     tulokset.modifyValintatulos(
       vastaanotto.hakukohdeOid,
       hakutoive.valintatapajonoOid,
-      hakemusOid,
-      tallennettavaTila.name,
-      vastaanotto.muokkaaja,
-      vastaanotto.selite
-    ) { valintatulos => valintatulos.setTila(tallennettavaTila) }
+      hakemusOid
+    ) { valintatulos => valintatulos.setTila(tallennettavaTila, vastaanotto.selite, vastaanotto.muokkaaja) }
 
     peruMuutHyvaksytyt(muutHakemukset, vastaanotto, haku)
   }
@@ -72,11 +69,12 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
         tulokset.modifyValintatulos(
           kohde.hakukohdeOid,
           kohde.valintatapajonoOid,
-          hakemus.hakemusOid,
-          ValintatuloksenTila.PERUNUT.toString,
-          vastaanotto.muokkaaja,
-          vastaanotto.tila + " paikan " + vastaanotto.hakukohdeOid + " toisesta hausta " + vastaanotonHaku.oid
-        ) { valintatulos => valintatulos.setTila(ValintatuloksenTila.PERUNUT) }
+          hakemus.hakemusOid
+        ) { valintatulos => valintatulos.setTila(
+          ValintatuloksenTila.PERUNUT,
+          vastaanotto.tila + " paikan " + vastaanotto.hakukohdeOid + " toisesta hausta " + vastaanotonHaku.oid,
+          vastaanotto.muokkaaja)
+        }
       )
     })
   }
