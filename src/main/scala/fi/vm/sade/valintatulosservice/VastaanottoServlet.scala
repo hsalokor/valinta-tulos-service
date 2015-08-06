@@ -25,20 +25,21 @@ class VastaanottoServlet(vastaanottoService: VastaanottoService)(implicit val sw
         "1.2.3.4",
         Vastaanottotila.vastaanottanut,
         "henkilö:5.5.5.5",
-        "kuvaus mitä kautta muokkaus tehty",
-        "6.6.6.6"
+        "kuvaus mitä kautta muokkaus tehty"
       )
     )) + ".\nMahdolliset vastaanottotilat: " + vastaanottoService.sallitutVastaanottotilat
     parameter pathParam[String]("hakuOid").description("Haun oid")
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
     )
 
-  post("/", operation(postVastaanottoSwagger)) {
+  post("/:henkilo", operation(postVastaanottoSwagger)) {
     contentType = formats("json")
     checkJsonContentType
     val vastaanotto = parsedBody.extract[Vastaanotto]
 
-    vastaanottoService.vastaanotaHakukohde(vastaanotto)
+    val personOid:String = params("henkilo")
+
+    vastaanottoService.vastaanotaHakukohde(personOid, vastaanotto)
   }
 
   def checkJsonContentType {

@@ -32,8 +32,8 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     peruMuutHyvaksytyt(muutHakemukset, vastaanotto, haku)
   }
 
-  def vastaanotaHakukohde(vastaanotto: Vastaanotto) {
-    val hakemuksenTulos = valintatulosService.hakemustenTulosByHakukohdeAndPerson(vastaanotto.hakukohdeOid, vastaanotto.personOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
+  def vastaanotaHakukohde(personOid:String, vastaanotto: Vastaanotto) {
+    val hakemuksenTulos = valintatulosService.hakemustenTulosByHakukohdeAndPerson(vastaanotto.hakukohdeOid, personOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
     vastaanota(hakemuksenTulos.hakuOid, hakemuksenTulos.hakemusOid, vastaanotto)
   }
 
