@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice
 
 import java.io.{PrintWriter, OutputStreamWriter, BufferedWriter}
 import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.PriorAcceptanceException
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.{JsonFormats, JsonStreamWriter}
@@ -13,6 +14,8 @@ import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
+
+import scala.util.Try
 
 abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoService: VastaanottoService, ilmoittautumisService: IlmoittautumisService)(implicit val swagger: Swagger, appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
 
@@ -96,7 +99,10 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     val hakemusOid = params("hakemusOid")
     val vastaanotto = parsedBody.extract[Vastaanotto]
 
-    vastaanottoService.vastaanota(hakuOid, hakemusOid, vastaanotto)
+
+    Try(vastaanottoService.vastaanota(hakuOid, hakemusOid, vastaanotto)).map((_) => Ok()).recover{
+      case pae:PriorAcceptanceException => Forbidden(pae.getMessage)
+    }.get
   }
 
   val postIlmoittautuminenSwagger: OperationBuilder = (apiOperation[Unit]("ilmoittaudu")

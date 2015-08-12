@@ -60,10 +60,11 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     muutHakemukset.foreach(tulos => {
       val vastaanotettu = tulos.hakutoiveet.find(toive => List(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(toive.vastaanottotila))
       if (vastaanotettu.isDefined) {
-        throw new IllegalArgumentException("Väärä vastaanottotila toisen haun " + tulos.hakuOid + " kohteella " + vastaanotettu.get.hakukohdeOid + ": " + vastaanotettu.get.vastaanottotila + " (yritetty muutos: " + tila + " " + hakutoive.hakukohdeOid + ")")
+        throw PriorAcceptanceException(tulos.hakuOid,  vastaanotettu.get.hakukohdeOid,  vastaanotettu.get.vastaanottotila, tila, hakutoive.hakukohdeOid)
       }
     })
   }
+
 
   private def peruMuutHyvaksytyt(muutHakemukset: Set[Hakemuksentulos], vastaanotto: Vastaanotto, vastaanotonHaku: Haku) {
     muutHakemukset.foreach(hakemus => {
@@ -91,3 +92,6 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
       tila
     }
 }
+
+
+case class PriorAcceptanceException(hakuOid:String, hakukohdeOid: String, estavaTila: Vastaanottotila.Vastaanottotila, yritettyTila: ValintatuloksenTila, yritettyKohde: String) extends IllegalArgumentException("Väärä vastaanottotila toisen haun " + hakuOid + " kohteella " + hakukohdeOid + ": " + estavaTila + " (yritetty muutos: " + yritettyTila + " " + yritettyKohde + ")")

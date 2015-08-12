@@ -6,9 +6,11 @@ import fi.vm.sade.valintatulosservice.domain.{Vastaanottotila, Vastaanotto}
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import org.json4s.{Extraction, MappingException}
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
-import org.scalatra.{InternalServerError, BadRequest, ScalatraServlet}
+import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.{SwaggerSupport, Swagger}
+
+import scala.util.Try
 
 class VastaanottoServlet(vastaanottoService: VastaanottoService)(implicit val swagger: Swagger, appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
 
@@ -39,7 +41,10 @@ class VastaanottoServlet(vastaanottoService: VastaanottoService)(implicit val sw
 
     val personOid:String = params("henkilo")
 
-    vastaanottoService.vastaanotaHakukohde(personOid, vastaanotto)
+    Try(vastaanottoService.vastaanotaHakukohde(personOid, vastaanotto)).map((_) => Ok()).recover{
+      case pae:PriorAcceptanceException => Forbidden(pae.getMessage)
+    }.get
+
   }
 
   def checkJsonContentType {
