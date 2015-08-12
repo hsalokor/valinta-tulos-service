@@ -101,7 +101,7 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
 
 
     Try(vastaanottoService.vastaanota(hakuOid, hakemusOid, vastaanotto)).map((_) => Ok()).recover{
-      case pae:PriorAcceptanceException => Forbidden(pae.getMessage)
+      case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
     }.get
   }
 

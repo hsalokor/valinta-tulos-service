@@ -42,7 +42,7 @@ class VastaanottoServlet(vastaanottoService: VastaanottoService)(implicit val sw
     val personOid:String = params("henkilo")
 
     Try(vastaanottoService.vastaanotaHakukohde(personOid, vastaanotto)).map((_) => Ok()).recover{
-      case pae:PriorAcceptanceException => Forbidden(pae.getMessage)
+      case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
     }.get
 
   }
