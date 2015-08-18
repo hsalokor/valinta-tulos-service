@@ -86,7 +86,8 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       .map(näytäJulkaisematontaAlemmatPeruutetutKeskeneräisinä)
       .map(peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua)
       .map(näytäVarasijaltaHyväksytytHyväksyttyinäJosVarasijasäännötEiVoimassa)
-      .map(sovellaKorkeakoulujenYhteishaunSääntöjä)
+      .map(sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä)
+      .map(sovellaKorkeakoulujenLisähaunSääntöjä)
       .map(piilotaKuvauksetKeskeneräisiltä)
       .tulokset
 
@@ -95,8 +96,8 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
 
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, None, Nil)
 
-  private def sovellaKorkeakoulujenYhteishaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
-    if (haku.korkeakoulu && haku.yhteishaku) {
+  private def sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+    if (haku.korkeakoulu && haku.yhteishaku && haku.varsinainenhaku) {
       val firstVaralla = tulokset.indexWhere(_.valintatila == Valintatila.varalla)
       val firstVastaanotettu = tulokset.indexWhere(_.vastaanottotila == Vastaanottotila.vastaanottanut)
       val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
@@ -122,6 +123,23 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
           // Peru muut varalla/kesken toiveet, jos jokin muu vastaanotettu
           tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
         case (tulos, _) => tulos
+      }
+    } else {
+      tulokset
+    }
+  }
+
+  private def sovellaKorkeakoulujenLisähaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+    if (haku.korkeakoulu && haku.yhteishaku && haku.lisähaku) {
+      if (tulokset.count(_.vastaanottotila == Vastaanottotila.vastaanottanut) > 0) {
+        // Peru muut kesken toiveet, jokin vastaanotettu
+        tulokset.map( tulos => if (List(Vastaanottotila.kesken).contains(tulos.vastaanottotila)) {
+          tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
+        } else {
+          tulos
+        })
+      } else {
+        tulokset
       }
     } else {
       tulokset
