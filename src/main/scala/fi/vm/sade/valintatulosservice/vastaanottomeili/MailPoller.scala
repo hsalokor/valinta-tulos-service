@@ -36,6 +36,8 @@ class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatul
 
   def pollForMailables(hakuOids: List[String] = etsiHaut, limit: Int = this.limit, excludeHakemusOids: Set[String] = Set.empty): List[HakemusMailStatus] = {
     val candidates: Set[HakemusIdentifier] = valintatulosCollection.pollForCandidates(hakuOids, limit, excludeHakemusOids = excludeHakemusOids)
+    logger.info("candidates found {}", formatJson(candidates));
+
     val statii: Set[HakemusMailStatus] = for {
       candidateId <- candidates
       hakemuksenTulos <- fetchHakemuksentulos(candidateId)
