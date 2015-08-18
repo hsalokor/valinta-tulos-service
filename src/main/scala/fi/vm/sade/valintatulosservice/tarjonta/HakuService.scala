@@ -26,7 +26,7 @@ object HakuService {
   }
 }
 
-case class Haku(oid: String, korkeakoulu: Boolean, yhteishaku: Boolean, käyttääSijoittelua: Boolean, varsinaisenHaunOid: Option[String], sisältyvätHaut: Set[String], hakuAjat: List[Hakuaika] )
+case class Haku(oid: String, korkeakoulu: Boolean, yhteishaku: Boolean, varsinainenhaku: Boolean, lisähaku: Boolean, käyttääSijoittelua: Boolean, varsinaisenHaunOid: Option[String], sisältyvätHaut: Set[String], hakuAjat: List[Hakuaika] )
 case class Hakuaika(hakuaikaId: String, alkuPvm: Option[Long], loppuPvm: Option[Long]) {
   def hasStarted = alkuPvm match {
     case Some(alku) => new DateTime().isAfter(new DateTime(alku))
@@ -41,7 +41,9 @@ protected trait JsonHakuService {
   protected def toHaku(haku: HakuTarjonnassa) = {
     val korkeakoulu: Boolean = haku.kohdejoukkoUri.startsWith("haunkohdejoukko_12#")
     val yhteishaku: Boolean = haku.hakutapaUri.startsWith("hakutapa_01#")
-    Haku(haku.oid, korkeakoulu, yhteishaku, haku.sijoittelu, haku.parentHakuOid, haku.sisaltyvatHaut, haku.hakuaikas)
+    val varsinainenhaku: Boolean = haku.hakutyyppiUri.startsWith("hakutyyppi_01#1")
+    val lisähaku: Boolean = haku.hakutyyppiUri.startsWith("hakutyyppi_03#1")
+    Haku(haku.oid, korkeakoulu, yhteishaku, varsinainenhaku, lisähaku, haku.sijoittelu, haku.parentHakuOid, haku.sisaltyvatHaut, haku.hakuaikas)
   }
 }
 
