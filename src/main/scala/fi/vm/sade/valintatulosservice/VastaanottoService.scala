@@ -18,7 +18,8 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
 
     tarkistaVastaanotettavuus(hakutoive, tila)
 
-    val muutHakemukset = korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku, hakemuksenTulos.hakijaOid, tila)
+    val muutHakemukset = korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku, hakemuksenTulos.hakijaOid, tila).
+      filter(_.hakemusOid != hakemusOid)
 
     tarkistaEttaEiVastaanottoja(muutHakemukset, tila, hakutoive)
 
@@ -51,7 +52,7 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
 
   private def korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku: Haku, personOid: String, tila: ValintatuloksenTila): Set[Hakemuksentulos] =
     if (haku.korkeakoulu && haku.yhteishaku && List(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT).contains(tila)) {
-      hakuService.findLiittyvatHaut(haku).flatMap(valintatulosService.hakemuksentuloksetByPerson(_, personOid))
+      (Set(haku.oid) ++ hakuService.findLiittyvatHaut(haku)).flatMap(valintatulosService.hakemuksentuloksetByPerson(_, personOid))
     } else {
       Set()
     }
