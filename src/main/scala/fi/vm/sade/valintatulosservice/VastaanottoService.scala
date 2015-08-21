@@ -39,15 +39,15 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     vastaanota(hakemuksenTulos.hakuOid, hakemuksenTulos.hakemusOid, vastaanotto)
   }
 
-  private def tarkistaHakutoiveenJaValintatuloksenTila(hakutoive: Hakutoiveentulos, tila: ValintatuloksenTila) {
-    if (!sallitutVastaanottotilat.contains(tila)) {
-      throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + tila)
+  private def tarkistaHakutoiveenJaValintatuloksenTila(hakutoive: Hakutoiveentulos, haluttuTila: ValintatuloksenTila) {
+    if (!sallitutVastaanottotilat.contains(haluttuTila)) {
+      throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + haluttuTila)
     }
-    if (List(VASTAANOTTANUT, PERUNUT).contains(tila) && !List(Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, Vastaanotettavuustila.vastaanotettavissa_sitovasti).contains(hakutoive.vastaanotettavuustila)) {
-      throw new IllegalArgumentException("Väärä vastaanotettavuustila kohteella " + hakutoive.hakukohdeOid + ": " + hakutoive.vastaanotettavuustila.toString + " (yritetty muutos: " + tila + ")")
+    if (List(VASTAANOTTANUT, PERUNUT).contains(haluttuTila) && !List(Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, Vastaanotettavuustila.vastaanotettavissa_sitovasti).contains(hakutoive.vastaanotettavuustila)) {
+      throw new IllegalArgumentException("Väärä vastaanotettavuustila kohteella " + hakutoive.hakukohdeOid + ": " + hakutoive.vastaanotettavuustila.toString + " (yritetty muutos: " + haluttuTila + ")")
     }
-    if (tila == EHDOLLISESTI_VASTAANOTTANUT && hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti) {
-      throw new IllegalArgumentException("Väärä vastaanotettavuustila kohteella " + hakutoive.hakukohdeOid + ": " + hakutoive.vastaanotettavuustila.toString + " (yritetty muutos: " + tila + ")")
+    if (haluttuTila == EHDOLLISESTI_VASTAANOTTANUT && hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti) {
+      throw new IllegalArgumentException("Väärä vastaanotettavuustila kohteella " + hakutoive.hakukohdeOid + ": " + hakutoive.vastaanotettavuustila.toString + " (yritetty muutos: " + haluttuTila + ")")
     }
   }
 
