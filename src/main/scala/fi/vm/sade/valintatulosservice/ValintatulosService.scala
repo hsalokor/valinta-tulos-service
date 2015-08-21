@@ -16,24 +16,28 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
   def this(hakuService: HakuService)(implicit appConfig: AppConfig) = this(appConfig.sijoitteluContext.sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), hakuService)
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
-    fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemus(hakemusOid).iterator, (haku) => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid).toSeq).flatMap(_.toSeq.headOption)
+    hakemuksentulos(hakuOid, hakemusOid, muokkaaJulkaistavaksi = true)
+  }
+
+  def hakemuksentulos(hakuOid: String, hakemusOid: String, muokkaaJulkaistavaksi: Boolean): Option[Hakemuksentulos] = {
+    fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemus(hakemusOid).iterator, (haku) => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid).toSeq, muokkaaJulkaistavaksi).flatMap(_.toSeq.headOption)
   }
 
   def hakemuksentuloksetByPerson(hakuOid: String, personOid: String): List[Hakemuksentulos] = {
     val hakemukset = hakemusRepository.findHakemukset(hakuOid, personOid).toSeq
-    fetchTulokset(hakuOid, (haku) => hakemukset.toIterator, (haku) => hakemukset.flatMap(hakemus => sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid)))
+    fetchTulokset(hakuOid, (haku) => hakemukset.toIterator, (haku) => hakemukset.flatMap(hakemus => sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid)), muokkaaJulkaistavaksi = true)
       .map(_.toList).getOrElse(List.empty)
   }
 
   def hakemustenTulosByHaku(hakuOid: String): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
-      fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemukset(hakuOid), (haku) => sijoittelutulosService.hakemustenTulos(hakuOid))
+      fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemukset(hakuOid), (haku) => sijoittelutulosService.hakemustenTulos(hakuOid), muokkaaJulkaistavaksi = true)
     )
   }
 
   def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
-      fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid), (haku) => sijoittelutulosService.hakemustenTulos(hakuOid, hakukohdeOid))
+      fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid), (haku) => sijoittelutulosService.hakemustenTulos(hakuOid, hakukohdeOid), muokkaaJulkaistavaksi = true)
     )
   }
 
@@ -49,7 +53,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
           val sijoitteluTulos = timed("Fetch sijoittelun tulos", 1000) {
             sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid)
           }.getOrElse(tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
-          julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
+          julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit, muokkaaJulkaistavaksi = true)(hakemus)
         })
       } else {
         None
@@ -57,7 +61,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     }
   }
 
-  private def fetchTulokset(hakuOid: String, getHakemukset: Haku => Iterator[Hakemus], getSijoittelunTulos: (Haku) => Seq[HakemuksenSijoitteluntulos]): Option[Iterator[Hakemuksentulos]] = {
+  private def fetchTulokset(hakuOid: String, getHakemukset: Haku => Iterator[Hakemus], getSijoittelunTulos: (Haku) => Seq[HakemuksenSijoitteluntulos], muokkaaJulkaistavaksi: Boolean): Option[Iterator[Hakemuksentulos]] = {
     for (
       haku <- hakuService.getHaku(hakuOid)
     ) yield {
@@ -68,12 +72,12 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
         hakemus: Hakemus <- hakemukset
       ) yield {
         val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
-        julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
+        julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit, muokkaaJulkaistavaksi)(hakemus)
       }
     }
   }
 
-  private def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(h:Hakemus)(implicit appConfig: AppConfig): Hakemuksentulos = {
+  private def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit], muokkaaJulkaistavaksi: Boolean)(h:Hakemus)(implicit appConfig: AppConfig): Hakemuksentulos = {
     val tulokset = h.toiveet.map { toive =>
       val hakutoiveenSijoittelunTulos: HakutoiveenSijoitteluntulos = sijoitteluTulos.hakutoiveet.find { t =>
         t.hakukohdeOid == toive.oid
@@ -82,16 +86,23 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       Hakutoiveentulos.julkaistavaVersioSijoittelunTuloksesta(hakutoiveenSijoittelunTulos, toive, haku, ohjausparametrit)
     }
 
-    val lopullisetTulokset = Välitulos(tulokset, haku, ohjausparametrit)
-      .map(näytäJulkaisematontaAlemmatPeruutetutKeskeneräisinä)
-      .map(peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua)
-      .map(näytäVarasijaltaHyväksytytHyväksyttyinäJosVarasijasäännötEiVoimassa)
-      .map(sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä)
-      .map(sovellaKorkeakoulujenLisähaunSääntöjä)
-      .map(piilotaKuvauksetKeskeneräisiltä)
-      .tulokset
+    val lopullinenVälitulos = muokkaaJulkaistavaksi match {
+      // Julkaistava tieto muokataan ennen käyttäjälle näyttöä eikä se vastaa
+      // yksittäistä kannan arvoa vaan muodostetaan arvoja yhdistelemällä
+      case true => Välitulos(tulokset, haku, ohjausparametrit)
+        .map(näytäJulkaisematontaAlemmatPeruutetutKeskeneräisinä)
+        .map(peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua)
+        .map(näytäVarasijaltaHyväksytytHyväksyttyinäJosVarasijasäännötEiVoimassa)
+        .map(sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä)
+        .map(sovellaKorkeakoulujenLisähaunSääntöjä)
+        .map(piilotaKuvauksetKeskeneräisiltä)
+      case false => Välitulos(tulokset, haku, ohjausparametrit)
+// TODO: kommentointi estää testien läpi menemisen, OIKEA KORJAUS EI OLE POISTAA KOMMENTTEJA
+//        .map(peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua)
+//        .map(sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä)
+    }
 
-    Hakemuksentulos(haku.oid, h.oid, sijoitteluTulos.hakijaOid.getOrElse(h.henkiloOid), ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullisetTulokset)
+    Hakemuksentulos(haku.oid, h.oid, sijoitteluTulos.hakijaOid.getOrElse(h.henkiloOid), ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullinenVälitulos.tulokset)
   }
 
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, None, Nil)

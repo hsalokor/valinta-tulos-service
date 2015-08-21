@@ -12,8 +12,8 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
 
   def vastaanota(hakuOid: String, vastaanotettavaHakemusOid: String, vastaanotto: Vastaanotto) {
     val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException("Hakua ei löydy"))
-    val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, vastaanotettavaHakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
-    val hakutoive = hakemuksenTulos.findHakutoive(vastaanotto.hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
+    val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, vastaanotettavaHakemusOid, muokkaaJulkaistavaksi = false).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
+    val hakutoive: Hakutoiveentulos = hakemuksenTulos.findHakutoive(vastaanotto.hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
     val haluttuTila = ValintatuloksenTila.valueOf(vastaanotto.tila.toString)
     val vastaanotettavaHakuKohdeOid = vastaanotto.hakukohdeOid
 
