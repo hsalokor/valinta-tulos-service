@@ -58,9 +58,13 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
       Set()
     }
 
+  private def muutKuinHakutoive(tulos: Hakemuksentulos, vastaanotettavaHakemusOid: String, vastaanotettavaHakuKohdeOid: String): List[Hakutoiveentulos] = {
+    tulos.hakutoiveet.filter(toive => !(tulos.hakemusOid == vastaanotettavaHakemusOid && toive.hakukohdeOid == vastaanotettavaHakuKohdeOid))
+  }
+
   private def tarkistaEttaEiVastaanottoja(muutHakemukset: Set[Hakemuksentulos], tila: ValintatuloksenTila, hakutoive: Hakutoiveentulos, vastaanotettavaHakemusOid: String, vastaanotettavaHakuKohdeOid: String) {
     muutHakemukset.foreach(tulos => {
-      val hakemuksenMuutHakuToiveet: List[Hakutoiveentulos] = tulos.hakutoiveet.filter(toive => !(tulos.hakemusOid == vastaanotettavaHakemusOid && toive.hakukohdeOid == vastaanotettavaHakuKohdeOid) )
+      val hakemuksenMuutHakuToiveet: List[Hakutoiveentulos] = muutKuinHakutoive(tulos, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
       val vastaanotettu = hakemuksenMuutHakuToiveet.find(toive => List(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(toive.vastaanottotila))
       if (vastaanotettu.isDefined) {
         throw PriorAcceptanceException(tulos.hakuOid,  vastaanotettu.get.hakukohdeOid,  vastaanotettu.get.vastaanottotila, tila, hakutoive.hakukohdeOid)
@@ -68,13 +72,11 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     })
   }
 
-
   private def peruMuutHyvaksytyt(muutHakemukset: Set[Hakemuksentulos], vastaanotto: Vastaanotto, vastaanotonHaku: Haku, vastaanotettavaHakemusOid: String, vastaanotettavaHakuKohdeOid: String) {
     muutHakemukset.foreach(hakemus => {
-      val peruttavatKohteet = hakemus.hakutoiveet.
-        filter(toive => !(hakemus.hakemusOid == vastaanotettavaHakemusOid && toive.hakukohdeOid == vastaanotettavaHakuKohdeOid) ).
-        filter(toive => Valintatila.isHyväksytty(toive.valintatila) && toive.vastaanottotila == Vastaanottotila.kesken)
-      peruttavatKohteet.foreach(kohde =>
+      val peruttavatHakutoiveenTulokset = muutKuinHakutoive(hakemus, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
+        .filter(toive => Valintatila.isHyväksytty(toive.valintatila) && toive.vastaanottotila == Vastaanottotila.kesken)
+      peruttavatHakutoiveenTulokset.foreach(kohde =>
         tulokset.modifyValintatulos(
           kohde.hakukohdeOid,
           kohde.valintatapajonoOid,
