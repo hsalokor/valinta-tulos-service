@@ -4,6 +4,7 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.TypeImports._
 import fi.vm.sade.sijoittelu.domain.HakemuksenTila
 import fi.vm.sade.valintatulosservice.generatedfixtures._
+import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.vastaanottomeili._
@@ -18,6 +19,7 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
   lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
   lazy val valintatulokset = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
   lazy val poller = new MailPoller(valintatulokset, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 3)
+  lazy val mailDecorator = new MailDecorator(new HakemusRepository(), valintatulokset)
 
   "Hakujen filtteröinti" in {
     "korkeakouluhaku -> mukaan" in {
@@ -170,6 +172,16 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
       val poller = new MailPoller(valintatulokset, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 3)
       fixture.apply
       poller.pollForMailables().size must_== 3
+    }
+  }
+
+  "Kun ensimmäisestä pollauksesta palautuu vain hylättäviä maileja" in {
+    "Niin haetaan kunnes löytyy" in {
+      val poller = new MailPoller(valintatulokset, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 1)
+      useFixture("hyvaksytty-kesken-julkaistavissa-00000441372.json",
+          extraFixtureNames = List("hyvaksytty-kesken-julkaistavissa.json"),
+          hakemusFixtures = List("00000441369", "00000441372-no-email"))
+      poller.searchMailsToSend(mailDecorator = mailDecorator).size must_== 1
     }
   }
 

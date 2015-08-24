@@ -34,9 +34,23 @@ class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatul
     found
   }
 
+  def searchMailsToSend(limit: Int = this.limit, mailDecorator: MailDecorator): List[VastaanotettavuusIlmoitus] = {
+    val mailCandidates: List[HakemusMailStatus] = pollForMailables(limit = limit)
+    val sendableMails: List[VastaanotettavuusIlmoitus] = mailCandidates.flatMap(mailDecorator.statusToMail)
+    logger.info("{} statuses converted to {} mails", mailCandidates.size, sendableMails.size)
+
+    if (sendableMails.size > 0 || mailCandidates.isEmpty) {
+      sendableMails
+    } else {
+      searchMailsToSend(limit, mailDecorator)
+    }
+  }
+
+
+
   def pollForMailables(hakuOids: List[String] = etsiHaut, limit: Int = this.limit, excludeHakemusOids: Set[String] = Set.empty): List[HakemusMailStatus] = {
     val candidates: Set[HakemusIdentifier] = valintatulosCollection.pollForCandidates(hakuOids, limit, excludeHakemusOids = excludeHakemusOids)
-    logger.info("candidates found {}", formatJson(candidates));
+    logger.info("candidates found {}", formatJson(candidates))
 
     val statii: Set[HakemusMailStatus] = for {
       candidateId <- candidates

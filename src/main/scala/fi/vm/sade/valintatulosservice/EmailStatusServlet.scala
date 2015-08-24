@@ -21,10 +21,7 @@ class EmailStatusServlet(mailPoller: MailPoller, valintatulosCollection: Valinta
   get("/", operation(getVastaanottoposti)) {
     contentType = formats("json")
     val limit: Int = params.get("limit").map(_.toInt).getOrElse(mailPoller.limit)
-    val mailStatii: List[HakemusMailStatus] = mailPoller.pollForMailables(limit = limit)
-    val mails: List[VastaanotettavuusIlmoitus] = mailStatii.flatMap(mailDecorator.statusToMail)
-    logger.info("{} statuses converted to {} mails", mailStatii.size, mails.size)
-    mails
+    mailPoller.searchMailsToSend(limit = limit, mailDecorator)
   }
 
   lazy val postVastaanottoposti: OperationBuilder = (apiOperation[Unit]("postMailit")
