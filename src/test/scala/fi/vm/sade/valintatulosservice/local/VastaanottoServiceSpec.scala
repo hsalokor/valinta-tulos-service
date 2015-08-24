@@ -213,6 +213,31 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       assertSecondLogEntry(valintatulos, "tila: KESKEN -> PERUNUT", "VASTAANOTTANUT paikan 1.2.246.562.5.72607738902 toisesta hausta 1.2.246.562.5.2013080813081926341928")
     }
 
+    // Tilat tarkistetaan suoraan kannasta jotta varmistutaan siitä että virkailijakäyttöliittymä saa identtiset tilat lukiessaan
+    // suoraan kantaa, historiallisesti OHP tekee kannan tilan pohjalta päättelyä siitä mitä oppijalle näytetään
+    "vastaanota lisähaussa, kun varsinaisessa haussa vastaanottavissa -> varsinaisen haun paikka peruuntuu" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
+      val tila = (hakukohdeOid: String, jonoOid: String, hakemusOid: String) => () => valintatulosDao.loadValintatulos(hakukohdeOid, jonoOid, hakemusOid).getTila
+      val lisahakuHakemusOid = "1.2.246.562.11.00000878230"
+      val lisahaunVastaanotettavaHakukohdeOid = "1.2.246.562.14.2014022408541751568934"
+      val lisahaunVastaanotettavaTila = tila(lisahaunVastaanotettavaHakukohdeOid, "14090336922663576781797489829886", lisahakuHakemusOid)
+      val lisahaunPeruuntuvaTila = tila("1.2.246.562.14.2013120515524070995659", "14090336922663576781797489829887", lisahakuHakemusOid)
+      val varsinaisenHaunPeruuntuvaTila = tila(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
+
+      lisahaunVastaanotettavaTila() must_== ValintatuloksenTila.KESKEN
+      lisahaunPeruuntuvaTila() must_== ValintatuloksenTila.KESKEN
+      varsinaisenHaunPeruuntuvaTila() must_== ValintatuloksenTila.KESKEN
+
+      vastaanota("korkeakoulu-lisahaku1", lisahakuHakemusOid, lisahaunVastaanotettavaHakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
+
+      lisahaunVastaanotettavaTila() must_== ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI
+      lisahaunPeruuntuvaTila() must_== ValintatuloksenTila.PERUNUT
+      varsinaisenHaunPeruuntuvaTila() must_== ValintatuloksenTila.PERUNUT
+
+      val varsinaisenHaunValintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
+      assertSecondLogEntry(varsinaisenHaunValintatulos, "tila: KESKEN -> PERUNUT", s"VASTAANOTTANUT paikan $lisahaunVastaanotettavaHakukohdeOid toisesta hausta korkeakoulu-lisahaku1")
+    }
+
     "vastaanota lisahaussa kahdesta hakutoiveesta toinen -> ei-vastaanotettu paikka peruuntuu" in {
       useFixture("lisahaku-vastaanotettavissa.json", hakuFixture = HakuFixtures.korkeakouluLisahaku1, hakemusFixtures = List("00000878230"))
       vastaanota("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230", "1.2.246.562.14.2013120515524070995659", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
