@@ -17,8 +17,7 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     val haluttuTila = ValintatuloksenTila.valueOf(vastaanotto.tila.toString)
     val vastaanotettavaHakuKohdeOid = vastaanotto.hakukohdeOid
 
-    val tarkistettavatHakemukset = korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku, hakemuksenTulos.hakijaOid, haluttuTila).
-      filter(_.hakemusOid != vastaanotettavaHakemusOid)
+    val tarkistettavatHakemukset = korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku, hakemuksenTulos.hakijaOid, haluttuTila)
 
     tarkistaEttaEiVastaanottoja(tarkistettavatHakemukset, haluttuTila, hakutoive, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
 
