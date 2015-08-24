@@ -217,8 +217,14 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       useFixture("lisahaku-vastaanotettavissa.json", hakuFixture = HakuFixtures.korkeakouluLisahaku1, hakemusFixtures = List("00000878230"))
       vastaanota("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230", "1.2.246.562.14.2013120515524070995659", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
-      val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(lisaHaunTulos.hakutoiveet(1).hakukohdeOid, lisaHaunTulos.hakutoiveet(1).valintatapajonoOid, lisaHaunTulos.hakemusOid)
-      assertSecondLogEntry(valintatulos, "tila: KESKEN -> PERUNUT", "VASTAANOTTANUT paikan 1.2.246.562.14.2013120515524070995659 toisesta hausta korkeakoulu-lisahaku1")
+
+      val tulos0: Valintatulos = valintatulosDao.loadValintatulos(lisaHaunTulos.hakutoiveet(0).hakukohdeOid, lisaHaunTulos.hakutoiveet(0).valintatapajonoOid, lisaHaunTulos.hakemusOid)
+      tulos0.getTila must_== ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI
+      assertSecondLogEntry(tulos0, "tila: KESKEN -> VASTAANOTTANUT_SITOVASTI", "Testimuokkaus")
+
+      val tulos1: Valintatulos = valintatulosDao.loadValintatulos(lisaHaunTulos.hakutoiveet(1).hakukohdeOid, lisaHaunTulos.hakutoiveet(1).valintatapajonoOid, lisaHaunTulos.hakemusOid)
+      tulos1.getTila must_== ValintatuloksenTila.PERUNUT
+      assertSecondLogEntry(tulos1, "tila: KESKEN -> PERUNUT", "VASTAANOTTANUT paikan 1.2.246.562.14.2013120515524070995659 toisesta hausta korkeakoulu-lisahaku1")
     }
 
     "vastaanota ehdollisesti varsinaisessa haussa, kun lisähaussa vastaanottavissa -> lisähaun paikka peruuntuu" in {
