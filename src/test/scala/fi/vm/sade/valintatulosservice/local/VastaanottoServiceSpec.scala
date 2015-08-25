@@ -216,8 +216,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
         assertSecondLogEntry(valintatulos, "tila: KESKEN -> PERUNUT", "VASTAANOTTANUT paikan 1.2.246.562.5.72607738902 toisesta hausta 1.2.246.562.5.2013080813081926341928")
       }
 
-      "vastaanota lisähaussa, kun varsinaisessa haussa vastaanottavissa -> varsinaisen haun paikka peruuntuu" in {
-        useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
+      def lisahaunVastaanotto() = {
         val tila = (hakukohdeOid: String, jonoOid: String, hakemusOid: String) => () => valintatulosDao.loadValintatulos(hakukohdeOid, jonoOid, hakemusOid).getTila
         val lisahakuHakemusOid = "1.2.246.562.11.00000878230"
         val lisahaunVastaanotettavaHakukohdeOid = "1.2.246.562.14.2014022408541751568934"
@@ -238,6 +237,17 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
         val varsinaisenHaunValintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
         assertSecondLogEntry(varsinaisenHaunValintatulos, "tila: KESKEN -> PERUNUT", s"VASTAANOTTANUT paikan $lisahaunVastaanotettavaHakukohdeOid toisesta hausta korkeakoulu-lisahaku1")
       }
+
+      "vastaanota lisähaussa, kun varsinaisessa haussa hyväksytty ja julkaistu -> varsinaisen haun paikka peruuntuu" in {
+        useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
+        lisahaunVastaanotto()
+      }
+
+      "vastaanota lisähaussa, kun varsinaisessa haussa hyväksytty ja julkaisematta -> varsinaisen haun paikka peruuntuu" in {
+        useFixture("hyvaksytty-kesken-ei-julkaistavissa.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
+        lisahaunVastaanotto()
+      }
+
       "vastaanota lisahaussa kahdesta hakutoiveesta toinen -> ei-vastaanotettu paikka peruuntuu" in {
         useFixture("lisahaku-vastaanotettavissa.json", hakuFixture = HakuFixtures.korkeakouluLisahaku1, hakemusFixtures = List("00000878230"))
         vastaanota("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230", "1.2.246.562.14.2013120515524070995659", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
@@ -331,8 +341,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.vastaanottanut
       yhteenveto.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
 
-      yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
-      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.perunut
+      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
       yhteenveto.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
     }
 

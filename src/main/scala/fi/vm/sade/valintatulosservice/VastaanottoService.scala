@@ -30,7 +30,9 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
       vastaanotettavaHakemusOid
     ) { valintatulos => valintatulos.setTila(tallennettavaTila, vastaanotto.selite, vastaanotto.muokkaaja) }
 
-    peruMuutHyvaksytyt(tarkistettavatHakemukset, vastaanotto, haku, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
+    if (vastaanotto.tila == Vastaanottotila.vastaanottanut) {
+      peruMuutHyvaksytyt(tarkistettavatHakemukset, vastaanotto, haku, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
+    }
   }
 
   def vastaanotaHakukohde(personOid:String, vastaanotto: Vastaanotto) {
@@ -74,12 +76,17 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
   private def peruMuutHyvaksytyt(muutHakemukset: Set[Hakemuksentulos], vastaanotto: Vastaanotto, vastaanotonHaku: Haku, vastaanotettavaHakemusOid: String, vastaanotettavaHakuKohdeOid: String) {
     muutHakemukset.foreach(hakemus => {
       val peruttavatHakutoiveenTulokset = muutKuinHakutoive(hakemus, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
-        .filter(toive => Valintatila.isHyväksytty(toive.valintatila) && toive.vastaanottotila == Vastaanottotila.kesken)
+        .filter(toive => (Valintatila.isHyväksytty(toive.valintatila) || toive.valintatila == Valintatila.varalla || toive.valintatila == Valintatila.kesken) && toive.vastaanottotila == Vastaanottotila.kesken)
       peruttavatHakutoiveenTulokset.foreach(kohde =>
-        tulokset.modifyValintatulos(
+        tulokset.createOrModifyValintatulos(
           kohde.hakukohdeOid,
           kohde.valintatapajonoOid,
-          hakemus.hakemusOid
+          hakemus.hakemusOid,
+          hakemus.hakijaOid,
+          hakemus.hakuOid,
+          // TODO: onko listan järjestys suoraan indeksi, alkaako se 0:sta vai 1:stä?
+          // TODO: Tee testi indeksille
+          hakemus.hakutoiveet.indexWhere(_.hakukohdeOid == kohde.hakukohdeOid)
         ) { valintatulos => valintatulos.setTila(
           ValintatuloksenTila.PERUNUT,
           vastaanotto.tila + " paikan " + vastaanotto.hakukohdeOid + " toisesta hausta " + vastaanotonHaku.oid,
