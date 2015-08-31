@@ -237,6 +237,10 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
         val varsinaisenHaunValintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
         assertSecondLogEntry(varsinaisenHaunValintatulos, "tila: KESKEN -> PERUNUT", s"VASTAANOTTANUT paikan $lisahaunVastaanotettavaHakukohdeOid toisesta hausta korkeakoulu-lisahaku1")
+
+        expectFailure(Some(s"Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella $lisahaunVastaanotettavaHakukohdeOid: VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT $hakukohdeOid)")) {
+          tarkistaVastaanotettavuus(vastaanotettavissaHakuKohdeOid, hakemusOid, hakukohdeOid)
+        }
       }
       "vastaanota lisahaussa kahdesta hakutoiveesta toinen -> ei-vastaanotettu paikka peruuntuu" in {
         useFixture("lisahaku-vastaanotettavissa.json", hakuFixture = HakuFixtures.korkeakouluLisahaku1, hakemusFixtures = List("00000878230"))
@@ -431,6 +435,11 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
   private def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: String, selite: String, personOid: String) = {
     vastaanottoService.vastaanota(hakuOid, hakemusOid, Vastaanotto(hakukohdeOid, tila, muokkaaja, selite))
+    success
+  }
+
+  private def tarkistaVastaanotettavuus(hakuOid: String, hakemusOid: String, hakukohdeOid: String) = {
+    vastaanottoService.tarkistaVastaanotettavuus(hakuOid, hakemusOid, hakukohdeOid)
     success
   }
 
