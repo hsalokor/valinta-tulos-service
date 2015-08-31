@@ -1,8 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
-import java.io.{PrintWriter, OutputStreamWriter, BufferedWriter}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.PriorAcceptanceException
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.{JsonFormats, JsonStreamWriter}
@@ -103,6 +101,21 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     Try(vastaanottoService.vastaanota(hakuOid, hakemusOid, vastaanotto)).map((_) => Ok()).recover{
       case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
     }.get
+  }
+
+  lazy val getHakukohteenVastaanotettavuusSwagger: OperationBuilder = (apiOperation[Unit]("getHakukohteenHakemukset")
+    summary "Palauttaa vastaanotettavuustiedon"
+    parameter pathParam[String]("hakuOid").description("Haun oid")
+    parameter pathParam[String]("hakemusOid").description("Hakemuksen oid")
+    parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
+    )
+  get("/:hakuOid/hakemus/:hakemusOid/hakukohde/:hakukohdeOid/vastaanotettavuus", operation(getHakukohteenVastaanotettavuusSwagger)) {
+    contentType = formats("json")
+    checkJsonContentType
+    Try(vastaanottoService.tarkistaVastaanotettavuus( params("hakuOid"), params("hakemusOid"), Vastaanotto(params("hakukohdeOid"), Vastaanottotila.vastaanottanut, "", "")))
+      .map((_) => Ok())
+      .recover({ case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage) })
+      .get
   }
 
   val postIlmoittautuminenSwagger: OperationBuilder = (apiOperation[Unit]("ilmoittaudu")

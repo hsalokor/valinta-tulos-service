@@ -11,6 +11,14 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
   val sallitutVastaanottotilat: Set[ValintatuloksenTila] = Set(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT, PERUNUT)
 
   def vastaanota(hakuOid: String, vastaanotettavaHakemusOid: String, vastaanotto: Vastaanotto) {
+    vastaanota(hakuOid, vastaanotettavaHakemusOid, vastaanotto, virkailijaPaeCheckOnly = false)
+  }
+
+  def tarkistaVastaanotettavuus(hakuOid: String, vastaanotettavaHakemusOid: String, vastaanotto: Vastaanotto) {
+    vastaanota(hakuOid, vastaanotettavaHakemusOid, vastaanotto, virkailijaPaeCheckOnly = true)
+  }
+
+  def vastaanota(hakuOid: String, vastaanotettavaHakemusOid: String, vastaanotto: Vastaanotto, virkailijaPaeCheckOnly: Boolean) {
     val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException("Hakua ei löydy"))
     val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, vastaanotettavaHakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
     val hakutoive = hakemuksenTulos.findHakutoive(vastaanotto.hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
@@ -21,16 +29,18 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
 
     tarkistaEttaEiVastaanottoja(tarkistettavatHakemukset, haluttuTila, hakutoive, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
 
-    tarkistaHakutoiveenJaValintatuloksenTila(hakutoive, haluttuTila)
+    if (!virkailijaPaeCheckOnly) {
+      tarkistaHakutoiveenJaValintatuloksenTila(hakutoive, haluttuTila)
 
-    val tallennettavaTila = vastaanotaSitovastiJosKorkeakouluYhteishaku(haku, haluttuTila)
-    tulokset.modifyValintatulos(
-      vastaanotto.hakukohdeOid,
-      hakutoive.valintatapajonoOid,
-      vastaanotettavaHakemusOid
-    ) { valintatulos => valintatulos.setTila(tallennettavaTila, vastaanotto.selite, vastaanotto.muokkaaja) }
+      val tallennettavaTila = vastaanotaSitovastiJosKorkeakouluYhteishaku(haku, haluttuTila)
+      tulokset.modifyValintatulos(
+        vastaanotto.hakukohdeOid,
+        hakutoive.valintatapajonoOid,
+        vastaanotettavaHakemusOid
+      ) { valintatulos => valintatulos.setTila(tallennettavaTila, vastaanotto.selite, vastaanotto.muokkaaja) }
 
-    peruMuutHyvaksytyt(tarkistettavatHakemukset, vastaanotto, haku, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
+      peruMuutHyvaksytyt(tarkistettavatHakemukset, vastaanotto, haku, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
+    }
   }
 
   def vastaanotaHakukohde(personOid:String, vastaanotto: Vastaanotto) {
