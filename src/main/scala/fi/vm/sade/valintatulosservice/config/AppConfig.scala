@@ -166,7 +166,11 @@ object AppConfig extends Logging {
 
   trait MockSecurity extends AppConfig {
     lazy val securityContext = {
-      new MockSecurityContext(settings.securitySettings.casServiceIdentifier, settings.securitySettings.requiredLdapRoles, Map((settings.securitySettings.ticketRequest.username -> LdapUser(settings.securitySettings.requiredLdapRoles))))
+      new MockSecurityContext(
+        settings.securitySettings.casServiceIdentifier,
+        settings.securitySettings.requiredLdapRoles,
+        Map((settings.securitySettings.ticketRequest.username -> LdapUser(settings.securitySettings.requiredLdapRoles, "Mock", "User", "mockoid")))
+      )
     }
   }
 
