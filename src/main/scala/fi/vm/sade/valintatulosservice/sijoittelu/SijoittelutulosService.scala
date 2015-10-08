@@ -139,13 +139,17 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
     vastaanottotila
   }
 
-  private def vastaanottotilanVaikutusValintatilaan(valintatila: Valintatila, vastaanottotila : Vastaanottotila) = {
+  private def vastaanottotilanVaikutusValintatilaan(valintatila: Valintatila, vastaanottotila : Vastaanottotila): Valintatila = {
     if (List(Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanottotila.vastaanottanut).contains(vastaanottotila)) {
-      Valintatila.hyväksytty
+      if (List(Valintatila.harkinnanvaraisesti_hyväksytty, Valintatila.varasijalta_hyväksytty, Valintatila.hyväksytty).contains(valintatila)) {
+        valintatila
+      } else {
+         Valintatila.hyväksytty
+      }
     } else if (Vastaanottotila.perunut == vastaanottotila) {
       Valintatila.perunut
     } else if (Vastaanottotila.peruutettu == vastaanottotila) {
-      Valintatila.peruutettu
+       Valintatila.peruutettu
     } else {
       valintatila
     }
