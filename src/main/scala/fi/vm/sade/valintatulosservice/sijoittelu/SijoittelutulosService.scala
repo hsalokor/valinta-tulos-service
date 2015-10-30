@@ -96,6 +96,8 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
       Valintatila.kesken
     } else if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta) {
       Valintatila.hyväksytty
+    } else if (valintatila == Valintatila.varalla && jono.isEiVarasijatayttoa) {
+      Valintatila.kesken
     } else {
       valintatila
     }
