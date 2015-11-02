@@ -47,8 +47,8 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val jono: HakutoiveenValintatapajonoDTO = merkitseväJono(hakutoive).get
       var valintatila: Valintatila = jononValintatila(jono, hakutoive)
-      val viimeisinHakemuksenTilanMuutos: Option[Date] = Option(jono.getHakemuksenTilanViimeisinMuutos())
-      val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos())
+      val viimeisinHakemuksenTilanMuutos: Option[Date] = Option(jono.getHakemuksenTilanViimeisinMuutos)
+      val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos)
       val vastaanottoDeadline: Option[DateTime] = laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos, valintatila)
       val vastaanottotila: Vastaanottotila = laskeVastaanottotila(valintatila, jono.getVastaanottotieto, aikataulu, vastaanottoDeadline)
       valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)

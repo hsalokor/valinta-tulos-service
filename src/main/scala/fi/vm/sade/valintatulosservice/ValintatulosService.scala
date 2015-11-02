@@ -85,6 +85,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     val lopullisetTulokset = Välitulos(tulokset, haku, ohjausparametrit)
       .map(näytäJulkaisematontaAlemmatPeruutetutKeskeneräisinä)
       .map(peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua)
+      .map(näytäAlemmatPeruutuneetKeskeneräisinäJosYlemmätKeskeneräisiä)
       .map(näytäVarasijaltaHyväksytytHyväksyttyinäJosVarasijasäännötEiVoimassa)
       .map(sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä)
       .map(sovellaKorkeakoulujenLisähaunSääntöjä)
@@ -159,6 +160,14 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       }
     } else {
       tulokset
+    }
+  }
+
+  private def näytäAlemmatPeruutuneetKeskeneräisinäJosYlemmätKeskeneräisiä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+    val firstKeskeneräinen = tulokset.indexWhere (_.valintatila == Valintatila.kesken)
+    tulokset.zipWithIndex.map {
+      case (tulos, index) if (firstKeskeneräinen >=0 && index > firstKeskeneräinen && tulos.valintatila == Valintatila.peruuntunut) => tulos.toKesken
+      case (tulos, _) => tulos
     }
   }
 
