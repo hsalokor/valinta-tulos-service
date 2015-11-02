@@ -89,19 +89,18 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
   }
 
   private def jononValintatila(jono: HakutoiveenValintatapajonoDTO, hakutoive: HakutoiveDTO) = {
-    var valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila), Valintatila.kesken)
-    if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta) {
-      valintatila = Valintatila.hyväksytty
+    val valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila), Valintatila.kesken)
+    if (jono.getTila.isHyvaksytty && jono.isHyvaksyttyHarkinnanvaraisesti) {
+      Valintatila.harkinnanvaraisesti_hyväksytty
+    } else if (!jono.getTila.isHyvaksytty && !hakutoive.isKaikkiJonotSijoiteltu) {
+      Valintatila.kesken
+    } else if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta) {
+      Valintatila.hyväksytty
+    } else if (valintatila == Valintatila.varalla && jono.isEiVarasijatayttoa) {
+      Valintatila.kesken
+    } else {
+      valintatila
     }
-
-    if (jono.getTila.isHyvaksytty) {
-      if (jono.isHyvaksyttyHarkinnanvaraisesti) {
-        valintatila = Valintatila.harkinnanvaraisesti_hyväksytty
-      }
-    } else if (!hakutoive.isKaikkiJonotSijoiteltu) {
-      valintatila = Valintatila.kesken
-    }
-    valintatila
   }
 
   private def laskeVastaanottotila(valintatila: Valintatila, vastaanottotieto: ValintatuloksenTila, aikataulu: Option[Vastaanottoaikataulu], vastaanottoDeadline: Option[DateTime]): Vastaanottotila = {
