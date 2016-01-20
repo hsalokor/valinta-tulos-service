@@ -206,7 +206,7 @@ class ValintaTulosServletSpec extends ServletSpecification {
 
   def getTicket = {
     val ticketRequest: CasTicketRequest = appConfig.settings.securitySettings.ticketRequest
-    val ticket = appConfig.securityContext.ticketClient.getServiceTicket(ticketRequest).get.toString
+    val ticket = appConfig.securityContext.casClient.getServiceTicket(ticketRequest).get.toString
     ticket
   }
 }
