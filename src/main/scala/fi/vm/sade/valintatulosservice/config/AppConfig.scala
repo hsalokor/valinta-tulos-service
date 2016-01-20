@@ -170,14 +170,14 @@ object AppConfig extends Logging {
       new MockSecurityContext(
         settings.securitySettings.casServiceIdentifier,
         settings.securitySettings.requiredLdapRoles,
-        Map((settings.securitySettings.ticketRequest.username -> LdapUser(settings.securitySettings.requiredLdapRoles, "Mock", "User", "mockoid")))
+        Map((settings.securitySettings.casUsername -> LdapUser(settings.securitySettings.requiredLdapRoles, "Mock", "User", "mockoid")))
       )
     }
   }
 
   trait CasLdapSecurity extends AppConfig {
     lazy val securityContext: SecurityContext = {
-      val casClient = new CasClient(settings.securitySettings.casConfig)
+      val casClient = new CasClient(settings.securitySettings.casUrl, org.http4s.client.blaze.defaultClient)
       new ProductionSecurityContext(settings.securitySettings.ldapConfig, casClient, settings.securitySettings.casServiceIdentifier, settings.securitySettings.requiredLdapRoles)
     }
   }

@@ -1,6 +1,5 @@
 package fi.vm.sade.valintatulosservice.local
 
-import fi.vm.sade.utils.cas.CasTicketRequest
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
@@ -205,8 +204,7 @@ class ValintaTulosServletSpec extends ServletSpecification {
   }
 
   def getTicket = {
-    val ticketRequest: CasTicketRequest = appConfig.settings.securitySettings.ticketRequest
-    val ticket = appConfig.securityContext.casClient.getServiceTicket(ticketRequest).get.toString
+    val ticket = appConfig.securityContext.casClient.ticketFor(appConfig.settings.securitySettings.casServiceIdentifier, "testuser")
     ticket
   }
 }
