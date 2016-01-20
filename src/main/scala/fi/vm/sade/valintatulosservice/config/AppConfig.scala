@@ -5,6 +5,7 @@ import java.net.URL
 import fi.vm.sade.security.ldap.LdapUser
 import fi.vm.sade.security.mock.MockSecurityContext
 import fi.vm.sade.security.{ProductionSecurityContext, SecurityContext}
+import fi.vm.sade.utils.cas.CasClient
 import fi.vm.sade.utils.config.{ApplicationSettingsLoader, ConfigTemplateProcessor}
 import fi.vm.sade.utils.mongo.{EmbeddedMongo, MongoServer}
 import fi.vm.sade.utils.slf4j.Logging
@@ -176,7 +177,8 @@ object AppConfig extends Logging {
 
   trait CasLdapSecurity extends AppConfig {
     lazy val securityContext: SecurityContext = {
-      new ProductionSecurityContext(settings.securitySettings.ldapConfig, settings.securitySettings.casConfig, settings.securitySettings.casServiceIdentifier, settings.securitySettings.requiredLdapRoles)
+      val casClient = new CasClient(settings.securitySettings.casConfig)
+      new ProductionSecurityContext(settings.securitySettings.ldapConfig, casClient, settings.securitySettings.casServiceIdentifier, settings.securitySettings.requiredLdapRoles)
     }
   }
 }
