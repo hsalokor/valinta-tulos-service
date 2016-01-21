@@ -1,0 +1,74 @@
+{
+    "result": {
+        "modified": 1449487478830,
+        "modifiedBy": "1.2.246.562.24.17885662533",
+        "oid": "1.2.246.562.29.62858726037",
+        "hakukausiUri": "kausi_k#1",
+        "hakukausiVuosi": 2016,
+        "hakutapaUri": "hakutapa_01#1",
+        "hakutyyppiUri": "hakutyyppi_01#1",
+        "kohdejoukkoUri": "haunkohdejoukko_12#1",
+        "kohdejoukonTarkenne": "haunkohdejoukontarkenne_3#1",
+        "koulutuksenAlkamisVuosi": 2016,
+        "koulutuksenAlkamiskausiUri": "kausi_k#1",
+        "tila": "JULKAISTU",
+        "ylioppilastutkintoAntaaHakukelpoisuuden": false,
+        "hakukohdeOidsYlioppilastutkintoAntaaHakukelpoisuuden": [],
+        "sijoittelu": true,
+        "jarjestelmanHakulomake": true,
+        "hakuaikas": [
+            {
+                "hakuaikaId": "2910558",
+                "alkuPvm": 1449468055481,
+                "loppuPvm": 1453300002621,
+                "nimet": {
+                    "kieli_sv": "",
+                    "kieli_en": "",
+                    "kieli_fi": ""
+                }
+            }
+        ],
+        "hakukohdeOids": [
+            "1.2.246.562.20.801501020210",
+            "1.2.246.562.20.42296787692",
+            "1.2.246.562.20.93395603447",
+            "1.2.246.562.20.42476855715",
+            "1.2.246.562.20.94186907997"
+        ],
+        "nimi": {
+            "kieli_sv": "",
+            "kieli_en": "",
+            "kieli_fi": "Jatkotutkintohaku 2016"
+        },
+        "maxHakukohdes": 2,
+        "organisaatioOids": [
+            "1.2.246.562.10.16458902786",
+            "1.2.246.562.10.62323934026",
+            "1.2.246.562.10.21540239577",
+            "1.2.246.562.10.34573782876",
+            "1.2.246.562.10.667617328010"
+        ],
+        "tarjoajaOids": [
+            "1.2.246.562.10.16458902786",
+            "1.2.246.562.10.62323934026",
+            "1.2.246.562.10.21540239577",
+            "1.2.246.562.10.667617328010",
+            "1.2.246.562.10.00000000001",
+            "1.2.246.562.10.34573782876"
+        ],
+        "usePriority": true,
+        "sisaltyvatHaut": [],
+        "organisaatioryhmat": [
+            "1.2.246.562.28.14677291980",
+            "1.2.246.562.28.98599985483"
+        ],
+        "koulutusmoduuliTyyppi": "TUTKINTO",
+        "maksumuuriKaytossa": false
+    },
+    "accessRights": {
+        "update": true,
+        "delete": true,
+        "create": true
+    },
+    "status": "OK"
+}
