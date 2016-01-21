@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.json
 
 import fi.vm.sade.utils.json4s.GenericJsonFormats
 import fi.vm.sade.valintatulosservice.domain._
-import org.json4s._
+import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 
 object JsonFormats {
