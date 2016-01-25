@@ -92,3 +92,19 @@ Yksinkertaistetusti pollauksessa haetaan ensimmäisessä vaiheessa joukko kandid
 Tarkistusaikaleimojen nollauksen voi tehdä mongoon seuraavasti (muokkaa minimiaikaleima sopivaksi):
 
     db.Valintatulos.update({"mailStatus.previousCheck": {"$gte": ISODate("2015-07-20T18:00:00.000Z")}}, {$unset: {"mailStatus.previousCheck": ""}}, {multi:true})
+
+## Paikallinen PostgreSQL-kanta opiskelijavalintarekisteriä varten
+
+Tyhjän testikannan ensimmäistä käynnistystä varten voi luoda esimerkiksi seuraavasti (vaatii PostgreSQL-clientin sekä Dockerin ja mahdollisesti boot2docker:in).
+`-h` on Windows/OS X ympäristössä `boot2docker ip`:n antama osoite, Linuxilla `localhost`. `-p` kertoo mitä porttia kanta kuuntelee.
+
+Muista konfiguroida käynnistyksessä annettavaan `.properties`-tiedostoon pystyttämäsi testikannan tiedot.
+
+1. `docker run -p 5432:5432 postgres`
+2. `psql -h192.168.59.103 -p5432 -Upostgres postgres -c "CREATE DATABASE valintarekisteri;"`
+3. `psql -h192.168.59.103 -p5432 -Upostgres postgres -c "CREATE ROLE OPH;"`
+
+## TODO: Tietokanta
+
+Palvelinympäristöissä tietokantaa on tarkoitus käyttää oph-nimisellä roolilla.
+
