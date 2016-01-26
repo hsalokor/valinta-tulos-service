@@ -1,18 +1,15 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.{Vastaanottotila, Vastaanotto}
-import fi.vm.sade.valintatulosservice.json.JsonFormats
-import org.json4s.{Extraction, MappingException}
+import org.json4s.Extraction
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra._
-import org.scalatra.json.JacksonJsonSupport
-import org.scalatra.swagger.{SwaggerSupport, Swagger}
+import org.scalatra.swagger.Swagger
 
 import scala.util.Try
 
-class VastaanottoServlet(vastaanottoService: VastaanottoService)(implicit val swagger: Swagger, appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
+class VastaanottoServlet(vastaanottoService: VastaanottoService)(implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
 
   override val applicationName = Some("vastaanotto")
 
@@ -35,8 +32,6 @@ class VastaanottoServlet(vastaanottoService: VastaanottoService)(implicit val sw
     )
 
   post("/:henkilo", operation(postVastaanottoSwagger)) {
-    contentType = formats("json")
-    checkJsonContentType
     val vastaanotto = parsedBody.extract[Vastaanotto]
 
     val personOid:String = params("henkilo")
@@ -45,34 +40,6 @@ class VastaanottoServlet(vastaanottoService: VastaanottoService)(implicit val sw
       case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
     }.get
 
-  }
-
-  def checkJsonContentType {
-    request.contentType match {
-      case Some(ct) if ct.startsWith("application/json") =>
-      case _ => halt(415, "error" -> "Only application/json accepted")
-    }
-  }
-
-  notFound {
-    // remove content type in case it was set through an action
-    contentType = null
-    serveStaticResource() getOrElse resourceNotFound()
-  }
-
-  error {
-    case e => {
-      val desc = request.getMethod + " " + requestPath + (if (request.body.length > 0) {" (body: " + request.body + ")"} else {
-        ""
-      })
-      if (e.isInstanceOf[IllegalStateException] || e.isInstanceOf[IllegalArgumentException] || e.isInstanceOf[MappingException]) {
-        logger.warn(desc + ": " + e.toString)
-        BadRequest("error" -> e.getMessage)
-      } else {
-        logger.error(desc, e)
-        InternalServerError("error" -> "500 Internal Server Error")
-      }
-    }
   }
 
 }
