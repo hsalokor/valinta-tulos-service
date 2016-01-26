@@ -6,6 +6,7 @@ import java.util.Date
 import fi.vm.sade.valintatulosservice.VtsServletBase
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriService
+import org.json4s.Formats
 import org.json4s.jackson.Serialization._
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger.Swagger
@@ -30,8 +31,6 @@ class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService)(
     .parameter(bodyParam[Seq[String]]("henkiloOids").description("Henkilöiden oidit json-sekvenssinä, enintään 10000 oidia yhdessä pyynnössä").required)
     .parameter(queryParam[String]("koulutuksenAlkamispvm").description("Ensimmäinen koulutuksen alkamishetki, joka kyselyssä otetaan huomioon").required)
 
-  private def koulutuksenAlkamispvm = new SimpleDateFormat(dateFormat).parse(params("koulutuksenAlkamispvm"))
-
   private case class HenkiloOid(oid: String) {
     require(oid.startsWith("1.2.246.561.24."), "Illegal henkilo oid")
   }
@@ -39,14 +38,14 @@ class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService)(
   get("/:henkilo", operation(getEnsikertalaisuusSwagger)) {
     valintarekisteriService.findEnsikertalaisuus(
       HenkiloOid(params("henkilo")).oid,
-      koulutuksenAlkamispvm
+      parseKoulutuksenAlkamispvm(params("koulutuksenAlkamispvm"))
     )
   }
 
   post("/", operation(postEnsikertalaisuusSwagger)) {
     val henkilot = read[Set[String]](request.body).map(HenkiloOid)
     if (henkilot.size > maxHenkiloOids) throw new IllegalArgumentException("Too many henkilo oids")
-    val pvm = koulutuksenAlkamispvm
+    val pvm = parseKoulutuksenAlkamispvm(params("koulutuksenAlkamispvm"))
 
     for (
       henkilo <- henkilot
@@ -55,7 +54,10 @@ class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService)(
 }
 
 object EnsikertalaisuusServlet {
-  val dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
+  private val dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
+  def parseKoulutuksenAlkamispvm(d: String)(implicit formats: Formats): Date = {
+    formats.dateFormat.parse(d).getOrElse(new SimpleDateFormat(dateFormat).parse(d))
+  }
   val maxHenkiloOids = 10000
 }
 

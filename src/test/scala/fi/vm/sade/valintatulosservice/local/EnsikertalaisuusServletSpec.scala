@@ -1,11 +1,11 @@
 package fi.vm.sade.valintatulosservice.local
 
 import java.net.URLEncoder
-import java.text.SimpleDateFormat
 
 import fi.vm.sade.valintatulosservice.ServletSpecification
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.{Ensikertalainen, EiEnsikertalainen, Ensikertalaisuus}
+import fi.vm.sade.valintatulosservice.json.JsonFormats.jsonFormats
 import org.json4s.jackson.Serialization._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
@@ -20,9 +20,17 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
       }
     }
 
+    "return 200 OK with shorter ISO 8601 koulutuksenAlkamispvm" in {
+      get("ensikertalaisuus/1.2.246.561.24.00000000001", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00Z"), Map("Content-Type" -> "application/json")) {
+        status mustEqual 200
+        body mustEqual """{"personOid":"1.2.246.561.24.00000000001","paattyi":"2014-07-01T00:00:10Z"}"""
+      }
+    }
+
     "return EiEnsikertalainen" in {
       get("ensikertalaisuus/1.2.246.561.24.00000000001", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00.000+03:00"), Map("Content-Type" -> "application/json")) {
-        read[Ensikertalaisuus](body) mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", new SimpleDateFormat(dateFormat).parse("2014-07-01T00:00:10.000+03:00"))
+        body mustEqual """{"personOid":"1.2.246.561.24.00000000001","paattyi":"2014-06-30T21:00:10Z"}"""
+        read[EiEnsikertalainen](body) mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", jsonFormats.dateFormat.parse("2014-06-30T21:00:10Z").get)
       }
     }
 
@@ -60,7 +68,7 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
 
     "return a sequence of EiEnsikertalainen" in {
       postJSON(s"ensikertalaisuus?koulutuksenAlkamispvm=${URLEncoder.encode("2014-07-01T00:00:00.000+03:00", "UTF-8")}", write(Seq("1.2.246.561.24.00000000001")), Map()) {
-        read[Seq[Ensikertalaisuus]](body).head mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", new SimpleDateFormat(dateFormat).parse("2014-07-01T00:00:10.000+03:00"))
+        read[Seq[Ensikertalaisuus]](body).head mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", jsonFormats.dateFormat.parse("2014-06-30T21:00:10Z").get)
       }
     }
 

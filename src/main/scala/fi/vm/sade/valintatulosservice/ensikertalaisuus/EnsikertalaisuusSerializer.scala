@@ -1,8 +1,8 @@
 package fi.vm.sade.valintatulosservice.ensikertalaisuus
 
-import java.text.SimpleDateFormat
+import java.util.Date
 
-import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet.dateFormat
+import org.json4s.Extraction._
 import org.json4s.{Formats, CustomSerializer}
 import org.json4s.JsonAST._
 import org.json4s.JsonDSL._
@@ -11,10 +11,11 @@ class EnsikertalaisuusSerializer extends CustomSerializer[Ensikertalaisuus] ((fo
   {
     case ensikertalaisuus: JObject =>
       val JString(personOid) = ensikertalaisuus \ "personOid"
+      implicit val f = formats
       ensikertalaisuus.findField(_._1 == "paattyi").map(_._2) match {
-        case Some(JString(v)) => EiEnsikertalainen(
+        case Some(d: JString) => EiEnsikertalainen(
           personOid,
-          new SimpleDateFormat(dateFormat).parse(v)
+          extract[Date](d)
         )
         case _ => Ensikertalainen(personOid)
       }
@@ -23,7 +24,7 @@ class EnsikertalaisuusSerializer extends CustomSerializer[Ensikertalaisuus] ((fo
     case ensikertalainen: Ensikertalainen =>
       "personOid" -> ensikertalainen.personOid
     case eiEnsikertalainen: EiEnsikertalainen =>
-      ("personOid" -> eiEnsikertalainen.personOid) ~ ("paattyi" -> new SimpleDateFormat(dateFormat).format(eiEnsikertalainen.paattyi))
+      ("personOid" -> eiEnsikertalainen.personOid) ~ ("paattyi" -> decompose(eiEnsikertalainen.paattyi)(formats))
   }
   )
 )
