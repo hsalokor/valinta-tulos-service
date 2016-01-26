@@ -64,13 +64,15 @@ object AppConfig extends Logging {
   }
 
   /**
-   *  IT (integration test) profiles. Uses embedded mongo database and stubbed external deps
+   *  IT (integration test) profiles. Uses embedded mongo and PostgreSQL databases, and stubbed external deps
    */
   class IT extends ExampleTemplatedProps with StubbedExternalDeps with MockSecurity {
     private var mongo: Option[MongoServer] = None
+    private lazy val itPostgres = new ItPostgres()
 
     override def start {
       mongo = EmbeddedMongo.start(embeddedMongoPortChooser)
+      itPostgres.start()
       try {
         importFixturesToSijoitteluDatabase
         importFixturesToHakemusDatabase
@@ -91,12 +93,14 @@ object AppConfig extends Logging {
     override def stop {
       mongo.foreach(_.stop)
       mongo = None
+      itPostgres.stop()
     }
 
     override lazy val settings = loadSettings
       .withOverride(("hakemus.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
       .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
       .withOverride(("sijoittelu-service.mongodb.dbname", "sijoittelu"))
+      .withOverride("valinta-tulos-service.valintarekisteri.db.url", "jdbc:postgresql://localhost:65432/valintarekisteri")
   }
 
   /**

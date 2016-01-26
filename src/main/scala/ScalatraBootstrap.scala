@@ -7,7 +7,7 @@ import fi.vm.sade.valintatulosservice.config.AppConfig._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriService
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ValintarekisteriDb, ValintarekisteriService}
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{ValintatulosMongoCollection, MailDecorator, MailPoller}
 import org.scalatra._
 
@@ -20,6 +20,7 @@ class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
     implicit val appConfig: AppConfig = AppConfig.fromOptionalString(Option(context.getAttribute("valintatulos.profile").asInstanceOf[String]))
     lazy val hakuService = HakuService(appConfig)
+    lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig)
     lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
     lazy val vastaanottoService = new VastaanottoService(hakuService, valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
     lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
@@ -45,6 +46,8 @@ class ScalatraBootstrap extends LifeCycle {
 
     if (appConfig.isInstanceOf[IT] || appConfig.isInstanceOf[Dev])
       context.mount(new FixtureServlet, "/util")
+
+    valintarekisteriDb.doSomething() // Remove me if I cause trouble
   }
 
   override def destroy(context: ServletContext) = {

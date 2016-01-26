@@ -33,3 +33,14 @@ valinta-tulos-service.cas.password={{omatsivut_haku_app_password}}
 ldap.server.host={{host_ldap}}
 ldap.user.dn={{ldap_manager_userdn}}
 ldap.user.password={{ldap_manager_password}}
+
+# VALINTAREKISTERI-TIETOKANTA
+valinta-tulos-service.valintarekisteri.db.url=jdbc:postgresql://{{host_postgresql_valintarekisteri}}/valintarekisteri
+valinta-tulos-service.valintarekisteri.db.user={{host_postgresql_valintarekisteri_user}}
+valinta-tulos-service.valintarekisteri.db.password={{host_postgresql_valintarekisteri_password}}
+valinta-tulos-service.valintarekisteri.db.connectionPool=HikariCP
+valinta-tulos-service.valintarekisteri.db.numThreads=20
+valinta-tulos-service.valintarekisteri.db.queueSize=10000
+valinta-tulos-service.valintarekisteri.db.registerMbeans=true
+valinta-tulos-service.valintarekisteri.db.initializationFailFast=true
+valinta-tulos-service.valintarekisteri.db.timeout=20 seconds
