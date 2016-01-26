@@ -22,13 +22,13 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
 
     "return EiEnsikertalainen" in {
       get("ensikertalaisuus/1.2.246.561.24.00000000001", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00.000+03:00"), Map("Content-Type" -> "application/json")) {
-        read[EiEnsikertalainen](body) mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", new SimpleDateFormat(dateFormat).parse("2014-07-01T00:00:10.000+03:00"))
+        read[Ensikertalaisuus](body) mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", new SimpleDateFormat(dateFormat).parse("2014-07-01T00:00:10.000+03:00"))
       }
     }
 
     "return Ensikertalainen" in {
       get("ensikertalaisuus/1.2.246.561.24.00000000002", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00.000+03:00"), Map("Content-Type" -> "application/json")) {
-        read[Ensikertalainen](body) mustEqual Ensikertalainen("1.2.246.561.24.00000000002")
+        read[Ensikertalaisuus](body) mustEqual Ensikertalainen("1.2.246.561.24.00000000002")
       }
     }
 
@@ -60,7 +60,7 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
 
     "return a sequence of EiEnsikertalainen" in {
       postJSON(s"ensikertalaisuus?koulutuksenAlkamispvm=${URLEncoder.encode("2014-07-01T00:00:00.000+03:00", "UTF-8")}", write(Seq("1.2.246.561.24.00000000001")), Map()) {
-        read[Seq[EiEnsikertalainen]](body).head mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", new SimpleDateFormat(dateFormat).parse("2014-07-01T00:00:10.000+03:00"))
+        read[Seq[Ensikertalaisuus]](body).head mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", new SimpleDateFormat(dateFormat).parse("2014-07-01T00:00:10.000+03:00"))
       }
     }
 
