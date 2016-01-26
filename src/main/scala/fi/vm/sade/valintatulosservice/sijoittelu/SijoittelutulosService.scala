@@ -16,34 +16,33 @@ import org.joda.time.DateTime
 class SijoittelutulosService(raportointiService: RaportointiService, ohjausparametritService: OhjausparametritService) {
   import scala.collection.JavaConversions._
 
+  type Vastaanotettavuudet = Map[String, Vastaanotettavuustila.Value]
+
+  private def vastaanotettavuusTilat(hakijat: Seq[HakijaDTO]): Map[String, Vastaanotettavuudet] =
+    hakijat.map(_.getHakijaOid -> Map[String, Vastaanotettavuustila.Value]()).toMap // TODO
+
   def hakemuksenTulos(haku: Haku, hakemusOid: String): Option[HakemuksenSijoitteluntulos] = {
     val aikataulu = ohjausparametritService.ohjausparametrit(haku.oid).flatMap(_.vastaanottoaikataulu)
 
     for (
       sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid));
       hakija: HakijaDTO <- Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid))
-    ) yield hakemuksenYhteenveto(hakija, aikataulu)
+    ) yield hakemuksenYhteenveto(hakija, aikataulu, vastaanotettavuusTilat(Seq(hakija))(hakija.getHakijaOid))
   }
 
-  def hakemustenTulos(hakuOid: String): List[HakemuksenSijoitteluntulos] = {
+  def hakemustenTulos(hakuOid: String, hakukohdeOid: Option[String] = None): List[HakemuksenSijoitteluntulos] = {
     val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
-
-    for (
-      sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)).toList;
-      hakija <- Option(raportointiService.hakemukset(sijoitteluAjo, null, null, null, null, null, null)).map(_.getResults.toList).getOrElse(Nil)
-    ) yield hakemuksenYhteenveto(hakija, aikataulu)
+    val hakukohde: java.util.List[String] = if (hakukohdeOid.isEmpty) null else hakukohdeOid.map(List(_)).get
+    (for (
+      sijoittelu <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid));
+      hakijat <- Option(raportointiService.hakemukset(sijoittelu, null, null, null, hakukohde, null, null)).map(_.getResults.toList)
+    ) yield {
+      val vastaanotettavuudet = vastaanotettavuusTilat(hakijat)
+      hakijat.map(h => hakemuksenYhteenveto(h, aikataulu, vastaanotettavuudet(h.getHakijaOid)))
+    }).getOrElse(Nil)
   }
 
-  def hakemustenTulos(hakuOid: String, hakukohdeOid: String) = {
-    val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
-
-    for (
-      sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)).toList;
-      hakija <- Option(raportointiService.hakemukset(sijoitteluAjo, null, null, null, List(hakukohdeOid), null, null)).map(_.getResults.toList).getOrElse(Nil)
-    ) yield hakemuksenYhteenveto(hakija, aikataulu)
-  }
-
-  private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu]): HakemuksenSijoitteluntulos = {
+  private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu], vastaanotettavuudet: Vastaanotettavuudet): HakemuksenSijoitteluntulos = {
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val jono: HakutoiveenValintatapajonoDTO = merkitseväJono(hakutoive).get
       var valintatila: Valintatila = jononValintatila(jono, hakutoive)
@@ -64,7 +63,7 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
         vastaanottotila,
         vastaanottoDeadline.map(_.toDate),
         Ilmoittautumistila.withName(Option(jono.getIlmoittautumisTila).getOrElse(IlmoittautumisTila.EI_TEHTY).name()),
-        vastaanotettavuustila,
+        vastaanotettavuustila, // TODO käytä vastaanotettavuuksia
         viimeisinHakemuksenTilanMuutos,
         viimeisinValintatuloksenMuutos,
         Option(jono.getJonosija).map(_.toInt),

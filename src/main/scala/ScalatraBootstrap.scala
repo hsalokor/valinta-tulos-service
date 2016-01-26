@@ -4,8 +4,10 @@ import javax.servlet.{DispatcherType, ServletContext}
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig._
+import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
+import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriService
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{ValintatulosMongoCollection, MailDecorator, MailPoller}
 import org.scalatra._
 
@@ -31,6 +33,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new PrivateValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
     context.mount(new EmailStatusServlet(mailPoller, valintatulosCollection, new MailDecorator(new HakemusRepository(), valintatulosCollection)), "/vastaanottoposti")
     context.mount(new VastaanottoServlet(vastaanottoService), "/vastaanotto")
+    context.mount(new EnsikertalaisuusServlet(ValintarekisteriService(appConfig)), "/ensikertalaisuus")
 
 
     val securityFilter = appConfig.securityContext.securityFilter
