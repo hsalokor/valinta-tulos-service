@@ -104,6 +104,14 @@ Muista konfiguroida käynnistyksessä annettavaan `.properties`-tiedostoon pysty
 2. `psql -h192.168.59.103 -p5432 -Upostgres postgres -c "CREATE DATABASE valintarekisteri;"`
 3. `psql -h192.168.59.103 -p5432 -Upostgres postgres -c "CREATE ROLE OPH;"`
 
+Embedattu tietokanta käynnistyy sovelluksessa ja vaatii paikallisen PostgreSQL:n ja lisäksi 
+* polkuun monta komentoa (esim /usr/lib/postgresql/9.5/bin/ :inistä)
+** postgres
+** initdb
+** createdb
+** dropdb
+* todennäköisesti käyttäjäsi tulee olla postgres-ryhmässä, jotta lukkotiedoston kirjoittaminen onnistuu (tämä selviää kokeilemalla)
+
 ## TODO: Tietokanta
 
 Palvelinympäristöissä tietokantaa on tarkoitus käyttää oph-nimisellä roolilla.
