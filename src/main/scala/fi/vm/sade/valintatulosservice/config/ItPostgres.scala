@@ -54,6 +54,12 @@ class ItPostgres extends Logging {
         }
         s"dropdb -p $port --if-exists $dbName".!
         s"createdb -p $port $dbName".!
+
+        Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
+          override def run() {
+            stop()
+          }
+        }))
       }
     }
   }
