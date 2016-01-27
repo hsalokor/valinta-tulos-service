@@ -57,7 +57,7 @@ trait EnsikertalaisuusSwagger extends VtsSwaggerBase { this: SwaggerSupport =>
       "henkilo oidin tai henkilo oidin ja päivämäärän, jolloin ensikertalaisuus päättyi.")
     .parameter(pathParam[String]("henkiloOid").description("Henkilön oid").required)
     .parameter(queryParam[String]("koulutuksenAlkamispvm")
-      .description("Ensimmäinen koulutuksen alkamishetki, joka kyselyssä otetaan huomioon").required)
+      .description("Aikaleima, jonka jälkeen alkavat koulutukset kyselyssä otetaan huomioon (esim. 2014-08-01T00:00:00.000+03:00)").required)
     .responseMessage(ModelResponseMessage(400, "Kuvaus virheellisestä pyynnöstä"))
     .responseMessage(ModelResponseMessage(500, "Virhe palvelussa"))
 
@@ -67,7 +67,7 @@ trait EnsikertalaisuusSwagger extends VtsSwaggerBase { this: SwaggerSupport =>
     .parameter(bodyParam[Seq[String]]("henkiloOids")
       .description("Henkilöiden oidit json-sekvenssinä, enintään 10000 oidia yhdessä pyynnössä").required)
     .parameter(queryParam[String]("koulutuksenAlkamispvm")
-      .description("Ensimmäinen koulutuksen alkamishetki, joka kyselyssä otetaan huomioon").required)
+      .description("Aikaleima, jonka jälkeen alkavat koulutukset kyselyssä otetaan huomioon (esim. 2014-08-01T00:00:00.000+03:00)").required)
     .responseMessage(ModelResponseMessage(400, "Kuvaus virheellisestä pyynnöstä"))
     .responseMessage(ModelResponseMessage(500, "Virhe palvelussa"))
 }
