@@ -101,6 +101,8 @@ object AppConfig extends Logging {
       .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
       .withOverride(("sijoittelu-service.mongodb.dbname", "sijoittelu"))
       .withOverride("valinta-tulos-service.valintarekisteri.db.url", "jdbc:postgresql://localhost:65432/valintarekisteri")
+      .withoutPath("valinta-tulos-service.valintarekisteri.db.user")
+      .withoutPath("valinta-tulos-service.valintarekisteri.db.password")
   }
 
   /**
