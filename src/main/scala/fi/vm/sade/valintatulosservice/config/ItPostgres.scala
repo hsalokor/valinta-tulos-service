@@ -71,7 +71,7 @@ class ItPostgres extends Logging {
       case Some(pid) => {
         println(s"Killing PostgreSQL process $pid")
         s"kill -s SIGTERM $pid".!
-        if (!tryTimes(startStopRetries, startStopRetryIntervalMillis)(() => !isAcceptingConnections())) {
+        if (!tryTimes(startStopRetries, startStopRetryIntervalMillis)(() => readPid.isEmpty)) {
           logger.error(s"postgres in pid $pid did not stop gracefully after $startStopRetries attempts with $startStopRetryIntervalMillis ms intervals")
         }
       }
