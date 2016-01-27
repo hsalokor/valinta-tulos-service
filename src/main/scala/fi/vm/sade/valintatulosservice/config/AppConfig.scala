@@ -80,6 +80,11 @@ object AppConfig extends Logging {
         case e: Exception =>
           throw e
       }
+      Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
+        override def run() {
+          stop
+        }
+      }))
     }
 
     protected def importFixturesToSijoitteluDatabase {
