@@ -15,12 +15,14 @@ class ItPostgres extends Logging {
   val startStopRetries = 30
   val startStopRetryIntervalMillis = 100
   private val dataDirFile = new File(dataDirName)
-  if (!dataDirFile.isDirectory) {
-    Files.createDirectory(dataDirFile.toPath)
-  }
   val dataDirPath = dataDirFile.getAbsolutePath
-  logger.info(s"starting postgres to port $port with data directory $dataDirPath")
-  s"initdb -D $dataDirPath".!
+  if (!dataDirFile.isDirectory) {
+    println(s"PostgreSQL data directory $dataDirPath does not exist, initing new database there.")
+    Files.createDirectory(dataDirFile.toPath)
+    s"chmod 0700 $dataDirPath".!
+    s"initdb -D $dataDirPath".!
+  }
+  logger.info(s"Using PostgreSQL in port $port with data directory $dataDirPath")
 
   private def isAcceptingConnections(): Boolean = {
     s"pg_isready -q -t 1 -h localhost -p $port -d $dbName".! == 0
