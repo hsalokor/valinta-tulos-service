@@ -12,11 +12,11 @@ import scala.concurrent.duration.Duration
 
 
 class ValintarekisteriDb(appConfig: AppConfig) extends Logging {
-  println(s"Database configuration: ${appConfig.settings.valintaRekisteriDbConfig.withValue("password", ConfigValueFactory.fromAnyRef("***"))}")
+  logger.info(s"Database configuration: ${appConfig.settings.valintaRekisteriDbConfig.withValue("password", ConfigValueFactory.fromAnyRef("***"))}")
   val db = Database.forConfig("", appConfig.settings.valintaRekisteriDbConfig)
 
   def doSomething(): Unit = {
     val result = Await.result(db.run(sql"select 'Hello from PostgreSQL!'".as[String]), Duration(1, TimeUnit.SECONDS))
-    println(s"Got from db: $result")
+    logger.info(s"Got from db: $result")
   }
 }
