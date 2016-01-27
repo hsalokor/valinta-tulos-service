@@ -21,7 +21,6 @@ class ItPostgres extends Logging {
   val dataDirPath = dataDirFile.getAbsolutePath
   logger.info(s"starting postgres to port $port with data directory $dataDirPath")
   s"initdb -D $dataDirPath".!
-  private val dbProcess = s"postgres --config_file=postgresql/postgresql.conf -D $dataDirPath -p $port".run()
 
   private def isAcceptingConnections(): Boolean = {
     s"pg_isready -q -t 1 -h localhost -p $port -d $dbName".! == 0
@@ -44,11 +43,19 @@ class ItPostgres extends Logging {
   }
 
   def start() {
-    if (!tryTimes(startStopRetries, startStopRetryIntervalMillis)(isAcceptingConnections)) {
-      throw new RuntimeException(s"postgres not accepting connections in port $port after $startStopRetries attempts with $startStopRetryIntervalMillis ms intervals")
+    readPid match {
+      case Some(pid) => {
+        println(s"PostgreSQL pid $pid is found in pid file, not touching the database.")
+      }
+      case None => {
+        s"postgres --config_file=postgresql/postgresql.conf -D $dataDirPath -p $port".run()
+        if (!tryTimes(startStopRetries, startStopRetryIntervalMillis)(isAcceptingConnections)) {
+          throw new RuntimeException(s"postgres not accepting connections in port $port after $startStopRetries attempts with $startStopRetryIntervalMillis ms intervals")
+        }
+        s"dropdb -p $port --if-exists $dbName".!
+        s"createdb -p $port $dbName".!
+      }
     }
-    s"dropdb -p $port --if-exists $dbName".!
-    s"createdb -p $port $dbName".!
   }
 
   def stop() {
