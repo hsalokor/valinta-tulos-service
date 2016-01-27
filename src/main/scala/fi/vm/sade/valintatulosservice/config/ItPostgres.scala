@@ -69,5 +69,7 @@ class ItPostgres extends Logging {
       }
       case None => println("No PostgreSQL pid found, not trying to stop it.")
     }
+    println(s"Nuking PostgreSQL data directory $dataDirPath")
+    FileUtils.forceDelete(dataDirFile)
   }
 }
