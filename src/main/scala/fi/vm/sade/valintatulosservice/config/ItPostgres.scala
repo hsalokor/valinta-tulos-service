@@ -27,7 +27,7 @@ class ItPostgres extends Logging {
     s"pg_isready -q -t 1 -h localhost -p $port -d $dbName".! == 0
   }
 
-  private def readPid(): Int = {
+  private def readPid: Int = {
     val pidFile = new File(dataDirFile, "postmaster.pid")
     FileUtils.readFileToString(pidFile).split("\n")(0).toInt
   }
@@ -47,7 +47,7 @@ class ItPostgres extends Logging {
   }
 
   def stop() {
-    val pid = readPid()
+    val pid = readPid
     s"kill -s SIGTERM $pid".!
     if (!tryTimes(startStopRetries, startStopRetryIntervalMillis)(() => !isAcceptingConnections())) {
       logger.error(s"postgres in pid $pid did not stop gracefully after $startStopRetries attempts with $startStopRetryIntervalMillis ms intervals")
