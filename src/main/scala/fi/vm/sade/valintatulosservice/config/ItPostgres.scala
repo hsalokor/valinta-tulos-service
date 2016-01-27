@@ -12,12 +12,12 @@ class ItPostgres extends Logging {
   val dataDirName = "valintarekisteri-it-db"
   val dbName = "valintarekisteri"
   val port = 65432
-  val startStopRetries = 30
+  val startStopRetries = 100
   val startStopRetryIntervalMillis = 100
   private val dataDirFile = new File(dataDirName)
   val dataDirPath = dataDirFile.getAbsolutePath
   if (!dataDirFile.isDirectory) {
-    println(s"PostgreSQL data directory $dataDirPath does not exist, initing new database there.")
+    logger.info(s"PostgreSQL data directory $dataDirPath does not exist, initing new database there.")
     Files.createDirectory(dataDirFile.toPath)
     s"chmod 0700 $dataDirPath".!
     s"initdb -D $dataDirPath".!
@@ -46,10 +46,10 @@ class ItPostgres extends Logging {
   def start() {
     readPid match {
       case Some(pid) => {
-        println(s"PostgreSQL pid $pid is found in pid file, not touching the database.")
+        logger.debug(s"PostgreSQL pid $pid is found in pid file, not touching the database.")
       }
       case None => {
-        println(s"PostgreSQL pid file cannot be read, starting:")
+        logger.info(s"PostgreSQL pid file cannot be read, starting:")
         s"postgres --config_file=postgresql/postgresql.conf -D $dataDirPath -p $port".run()
         if (!tryTimes(startStopRetries, startStopRetryIntervalMillis)(isAcceptingConnections)) {
           throw new RuntimeException(s"postgres not accepting connections in port $port after $startStopRetries attempts with $startStopRetryIntervalMillis ms intervals")
@@ -69,15 +69,15 @@ class ItPostgres extends Logging {
   def stop() {
     readPid match {
       case Some(pid) => {
-        println(s"Killing PostgreSQL process $pid")
-        s"kill -s SIGTERM $pid".!
+        logger.info(s"Killing PostgreSQL process $pid")
+        s"kill -s SIGINT $pid".!
         if (!tryTimes(startStopRetries, startStopRetryIntervalMillis)(() => readPid.isEmpty)) {
           logger.error(s"postgres in pid $pid did not stop gracefully after $startStopRetries attempts with $startStopRetryIntervalMillis ms intervals")
         }
       }
-      case None => println("No PostgreSQL pid found, not trying to stop it.")
+      case None => logger.info("No PostgreSQL pid found, not trying to stop it.")
     }
-    println(s"Nuking PostgreSQL data directory $dataDirPath")
+    logger.info(s"Nuking PostgreSQL data directory $dataDirPath")
     FileUtils.forceDelete(dataDirFile)
   }
 }
