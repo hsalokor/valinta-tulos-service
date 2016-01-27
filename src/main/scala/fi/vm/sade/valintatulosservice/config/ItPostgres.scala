@@ -29,7 +29,6 @@ class ItPostgres extends Logging {
   private def readPid: Option[Int] = {
     val pidFile = new File(dataDirFile, "postmaster.pid")
     if (!pidFile.canRead) {
-      println(s"pid file $pidFile does not exist, PostgreSQL not running?")
       None
     } else {
       Some(FileUtils.readFileToString(pidFile).split("\n")(0).toInt)
@@ -48,6 +47,7 @@ class ItPostgres extends Logging {
         println(s"PostgreSQL pid $pid is found in pid file, not touching the database.")
       }
       case None => {
+        println(s"PostgreSQL pid file cannot be read, starting:")
         s"postgres --config_file=postgresql/postgresql.conf -D $dataDirPath -p $port".run()
         if (!tryTimes(startStopRetries, startStopRetryIntervalMillis)(isAcceptingConnections)) {
           throw new RuntimeException(s"postgres not accepting connections in port $port after $startStopRetries attempts with $startStopRetryIntervalMillis ms intervals")
