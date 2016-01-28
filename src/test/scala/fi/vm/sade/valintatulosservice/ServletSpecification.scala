@@ -15,7 +15,7 @@ trait ServletSpecification extends Specification with ITSetup with TimeWarp with
   override lazy val hakemusFixtureImporter = HakemusFixtures()
 
   override def map(fs: => Fragments) = {
-    Step(SharedJetty.start) ^ super.map(fs)
+    Step(appConfig.start) ^ Step(SharedJetty.start) ^ super.map(fs) ^ Step(appConfig.stop)
   }
 
   def postJSON[T](path: String, body: String, headers: Map[String, String] = Map.empty)(block: => T): T = {
