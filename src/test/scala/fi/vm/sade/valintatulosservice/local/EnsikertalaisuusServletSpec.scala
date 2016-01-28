@@ -1,17 +1,44 @@
 package fi.vm.sade.valintatulosservice.local
 
 import java.net.URLEncoder
+import java.util.concurrent.TimeUnit
 
 import fi.vm.sade.valintatulosservice.ServletSpecification
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet._
-import fi.vm.sade.valintatulosservice.ensikertalaisuus.{Ensikertalainen, EiEnsikertalainen, Ensikertalaisuus}
+import fi.vm.sade.valintatulosservice.ensikertalaisuus.{EiEnsikertalainen, Ensikertalainen, Ensikertalaisuus}
 import fi.vm.sade.valintatulosservice.json.JsonFormats.jsonFormats
+import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.jackson.Serialization._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+import slick.dbio.DBIOAction
+import slick.driver.PostgresDriver.api._
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class EnsikertalaisuusServletSpec extends ServletSpecification {
+  val henkilo = "1.2.246.561.24.00000000001"
+  val hakukohde = "1.2.246.561.20.00000000001"
+  val haku = "1.2.246.561.29.00000000001"
+  val koulutus = "1.2.246.561.21.00000000001"
+  val timestamp = new DateTime(2014, 7, 1, 0, 0, 10, DateTimeZone.UTC)
+
+  step({
+    Await.ready(valintarekisteriDb.run(DBIOAction.seq(
+      sqlu"""insert into hakufamilies (name) values ('testfamily')""",
+      sqlu"""insert into haut ("hakuOid", "familyId") values ($haku, currval('hakufamilies_id_seq'))""",
+      sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", "familyId", "tutkintoonJohtava")
+             values ($hakukohde, $haku, currval('hakufamilies_id_seq'), true)""",
+      sqlu"""insert into kaudet (kausi, ajanjakso) values ('2015K', '["2014-12-31 22:00:00","2015-07-31 21:00:00")')""",
+      sqlu"""insert into koulutukset ("koulutusOid", alkamiskausi) values ($koulutus, '2015K')""",
+      sqlu"""insert into koulutushakukohde ("koulutusOid", "hakukohdeOid") values ($koulutus, $hakukohde)""",
+      sqlu"""insert into vastaanotot
+             (henkilo, hakukohde, "familyId", active, "kkTutkintoonJohtava", ilmoittaja, "timestamp", deleted)
+             values ($henkilo, $hakukohde, currval('hakufamilies_id_seq'), true, true, 'ilmoittaja', ${timestamp.getMillis}, null)"""
+    ).transactionally), Duration(1, TimeUnit.SECONDS))
+  })
 
   "GET /ensikertalaisuus/:henkiloOid" should {
     "return 200 OK" in {
@@ -29,8 +56,8 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
 
     "return EiEnsikertalainen" in {
       get("ensikertalaisuus/1.2.246.561.24.00000000001", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00.000+03:00"), Map("Content-Type" -> "application/json")) {
-        body mustEqual """{"personOid":"1.2.246.561.24.00000000001","paattyi":"2014-06-30T21:00:10Z"}"""
-        read[EiEnsikertalainen](body) mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", jsonFormats.dateFormat.parse("2014-06-30T21:00:10Z").get)
+        body mustEqual """{"personOid":"1.2.246.561.24.00000000001","paattyi":"2014-07-01T00:00:10Z"}"""
+        read[EiEnsikertalainen](body) mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", timestamp.toDate)
       }
     }
 
@@ -77,7 +104,5 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
         status mustEqual 400
       }
     }
-
   }
-
 }

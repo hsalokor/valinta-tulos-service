@@ -1,13 +1,18 @@
 package fi.vm.sade.valintatulosservice
 
+import com.typesafe.config.ConfigValueFactory
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
+import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriDb
 
 trait ITSetup {
   implicit val appConfig = new AppConfig.IT
+  private val dbConfig = appConfig.settings.valintaRekisteriDbConfig
+  lazy val valintarekisteriDb = new ValintarekisteriDb(
+    dbConfig.withValue("connectionPool", ConfigValueFactory.fromAnyRef("disabled"))).db
   lazy val hakemusFixtureImporter = HakemusFixtures()(appConfig)
 
   lazy val sijoitteluFixtures = SijoitteluFixtures(appConfig.sijoitteluContext.database)

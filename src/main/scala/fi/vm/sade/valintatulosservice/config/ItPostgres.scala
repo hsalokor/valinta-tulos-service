@@ -4,7 +4,7 @@ import java.io.File
 import java.nio.file.Files
 
 import fi.vm.sade.utils.slf4j.Logging
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.{IOUtils, FileUtils}
 
 import scala.sys.process.stringToProcess
 
@@ -56,6 +56,7 @@ class ItPostgres extends Logging {
         }
         s"dropdb -p $port --if-exists $dbName".!
         s"createdb -p $port $dbName".!
+        s"psql -h localhost -p $port -d $dbName -f postgresql/init_it_postgresql.sql".!
 
         Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
           override def run() {
@@ -77,7 +78,9 @@ class ItPostgres extends Logging {
       }
       case None => logger.info("No PostgreSQL pid found, not trying to stop it.")
     }
-    logger.info(s"Nuking PostgreSQL data directory $dataDirPath")
-    FileUtils.forceDelete(dataDirFile)
+    if (dataDirFile.exists()) {
+      logger.info(s"Nuking PostgreSQL data directory $dataDirPath")
+      FileUtils.forceDelete(dataDirFile)
+    }
   }
 }

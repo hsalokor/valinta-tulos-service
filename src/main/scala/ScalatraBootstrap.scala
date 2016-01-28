@@ -20,7 +20,7 @@ class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
     implicit val appConfig: AppConfig = AppConfig.fromOptionalString(Option(context.getAttribute("valintatulos.profile").asInstanceOf[String]))
     lazy val hakuService = HakuService(appConfig)
-    lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig)
+    lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
     lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
     lazy val vastaanottoService = new VastaanottoService(hakuService, valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
     lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
@@ -28,13 +28,12 @@ class ScalatraBootstrap extends LifeCycle {
     lazy val mailPoller = new MailPoller(valintatulosCollection, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 100)
 
     globalConfig = Some(appConfig)
-    appConfig.start
     context.mount(new BuildInfoServlet, "/")
 
     context.mount(new PrivateValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
     context.mount(new EmailStatusServlet(mailPoller, valintatulosCollection, new MailDecorator(new HakemusRepository(), valintatulosCollection)), "/vastaanottoposti")
     context.mount(new VastaanottoServlet(vastaanottoService), "/vastaanotto")
-    context.mount(new EnsikertalaisuusServlet(ValintarekisteriService(appConfig)), "/ensikertalaisuus")
+    context.mount(new EnsikertalaisuusServlet(valintarekisteriDb), "/ensikertalaisuus")
 
 
     val securityFilter = appConfig.securityContext.securityFilter
