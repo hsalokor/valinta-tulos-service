@@ -1,19 +1,21 @@
 package fi.vm.sade.valintatulosservice.ensikertalaisuus
 
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.{Date, TimeZone}
 
-import fi.vm.sade.valintatulosservice.{VtsSwaggerBase, VtsServletBase}
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet._
+import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriService
-import org.json4s.Formats
+import fi.vm.sade.valintatulosservice.{VtsServletBase, VtsSwaggerBase}
+import org.json4s.jackson.Serialization.read
+import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
-import org.json4s.jackson.Serialization.read
-import EnsikertalaisuusServlet._
 
 class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService)(implicit val swagger: Swagger, appConfig: AppConfig)
   extends VtsServletBase with EnsikertalaisuusSwagger {
+  override implicit val jsonFormats: Formats = EnsikertalaisuusServlet.ensikertalaisuusJsonFormats
 
   def henkiloOid(oid: String): String = {
     require(oid.startsWith("1.2.246.562.24."), "Illegal henkilo oid")
@@ -33,6 +35,15 @@ class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService)(
 }
 
 object EnsikertalaisuusServlet {
+  private val finnishDateFormats: Formats =  new DefaultFormats {
+    override def dateFormatter = {
+      val format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX")
+      format.setTimeZone(TimeZone.getTimeZone("Europe/Helsinki"))
+      format
+    }
+  }
+  val ensikertalaisuusJsonFormats: Formats = finnishDateFormats ++ JsonFormats.customSerializers
+
   private val dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
 
   def parseKoulutuksenAlkamispvm(d: String)(implicit formats: Formats): Date = {
