@@ -93,7 +93,6 @@ object AppConfig extends Logging {
     override def stop {
       mongo.foreach(_.stop)
       mongo = None
-      itPostgres.stop()
     }
 
     override lazy val settings = loadSettings
