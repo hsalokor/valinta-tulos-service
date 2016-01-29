@@ -87,7 +87,6 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
   }
 
   "POST /ensikertalaisuus" should {
-    skipped
     "return 200 OK" in {
       postJSON(s"ensikertalaisuus?koulutuksenAlkamispvm=${URLEncoder.encode("2014-07-01T00:00:00.000+03:00", "UTF-8")}", write(Seq("1.2.246.561.24.00000000001")), Map()) {
         status mustEqual 200
@@ -95,8 +94,12 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
     }
 
     "return a sequence of EiEnsikertalainen" in {
-      postJSON(s"ensikertalaisuus?koulutuksenAlkamispvm=${URLEncoder.encode("2014-07-01T00:00:00.000+03:00", "UTF-8")}", write(Seq("1.2.246.561.24.00000000001")), Map()) {
-        read[Seq[Ensikertalaisuus]](body).head mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", jsonFormats.dateFormat.parse("2014-06-30T21:00:10Z").get)
+      val personOidsToQuery = Seq("1.2.246.561.24.00000000001", "1.2.246.561.24.00000000002")
+      postJSON(s"ensikertalaisuus?koulutuksenAlkamispvm=${URLEncoder.encode("2014-07-01T00:00:00.000+03:00", "UTF-8")}", write(personOidsToQuery), Map()) {
+        val ensikertalaisuuses = read[Seq[Ensikertalaisuus]](body).sortBy(_.personOid)
+        ensikertalaisuuses must have size 2
+        ensikertalaisuuses.head mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", jsonFormats.dateFormat.parse("2014-07-01T00:00:10Z").get)
+        ensikertalaisuuses(1) mustEqual Ensikertalainen("1.2.246.561.24.00000000002")
       }
     }
 
