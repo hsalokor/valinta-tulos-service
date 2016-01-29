@@ -37,14 +37,14 @@ class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService)(
 object EnsikertalaisuusServlet {
   private val finnishDateFormats: Formats =  new DefaultFormats {
     override def dateFormatter = {
-      val format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX")
+      val format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX")
       format.setTimeZone(TimeZone.getTimeZone("Europe/Helsinki"))
       format
     }
   }
   val ensikertalaisuusJsonFormats: Formats = finnishDateFormats ++ JsonFormats.customSerializers
 
-  private val dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
+  private val dateFormat = "yyyy-MM-dd'T'HH:mm:ssX"
 
   def parseKoulutuksenAlkamispvm(d: String)(implicit formats: Formats): Date = {
     formats.dateFormat.parse(d).getOrElse(new SimpleDateFormat(dateFormat).parse(d))

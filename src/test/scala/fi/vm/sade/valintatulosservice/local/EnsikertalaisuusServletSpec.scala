@@ -50,13 +50,13 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
     "return 200 OK with shorter ISO 8601 koulutuksenAlkamispvm" in {
       get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00Z"), Map("Content-Type" -> "application/json")) {
         status mustEqual 200
-        body mustEqual """{"personOid":"1.2.246.562.24.00000000001","paattyi":"2014-07-01T00:00:10+03"}"""
+        body mustEqual """{"personOid":"1.2.246.562.24.00000000001","paattyi":"2014-07-01T00:00:10.000+03"}"""
       }
     }
 
     "return EiEnsikertalainen" in {
       get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00.000+03:00"), Map("Content-Type" -> "application/json")) {
-        body mustEqual """{"personOid":"1.2.246.562.24.00000000001","paattyi":"2014-07-01T00:00:10+03"}"""
+        body mustEqual """{"personOid":"1.2.246.562.24.00000000001","paattyi":"2014-07-01T00:00:10.000+03"}"""
         read[EiEnsikertalainen](body) mustEqual EiEnsikertalainen("1.2.246.562.24.00000000001", timestamp.toDate)
       }
     }
@@ -98,7 +98,7 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
       postJSON(s"ensikertalaisuus?koulutuksenAlkamispvm=${URLEncoder.encode("2014-07-01T00:00:00.000+03:00", "UTF-8")}", write(personOidsToQuery), Map()) {
         val ensikertalaisuuses = read[Seq[Ensikertalaisuus]](body).sortBy(_.personOid)
         ensikertalaisuuses must have size 2
-        ensikertalaisuuses.head mustEqual EiEnsikertalainen("1.2.246.562.24.00000000001", formats.dateFormat.parse("2014-07-01T00:00:10+03").get)
+        ensikertalaisuuses.head mustEqual EiEnsikertalainen("1.2.246.562.24.00000000001", formats.dateFormat.parse("2014-07-01T00:00:10.000+03").get)
         ensikertalaisuuses(1) mustEqual Ensikertalainen("1.2.246.562.24.00000000002")
       }
     }
