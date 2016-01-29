@@ -19,13 +19,13 @@ class ItPostgres extends Logging {
   if (!dataDirFile.isDirectory) {
     logger.info(s"PostgreSQL data directory $dataDirPath does not exist, initing new database there.")
     Files.createDirectory(dataDirFile.toPath)
-    s"chmod 0700 $dataDirPath".!
-    s"initdb -D $dataDirPath".!
+    runBlocking(s"chmod 0700 $dataDirPath")
+    runBlocking(s"initdb -D $dataDirPath")
   }
   logger.info(s"Using PostgreSQL in port $port with data directory $dataDirPath")
 
   private def isAcceptingConnections(): Boolean = {
-    s"pg_isready -q -t 1 -h localhost -p $port -d $dbName".! == 0
+    runBlocking(s"pg_isready -q -t 1 -h localhost -p $port -d $dbName", failOnError = false) == 0
   }
 
   private def readPid: Option[Int] = {
@@ -43,6 +43,14 @@ class ItPostgres extends Logging {
     case n => thunk() || { Thread.sleep(sleep); tryTimes(n - 1, sleep)(thunk) }
   }
 
+  private def runBlocking(command: String, failOnError: Boolean = true): Int = {
+    val returnValue = command.!
+    if (failOnError && returnValue != 0) {
+      throw new RuntimeException(s"Command '$command' exited with $returnValue")
+    }
+    returnValue
+  }
+
   def start() {
     readPid match {
       case Some(pid) => {
@@ -54,9 +62,9 @@ class ItPostgres extends Logging {
         if (!tryTimes(startStopRetries, startStopRetryIntervalMillis)(isAcceptingConnections)) {
           throw new RuntimeException(s"postgres not accepting connections in port $port after $startStopRetries attempts with $startStopRetryIntervalMillis ms intervals")
         }
-        s"dropdb -p $port --if-exists $dbName".!
-        s"createdb -p $port $dbName".!
-        s"psql -h localhost -p $port -d $dbName -f postgresql/init_it_postgresql.sql".!
+        runBlocking(s"dropdb -p $port --if-exists $dbName")
+        runBlocking(s"createdb -p $port $dbName")
+        runBlocking(s"psql -h localhost -p $port -d $dbName -f postgresql/init_it_postgresql.sql")
 
         Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
           override def run() {
@@ -71,7 +79,7 @@ class ItPostgres extends Logging {
     readPid match {
       case Some(pid) => {
         logger.info(s"Killing PostgreSQL process $pid")
-        s"kill -s SIGINT $pid".!
+        runBlocking(s"kill -s SIGINT $pid")
         if (!tryTimes(startStopRetries, startStopRetryIntervalMillis)(() => readPid.isEmpty)) {
           logger.error(s"postgres in pid $pid did not stop gracefully after $startStopRetries attempts with $startStopRetryIntervalMillis ms intervals")
         }
