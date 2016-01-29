@@ -1,7 +1,11 @@
 package fi.vm.sade.valintatulosservice
 
+import fi.vm.sade.valintatulosservice.config.AppConfig
+import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
+import org.eclipse.jetty.util.component.FileNoticeLifeCycleListener
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
 
@@ -21,6 +25,8 @@ class JettyLauncher(val port: Int, profile: Option[String] = None) {
   server.setHandler(context)
 
   def start = {
+    val appConfig = AppConfig.fromOptionalString(profile)
+    appConfig.start
     server.start
     server
   }
