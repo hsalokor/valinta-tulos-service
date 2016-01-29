@@ -23,12 +23,6 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   flyway.migrate()
   val db = Database.forConfig("", dbConfig)
 
-
-  def doSomething(): Unit = {
-    val result = Await.result(db.run(sql"select 'Hello from PostgreSQL!'".as[String]), Duration(1, TimeUnit.SECONDS))
-    logger.info(s"Got from db: $result")
-  }
-
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamispvm: Date): Ensikertalaisuus = {
     val r = Await.result(db.run(sql"""select * from vastaanotot""".as[Any]), Duration(1, TimeUnit.SECONDS))
     r.foreach(println(_))
