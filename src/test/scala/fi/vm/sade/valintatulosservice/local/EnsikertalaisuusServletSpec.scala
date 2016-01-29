@@ -87,6 +87,7 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
   }
 
   "POST /ensikertalaisuus" should {
+    skipped
     "return 200 OK" in {
       postJSON(s"ensikertalaisuus?koulutuksenAlkamispvm=${URLEncoder.encode("2014-07-01T00:00:00.000+03:00", "UTF-8")}", write(Seq("1.2.246.561.24.00000000001")), Map()) {
         status mustEqual 200
