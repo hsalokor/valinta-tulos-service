@@ -19,7 +19,7 @@ import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class EnsikertalaisuusServletSpec extends ServletSpecification {
-  val henkilo = "1.2.246.561.24.00000000001"
+  val henkilo = "1.2.246.562.24.00000000001"
   val hakukohde = "1.2.246.561.20.00000000001"
   val haku = "1.2.246.561.29.00000000001"
   val koulutus = "1.2.246.561.21.00000000001"
@@ -42,28 +42,28 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
 
   "GET /ensikertalaisuus/:henkiloOid" should {
     "return 200 OK" in {
-      get("ensikertalaisuus/1.2.246.561.24.00000000001", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00.000+03:00"), Map("Content-Type" -> "application/json")) {
+      get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00.000+03:00"), Map("Content-Type" -> "application/json")) {
         status mustEqual 200
       }
     }
 
     "return 200 OK with shorter ISO 8601 koulutuksenAlkamispvm" in {
-      get("ensikertalaisuus/1.2.246.561.24.00000000001", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00Z"), Map("Content-Type" -> "application/json")) {
+      get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00Z"), Map("Content-Type" -> "application/json")) {
         status mustEqual 200
-        body mustEqual """{"personOid":"1.2.246.561.24.00000000001","paattyi":"2014-07-01T00:00:10Z"}"""
+        body mustEqual """{"personOid":"1.2.246.562.24.00000000001","paattyi":"2014-07-01T00:00:10Z"}"""
       }
     }
 
     "return EiEnsikertalainen" in {
-      get("ensikertalaisuus/1.2.246.561.24.00000000001", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00.000+03:00"), Map("Content-Type" -> "application/json")) {
-        body mustEqual """{"personOid":"1.2.246.561.24.00000000001","paattyi":"2014-07-01T00:00:10Z"}"""
-        read[EiEnsikertalainen](body) mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", timestamp.toDate)
+      get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00.000+03:00"), Map("Content-Type" -> "application/json")) {
+        body mustEqual """{"personOid":"1.2.246.562.24.00000000001","paattyi":"2014-07-01T00:00:10Z"}"""
+        read[EiEnsikertalainen](body) mustEqual EiEnsikertalainen("1.2.246.562.24.00000000001", timestamp.toDate)
       }
     }
 
     "return Ensikertalainen" in {
-      get("ensikertalaisuus/1.2.246.561.24.00000000002", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00.000+03:00"), Map("Content-Type" -> "application/json")) {
-        read[Ensikertalaisuus](body) mustEqual Ensikertalainen("1.2.246.561.24.00000000002")
+      get("ensikertalaisuus/1.2.246.562.24.00000000002", Map("koulutuksenAlkamispvm" -> "2014-07-01T00:00:00.000+03:00"), Map("Content-Type" -> "application/json")) {
+        read[Ensikertalaisuus](body) mustEqual Ensikertalainen("1.2.246.562.24.00000000002")
       }
     }
 
@@ -74,13 +74,13 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
     }
 
     "return 400 Bad Request for invalid koulutuksenAlkamispvm" in {
-      get("ensikertalaisuus/1.2.246.561.24.00000000001", Map("koulutuksenAlkamispvm" -> "foo"), Map("Content-Type" -> "application/json")) {
+      get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamispvm" -> "foo"), Map("Content-Type" -> "application/json")) {
         status mustEqual 400
       }
     }
 
     "return 400 Bad Request for missing koulutuksenAlkamispvm" in {
-      get("ensikertalaisuus/1.2.246.561.24.00000000001", Map(), Map("Content-Type" -> "application/json")) {
+      get("ensikertalaisuus/1.2.246.562.24.00000000001", Map(), Map("Content-Type" -> "application/json")) {
         status mustEqual 400
       }
     }
@@ -88,23 +88,23 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
 
   "POST /ensikertalaisuus" should {
     "return 200 OK" in {
-      postJSON(s"ensikertalaisuus?koulutuksenAlkamispvm=${URLEncoder.encode("2014-07-01T00:00:00.000+03:00", "UTF-8")}", write(Seq("1.2.246.561.24.00000000001")), Map()) {
+      postJSON(s"ensikertalaisuus?koulutuksenAlkamispvm=${URLEncoder.encode("2014-07-01T00:00:00.000+03:00", "UTF-8")}", write(Seq("1.2.246.562.24.00000000001")), Map()) {
         status mustEqual 200
       }
     }
 
     "return a sequence of EiEnsikertalainen" in {
-      val personOidsToQuery = Seq("1.2.246.561.24.00000000001", "1.2.246.561.24.00000000002")
+      val personOidsToQuery = Seq("1.2.246.562.24.00000000001", "1.2.246.562.24.00000000002")
       postJSON(s"ensikertalaisuus?koulutuksenAlkamispvm=${URLEncoder.encode("2014-07-01T00:00:00.000+03:00", "UTF-8")}", write(personOidsToQuery), Map()) {
         val ensikertalaisuuses = read[Seq[Ensikertalaisuus]](body).sortBy(_.personOid)
         ensikertalaisuuses must have size 2
-        ensikertalaisuuses.head mustEqual EiEnsikertalainen("1.2.246.561.24.00000000001", jsonFormats.dateFormat.parse("2014-07-01T00:00:10Z").get)
-        ensikertalaisuuses(1) mustEqual Ensikertalainen("1.2.246.561.24.00000000002")
+        ensikertalaisuuses.head mustEqual EiEnsikertalainen("1.2.246.562.24.00000000001", jsonFormats.dateFormat.parse("2014-07-01T00:00:10Z").get)
+        ensikertalaisuuses(1) mustEqual Ensikertalainen("1.2.246.562.24.00000000002")
       }
     }
 
     "return 400 Bad Request if too many henkilo oids is sent" in {
-      postJSON(s"ensikertalaisuus?koulutuksenAlkamispvm=${URLEncoder.encode("2014-07-01T00:00:00.000+03:00", "UTF-8")}", write((1 to (maxHenkiloOids + 1)).map(i => s"1.2.246.561.24.$i")), Map()) {
+      postJSON(s"ensikertalaisuus?koulutuksenAlkamispvm=${URLEncoder.encode("2014-07-01T00:00:00.000+03:00", "UTF-8")}", write((1 to (maxHenkiloOids + 1)).map(i => s"1.2.246.562.24.$i")), Map()) {
         status mustEqual 400
       }
     }

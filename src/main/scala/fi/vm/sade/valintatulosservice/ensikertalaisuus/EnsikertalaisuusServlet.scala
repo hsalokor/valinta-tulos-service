@@ -16,7 +16,7 @@ class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService)(
   extends VtsServletBase with EnsikertalaisuusSwagger {
 
   def henkiloOid(oid: String): String = {
-    require(oid.startsWith("1.2.246.561.24."), "Illegal henkilo oid")
+    require(oid.startsWith("1.2.246.562.24."), "Illegal henkilo oid")
     oid
   }
 
