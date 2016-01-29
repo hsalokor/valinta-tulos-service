@@ -9,6 +9,7 @@ import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
 import org.flywaydb.core.Flyway
 import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation}
+import slick.driver.PostgresDriver.api._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -37,5 +38,31 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     Ensikertalaisuus(personOid, d.head.map(new Date(_)))
   }
 
-  override def findEnsikertalaisuus(personOids: Set[String], koulutuksenAlkamispvm: Date): Set[Ensikertalaisuus] = ???
+  override def findEnsikertalaisuus(personOids: Set[String], koulutuksenAlkamispvm: Date): Set[Ensikertalaisuus] = {
+    val createTempTable = sqlu"create temporary table person_oids (oid varchar) on commit drop"
+    val insertPersonOids = SimpleDBIO[Unit](jdbcActionContext => {
+      val statement = jdbcActionContext.connection.prepareStatement("insert into person_oids values (?)")
+      try {
+        personOids.foreach(oid => {
+          statement.setString(1, oid)
+          statement.addBatch()
+        })
+        statement.executeBatch()
+      } finally {
+        statement.close()
+      }
+    })
+    val findVastaanottos = sql"""select person_oids.oid, min("timestamp") from person_oids
+      left join vastaanotot on vastaanotot.henkilo = person_oids.oid and vastaanotot."kkTutkintoonJohtava" = true and vastaanotot.active = true
+      left join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
+      left join koulutushakukohde on koulutushakukohde."hakukohdeOid" = hakukohteet."hakukohdeOid"
+      left join koulutukset on koulutukset."koulutusOid" = koulutushakukohde."koulutusOid"
+      left join kaudet on kaudet.kausi = koulutukset.alkamiskausi and kaudet.ajanjakso &> tsrange(${new Timestamp(koulutuksenAlkamispvm.getTime)}, null)
+      GROUP BY person_oids.oid
+    """.as[(String, Option[Long])]
+
+    val operations = createTempTable.andThen(insertPersonOids).andThen(findVastaanottos)
+    val result = Await.result(db.run(operations.transactionally), Duration(1, TimeUnit.SECONDS))
+    result.map(row => Ensikertalaisuus(row._1, row._2.map(new Date(_)))).toSet
+  }
 }
