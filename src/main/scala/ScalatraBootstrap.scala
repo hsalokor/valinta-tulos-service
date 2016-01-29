@@ -45,8 +45,6 @@ class ScalatraBootstrap extends LifeCycle {
 
     if (appConfig.isInstanceOf[IT] || appConfig.isInstanceOf[Dev])
       context.mount(new FixtureServlet, "/util")
-
-    valintarekisteriDb.doSomething() // Remove me if I cause trouble
   }
 
   override def destroy(context: ServletContext) = {
