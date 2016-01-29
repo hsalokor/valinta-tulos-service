@@ -1,9 +1,10 @@
 package fi.vm.sade.valintatulosservice.ensikertalaisuus
 
 import java.text.SimpleDateFormat
-import java.util.{Date, TimeZone}
+import java.util.TimeZone
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.domain.Kausi
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet._
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriService
@@ -23,14 +24,14 @@ class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService)(
   }
 
   get("/:henkilo", operation(getEnsikertalaisuusSwagger)) {
-    valintarekisteriService.findEnsikertalaisuus(henkiloOid(params("henkilo")), parseKoulutuksenAlkamispvm(params("koulutuksenAlkamispvm")))
+    valintarekisteriService.findEnsikertalaisuus(henkiloOid(params("henkilo")), parseKausi(params("koulutuksenAlkamiskausi")))
   }
 
   post("/", operation(postEnsikertalaisuusSwagger)) {
     val henkilot = read[Set[String]](request.body).map(henkiloOid)
     if (henkilot.size > maxHenkiloOids) throw new IllegalArgumentException("Too many henkilo oids")
 
-    valintarekisteriService.findEnsikertalaisuus(henkilot, parseKoulutuksenAlkamispvm(params("koulutuksenAlkamispvm")))
+    valintarekisteriService.findEnsikertalaisuus(henkilot, parseKausi(params("koulutuksenAlkamiskausi")))
   }
 }
 
@@ -44,11 +45,7 @@ object EnsikertalaisuusServlet {
   }
   val ensikertalaisuusJsonFormats: Formats = finnishDateFormats ++ JsonFormats.customSerializers
 
-  private val dateFormat = "yyyy-MM-dd'T'HH:mm:ssX"
-
-  def parseKoulutuksenAlkamispvm(d: String)(implicit formats: Formats): Date = {
-    formats.dateFormat.parse(d).getOrElse(new SimpleDateFormat(dateFormat).parse(d))
-  }
+  def parseKausi(d: String): Kausi = Kausi(d)
 
   val maxHenkiloOids = 10000
 }
@@ -67,8 +64,8 @@ trait EnsikertalaisuusSwagger extends VtsSwaggerBase { this: SwaggerSupport =>
     .notes("Ei pidä käyttää sellaisenaan, vain ainoastaan suoritusrekisterin kautta. Rajapinta palauttaa joko pelkän " +
       "henkilo oidin tai henkilo oidin ja päivämäärän, jolloin ensikertalaisuus päättyi.")
     .parameter(pathParam[String]("henkiloOid").description("Henkilön oid").required)
-    .parameter(queryParam[String]("koulutuksenAlkamispvm")
-      .description("Aikaleima, jonka jälkeen alkavat koulutukset kyselyssä otetaan huomioon (esim. 2014-08-01T00:00:00.000+03:00)").required)
+    .parameter(queryParam[String]("koulutuksenAlkamiskausi")
+      .description("Koulutuksen alkamiskausi, josta lähtien alkavat koulutukset kyselyssä otetaan huomioon (esim. 2016S").required)
     .responseMessage(ModelResponseMessage(400, "Kuvaus virheellisestä pyynnöstä"))
     .responseMessage(ModelResponseMessage(500, "Virhe palvelussa"))
 
@@ -77,8 +74,8 @@ trait EnsikertalaisuusSwagger extends VtsSwaggerBase { this: SwaggerSupport =>
     .notes("Ei pidä käyttää sellaisenaan, vain ainoastaan suoritusrekisterin kautta. Rajapinta palauttaa setin ensikertalaisuus-objekteja.")
     .parameter(bodyParam[Seq[String]]("henkiloOids")
       .description("Henkilöiden oidit json-sekvenssinä, enintään 10000 oidia yhdessä pyynnössä").required)
-    .parameter(queryParam[String]("koulutuksenAlkamispvm")
-      .description("Aikaleima, jonka jälkeen alkavat koulutukset kyselyssä otetaan huomioon (esim. 2014-08-01T00:00:00.000+03:00)").required)
+    .parameter(queryParam[String]("koulutuksenAlkamiskausi")
+      .description("Koulutuksen alkamiskausi, josta lähtien alkavat koulutukset kyselyssä otetaan huomioon (esim. 2016S").required)
     .responseMessage(ModelResponseMessage(400, "Kuvaus virheellisestä pyynnöstä"))
     .responseMessage(ModelResponseMessage(500, "Virhe palvelussa"))
 }

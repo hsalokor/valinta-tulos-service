@@ -1,11 +1,11 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
-import java.sql.Timestamp
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
 import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.domain.Kausi
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
 import org.flywaydb.core.Flyway
 import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation}
@@ -24,21 +24,21 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   flyway.migrate()
   val db = Database.forConfig("", dbConfig)
 
-  override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamispvm: Date): Ensikertalaisuus = {
+  override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
+    println(s"KAUSI $koulutuksenAlkamisKausi")
     val d = Await.result(db.run(sql"""select min("timestamp") from vastaanotot
           join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
           join koulutushakukohde on koulutushakukohde."hakukohdeOid" = hakukohteet."hakukohdeOid"
           join koulutukset on koulutukset."koulutusOid" = koulutushakukohde."koulutusOid"
-          join kaudet on kaudet.kausi = koulutukset.alkamiskausi
           where vastaanotot.henkilo = $personOid
           and   "kkTutkintoonJohtava" = true
           and   active = true
-          and   kaudet.ajanjakso &> tsrange(${new Timestamp(koulutuksenAlkamispvm.getTime)}, null)
+          and   koulutukset.alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
        """.as[Option[Long]]), Duration(1, TimeUnit.SECONDS))
     Ensikertalaisuus(personOid, d.head.map(new Date(_)))
   }
 
-  override def findEnsikertalaisuus(personOids: Set[String], koulutuksenAlkamispvm: Date): Set[Ensikertalaisuus] = {
+  override def findEnsikertalaisuus(personOids: Set[String], koulutuksenAlkamisKausi: Kausi): Set[Ensikertalaisuus] = {
     val createTempTable = sqlu"create temporary table person_oids (oid varchar) on commit drop"
     val insertPersonOids = SimpleDBIO[Unit](jdbcActionContext => {
       val statement = jdbcActionContext.connection.prepareStatement("insert into person_oids values (?)")
@@ -56,8 +56,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
       left join vastaanotot on vastaanotot.henkilo = person_oids.oid and vastaanotot."kkTutkintoonJohtava" = true and vastaanotot.active = true
       left join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
       left join koulutushakukohde on koulutushakukohde."hakukohdeOid" = hakukohteet."hakukohdeOid"
-      left join koulutukset on koulutukset."koulutusOid" = koulutushakukohde."koulutusOid"
-      left join kaudet on kaudet.kausi = koulutukset.alkamiskausi and kaudet.ajanjakso &> tsrange(${new Timestamp(koulutuksenAlkamispvm.getTime)}, null)
+      left join koulutukset on koulutukset."koulutusOid" = koulutushakukohde."koulutusOid" and koulutukset.alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
       GROUP BY person_oids.oid
     """.as[(String, Option[Long])]
 
