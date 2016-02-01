@@ -1,33 +1,24 @@
 package fi.vm.sade.valintatulosservice.domain
 
-case class Kausi(year: Int, kausi: String) {
-  def toKausiSpec = year.toString + kausi
+sealed trait Kausi {
+  def year: Int
+  def toKausiSpec: String
+}
+
+case class Kevat(year: Int) extends Kausi {
+  def toKausiSpec: String = year.toString + "K"
+}
+case class Syksy(year: Int) extends Kausi {
+  def toKausiSpec: String = year.toString + "S"
 }
 
 object Kausi {
-  private val validLastCharacters = Set("K", "S")
-  def apply(kausiSpec: String): Kausi = {
-    if (kausiSpec.length != 5) {
-      throw new IllegalArgumentException(s"Bad kausi spefication '$kausiSpec'. Expected format YYYY(S|K), e.g. 2016S")
-    }
-    Kausi(parseYear(kausiSpec), parseKausi(kausiSpec))
-  }
+  private val kausi = """(\d\d\d\d)(K|S)""".r
 
-  private def parseYear(kausiSpec: String): Int = {
-    try {
-      val year = kausiSpec.substring(0, kausiSpec.length - 1)
-      Integer.parseInt(year)
-    } catch {
-      case e: Exception => throw new IllegalArgumentException(s"Could not parse year from '$kausiSpec'. Expected format YYYY(S|K), e.g. 2016S", e)
-    }
-  }
-
-  private def parseKausi(kausiSpec: String): String = {
-    val lastCharacter = kausiSpec.substring(kausiSpec.length - 1)
-    if (validLastCharacters.contains(lastCharacter)) {
-      lastCharacter
-    } else {
-      throw new IllegalArgumentException(s"Illegal last character '$lastCharacter'. Valid values are $validLastCharacters")
-    }
+  def apply(kausiSpec: String): Kausi = kausiSpec match {
+    case kausi(year, "K") => Kevat(Integer.parseInt(year))
+    case kausi(year, "S") => Syksy(Integer.parseInt(year))
+    case kausi(year, c) => throw new IllegalArgumentException(s"Illegal last character '$c'. Valid values are 'K' and 'S'")
+    case s => throw new IllegalArgumentException(s"Illegal kausi specification '$s'. Expected format YYYY(K|S), e.g. 2015K")
   }
 }
