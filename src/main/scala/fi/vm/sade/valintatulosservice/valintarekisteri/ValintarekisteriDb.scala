@@ -25,7 +25,6 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   val db = Database.forConfig("", dbConfig)
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
-    println(s"KAUSI $koulutuksenAlkamisKausi")
     val d = Await.result(db.run(sql"""select min("timestamp") from vastaanotot
           join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
           join koulutushakukohde on koulutushakukohde."hakukohdeOid" = hakukohteet."hakukohdeOid"
