@@ -1,11 +1,10 @@
 package fi.vm.sade.valintatulosservice.local
 
-import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 
 import fi.vm.sade.valintatulosservice.ServletSpecification
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet._
-import fi.vm.sade.valintatulosservice.ensikertalaisuus.{EnsikertalaisuusServlet, EiEnsikertalainen, Ensikertalainen, Ensikertalaisuus}
+import fi.vm.sade.valintatulosservice.ensikertalaisuus.{EiEnsikertalainen, Ensikertalainen, Ensikertalaisuus, EnsikertalaisuusServlet}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.jackson.Serialization._
 import org.junit.runner.RunWith
@@ -20,10 +19,15 @@ import scala.concurrent.duration.Duration
 class EnsikertalaisuusServletSpec extends ServletSpecification {
   override implicit val formats = EnsikertalaisuusServlet.ensikertalaisuusJsonFormats
   val henkilo = "1.2.246.562.24.00000000001"
+  val vastaanottamaton_henkilo = "1.2.246.562.24.00000000002"
+  val vanha_henkilo = "1.2.246.562.24.00000000003"
   val hakukohde = "1.2.246.561.20.00000000001"
+  val vanha_hakukohde = "Vanhan hakukohteen nimi:101"
+  val vanha_tarjoaja = "1.2.246.562.10.00000000001"
   val haku = "1.2.246.561.29.00000000001"
   val koulutus = "1.2.246.561.21.00000000001"
   val timestamp = new DateTime(2014, 7, 1, 0, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
+  val vanha_timestamp = new DateTime(2014, 6, 19, 0, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
 
   step({
     Await.ready(valintarekisteriDb.run(DBIOAction.seq(
@@ -31,32 +35,42 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
              values ($hakukohde, $haku, true, '2015K')""",
       sqlu"""insert into vastaanotot
              (henkilo, hakukohde, active, ilmoittaja, "timestamp", deleted)
-             values ($henkilo, $hakukohde, true, 'ilmoittaja', ${timestamp.getMillis}, null)"""
+             values ($henkilo, $hakukohde, true, 'ilmoittaja', ${timestamp.getMillis}, null)""",
+      sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, "kkTutkintoonJohtava", ilmoittaja, "timestamp", deleted)
+             values ($henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${vanha_timestamp.getMillis}, null)""",
+      sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, "kkTutkintoonJohtava", ilmoittaja, "timestamp", deleted)
+             values ($vanha_henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${vanha_timestamp.getMillis}, null)"""
     ).transactionally), Duration(1, TimeUnit.SECONDS))
   })
 
   "GET /ensikertalaisuus/:henkiloOid" should {
     "return 200 OK" in {
-      get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamiskausi" -> "2014K"), Map("Content-Type" -> "application/json")) {
+      get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamiskausi" -> "2015K"), Map("Content-Type" -> "application/json")) {
         status mustEqual 200
       }
     }
 
     "return EiEnsikertalainen" in {
-      get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamiskausi" -> "2014K"), Map("Content-Type" -> "application/json")) {
+      get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamiskausi" -> "2015K"), Map("Content-Type" -> "application/json")) {
         body mustEqual """{"personOid":"1.2.246.562.24.00000000001","paattyi":"2014-07-01T00:00:10.000+03"}"""
-        read[EiEnsikertalainen](body) mustEqual EiEnsikertalainen("1.2.246.562.24.00000000001", timestamp.toDate)
+        read[EiEnsikertalainen](body) mustEqual EiEnsikertalainen(henkilo, timestamp.toDate)
       }
     }
 
     "return Ensikertalainen" in {
-      get("ensikertalaisuus/1.2.246.562.24.00000000002", Map("koulutuksenAlkamiskausi" -> "2014K"), Map("Content-Type" -> "application/json")) {
-        read[Ensikertalaisuus](body) mustEqual Ensikertalainen("1.2.246.562.24.00000000002")
+      get("ensikertalaisuus/1.2.246.562.24.00000000002", Map("koulutuksenAlkamiskausi" -> "2015K"), Map("Content-Type" -> "application/json")) {
+        read[Ensikertalaisuus](body) mustEqual Ensikertalainen(vastaanottamaton_henkilo)
+      }
+    }
+
+    "return EiEnsikertalainen based on vanhat_vastaanotot" in {
+      get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamiskausi" -> "2014K"), Map("Content-Type" -> "application/json")) {
+        read[Ensikertalaisuus](body) mustEqual EiEnsikertalainen(henkilo, vanha_timestamp.toDate)
       }
     }
 
     "return 400 Bad Request for invalid henkilo oid" in {
-      get("ensikertalaisuus/foo", Map("koulutuksenAlkamiskausi" -> "2014K"), Map("Content-Type" -> "application/json")) {
+      get("ensikertalaisuus/foo", Map("koulutuksenAlkamiskausi" -> "2015K"), Map("Content-Type" -> "application/json")) {
         status mustEqual 400
       }
     }
@@ -76,23 +90,35 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
 
   "POST /ensikertalaisuus" should {
     "return 200 OK" in {
-      postJSON("ensikertalaisuus?koulutuksenAlkamiskausi=2014K", write(Seq("1.2.246.562.24.00000000001")), Map()) {
+      postJSON("ensikertalaisuus?koulutuksenAlkamiskausi=2014K", write(Seq(henkilo)), Map()) {
         status mustEqual 200
       }
     }
 
     "return a sequence of EiEnsikertalainen" in {
-      val personOidsToQuery = Seq("1.2.246.562.24.00000000001", "1.2.246.562.24.00000000002")
+      val personOidsToQuery = Seq(henkilo, vastaanottamaton_henkilo, vanha_henkilo)
+      postJSON("ensikertalaisuus?koulutuksenAlkamiskausi=2015K", write(personOidsToQuery), Map()) {
+        val ensikertalaisuuses = read[Seq[Ensikertalaisuus]](body).sortBy(_.personOid)
+        ensikertalaisuuses must have size 3
+        ensikertalaisuuses.head mustEqual EiEnsikertalainen(henkilo, timestamp.toDate)
+        ensikertalaisuuses(1) mustEqual Ensikertalainen(vastaanottamaton_henkilo)
+        ensikertalaisuuses(2) mustEqual Ensikertalainen(vanha_henkilo)
+      }
+    }
+
+    "return a sequence of EiEnsikertalainen based on vanhat_vastaanotot" in {
+      val personOidsToQuery = Seq(henkilo, vastaanottamaton_henkilo, vanha_henkilo)
       postJSON("ensikertalaisuus?koulutuksenAlkamiskausi=2014K", write(personOidsToQuery), Map()) {
         val ensikertalaisuuses = read[Seq[Ensikertalaisuus]](body).sortBy(_.personOid)
-        ensikertalaisuuses must have size 2
-        ensikertalaisuuses.head mustEqual EiEnsikertalainen("1.2.246.562.24.00000000001", formats.dateFormat.parse("2014-07-01T00:00:10.000+03").get)
-        ensikertalaisuuses(1) mustEqual Ensikertalainen("1.2.246.562.24.00000000002")
+        ensikertalaisuuses must have size 3
+        ensikertalaisuuses.head mustEqual EiEnsikertalainen(henkilo, vanha_timestamp.toDate)
+        ensikertalaisuuses(1) mustEqual Ensikertalainen(vastaanottamaton_henkilo)
+        ensikertalaisuuses(2) mustEqual EiEnsikertalainen(vanha_henkilo, vanha_timestamp.toDate)
       }
     }
 
     "return 400 Bad Request if too many henkilo oids is sent" in {
-      postJSON("ensikertalaisuus?koulutuksenAlkamiskausi=2014K", write((1 to (maxHenkiloOids + 1)).map(i => s"1.2.246.562.24.$i")), Map()) {
+      postJSON("ensikertalaisuus?koulutuksenAlkamiskausi=2015K", write((1 to (maxHenkiloOids + 1)).map(i => s"1.2.246.562.24.$i")), Map()) {
         status mustEqual 400
       }
     }

@@ -25,12 +25,20 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   val db = Database.forConfig("", dbConfig)
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
-    val d = Await.result(db.run(sql"""select min("timestamp") from vastaanotot
-          join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde and hakukohteet.kktutkintoonjohtava
-                              and hakukohteet.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
-          where vastaanotot.henkilo = $personOid
-          and   active = true
-       """.as[Option[Long]]), Duration(1, TimeUnit.SECONDS))
+    val d = Await.result(db.run(
+      sql"""select min(all_vastaanotot."timestamp") from
+                (select "timestamp", koulutuksen_alkamiskausi from vastaanotot
+                join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
+                                    and hakukohteet.kktutkintoonjohtava
+                where vastaanotot.henkilo = $personOid
+                      and vastaanotot.active
+                union
+                select "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
+                where vanhat_vastaanotot.henkilo = $personOid
+                      and vanhat_vastaanotot.deleted is null
+                      and vanhat_vastaanotot."kkTutkintoonJohtava") as all_vastaanotot
+            where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
+        """.as[Option[Long]]), Duration(1, TimeUnit.SECONDS))
     Ensikertalaisuus(personOid, d.head.map(new Date(_)))
   }
 
@@ -48,12 +56,20 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
         statement.close()
       }
     })
-    val findVastaanottos = sql"""select person_oids.oid, min("timestamp") from person_oids
-      left join vastaanotot on vastaanotot.henkilo = person_oids.oid and vastaanotot.active = true
-      left join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde and hakukohteet.kktutkintoonjohtava
-                               and koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
-      GROUP BY person_oids.oid
-    """.as[(String, Option[Long])]
+    val findVastaanottos =
+      sql"""select person_oids.oid, min(all_vastaanotot."timestamp") from person_oids
+            left join (select henkilo, "timestamp", koulutuksen_alkamiskausi from vastaanotot
+                       join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
+                                           and hakukohteet.kktutkintoonjohtava
+                       where vastaanotot.active
+                       union
+                       select henkilo, "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
+                       where vanhat_vastaanotot.deleted is null
+                             and vanhat_vastaanotot."kkTutkintoonJohtava") as all_vastaanotot
+                on all_vastaanotot.henkilo = person_oids.oid
+                   and all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
+            group by person_oids.oid
+        """.as[(String, Option[Long])]
 
     val operations = createTempTable.andThen(insertPersonOids).andThen(findVastaanottos)
     val result = Await.result(db.run(operations.transactionally), Duration(1, TimeUnit.SECONDS))
