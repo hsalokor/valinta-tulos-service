@@ -30,7 +30,6 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
       sqlu"""insert into haut ("hakuOid") values ($haku)""",
       sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", "tutkintoonJohtava")
              values ($hakukohde, $haku, true)""",
-      sqlu"""insert into kaudet (kausi, ajanjakso) values ('2015K', '["2014-12-31 22:00:00","2015-07-31 21:00:00")')""",
       sqlu"""insert into koulutukset ("koulutusOid", alkamiskausi) values ($koulutus, '2015K')""",
       sqlu"""insert into koulutushakukohde ("koulutusOid", "hakukohdeOid") values ($koulutus, $hakukohde)""",
       sqlu"""insert into vastaanotot
