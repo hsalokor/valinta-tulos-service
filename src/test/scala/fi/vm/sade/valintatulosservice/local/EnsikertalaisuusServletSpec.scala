@@ -28,13 +28,13 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
   step({
     Await.ready(valintarekisteriDb.run(DBIOAction.seq(
       sqlu"""insert into haut ("hakuOid") values ($haku)""",
-      sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", "tutkintoonJohtava")
+      sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava)
              values ($hakukohde, $haku, true)""",
       sqlu"""insert into koulutukset ("koulutusOid", alkamiskausi) values ($koulutus, '2015K')""",
       sqlu"""insert into koulutushakukohde ("koulutusOid", "hakukohdeOid") values ($koulutus, $hakukohde)""",
       sqlu"""insert into vastaanotot
-             (henkilo, hakukohde, active, "kkTutkintoonJohtava", ilmoittaja, "timestamp", deleted)
-             values ($henkilo, $hakukohde, true, true, 'ilmoittaja', ${timestamp.getMillis}, null)"""
+             (henkilo, hakukohde, active, ilmoittaja, "timestamp", deleted)
+             values ($henkilo, $hakukohde, true, 'ilmoittaja', ${timestamp.getMillis}, null)"""
     ).transactionally), Duration(1, TimeUnit.SECONDS))
   })
 
