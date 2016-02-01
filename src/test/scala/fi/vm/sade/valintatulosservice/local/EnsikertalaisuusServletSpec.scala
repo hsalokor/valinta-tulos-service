@@ -27,16 +27,15 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
 
   step({
     Await.ready(valintarekisteriDb.run(DBIOAction.seq(
-      sqlu"""insert into hakufamilies (name) values ('testfamily')""",
-      sqlu"""insert into haut ("hakuOid", "familyId") values ($haku, currval('hakufamilies_id_seq'))""",
-      sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", "familyId", "tutkintoonJohtava")
-             values ($hakukohde, $haku, currval('hakufamilies_id_seq'), true)""",
+      sqlu"""insert into haut ("hakuOid") values ($haku)""",
+      sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", "tutkintoonJohtava")
+             values ($hakukohde, $haku, true)""",
       sqlu"""insert into kaudet (kausi, ajanjakso) values ('2015K', '["2014-12-31 22:00:00","2015-07-31 21:00:00")')""",
       sqlu"""insert into koulutukset ("koulutusOid", alkamiskausi) values ($koulutus, '2015K')""",
       sqlu"""insert into koulutushakukohde ("koulutusOid", "hakukohdeOid") values ($koulutus, $hakukohde)""",
       sqlu"""insert into vastaanotot
-             (henkilo, hakukohde, "familyId", active, "kkTutkintoonJohtava", ilmoittaja, "timestamp", deleted)
-             values ($henkilo, $hakukohde, currval('hakufamilies_id_seq'), true, true, 'ilmoittaja', ${timestamp.getMillis}, null)"""
+             (henkilo, hakukohde, active, "kkTutkintoonJohtava", ilmoittaja, "timestamp", deleted)
+             values ($henkilo, $hakukohde, true, true, 'ilmoittaja', ${timestamp.getMillis}, null)"""
     ).transactionally), Duration(1, TimeUnit.SECONDS))
   })
 
