@@ -26,11 +26,10 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
     val d = Await.result(db.run(sql"""select min("timestamp") from vastaanotot
-          join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
+          join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde and hakukohteet.kktutkintoonjohtava
           join koulutushakukohde on koulutushakukohde."hakukohdeOid" = hakukohteet."hakukohdeOid"
           join koulutukset on koulutukset."koulutusOid" = koulutushakukohde."koulutusOid"
           where vastaanotot.henkilo = $personOid
-          and   "kkTutkintoonJohtava" = true
           and   active = true
           and   koulutukset.alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
        """.as[Option[Long]]), Duration(1, TimeUnit.SECONDS))
@@ -52,8 +51,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
       }
     })
     val findVastaanottos = sql"""select person_oids.oid, min("timestamp") from person_oids
-      left join vastaanotot on vastaanotot.henkilo = person_oids.oid and vastaanotot."kkTutkintoonJohtava" = true and vastaanotot.active = true
-      left join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
+      left join vastaanotot on vastaanotot.henkilo = person_oids.oid and vastaanotot.active = true
+      left join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde and hakukohteet.kktutkintoonjohtava
       left join koulutushakukohde on koulutushakukohde."hakukohdeOid" = hakukohteet."hakukohdeOid"
       left join koulutukset on koulutukset."koulutusOid" = koulutushakukohde."koulutusOid" and koulutukset.alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
       GROUP BY person_oids.oid
