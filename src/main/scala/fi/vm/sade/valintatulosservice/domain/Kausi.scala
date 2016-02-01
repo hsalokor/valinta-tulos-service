@@ -8,7 +8,7 @@ object Kausi {
   private val validLastCharacters = Set("K", "S")
   def apply(kausiSpec: String): Kausi = {
     if (kausiSpec.length != 5) {
-      throw new IllegalArgumentException(s"Bad kausi spefication '${kausiSpec}'. Expected format YYYY(S|K), e.g. 2016S")
+      throw new IllegalArgumentException(s"Bad kausi spefication '$kausiSpec'. Expected format YYYY(S|K), e.g. 2016S")
     }
     Kausi(parseYear(kausiSpec), parseKausi(kausiSpec))
   }
