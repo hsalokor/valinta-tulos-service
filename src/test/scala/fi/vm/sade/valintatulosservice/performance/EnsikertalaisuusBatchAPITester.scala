@@ -24,8 +24,10 @@ object EnsikertalaisuusBatchAPITester extends App with Logging {
   lazy val valintarekisteriDb = new ValintarekisteriDb(
     dbConfig.withValue("connectionPool", ConfigValueFactory.fromAnyRef("disabled"))).db
   SharedJetty.start
-  val oids = 1.to(1000000).map(i => s"1.2.246.562.24.$i")
+  private val testDataSize = 1000000
+  val oids = 1.to(testDataSize).map(i => s"1.2.246.562.24.$i")
 
+  println(s"***** Inserting $testDataSize rows of test data. This might take a while...")
   Await.ready(valintarekisteriDb.run(
     sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava, koulutuksen_alkamiskausi)
              values ('1.2.246.561.20.00000000001', '1.2.246.561.29.00000000001', true, '2015K')"""
@@ -44,6 +46,7 @@ object EnsikertalaisuusBatchAPITester extends App with Logging {
       insertStatement.close()
     }
   })), Duration(2, TimeUnit.MINUTES))
+  println("...done inserting test data, let's make some requests...")
   val fetchOids = Random.shuffle(oids.zipWithIndex.filter(t => (t._2 % 10) == 0).map(t => t._1))
   var start = System.currentTimeMillis()
   val (status, _, result) = new DefaultHttpRequest(Http(s"http://localhost:${SharedJetty.port}/valinta-tulos-service/ensikertalaisuus?koulutuksenAlkamiskausi=2014K")
@@ -54,4 +57,5 @@ object EnsikertalaisuusBatchAPITester extends App with Logging {
   println(s"request of size ${fetchOids.size} took ${System.currentTimeMillis() - start} ms")
   start = System.currentTimeMillis()
   println(s"parsing response of size ${Serialization.read[List[Ensikertalaisuus]](result).size} took ${System.currentTimeMillis() - start} ms")
+  println("***** Finished.")
 }
