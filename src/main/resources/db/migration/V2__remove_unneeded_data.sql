@@ -18,7 +18,8 @@ alter table haut drop column "familyId";
 drop table hakufamilies;
 
 -- kausi
+create domain kausi as text check (value ~ '^[0-9]{4}[KS]$');
 alter table hakukohteet drop column "kausi";
 alter table koulutukset drop constraint kausi_fk;
 drop table kaudet;
-alter table koulutukset add constraint kausi_format check (((alkamiskausi)::text ~ similar_escape('[0-9]{4}[KS]'::text, NULL::text)));
+alter table koulutukset alter column alkamiskausi set data type kausi;
