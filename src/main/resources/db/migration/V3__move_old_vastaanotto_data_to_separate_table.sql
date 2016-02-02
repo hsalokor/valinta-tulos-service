@@ -2,7 +2,7 @@ create table vanhat_vastaanotot (
     henkilo character varying not null,
     hakukohde character varying not null,
     tarjoaja character varying not null,
-    koulutuksen_alkamiskausi character varying not null,
+    koulutuksen_alkamiskausi kausi not null,
     "kkTutkintoonJohtava" boolean not null,
     ilmoittaja character varying not null,
     "timestamp" bigint not null,
