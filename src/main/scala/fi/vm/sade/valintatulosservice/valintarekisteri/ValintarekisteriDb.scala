@@ -72,7 +72,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
         """.as[(String, Option[Long])]
 
     val operations = createTempTable.andThen(insertPersonOids).andThen(findVastaanottos)
-    val result = Await.result(db.run(operations.transactionally), Duration(1, TimeUnit.SECONDS))
+    val result = Await.result(db.run(operations.transactionally), Duration(1, TimeUnit.MINUTES))
     result.map(row => Ensikertalaisuus(row._1, row._2.map(new Date(_)))).toSet
   }
 }
