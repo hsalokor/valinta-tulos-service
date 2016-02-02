@@ -47,7 +47,7 @@ object EnsikertalaisuusServlet {
 
   def parseKausi(d: String): Kausi = Kausi(d)
 
-  val maxHenkiloOids = 10000
+  val maxHenkiloOids = 1000000
 }
 
 trait EnsikertalaisuusSwagger extends VtsSwaggerBase { this: SwaggerSupport =>
