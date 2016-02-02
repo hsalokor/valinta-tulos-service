@@ -58,4 +58,5 @@ object EnsikertalaisuusBatchAPITester extends App with Logging {
   start = System.currentTimeMillis()
   println(s"parsing response of size ${Serialization.read[List[Ensikertalaisuus]](result).size} took ${System.currentTimeMillis() - start} ms")
   println("***** Finished.")
+  System.exit(0)
 }
