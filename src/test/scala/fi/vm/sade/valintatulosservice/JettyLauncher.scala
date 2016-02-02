@@ -11,6 +11,7 @@ import org.scalatra.servlet.ScalatraListener
 
 object JettyLauncher {
   def main(args: Array[String]) {
+    System.setProperty("valintatulos.it.postgres.port", "55432")
     new JettyLauncher(System.getProperty("valintatulos.port","8097").toInt).start.join
   }
 }
