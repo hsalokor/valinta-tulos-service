@@ -10,6 +10,7 @@ import org.scalatra.swagger.SwaggerSupport
 import org.scalatra.{Post, InternalServerError, BadRequest, ScalatraServlet}
 
 trait VtsServletBase extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
+  private val maxBodyLengthToLog = 500000
 
   before() {
     contentType = formats("json")
@@ -43,11 +44,20 @@ trait VtsServletBase extends ScalatraServlet with Logging with JacksonJsonSuppor
   }
 
   private def errorDescription: String = {
+    val bodyLength = request.body.length
+    def bodyToLog(): String = {
+      if (bodyLength > maxBodyLengthToLog) {
+        request.body.substring(0, maxBodyLengthToLog) + s"[TRUNCATED from $bodyLength to $maxBodyLengthToLog characters]"
+      } else {
+        request.body
+      }
+    }
+
     "%s %s%s".format(
       request.getMethod,
       requestPath,
-      if (request.body.length > 0) {
-        s" (body: ${request.body})"
+      if (bodyLength > 0) {
+        s" (body: ${bodyToLog()})"
       } else {
         ""
       }
