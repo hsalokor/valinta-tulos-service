@@ -4,21 +4,22 @@ import java.io.File
 import java.nio.file.Files
 
 import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.utils.tcp.PortChooser
 import org.apache.commons.io.{IOUtils, FileUtils}
 
 import scala.sys.process.stringToProcess
 
-class ItPostgres extends Logging {
-  val dataDirName = "valintarekisteri-it-db"
+class ItPostgres(portChooser: PortChooser) extends Logging {
+  val port = portChooser.chosenPort
+  val dataDirName = s"valintarekisteri-it-db/$port"
   val dbName = "valintarekisteri"
-  val port = 65432
   val startStopRetries = 100
   val startStopRetryIntervalMillis = 100
   private val dataDirFile = new File(dataDirName)
   val dataDirPath = dataDirFile.getAbsolutePath
   if (!dataDirFile.isDirectory) {
     logger.info(s"PostgreSQL data directory $dataDirPath does not exist, initing new database there.")
-    Files.createDirectory(dataDirFile.toPath)
+    Files.createDirectories(dataDirFile.toPath)
     runBlocking(s"chmod 0700 $dataDirPath")
     runBlocking(s"initdb -D $dataDirPath")
   }

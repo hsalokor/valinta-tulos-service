@@ -19,6 +19,7 @@ object AppConfig extends Logging {
   def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
   private implicit val settingsParser = ApplicationSettingsParser
   private val embeddedMongoPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.embeddedmongo.port")
+  private val itPostgresPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.it.postgres.port")
 
   def fromOptionalString(profile: Option[String]) = {
     fromString(profile.getOrElse(getProfileProperty))
@@ -68,7 +69,7 @@ object AppConfig extends Logging {
    */
   class IT extends ExampleTemplatedProps with StubbedExternalDeps with MockSecurity {
     private var mongo: Option[MongoServer] = None
-    private lazy val itPostgres = new ItPostgres()
+    private lazy val itPostgres = new ItPostgres(itPostgresPortChooser)
 
     override def start {
       mongo = EmbeddedMongo.start(embeddedMongoPortChooser)
@@ -99,7 +100,7 @@ object AppConfig extends Logging {
       .withOverride(("hakemus.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
       .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
       .withOverride(("sijoittelu-service.mongodb.dbname", "sijoittelu"))
-      .withOverride("valinta-tulos-service.valintarekisteri.db.url", "jdbc:postgresql://localhost:65432/valintarekisteri")
+      .withOverride("valinta-tulos-service.valintarekisteri.db.url", s"jdbc:postgresql://localhost:${itPostgresPortChooser.chosenPort}/valintarekisteri")
       .withoutPath("valinta-tulos-service.valintarekisteri.db.user")
       .withoutPath("valinta-tulos-service.valintarekisteri.db.password")
   }
