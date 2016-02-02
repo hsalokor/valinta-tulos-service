@@ -5,7 +5,7 @@ import java.nio.file.Files
 
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.utils.tcp.PortChooser
-import org.apache.commons.io.{IOUtils, FileUtils}
+import org.apache.commons.io.FileUtils
 
 import scala.sys.process.stringToProcess
 
