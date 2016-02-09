@@ -67,7 +67,8 @@
             "hakijaOid": "1.2.246.562.24.14229104472",
             "hakuOid": "1.2.246.562.5.2013080813081926341928",
             "hakutoive": 1,
-            "tila": "ILMOITETTU",
+            "julkaistavissa": true,
+            "tila": "KESKEN",
             "ilmoittautumisTila": "EI_TEHTY",
             "julkaistavissa": true,
             "logEntries": [
@@ -76,7 +77,7 @@
                         "$date": "2014-08-26T16:05:23.943Z"
                     },
                     "muokkaaja": "1.2.246.562.24.00000000001",
-                    "muutos": "ILMOITETTU",
+                    "muutos": "KESKEN",
                     "selite": "Massamuokkaus"
                 }
             ]
