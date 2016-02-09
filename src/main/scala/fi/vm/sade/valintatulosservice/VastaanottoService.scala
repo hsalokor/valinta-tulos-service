@@ -8,7 +8,7 @@ import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 
 class VastaanottoService(hakuService: HakuService, valintatulosService: ValintatulosService, tulokset: ValintatulosRepository) {
 
-  val sallitutVastaanottotilat: Set[ValintatuloksenTila] = Set(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT, PERUNUT)
+  val sallitutVastaanottotilat: Set[ValintatuloksenTila] = Set(VASTAANOTTANUT_SITOVASTI, EHDOLLISESTI_VASTAANOTTANUT, PERUNUT)
 
   def vastaanota(hakuOid: String, vastaanotettavaHakemusOid: String, vastaanotto: Vastaanotto) {
     vastaanota(hakuOid, vastaanotettavaHakemusOid, vastaanotto, tallennaValintatulosmuutos = true)
@@ -32,12 +32,11 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     if (tallennaValintatulosmuutos) {
       tarkistaHakutoiveenJaValintatuloksenTila(hakutoive, haluttuTila)
 
-      val tallennettavaTila = vastaanotaSitovastiJosKorkeakouluYhteishaku(haku, haluttuTila)
       tulokset.modifyValintatulos(
         vastaanotto.hakukohdeOid,
         hakutoive.valintatapajonoOid,
         vastaanotettavaHakemusOid
-      ) { valintatulos => valintatulos.setTila(tallennettavaTila, vastaanotto.selite, vastaanotto.muokkaaja) }
+      ) { valintatulos => valintatulos.setTila(haluttuTila, vastaanotto.selite, vastaanotto.muokkaaja) }
 
       peruMuutHyvaksytyt(tarkistettavatHakemukset, vastaanotto, haku, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
     }
@@ -52,7 +51,7 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     if (!sallitutVastaanottotilat.contains(haluttuTila)) {
       throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + haluttuTila)
     }
-    if (List(VASTAANOTTANUT, PERUNUT).contains(haluttuTila) && !List(Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, Vastaanotettavuustila.vastaanotettavissa_sitovasti).contains(hakutoive.vastaanotettavuustila)) {
+    if (List(VASTAANOTTANUT_SITOVASTI, PERUNUT).contains(haluttuTila) && !List(Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, Vastaanotettavuustila.vastaanotettavissa_sitovasti).contains(hakutoive.vastaanotettavuustila)) {
       throw new IllegalArgumentException("Väärä vastaanotettavuustila kohteella " + hakutoive.hakukohdeOid + ": " + hakutoive.vastaanotettavuustila.toString + " (yritetty muutos: " + haluttuTila + ")")
     }
     if (haluttuTila == EHDOLLISESTI_VASTAANOTTANUT && hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti) {
@@ -61,7 +60,7 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
   }
 
   private def korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku: Haku, personOid: String, tila: ValintatuloksenTila): Set[Hakemuksentulos] =
-    if (haku.korkeakoulu && haku.yhteishaku && (haku.varsinainenhaku || haku.lisähaku) && List(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT).contains(tila)) {
+    if (haku.korkeakoulu && haku.yhteishaku && (haku.varsinainenhaku || haku.lisähaku) && List(VASTAANOTTANUT_SITOVASTI, EHDOLLISESTI_VASTAANOTTANUT).contains(tila)) {
       (Set(haku.oid) ++ hakuService.findLiittyvatHaut(haku)).flatMap(valintatulosService.hakemuksentuloksetByPerson(_, personOid))
     } else {
       Set()
@@ -98,13 +97,6 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
       )
     })
   }
-
-  private def vastaanotaSitovastiJosKorkeakouluYhteishaku(haku: Haku, tila: ValintatuloksenTila): ValintatuloksenTila =
-    if (tila == VASTAANOTTANUT && haku.korkeakoulu) {
-      ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI
-    } else {
-      tila
-    }
 }
 
 

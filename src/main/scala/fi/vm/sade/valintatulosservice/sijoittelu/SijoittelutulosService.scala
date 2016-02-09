@@ -105,8 +105,6 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
   private def laskeVastaanottotila(valintatila: Valintatila, vastaanottotieto: ValintatuloksenTila, aikataulu: Option[Vastaanottoaikataulu], vastaanottoDeadline: Option[DateTime]): Vastaanottotila = {
     def convertVastaanottotila(valintatuloksenTila: ValintatuloksenTila): Vastaanottotila = {
       valintatuloksenTila match {
-        case ValintatuloksenTila.ILMOITETTU =>
-          Vastaanottotila.kesken
         case ValintatuloksenTila.KESKEN =>
           Vastaanottotila.kesken
         case ValintatuloksenTila.PERUNUT =>
@@ -117,12 +115,6 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
           Vastaanottotila.ei_vastaanotettu_määräaikana
         case ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT =>
           Vastaanottotila.ehdollisesti_vastaanottanut
-        case ValintatuloksenTila.VASTAANOTTANUT_LASNA =>
-          Vastaanottotila.vastaanottanut
-        case ValintatuloksenTila.VASTAANOTTANUT_POISSAOLEVA =>
-          Vastaanottotila.vastaanottanut
-        case ValintatuloksenTila.VASTAANOTTANUT =>
-          Vastaanottotila.vastaanottanut
         case ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI =>
           Vastaanottotila.vastaanottanut
       }

@@ -160,7 +160,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
           ilmoittaudu(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, läsnä_koko_lukuvuosi, muokkaaja, selite)
           hakemuksenTulos.hakutoiveet(0).ilmoittautumistila.ilmoittautumistila must_== Ilmoittautumistila.läsnä_koko_lukuvuosi
           hakemuksenTulos.hakutoiveet(0).ilmoittautumistila.ilmoittauduttavissa must_== false
-          expectFailure(Some("""Hakutoive 1.2.246.562.5.72607738902 ei ole ilmoittauduttavissa: ilmoittautumisaika: {"loppu":"2100-01-10T21:59:59Z"}, ilmoittautumistila: LASNA_KOKO_LUKUVUOSI, valintatila: HYVAKSYTTY, vastaanottotila: VASTAANOTTANUT"""))
+          expectFailure(Some("""Hakutoive 1.2.246.562.5.72607738902 ei ole ilmoittauduttavissa: ilmoittautumisaika: {"loppu":"2100-01-10T21:59:59Z"}, ilmoittautumistila: LASNA_KOKO_LUKUVUOSI, valintatila: HYVAKSYTTY, vastaanottotila: VASTAANOTTANUT_SITOVASTI"""))
             {ilmoittaudu(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, läsnä_koko_lukuvuosi, muokkaaja, selite)}
         }
       }
@@ -213,7 +213,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
         lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
         lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.perunut
         val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(lisaHaunTulos.hakutoiveet(0).hakukohdeOid, lisaHaunTulos.hakutoiveet(0).valintatapajonoOid, lisaHaunTulos.hakemusOid)
-        assertSecondLogEntry(valintatulos, "tila: KESKEN -> PERUNUT", "VASTAANOTTANUT paikan 1.2.246.562.5.72607738902 toisesta hausta 1.2.246.562.5.2013080813081926341928")
+        assertSecondLogEntry(valintatulos, "tila: KESKEN -> PERUNUT", "VASTAANOTTANUT_SITOVASTI paikan 1.2.246.562.5.72607738902 toisesta hausta 1.2.246.562.5.2013080813081926341928")
       }
 
       "vastaanota lisähaussa, kun varsinaisessa haussa vastaanottavissa -> varsinaisen haun paikka peruuntuu" in {
@@ -236,9 +236,9 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
         varsinaisenHaunPeruuntuvaTila() must_== ValintatuloksenTila.PERUNUT
 
         val varsinaisenHaunValintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
-        assertSecondLogEntry(varsinaisenHaunValintatulos, "tila: KESKEN -> PERUNUT", s"VASTAANOTTANUT paikan $lisahaunVastaanotettavaHakukohdeOid toisesta hausta korkeakoulu-lisahaku1")
+        assertSecondLogEntry(varsinaisenHaunValintatulos, "tila: KESKEN -> PERUNUT", s"VASTAANOTTANUT_SITOVASTI paikan $lisahaunVastaanotettavaHakukohdeOid toisesta hausta korkeakoulu-lisahaku1")
 
-        expectFailure(Some(s"Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella $lisahaunVastaanotettavaHakukohdeOid: VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT $hakukohdeOid)")) {
+        expectFailure(Some(s"Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella $lisahaunVastaanotettavaHakukohdeOid: VASTAANOTTANUT_SITOVASTI (yritetty muutos: VASTAANOTTANUT_SITOVASTI $hakukohdeOid)")) {
           tarkistaVastaanotettavuus(vastaanotettavissaHakuKohdeOid, hakemusOid, hakukohdeOid)
         }
       }
@@ -253,7 +253,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
         val tulos1: Valintatulos = valintatulosDao.loadValintatulos(lisaHaunTulos.hakutoiveet(1).hakukohdeOid, lisaHaunTulos.hakutoiveet(1).valintatapajonoOid, lisaHaunTulos.hakemusOid)
         tulos1.getTila must_== ValintatuloksenTila.PERUNUT
-        assertSecondLogEntry(tulos1, "tila: KESKEN -> PERUNUT", "VASTAANOTTANUT paikan 1.2.246.562.14.2013120515524070995659 toisesta hausta korkeakoulu-lisahaku1")
+        assertSecondLogEntry(tulos1, "tila: KESKEN -> PERUNUT", "VASTAANOTTANUT_SITOVASTI paikan 1.2.246.562.14.2013120515524070995659 toisesta hausta korkeakoulu-lisahaku1")
       }
 
       "vastaanota ehdollisesti varsinaisessa haussa, kun lisähaussa vastaanottavissa -> lisähaun paikka peruuntuu" in {
@@ -269,21 +269,21 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
       "vastaanota lisähaussa, kun varsinaisessa haussa jo vastaanottanut -> ERROR" in {
         useFixture("hyvaksytty-vastaanottanut.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
-        expectFailure(Some("Väärä vastaanottotila toisen haun 1.2.246.562.5.2013080813081926341928 kohteella 1.2.246.562.5.72607738902: VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT 1.2.246.562.14.2014022408541751568934)")) {
+        expectFailure(Some("Väärä vastaanottotila toisen haun 1.2.246.562.5.2013080813081926341928 kohteella 1.2.246.562.5.72607738902: VASTAANOTTANUT_SITOVASTI (yritetty muutos: VASTAANOTTANUT_SITOVASTI 1.2.246.562.14.2014022408541751568934)")) {
           vastaanota("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230", "1.2.246.562.14.2014022408541751568934", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
         }
       }
 
       "vastaanota lisähaussa, kun varsinaisessa haussa jo ehdollisesti vastaanottanut -> ERROR" in {
         useFixture("hyvaksytty-vastaanottanut-ehdollisesti.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture)
-        expectFailure(Some("Väärä vastaanottotila toisen haun 1.2.246.562.5.2013080813081926341928 kohteella 1.2.246.562.5.16303028779: EHDOLLISESTI_VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT 1.2.246.562.14.2014022408541751568934)")) {
+        expectFailure(Some("Väärä vastaanottotila toisen haun 1.2.246.562.5.2013080813081926341928 kohteella 1.2.246.562.5.16303028779: EHDOLLISESTI_VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT_SITOVASTI 1.2.246.562.14.2014022408541751568934)")) {
           vastaanota("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230", "1.2.246.562.14.2014022408541751568934", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
         }
       }
 
       "vastaanota varsinaisessa haussa, kun lisähaussa jo vastaanottanut -> ERROR" in {
         useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture)
-        expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT 1.2.246.562.5.72607738902)")) {
+        expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: VASTAANOTTANUT_SITOVASTI (yritetty muutos: VASTAANOTTANUT_SITOVASTI 1.2.246.562.5.72607738902)")) {
           vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
         }
       }
@@ -295,14 +295,14 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
       "vastaanota ehdollisesti varsinaisessa haussa, kun lisähaussa jo vastaanottanut -> ERROR" in {
         useFixture("hyvaksytty-ylempi-varalla.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture)
-        expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: VASTAANOTTANUT (yritetty muutos: EHDOLLISESTI_VASTAANOTTANUT 1.2.246.562.5.16303028779)")) {
+        expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: VASTAANOTTANUT_SITOVASTI (yritetty muutos: EHDOLLISESTI_VASTAANOTTANUT 1.2.246.562.5.16303028779)")) {
           vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
         }
       }
 
       "vastaanota varsinaisessa haussa, kun lisähaussa jo vastaanottanut ehdollisesti -> ERROR" in {
         useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut-ehdollisesti.json"), hakuFixture = hakuFixture)
-        expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: EHDOLLISESTI_VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT 1.2.246.562.5.72607738902)")) {
+        expectFailure(Some("Väärä vastaanottotila toisen haun korkeakoulu-lisahaku1 kohteella 1.2.246.562.14.2014022408541751568934: EHDOLLISESTI_VASTAANOTTANUT (yritetty muutos: VASTAANOTTANUT_SITOVASTI 1.2.246.562.5.72607738902)")) {
           vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
         }
       }
@@ -397,7 +397,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.vastaanottanut
-      valintatulosDao.loadValintatulos("1.2.246.562.5.72607738904", "14090336922663576781797489829888", hakemusOid).getTila must_== ValintatuloksenTila.VASTAANOTTANUT
+      valintatulosDao.loadValintatulos("1.2.246.562.5.72607738904", "14090336922663576781797489829888", hakemusOid).getTila must_== ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI
     }
 
     "vastaanota varsinaisessa haussa, kun lisähaussa jo vastaanottanut, onnistuu" in {
@@ -409,7 +409,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
       vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
-      assertSecondLogEntry(valintatulos, "tila: KESKEN -> VASTAANOTTANUT", selite)
+      assertSecondLogEntry(valintatulos, "tila: KESKEN -> VASTAANOTTANUT_SITOVASTI", selite)
     }
 
     "ilmoittautuminen" in {
