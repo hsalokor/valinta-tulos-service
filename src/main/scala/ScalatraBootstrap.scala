@@ -22,7 +22,7 @@ class ScalatraBootstrap extends LifeCycle {
     lazy val hakuService = HakuService(appConfig)
     lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
     lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
-    lazy val vastaanottoService = new VastaanottoService(hakuService, valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
+    lazy val vastaanottoService = new VastaanottoService(hakuService, valintatulosService, valintarekisteriDb, appConfig.sijoitteluContext.valintatulosRepository)
     lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
     lazy val valintatulosCollection = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
     lazy val mailPoller = new MailPoller(valintatulosCollection, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 100)
@@ -32,7 +32,7 @@ class ScalatraBootstrap extends LifeCycle {
 
     context.mount(new PrivateValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
     context.mount(new EmailStatusServlet(mailPoller, valintatulosCollection, new MailDecorator(new HakemusRepository(), valintatulosCollection)), "/vastaanottoposti")
-    context.mount(new VastaanottoServlet(vastaanottoService), "/vastaanotto")
+    context.mount(new HakijanVastaanottoServlet(vastaanottoService), "/vastaanotto")
     context.mount(new EnsikertalaisuusServlet(valintarekisteriDb), "/ensikertalaisuus")
 
 

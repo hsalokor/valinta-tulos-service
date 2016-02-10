@@ -5,8 +5,14 @@ import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
+import fi.vm.sade.valintatulosservice.valintarekisteri.HakijaVastaanottoRepository
 
-class VastaanottoService(hakuService: HakuService, valintatulosService: ValintatulosService, tulokset: ValintatulosRepository) {
+import scala.util.{Success, Failure, Try}
+
+class VastaanottoService(hakuService: HakuService,
+                         valintatulosService: ValintatulosService,
+                         hakijaVastaanottoRepository: HakijaVastaanottoRepository,
+                         tulokset: ValintatulosRepository) {
 
   val sallitutVastaanottotilat: Set[ValintatuloksenTila] = Set(VASTAANOTTANUT_SITOVASTI, EHDOLLISESTI_VASTAANOTTANUT, PERUNUT)
 
@@ -42,9 +48,18 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     }
   }
 
-  def vastaanotaHakukohde(personOid:String, vastaanotto: Vastaanotto) {
-    val hakemuksenTulos = valintatulosService.hakemustenTulosByHakukohdeAndPerson(vastaanotto.hakukohdeOid, personOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
-    vastaanota(hakemuksenTulos.hakuOid, hakemuksenTulos.hakemusOid, vastaanotto)
+  def vastaanotaHakukohde(vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
+    val koulutuksenAlkamiskausi = null //hakuService.getKoulutuksenAlkamiskausi(hakukohdeOid)
+    val kaudenVastaanotot: Set[VastaanottoRecord] = null //vastaanottoService.findVastaanotot(personOid, koulutuksenAlkamiskausi)
+
+    if (kaudenVastaanotot.isEmpty) {
+      Success(hakijaVastaanottoRepository.store(vastaanottoEvent))
+    } else if (kaudenVastaanotot.size == 1) {
+      val aiempiVastaanotto = kaudenVastaanotot.head
+      Failure(PriorAcceptanceException(aiempiVastaanotto, vastaanottoEvent))
+    } else {
+      Failure(new IllegalStateException())
+    }
   }
 
   private def tarkistaHakutoiveenJaValintatuloksenTila(hakutoive: Hakutoiveentulos, haluttuTila: ValintatuloksenTila) {
@@ -74,9 +89,7 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
     muutHakemukset.foreach(tulos => {
       val hakemuksenMuutHakuToiveet: List[Hakutoiveentulos] = muutKuinHakutoive(tulos, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
       val vastaanotettu = hakemuksenMuutHakuToiveet.find(toive => List(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(toive.vastaanottotila))
-      if (vastaanotettu.isDefined) {
-        throw PriorAcceptanceException(tulos.hakuOid,  vastaanotettu.get.hakukohdeOid,  vastaanotettu.get.vastaanottotila, tila, hakutoive.hakukohdeOid)
-      }
+      throw new UnsupportedOperationException("Deprecated vastaanotto functionality")
     })
   }
 
@@ -99,5 +112,5 @@ class VastaanottoService(hakuService: HakuService, valintatulosService: Valintat
   }
 }
 
-
-case class PriorAcceptanceException(hakuOid:String, hakukohdeOid: String, estavaTila: Vastaanottotila.Vastaanottotila, yritettyTila: ValintatuloksenTila, yritettyKohde: String) extends IllegalArgumentException("Väärä vastaanottotila toisen haun " + hakuOid + " kohteella " + hakukohdeOid + ": " + estavaTila + " (yritetty muutos: " + yritettyTila + " " + yritettyKohde + ")")
+case class PriorAcceptanceException(aiempiVastaanotto: VastaanottoRecord, yritettyVastaanotto: VastaanottoEvent)
+  extends IllegalArgumentException(s"Löytyi aiempi vastaanotto $aiempiVastaanotto yrittäessä vastaanottoa $yritettyVastaanotto")
