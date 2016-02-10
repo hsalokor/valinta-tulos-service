@@ -5,17 +5,16 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.domain.Kausi
+import fi.vm.sade.valintatulosservice.domain.{Kausi, VastaanottoEvent}
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
 import org.flywaydb.core.Flyway
-import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation}
-import slick.driver.PostgresDriver.api._
+import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation, _}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 
-class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with Logging {
+class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with HakijaVastaanottoRepository with Logging {
   val user = if (dbConfig.hasPath("user")) dbConfig.getString("user") else null
   val password = if (dbConfig.hasPath("password")) dbConfig.getString("password") else null
   logger.info(s"Database configuration: ${dbConfig.withValue("password", ConfigValueFactory.fromAnyRef("***"))}")
@@ -74,5 +73,11 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     val operations = createTempTable.andThen(insertPersonOids).andThen(findVastaanottos)
     val result = Await.result(db.run(operations.transactionally), Duration(1, TimeUnit.MINUTES))
     result.map(row => Ensikertalaisuus(row._1, row._2.map(new Date(_)))).toSet
+  }
+
+  override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
+    val VastaanottoEvent(hakukohdeOid, henkiloOid, action) = vastaanottoEvent
+    Await.result(db.run(sqlu"""insert into vastaanotot (hakukohde, henkilo, active, ilmoittaja, "timestamp")
+          values ($hakukohdeOid, $henkiloOid, true, $henkiloOid, now())"""), Duration(1, TimeUnit.SECONDS))
   }
 }
