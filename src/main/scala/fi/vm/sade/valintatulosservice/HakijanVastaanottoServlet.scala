@@ -1,11 +1,10 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.{VastaanottoAction, Vastaanottotila, Vastaanotto}
-import org.json4s.Extraction
-import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
+import fi.vm.sade.valintatulosservice.domain.{VastaanottoAction, VastaanottoEvent}
 import org.scalatra._
 import org.scalatra.swagger.Swagger
+import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 
 import scala.util.Try
 
@@ -25,7 +24,7 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
     val hakukohdeOid = params("hakukohdeOid")
     val action = parsedBody.extract[VastaanottoAction]
 
-    Try(vastaanottoService.vastaanotaHakukohde(personOid, hakukohdeOid, action)).map((_) => Ok()).recover{
+    Try(vastaanottoService.vastaanotaHakukohde(VastaanottoEvent(personOid, hakukohdeOid, action))).map((_) => Ok()).recover{
       case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
     }.get
 
