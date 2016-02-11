@@ -49,13 +49,19 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   def vastaanotaHakukohde(vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
-    val koulutuksenAlkamiskausi = null //hakuService.getKoulutuksenAlkamiskausi(hakukohdeOid)
-    val kaudenVastaanotot: Set[VastaanottoRecord] = null //vastaanottoService.findVastaanotot(personOid, koulutuksenAlkamiskausi)
+    val hakukohde = hakuService.getHakukohde(vastaanottoEvent.hakukohdeOid).get
+    val haku = hakuService.getHaku(hakukohde.hakuOid).get
+    val aiemmatVastaanotot = if (haku.yhdenPaikanSaanto.voimassa) {
+      val koulutuksenAlkamiskausi = hakuService.getKoulutuksenAlkamiskausi(hakukohde).get
+      hakijaVastaanottoRepository.findKkTutkintoonJohtavatVastaanotot(vastaanottoEvent.henkiloOid, koulutuksenAlkamiskausi)
+    } else {
+      hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(vastaanottoEvent.henkiloOid, haku.oid)
+    }
 
-    if (kaudenVastaanotot.isEmpty) {
+    if (aiemmatVastaanotot.isEmpty) {
       Success(hakijaVastaanottoRepository.store(vastaanottoEvent))
-    } else if (kaudenVastaanotot.size == 1) {
-      val aiempiVastaanotto = kaudenVastaanotot.head
+    } else if (aiemmatVastaanotot.size == 1) {
+      val aiempiVastaanotto = aiemmatVastaanotot.head
       Failure(PriorAcceptanceException(aiempiVastaanotto, vastaanottoEvent))
     } else {
       Failure(new IllegalStateException())

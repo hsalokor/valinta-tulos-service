@@ -4,7 +4,7 @@ import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonStreamWriter
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
-import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakuaika}
+import fi.vm.sade.valintatulosservice.tarjonta.{YhdenPaikanSaanto, Haku, Hakuaika}
 import org.joda.time.DateTime
 import org.json4s.Extraction
 import org.scalatra._
@@ -24,7 +24,9 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
       Hakutoiveentulos.julkaistavaVersioSijoittelunTuloksesta(
         HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"),
         Hakutoive("1.2.3.4", "4.4.4.4", "Hakukohde1", "Tarjoaja1"),
-        Haku("5.5.5.5", true, true, true, false, true, None, Set(), List(Hakuaika("12345", Some(System.currentTimeMillis()), Some(System.currentTimeMillis())))),
+        Haku("5.5.5.5", true, true, true, false, true, None, Set(),
+          List(Hakuaika("12345", Some(System.currentTimeMillis()), Some(System.currentTimeMillis()))),
+          YhdenPaikanSaanto(false, "")),
         Some(Ohjausparametrit(None, Some(DateTime.now().plusDays(10)), Some(DateTime.now().plusDays(30)), Some(DateTime.now().plusDays(60)))))
     )
   )

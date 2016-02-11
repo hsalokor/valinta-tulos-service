@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.domain.{Kausi, VastaanottoEvent}
+import fi.vm.sade.valintatulosservice.domain.{VastaanottoRecord, Kausi, VastaanottoEvent}
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
 import org.flywaydb.core.Flyway
 import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation, _}
@@ -75,9 +75,13 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     result.map(row => Ensikertalaisuus(row._1, row._2.map(new Date(_)))).toSet
   }
 
+  override def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = ???
+  override def findKkTutkintoonJohtavatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Set[VastaanottoRecord] = ???
+
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
     val VastaanottoEvent(hakukohdeOid, henkiloOid, action) = vastaanottoEvent
     Await.result(db.run(sqlu"""insert into vastaanotot (hakukohde, henkilo, active, ilmoittaja, "timestamp")
           values ($hakukohdeOid, $henkiloOid, true, $henkiloOid, now())"""), Duration(1, TimeUnit.SECONDS))
   }
+
 }
