@@ -7,6 +7,6 @@ case class VastaanottoEvent(henkiloOid: String, hakukohdeOid: String, action: Va
 
 sealed trait VastaanottoAction
 
-case class Peru() extends VastaanottoAction
-case class VastaanotaSitovasti() extends VastaanottoAction
-case class VastaanotaEhdollisesti() extends VastaanottoAction
+case object Peru extends VastaanottoAction
+case object VastaanotaSitovasti extends VastaanottoAction
+case object VastaanotaEhdollisesti extends VastaanottoAction
