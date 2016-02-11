@@ -47,9 +47,9 @@ protected trait JsonHakuService {
   }
 }
 
-class CachedHakuService(wrapperService: HakuService) extends HakuService {
-  private val byOid = TTLOptionalMemoize.memoize(wrapperService.getHaku _, 4 * 60 * 60)
-  private val all: (String) => Option[List[Haku]] = TTLOptionalMemoize.memoize({any : String => Some(wrapperService.kaikkiJulkaistutHaut)}, 4 * 60 * 60)
+class CachedHakuService(wrappedService: HakuService) extends HakuService {
+  private val byOid = TTLOptionalMemoize.memoize(wrappedService.getHaku _, 4 * 60 * 60)
+  private val all: (String) => Option[List[Haku]] = TTLOptionalMemoize.memoize({any : String => Some(wrappedService.kaikkiJulkaistutHaut)}, 4 * 60 * 60)
 
   override def getHaku(oid: String) = byOid(oid)
   def kaikkiJulkaistutHaut: List[Haku] = all("").toList.flatten
