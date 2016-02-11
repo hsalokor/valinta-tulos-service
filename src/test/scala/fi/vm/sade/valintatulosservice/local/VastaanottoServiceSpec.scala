@@ -7,6 +7,7 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
+import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriDb
 import org.joda.time.{DateTime, LocalDate}
 import org.junit.runner.RunWith
 import org.specs2.execute.Result
@@ -427,7 +428,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
   lazy val hakuService = HakuService(appConfig)
   lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
-  lazy val vastaanottoService = new VastaanottoService(hakuService, valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
+  lazy val vastaanottoService = new VastaanottoService(hakuService, valintatulosService, new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig), appConfig.sijoitteluContext.valintatulosRepository)
   lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
 
   private def hakemuksenTulos: Hakemuksentulos = hakemuksenTulos(hakuOid, hakemusOid)
