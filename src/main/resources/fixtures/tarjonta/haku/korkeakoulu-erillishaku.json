@@ -1,23 +1,40 @@
 {
-  "accessRights": {
-    "create": false,
-    "delete": false,
-    "update": false
-  },
-  "status": "OK",
   "result": {
-    "usePriority": true,
-    "tarjoajaOids": [
-      "1.2.246.562.10.00000000001"
+    "yhdenPaikanSaanto": {
+      "syy": "Korkeakouluhaku ilman kohdejoukon tarkennetta",
+      "voimassa": true
+    },
+    "nimi": {
+      "kieli_sv": "Högskolornas gemensamma ansökan hösten 2014",
+      "kieli_en": "Joint application to higher education autumn 2014",
+      "kieli_fi": "Korkeakoulujen yhteishaku syksy 2014"
+    },
+    "hakukohdeOids": [
+      "1.2.246.562.20.56448265241",
+      "1.2.246.562.20.68508673735",
+      "1.2.246.562.20.66869241134"
     ],
+    "hakuaikas": [
+      {
+        "hakuaikaId": "219502",
+        "nimi": "Nimi hakuajalle toki",
+        "alkuPvm": 1410152431839,
+        "loppuPvm": 1413979259881
+      }
+    ],
+    "jarjestelmanHakulomake": true,
+    "hakukausiVuosi": 2014,
+    "hakutapaUri": "hakutapa_02#1",
+    "hakutyyppiUri": "hakutyyppi_01#1",
+    "kohdejoukkoUri": "haunkohdejoukko_12#1",
+    "maxHakukohdes": 6,
     "organisaatioOids": [
       "1.2.246.562.10.00000000001"
     ],
-    "maxHakukohdes": 6,
-    "kohdejoukkoUri": "haunkohdejoukko_12#1",
-    "hakutyyppiUri": "hakutyyppi_01#1",
-    "hakutapaUri": "hakutapa_02#1",
-    "hakukausiVuosi": 2014,
+    "tarjoajaOids": [
+      "1.2.246.562.10.00000000001"
+    ],
+    "usePriority": true,
     "hakukausiUri": "kausi_s#1",
     "oid": "1.2.246.562.29.173465377510",
     "modifiedBy": "1.2.246.562.24.00000000001",
@@ -25,25 +42,12 @@
     "koulutuksenAlkamisVuosi": 2015,
     "koulutuksenAlkamiskausiUri": "kausi_k#1",
     "tila": "JULKAISTU",
-    "sijoittelu": true,
-    "jarjestelmanHakulomake": true,
-    "hakuaikas": [
-      {
-        "loppuPvm": 1413979259881,
-        "alkuPvm": 1410152431839,
-        "nimi": "Nimi hakuajalle toki",
-        "hakuaikaId": "219502"
-      }
-    ],
-    "hakukohdeOids": [
-      "1.2.246.562.20.56448265241",
-      "1.2.246.562.20.68508673735",
-      "1.2.246.562.20.66869241134"
-    ],
-    "nimi": {
-      "kieli_fi": "Korkeakoulujen yhteishaku syksy 2014",
-      "kieli_en": "Joint application to higher education autumn 2014",
-      "kieli_sv": "Högskolornas gemensamma ansökan hösten 2014"
-    }
+    "sijoittelu": true
+  },
+  "status": "OK",
+  "accessRights": {
+    "update": false,
+    "delete": false,
+    "create": false
   }
 }
