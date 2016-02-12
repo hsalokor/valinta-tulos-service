@@ -35,6 +35,7 @@ class VastaanottoServiceUnitSpec extends Specification {
             henkiloOid,
             haku.oid,
             hakukohde.oid,
+            VastaanotaSitovasti,
             ilmoittaja = "",
             new Date(0)
           )
@@ -49,6 +50,7 @@ class VastaanottoServiceUnitSpec extends Specification {
             henkiloOid,
             haku.oid,
             hakukohde.oid,
+            VastaanotaSitovasti,
             ilmoittaja = "",
             new Date(0)
           )
@@ -74,6 +76,7 @@ class VastaanottoServiceUnitSpec extends Specification {
             henkiloOid,
             haku.oid,
             hakukohde.oid,
+            VastaanotaSitovasti,
             ilmoittaja = "",
             new Date(0)
           )
@@ -89,6 +92,7 @@ class VastaanottoServiceUnitSpec extends Specification {
             henkiloOid,
             haku.oid,
             hakukohde.oid,
+            VastaanotaSitovasti,
             ilmoittaja = "",
             new Date(0)
           )

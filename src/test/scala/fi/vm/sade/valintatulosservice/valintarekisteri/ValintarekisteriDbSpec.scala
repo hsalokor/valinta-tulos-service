@@ -36,10 +36,12 @@ class ValintarekisteriDbSpec extends Specification with ITSetup {
       db.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
       val vastaanottoRowsFromDb = db.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
       vastaanottoRowsFromDb must have size 1
-      val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.head
+      val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
+        ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.head
       henkiloOidFromDb mustEqual henkiloOid
       hakuOidFromDb mustEqual hakuOid
       hakukohdeOidFromDb mustEqual hakukohdeOid
+      actionFromDb mustEqual VastaanotaSitovasti
       ilmoittajaFromDb mustEqual henkiloOid
       timestampFromDb.before(new Date()) mustEqual true
     }
