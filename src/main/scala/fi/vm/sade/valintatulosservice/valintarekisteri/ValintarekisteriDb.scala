@@ -82,7 +82,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     val vastaanottoRecords = run(sql"""select vo.henkilo as henkiloOid,  hk."hakuOid" as hakuOid, hk."hakukohdeOid" as hakukohdeOid,
                                   vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
                            from vastaanotot vo
-                           join hakukohteet hk on hk."hakukohdeOid" = vo.hakukohde""".as[VastaanottoRecord])
+                           join hakukohteet hk on hk."hakukohdeOid" = vo.hakukohde
+                           where vo.henkilo = $henkiloOid and hk."hakuOid" = $hakuOid""".as[VastaanottoRecord])
     vastaanottoRecords.toSet
   }
 
@@ -91,7 +92,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                                   vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
                            from vastaanotot vo
                            join hakukohteet hk on hk."hakukohdeOid" = vo.hakukohde
-                           where hk.kktutkintoonjohtava = true
+                           where vo.henkilo = $henkiloOid
+                             and hk.kktutkintoonjohtava = true
                              and hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}""".as[VastaanottoRecord])
     vastaanottoRecords.toSet
   }

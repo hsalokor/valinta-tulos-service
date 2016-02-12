@@ -7,6 +7,7 @@ import fi.vm.sade.valintatulosservice.domain.{Kausi, VastaanotaSitovasti, Vastaa
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import slick.dbio.DBIOAction
 import slick.driver.PostgresDriver.api._
 
 @RunWith(classOf[JUnitRunner])
@@ -15,11 +16,16 @@ class ValintarekisteriDbSpec extends Specification with ITSetup {
   private lazy val db = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
   private val henkiloOid = "1.2.246.562.24.00000000001"
   private val hakukohdeOid = "1.2.246.561.20.00000000001"
+  private val otherHakukohdeOid = "1.2.246.561.20.00000000002"
   private val hakuOid = "1.2.246.561.29.00000000001"
+  private val otherHakuOid = "1.2.246.561.29.00000000002"
 
   step(appConfig.start)
-  step(db.run(sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava, koulutuksen_alkamiskausi)
-                 values ($hakukohdeOid, $hakuOid, true, '2015K')"""))
+  step(db.run(DBIOAction.seq(
+    sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava, koulutuksen_alkamiskausi)
+           values ($hakukohdeOid, $hakuOid, true, '2015K')""",
+    sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava, koulutuksen_alkamiskausi)
+               values ($otherHakukohdeOid, $otherHakuOid, true, '2015S')""")))
 
   "ValintarekisteriDb" should {
     "store vastaanotto actions" in {
@@ -34,6 +40,8 @@ class ValintarekisteriDbSpec extends Specification with ITSetup {
 
     "find vastaanotot rows of person for given haku" in {
       db.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
+      db.store(VastaanottoEvent(henkiloOid, otherHakukohdeOid, VastaanotaSitovasti))
+      db.store(VastaanottoEvent(henkiloOid + "2", hakukohdeOid, VastaanotaSitovasti))
       val vastaanottoRowsFromDb = db.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
       valintarekisteriDb.run(sqlu"delete from vastaanotot")
       vastaanottoRowsFromDb must have size 1
@@ -49,6 +57,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup {
 
     "find vastaanotot rows leading to higher education degrees of person" in {
       db.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
+      db.store(VastaanottoEvent(henkiloOid + "2", hakukohdeOid, VastaanotaSitovasti))
       db.run(sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava, koulutuksen_alkamiskausi)
                        values (${hakukohdeOid + "1"}, ${hakuOid + "1"}, false, '2015K')""")
       db.store(VastaanottoEvent(henkiloOid, hakukohdeOid + "1", VastaanotaSitovasti))
