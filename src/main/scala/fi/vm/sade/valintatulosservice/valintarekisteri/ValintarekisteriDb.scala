@@ -24,20 +24,20 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   val db = Database.forConfig("", dbConfig)
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
-    val d = Await.result(db.run(
-      sql"""select min(all_vastaanotot."timestamp") from
-                (select "timestamp", koulutuksen_alkamiskausi from vastaanotot
-                join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
-                                    and hakukohteet.kktutkintoonjohtava
-                where vastaanotot.henkilo = $personOid
-                      and vastaanotot.active
-                union
-                select "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
-                where vanhat_vastaanotot.henkilo = $personOid
-                      and vanhat_vastaanotot.deleted is null
-                      and vanhat_vastaanotot."kkTutkintoonJohtava") as all_vastaanotot
-            where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
-        """.as[Option[Long]]), Duration(1, TimeUnit.SECONDS))
+    val d = run(
+          sql"""select min(all_vastaanotot."timestamp") from
+                    (select "timestamp", koulutuksen_alkamiskausi from vastaanotot
+                    join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
+                                        and hakukohteet.kktutkintoonjohtava
+                    where vastaanotot.henkilo = $personOid
+                          and vastaanotot.active
+                    union
+                    select "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
+                    where vanhat_vastaanotot.henkilo = $personOid
+                          and vanhat_vastaanotot.deleted is null
+                          and vanhat_vastaanotot."kkTutkintoonJohtava") as all_vastaanotot
+                where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
+            """.as[Option[Long]])
     Ensikertalaisuus(personOid, d.head.map(new Date(_)))
   }
 
@@ -71,7 +71,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
         """.as[(String, Option[Long])]
 
     val operations = createTempTable.andThen(insertPersonOids).andThen(findVastaanottos)
-    val result = Await.result(db.run(operations.transactionally), Duration(1, TimeUnit.MINUTES))
+    val result = run(operations.transactionally, Duration(1, TimeUnit.MINUTES))
     result.map(row => Ensikertalaisuus(row._1, row._2.map(new Date(_)))).toSet
   }
 
@@ -80,8 +80,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
     val VastaanottoEvent(hakukohdeOid, henkiloOid, action) = vastaanottoEvent
-    Await.result(db.run(sqlu"""insert into vastaanotot (hakukohde, henkilo, active, ilmoittaja, "timestamp")
-          values ($hakukohdeOid, $henkiloOid, true, $henkiloOid, now())"""), Duration(1, TimeUnit.SECONDS))
+    run(sqlu"""insert into vastaanotot (hakukohde, henkilo, active, ilmoittaja, "timestamp")
+              values ($hakukohdeOid, $henkiloOid, true, $henkiloOid, now())""")
   }
 
+  private def run[R](operations: DBIO[R], timeout: Duration = Duration(1, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
 }
