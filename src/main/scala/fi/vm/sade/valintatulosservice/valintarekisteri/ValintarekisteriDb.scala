@@ -79,10 +79,11 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   override def findKkTutkintoonJohtavatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Set[VastaanottoRecord] = ???
 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
-    val VastaanottoEvent(hakukohdeOid, henkiloOid, action) = vastaanottoEvent
+    val VastaanottoEvent(henkiloOid, hakukohdeOid, action) = vastaanottoEvent
+    val now = System.currentTimeMillis()
     run(sqlu"""insert into vastaanotot (hakukohde, henkilo, active, ilmoittaja, "timestamp")
-              values ($hakukohdeOid, $henkiloOid, true, $henkiloOid, now())""")
+              values ($hakukohdeOid, $henkiloOid, true, $henkiloOid, $now)""")
   }
 
-  private def run[R](operations: DBIO[R], timeout: Duration = Duration(1, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
+  def run[R](operations: DBIO[R], timeout: Duration = Duration(1, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
 }
