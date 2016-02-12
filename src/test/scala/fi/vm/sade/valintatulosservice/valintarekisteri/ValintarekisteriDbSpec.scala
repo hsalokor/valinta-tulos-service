@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.valintarekisteri
 import java.util.Date
 
 import fi.vm.sade.valintatulosservice.ITSetup
-import fi.vm.sade.valintatulosservice.domain.{VastaanotaSitovasti, VastaanottoEvent, VastaanottoRecord}
+import fi.vm.sade.valintatulosservice.domain.{Kausi, VastaanotaSitovasti, VastaanottoEvent, VastaanottoRecord}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -35,6 +35,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup {
     "find vastaanotot rows of person for given haku" in {
       db.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
       val vastaanottoRowsFromDb = db.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
+      valintarekisteriDb.run(sqlu"delete from vastaanotot")
       vastaanottoRowsFromDb must have size 1
       val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
         ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.head
@@ -44,6 +45,16 @@ class ValintarekisteriDbSpec extends Specification with ITSetup {
       actionFromDb mustEqual VastaanotaSitovasti
       ilmoittajaFromDb mustEqual henkiloOid
       timestampFromDb.before(new Date()) mustEqual true
+    }
+
+    "find vastaanotot rows leading to higher education degrees of person" in {
+      db.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
+      db.run(sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava, koulutuksen_alkamiskausi)
+                       values (${hakukohdeOid + "1"}, ${hakuOid + "1"}, false, '2015K')""")
+      db.store(VastaanottoEvent(henkiloOid, hakukohdeOid + "1", VastaanotaSitovasti))
+      val recordsFromDb = db.findKkTutkintoonJohtavatVastaanotot(henkiloOid, Kausi("2015K"))
+      recordsFromDb must have size 1
+      recordsFromDb.head.hakukohdeOid mustEqual hakukohdeOid
     }
   }
 }
