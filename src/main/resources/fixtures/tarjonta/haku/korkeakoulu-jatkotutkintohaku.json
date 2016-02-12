@@ -1,19 +1,28 @@
 {
-  "status": "OK",
-  "accessRights": {
-    "create": true,
-    "delete": true,
-    "update": true
-  },
   "result": {
-    "maksumuuriKaytossa": false,
-    "koulutusmoduuliTyyppi": "TUTKINTO",
-    "organisaatioryhmat": [
-      "1.2.246.562.28.14677291980",
-      "1.2.246.562.28.98599985483"
+    "yhdenPaikanSaanto": {
+      "syy": "Korkeakouluhaku, jossa kohdejoukon tarkenne on 'haunkohdejoukontarkenne_3#1'",
+      "voimassa": true
+    },
+    "jarjestelmanHakulomake": true,
+    "sijoittelu": true,
+    "hakukohdeOidsYlioppilastutkintoAntaaHakukelpoisuuden": [],
+    "ylioppilastutkintoAntaaHakukelpoisuuden": false,
+    "tila": "JULKAISTU",
+    "koulutuksenAlkamiskausiUri": "kausi_k#1",
+    "koulutuksenAlkamisVuosi": 2016,
+    "kohdejoukonTarkenne": "haunkohdejoukontarkenne_3#1",
+    "modified": 1449487478830,
+    "modifiedBy": "1.2.246.562.24.17885662533",
+    "oid": "1.2.246.562.29.62858726037",
+    "maxHakukohdes": 2,
+    "organisaatioOids": [
+      "1.2.246.562.10.16458902786",
+      "1.2.246.562.10.62323934026",
+      "1.2.246.562.10.21540239577",
+      "1.2.246.562.10.34573782876",
+      "1.2.246.562.10.667617328010"
     ],
-    "sisaltyvatHaut": [],
-    "usePriority": true,
     "tarjoajaOids": [
       "1.2.246.562.10.16458902786",
       "1.2.246.562.10.62323934026",
@@ -22,18 +31,18 @@
       "1.2.246.562.10.00000000001",
       "1.2.246.562.10.34573782876"
     ],
-    "organisaatioOids": [
-      "1.2.246.562.10.16458902786",
-      "1.2.246.562.10.62323934026",
-      "1.2.246.562.10.21540239577",
-      "1.2.246.562.10.34573782876",
-      "1.2.246.562.10.667617328010"
+    "usePriority": true,
+    "sisaltyvatHaut": [],
+    "organisaatioryhmat": [
+      "1.2.246.562.28.14677291980",
+      "1.2.246.562.28.98599985483"
     ],
-    "maxHakukohdes": 2,
+    "koulutusmoduuliTyyppi": "TUTKINTO",
+    "maksumuuriKaytossa": false,
     "nimi": {
-      "kieli_fi": "Jatkotutkintohaku 2016",
+      "kieli_sv": "",
       "kieli_en": "",
-      "kieli_sv": ""
+      "kieli_fi": "Jatkotutkintohaku 2016"
     },
     "hakukohdeOids": [
       "1.2.246.562.20.801501020210",
@@ -44,31 +53,26 @@
     ],
     "hakuaikas": [
       {
-        "nimet": {
-          "kieli_fi": "",
-          "kieli_en": "",
-          "kieli_sv": ""
-        },
-        "loppuPvm": 1453300002621,
+        "hakuaikaId": "2910558",
         "alkuPvm": 1449468055481,
-        "hakuaikaId": "2910558"
+        "loppuPvm": 1453300002621,
+        "nimet": {
+          "kieli_sv": "",
+          "kieli_en": "",
+          "kieli_fi": ""
+        }
       }
     ],
     "kohdejoukkoUri": "haunkohdejoukko_12#1",
     "hakutyyppiUri": "hakutyyppi_01#1",
     "hakutapaUri": "hakutapa_01#1",
     "hakukausiVuosi": 2016,
-    "hakukausiUri": "kausi_k#1",
-    "oid": "1.2.246.562.29.62858726037",
-    "modifiedBy": "1.2.246.562.24.17885662533",
-    "modified": 1449487478830,
-    "kohdejoukonTarkenne": "haunkohdejoukontarkenne_3#1",
-    "koulutuksenAlkamisVuosi": 2016,
-    "koulutuksenAlkamiskausiUri": "kausi_k#1",
-    "tila": "JULKAISTU",
-    "ylioppilastutkintoAntaaHakukelpoisuuden": false,
-    "hakukohdeOidsYlioppilastutkintoAntaaHakukelpoisuuden": [],
-    "sijoittelu": true,
-    "jarjestelmanHakulomake": true
-  }
+    "hakukausiUri": "kausi_k#1"
+  },
+  "accessRights": {
+    "update": true,
+    "delete": true,
+    "create": true
+  },
+  "status": "OK"
 }

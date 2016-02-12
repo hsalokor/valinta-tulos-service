@@ -1,41 +1,10 @@
 {
   "result": {
-    "usePriority": true,
-    "tarjoajaOids": [
-      "1.2.246.562.10.00000000001"
-    ],
-    "organisaatioOids": [
-      "1.2.246.562.10.00000000001"
-    ],
-    "maxHakukohdes": 1,
-    "nimi": {
-      "kieli_fi": "Haku erityisopetuksena järjestettäviin ammatillisiin perustutkintoihin",
-      "kieli_en": "",
-      "kieli_sv": "Ansökan till yrkesinriktad grundutbildning som anordnas som specialundervisning"
+    "yhdenPaikanSaanto": {
+      "syy": "Ei korkeakouluhaku",
+      "voimassa": false
     },
-    "kohdejoukkoUri": "haunkohdejoukko_15#1",
-    "hakutyyppiUri": "hakutyyppi_01#1",
-    "hakutapaUri": "hakutapa_02#1",
-    "hakukausiVuosi": 2014,
-    "hakukausiUri": "kausi_k#1",
-    "oid": "1.2.246.562.5.2013112910452702965370",
-    "modifiedBy": "1.2.246.562.24.37685858527",
-    "modified": 1410522080742,
-    "koulutuksenAlkamisVuosi": 2014,
-    "koulutuksenAlkamiskausiUri": "kausi_s#1",
-    "tila": "JULKAISTU",
-    "sijoittelu": false,
-    "jarjestelmanHakulomake": true,
-    "hakuaikas": [
-      {
-        "nimet": {
-          "kieli_fi": ""
-        },
-        "loppuPvm": 1401435453546,
-        "alkuPvm": 1388565453546,
-        "hakuaikaId": "164630"
-      }
-    ],
+    "haunTunniste": "1.2.246.562.5.2013112910452702965370",
     "hakukohdeOids": [
       "1.2.246.562.14.2014022408541751568934",
       "1.2.246.562.14.2014022408565983070686",
@@ -183,6 +152,41 @@
       "1.2.246.562.14.2014021412564935621254",
       "1.2.246.562.14.2014021412323267177793"
     ],
-    "haunTunniste": "1.2.246.562.5.2013112910452702965370"
+    "hakuaikas": [
+      {
+        "hakuaikaId": "164630",
+        "alkuPvm": 1388565453546,
+        "loppuPvm": 1401435453546,
+        "nimet": {
+          "kieli_fi": ""
+        }
+      }
+    ],
+    "jarjestelmanHakulomake": true,
+    "sijoittelu": false,
+    "hakutapaUri": "hakutapa_02#1",
+    "hakutyyppiUri": "hakutyyppi_01#1",
+    "kohdejoukkoUri": "haunkohdejoukko_15#1",
+    "nimi": {
+      "kieli_sv": "Ansökan till yrkesinriktad grundutbildning som anordnas som specialundervisning",
+      "kieli_en": "",
+      "kieli_fi": "Haku erityisopetuksena järjestettäviin ammatillisiin perustutkintoihin"
+    },
+    "maxHakukohdes": 1,
+    "organisaatioOids": [
+      "1.2.246.562.10.00000000001"
+    ],
+    "tarjoajaOids": [
+      "1.2.246.562.10.00000000001"
+    ],
+    "usePriority": true,
+    "hakukausiVuosi": 2014,
+    "hakukausiUri": "kausi_k#1",
+    "oid": "1.2.246.562.5.2013112910452702965370",
+    "modifiedBy": "1.2.246.562.24.37685858527",
+    "modified": 1410522080742,
+    "koulutuksenAlkamisVuosi": 2014,
+    "koulutuksenAlkamiskausiUri": "kausi_s#1",
+    "tila": "JULKAISTU"
   }
 }
