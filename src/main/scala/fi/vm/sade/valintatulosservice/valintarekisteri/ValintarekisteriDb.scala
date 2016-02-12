@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.domain.{Kausi, VastaanottoEvent, VastaanottoRecord}
+import fi.vm.sade.valintatulosservice.domain.{VastaanottoAction, Kausi, VastaanottoEvent, VastaanottoRecord}
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
 import org.flywaydb.core.Flyway
 import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation, _}
@@ -24,7 +24,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   flyway.migrate()
   val db = Database.forConfig("", dbConfig)
   private implicit val getVastaanottoResult = GetResult(r => VastaanottoRecord(r.nextString(), r.nextString(),
-    r.nextString(), r.nextString(), new Date(r.nextLong())))
+    r.nextString(), VastaanottoAction(r.nextString()), r.nextString(), new Date(r.nextLong())))
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
     val d = run(
@@ -80,7 +80,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
     val vastaanottoRecords = run(sql"""select vo.henkilo as henkiloOid,  hk."hakuOid" as hakuOid, hk."hakukohdeOid" as hakukohdeOid,
-                                  vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
+                                  vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
                            from vastaanotot vo
                            join hakukohteet hk on hk."hakukohdeOid" = vo.hakukohde""".as[VastaanottoRecord])
     vastaanottoRecords.toSet
