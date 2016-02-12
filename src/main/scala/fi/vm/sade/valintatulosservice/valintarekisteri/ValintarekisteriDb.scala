@@ -75,7 +75,14 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     result.map(row => Ensikertalaisuus(row._1, row._2.map(new Date(_)))).toSet
   }
 
-  override def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = ???
+  override def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
+    val result = run(sql"""select vo.henkilo as henkiloOid,  hk."hakuOid" as hakuOid, hk."hakukohdeOid" as hakukohdeOid,
+                                  vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
+                           from vastaanotot vo
+                           join hakukohteet hk on hk."hakukohdeOid" = vo.hakukohde""".as[(String, String, String, String, Long)])
+    result.map(r => VastaanottoRecord(r._1, r._2, r._3, r._4, new Date(r._5))).toSet
+  }
+
   override def findKkTutkintoonJohtavatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Set[VastaanottoRecord] = ???
 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
