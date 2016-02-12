@@ -34,8 +34,8 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
       sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava, koulutuksen_alkamiskausi)
              values ($hakukohde, $haku, true, '2015K')""",
       sqlu"""insert into vastaanotot
-             (henkilo, hakukohde, active, ilmoittaja, "timestamp", deleted)
-             values ($henkilo, $hakukohde, true, 'ilmoittaja', ${timestamp.getMillis}, null)""",
+             (henkilo, hakukohde, action, active, ilmoittaja, "timestamp", deleted)
+             values ($henkilo, $hakukohde, 'VastaanotaSitovasti'::vastaanotto_action, true, 'ilmoittaja', ${timestamp.getMillis}, null)""",
       sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, "kkTutkintoonJohtava", ilmoittaja, "timestamp", deleted)
              values ($henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${vanha_timestamp.getMillis}, null)""",
       sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, "kkTutkintoonJohtava", ilmoittaja, "timestamp", deleted)
