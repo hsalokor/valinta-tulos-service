@@ -1,40 +1,53 @@
 {
-    "result" : {
-        "modified" : 1411981508169,
-        "modifiedBy" : "1.2.246.562.24.00000000001",
-        "oid" : "1.2.246.562.5.2013080813081926341928",
-        "hakukausiUri" : "kausi_s#1",
-        "hakukausiVuosi" : 2014,
-        "hakutapaUri" : "hakutapa_01#1",
-        "hakutyyppiUri" : "hakutyyppi_01#1",
-        "kohdejoukkoUri" : "haunkohdejoukko_12#1",
-        "koulutuksenAlkamisVuosi" : 2015,
-        "koulutuksenAlkamiskausiUri" : "kausi_k#1",
-        "tila" : "JULKAISTU",
-        "sijoittelu" : true,
-        "jarjestelmanHakulomake" : true,
-        "hakuaikas" : [ {
-            "hakuaikaId" : "219502",
-            "nimi" : "Nimi hakuajalle toki",
-            "alkuPvm" : 1410152431839,
-            "loppuPvm" : 1413979259881
-        } ],
-        "hakukohdeOids" : [ "1.2.246.562.20.56448265241", "1.2.246.562.20.68508673735", "1.2.246.562.20.66869241134" ],
-        "nimi" : {
-            "kieli_sv" : "Högskolornas gemensamma ansökan hösten 2014",
-            "kieli_en" : "Joint application to higher education autumn 2014",
-            "kieli_fi" : "Korkeakoulujen yhteishaku syksy 2014"
-        },
-        "maxHakukohdes" : 6,
-        "organisaatioOids" : [ "1.2.246.562.10.00000000001" ],
-        "tarjoajaOids" : [ "1.2.246.562.10.00000000001" ],
-        "usePriority" : true,
-        "sisaltyvatHaut" : [ "korkeakoulu-lisahaku1", "korkeakoulu-lisahaku2" ]
-    },
-    "status" : "OK",
-    "accessRights" : {
-        "update" : false,
-        "delete" : false,
-        "create" : false
+  "accessRights": {
+    "create": false,
+    "delete": false,
+    "update": false
+  },
+  "status": "OK",
+  "result": {
+    "sisaltyvatHaut": [
+      "korkeakoulu-lisahaku1",
+      "korkeakoulu-lisahaku2"
+    ],
+    "usePriority": true,
+    "tarjoajaOids": [
+      "1.2.246.562.10.00000000001"
+    ],
+    "organisaatioOids": [
+      "1.2.246.562.10.00000000001"
+    ],
+    "maxHakukohdes": 6,
+    "kohdejoukkoUri": "haunkohdejoukko_12#1",
+    "hakutyyppiUri": "hakutyyppi_01#1",
+    "hakutapaUri": "hakutapa_01#1",
+    "hakukausiVuosi": 2014,
+    "hakukausiUri": "kausi_s#1",
+    "oid": "1.2.246.562.5.2013080813081926341928",
+    "modifiedBy": "1.2.246.562.24.00000000001",
+    "modified": 1411981508169,
+    "koulutuksenAlkamisVuosi": 2015,
+    "koulutuksenAlkamiskausiUri": "kausi_k#1",
+    "tila": "JULKAISTU",
+    "sijoittelu": true,
+    "jarjestelmanHakulomake": true,
+    "hakuaikas": [
+      {
+        "loppuPvm": 1413979259881,
+        "alkuPvm": 1410152431839,
+        "nimi": "Nimi hakuajalle toki",
+        "hakuaikaId": "219502"
+      }
+    ],
+    "hakukohdeOids": [
+      "1.2.246.562.20.56448265241",
+      "1.2.246.562.20.68508673735",
+      "1.2.246.562.20.66869241134"
+    ],
+    "nimi": {
+      "kieli_fi": "Korkeakoulujen yhteishaku syksy 2014",
+      "kieli_en": "Joint application to higher education autumn 2014",
+      "kieli_sv": "Högskolornas gemensamma ansökan hösten 2014"
     }
+  }
 }

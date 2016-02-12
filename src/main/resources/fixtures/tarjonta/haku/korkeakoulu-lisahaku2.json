@@ -1,45 +1,51 @@
 {
-    "result" : {
-        "modified" : 1416571132923,
-        "modifiedBy" : "1.2.246.562.24.00000000001",
-        "oid" : "korkeakoulu-lisahaku2",
-        "hakukausiUri" : "kausi_s#1",
-        "hakukausiVuosi" : 2014,
-        "hakutapaUri" : "hakutapa_01#1",
-        "hakutyyppiUri" : "hakutyyppi_03#1",
-        "kohdejoukkoUri" : "haunkohdejoukko_12#1",
-        "koulutuksenAlkamisVuosi" : 2015,
-        "koulutuksenAlkamiskausiUri" : "kausi_k#1",
-        "tila" : "VALMIS",
-        "sijoittelu" : false,
-        "jarjestelmanHakulomake" : true,
-        "hakuaikas" : [ {
-            "hakuaikaId" : "1384139",
-            "alkuPvm" : 1416921706859,
-            "loppuPvm" : 1417267306859,
-            "nimet" : {
-                "kieli_sv" : "",
-                "kieli_en" : "",
-                "kieli_fi" : ""
-            }
-        } ],
-        "hakukohdeOids" : [ ],
-        "nimi" : {
-            "kieli_sv" : "",
-            "kieli_en" : "",
-            "kieli_fi" : "korkeakoulujen yhteishaun lisähaku"
+  "accessRights": {
+    "create": true,
+    "delete": true,
+    "update": true
+  },
+  "status": "OK",
+  "result": {
+    "sisaltyvatHaut": [],
+    "parentHakuOid": "1.2.246.562.5.2013080813081926341928",
+    "usePriority": false,
+    "tarjoajaOids": [
+      "1.2.246.562.10.00000000001"
+    ],
+    "organisaatioOids": [
+      "1.2.246.562.10.00000000001"
+    ],
+    "maxHakukohdes": 1,
+    "kohdejoukkoUri": "haunkohdejoukko_12#1",
+    "hakutyyppiUri": "hakutyyppi_03#1",
+    "hakutapaUri": "hakutapa_01#1",
+    "hakukausiVuosi": 2014,
+    "hakukausiUri": "kausi_s#1",
+    "oid": "korkeakoulu-lisahaku2",
+    "modifiedBy": "1.2.246.562.24.00000000001",
+    "modified": 1416571132923,
+    "koulutuksenAlkamisVuosi": 2015,
+    "koulutuksenAlkamiskausiUri": "kausi_k#1",
+    "tila": "VALMIS",
+    "sijoittelu": false,
+    "jarjestelmanHakulomake": true,
+    "hakuaikas": [
+      {
+        "nimet": {
+          "kieli_fi": "",
+          "kieli_en": "",
+          "kieli_sv": ""
         },
-        "maxHakukohdes" : 1,
-        "organisaatioOids" : [ "1.2.246.562.10.00000000001" ],
-        "tarjoajaOids" : [ "1.2.246.562.10.00000000001" ],
-        "usePriority" : false,
-        "parentHakuOid" : "1.2.246.562.5.2013080813081926341928",
-        "sisaltyvatHaut" : [ ]
-    },
-    "status" : "OK",
-    "accessRights" : {
-        "update" : true,
-        "delete" : true,
-        "create" : true
+        "loppuPvm": 1417267306859,
+        "alkuPvm": 1416921706859,
+        "hakuaikaId": "1384139"
+      }
+    ],
+    "hakukohdeOids": [],
+    "nimi": {
+      "kieli_fi": "korkeakoulujen yhteishaun lisähaku",
+      "kieli_en": "",
+      "kieli_sv": ""
     }
+  }
 }
