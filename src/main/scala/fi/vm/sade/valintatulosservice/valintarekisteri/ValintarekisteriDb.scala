@@ -9,6 +9,7 @@ import fi.vm.sade.valintatulosservice.domain.{VastaanottoRecord, Kausi, Vastaano
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
 import org.flywaydb.core.Flyway
 import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation, _}
+import slick.jdbc.GetResult
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -22,6 +23,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   flyway.setDataSource(dbConfig.getString("url"), user, password)
   flyway.migrate()
   val db = Database.forConfig("", dbConfig)
+  private implicit val getVastaanottoResult = GetResult(r => VastaanottoRecord(r.nextString(), r.nextString(),
+    r.nextString(), r.nextString(), new Date(r.nextLong())))
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
     val d = run(
@@ -76,11 +79,11 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   override def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
-    val result = run(sql"""select vo.henkilo as henkiloOid,  hk."hakuOid" as hakuOid, hk."hakukohdeOid" as hakukohdeOid,
+    val vastaanottoRecords = run(sql"""select vo.henkilo as henkiloOid,  hk."hakuOid" as hakuOid, hk."hakukohdeOid" as hakukohdeOid,
                                   vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
                            from vastaanotot vo
-                           join hakukohteet hk on hk."hakukohdeOid" = vo.hakukohde""".as[(String, String, String, String, Long)])
-    result.map(r => VastaanottoRecord(r._1, r._2, r._3, r._4, new Date(r._5))).toSet
+                           join hakukohteet hk on hk."hakukohdeOid" = vo.hakukohde""".as[VastaanottoRecord])
+    vastaanottoRecords.toSet
   }
 
   override def findKkTutkintoonJohtavatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Set[VastaanottoRecord] = ???
