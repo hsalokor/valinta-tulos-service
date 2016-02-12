@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.domain.{VastaanottoRecord, Kausi, VastaanottoEvent}
+import fi.vm.sade.valintatulosservice.domain.{Kausi, VastaanottoEvent, VastaanottoRecord}
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
 import org.flywaydb.core.Flyway
 import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation, _}
@@ -91,8 +91,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
     val VastaanottoEvent(henkiloOid, hakukohdeOid, action) = vastaanottoEvent
     val now = System.currentTimeMillis()
-    run(sqlu"""insert into vastaanotot (hakukohde, henkilo, active, ilmoittaja, "timestamp")
-              values ($hakukohdeOid, $henkiloOid, true, $henkiloOid, $now)""")
+    run(sqlu"""insert into vastaanotot (hakukohde, henkilo, active, action, ilmoittaja, "timestamp")
+              values ($hakukohdeOid, $henkiloOid, true, ${action.toString}::vastaanotto_action, $henkiloOid, $now)""")
   }
 
   def run[R](operations: DBIO[R], timeout: Duration = Duration(1, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)

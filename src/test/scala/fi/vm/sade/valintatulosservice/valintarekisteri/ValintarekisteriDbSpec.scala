@@ -24,10 +24,12 @@ class ValintarekisteriDbSpec extends Specification with ITSetup {
   "ValintarekisteriDb" should {
     "store vastaanotto actions" in {
       db.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
-      val henkiloOidsFromDb = db.run(sql"select henkilo from vastaanotot where henkilo = $henkiloOid and hakukohde = $hakukohdeOid".as[String])
+      val henkiloOidsAndActionsFromDb = db.run(
+        sql"""select henkilo, action from vastaanotot
+              where henkilo = $henkiloOid and hakukohde = $hakukohdeOid""".as[(String, String)])
       valintarekisteriDb.run(sqlu"delete from vastaanotot")
-      henkiloOidsFromDb must have size 1
-      henkiloOidsFromDb.head mustEqual henkiloOid
+      henkiloOidsAndActionsFromDb must have size 1
+      henkiloOidsAndActionsFromDb.head mustEqual (henkiloOid, VastaanotaSitovasti.toString)
     }
 
     "find vastaanotot rows of person for given haku" in {
