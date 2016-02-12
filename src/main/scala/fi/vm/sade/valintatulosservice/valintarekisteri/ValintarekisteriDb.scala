@@ -63,7 +63,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             left join (select henkilo, "timestamp", koulutuksen_alkamiskausi from vastaanotot
                        join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
                                            and hakukohteet.kktutkintoonjohtava
-                       where vastaanotot.active
+                       where vastaanotot.active and (vastaanotot.action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti'))
                        union
                        select henkilo, "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
                        where vanhat_vastaanotot.deleted is null
