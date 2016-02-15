@@ -107,7 +107,14 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   def run[R](operations: DBIO[R], timeout: Duration = Duration(1, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
 
-  override def findHakukohde(oid: String): Option[HakukohdeRecord] = ???
+  override def findHakukohde(oid: String): Option[HakukohdeRecord] = {
+    implicit val getHakukohdeResult = GetResult(r =>
+      HakukohdeRecord(r.nextString(), r.nextString(), r.nextBoolean(), r.nextBoolean(), Kausi(r.nextString())))
+    run(sql"""select hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi
+           from hakukohteet
+           where hakukohde_oid = $oid
+         """.as[HakukohdeRecord]).headOption
+  }
 
   override def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit = ???
 }
