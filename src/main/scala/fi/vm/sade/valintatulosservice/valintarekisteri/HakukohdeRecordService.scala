@@ -18,9 +18,10 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
     val h = for {
       hakukohde <- withError(hakuService.getHakukohde(oid), s"Could not find hakukohde $oid")
       haku <- withError(hakuService.getHaku(hakukohde.hakuOid), s"Could not find haku ${hakukohde.hakuOid}")
-      koulutukset <- withError(sequence(hakukohde.hakukohteenKoulutusOids.map(hakuService.getKoulutus)),
-        s"Could not resolve koulutukset ${hakukohde.hakukohteenKoulutusOids}")
-      alkamiskausi <- withError(unique(koulutukset.map(_.koulutuksenAlkamiskausi)), s"No unique koulutuksen alkamiskausi in $koulutukset")
+      koulutukset <- withError(sequence(hakukohde.hakukohdeKoulutusOids.map(hakuService.getKoulutus)),
+        s"Could not resolve koulutukset ${hakukohde.hakukohdeKoulutusOids}")
+      alkamiskausi <- withError(unique(koulutukset.map(_.koulutuksenAlkamiskausi)),
+        s"No unique koulutuksen alkamiskausi in $koulutukset for $hakukohde")
     } yield HakukohdeRecord(hakukohde.oid, haku.oid, haku.yhdenPaikanSaanto.voimassa,
       hakukohdeJohtaaKkTutkintoon(hakukohde), alkamiskausi)
     h.foreach(hakukohdeRepository.storeHakukohde)
