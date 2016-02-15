@@ -7,7 +7,7 @@ import org.json4s.JsonAST.{JField, JValue, JString}
 import org.json4s.jackson.compactJson
 import org.json4s.{MappingException, JObject, Formats, CustomSerializer}
 import org.scalatra._
-import org.scalatra.swagger.Swagger
+import org.scalatra.swagger._
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 
 import scala.util.Try
@@ -22,7 +22,10 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
     summary "Tallenna hakukohteelle uusi vastaanottotila"
     parameter pathParam[String]("henkiloOid").description("Hakijan henkilönumero")
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
-    parameter bodyParam[VastaanottoAction].description("Vastaanoton tyyppi"))
+    parameter bodyParam(Model(id = classOf[VastaanottoAction].getSimpleName, name = classOf[VastaanottoAction].getSimpleName,
+        properties = List("action" -> ModelProperty(`type` = DataType.String, position = 0, required = true,
+          allowableValues = AllowableValues("Peru", "VastaanotaSitovasti", "VastaanotaEhdollisesti")))
+    )))
   post("/henkilo/:henkiloOid/hakukohde/:hakukohdeOid", operation(postVastaanottoSwagger)) {
     val personOid = params("henkiloOid")
     val hakukohdeOid = params("hakukohdeOid")
