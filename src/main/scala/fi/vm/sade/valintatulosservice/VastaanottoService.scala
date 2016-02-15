@@ -64,7 +64,7 @@ class VastaanottoService(hakuService: HakuService,
       val aiempiVastaanotto = aiemmatVastaanotot.head
       Failure(PriorAcceptanceException(aiempiVastaanotto, vastaanottoEvent))
     } else {
-      Failure(new IllegalStateException())
+      Failure(new IllegalStateException(s"Hakijalla ${vastaanottoEvent.henkiloOid} useita vastaanottoja: $aiemmatVastaanotot"))
     }
   }
 
