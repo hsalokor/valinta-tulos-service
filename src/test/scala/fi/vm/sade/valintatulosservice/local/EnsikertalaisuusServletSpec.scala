@@ -31,8 +31,8 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
 
   step({
     Await.ready(valintarekisteriDb.run(DBIOAction.seq(
-      sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, koulutuksen_alkamiskausi)
-             values ($hakukohde, $haku, true, '2015K')""",
+      sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
+             values ($hakukohde, $haku, true, true, '2015K')""",
       sqlu"""insert into vastaanotot
              (henkilo, hakukohde, action, active, ilmoittaja, "timestamp", deleted)
              values ($henkilo, $hakukohde, 'VastaanotaSitovasti'::vastaanotto_action, true, 'ilmoittaja', ${timestamp.getMillis}, null)""",
