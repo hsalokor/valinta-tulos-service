@@ -4,8 +4,8 @@ import java.util.Date
 
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
-import fi.vm.sade.valintatulosservice.tarjonta.{YhdenPaikanSaanto, Haku, Hakukohde, HakuService}
-import fi.vm.sade.valintatulosservice.valintarekisteri.HakijaVastaanottoRepository
+import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakukohde, YhdenPaikanSaanto}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, HakukohdeRecordService}
 import fi.vm.sade.valintatulosservice.{PriorAcceptanceException, ValintatulosService, VastaanottoService}
 import org.junit.runner.RunWith
 import org.mockito.Matchers
@@ -112,29 +112,26 @@ trait YhdenPaikanSaantoVoimassa extends VastaanottoServiceWithMocks with Mockito
   val haku = Haku("1.2.246.562.29.00000000000", true, true, true, false, true, None, Set(), List(),
     YhdenPaikanSaanto(true, "kk haku ilman kohdejoukon tarkennetta"))
   val koulutusOid = "1.2.246.562.17.00000000000"
-  val hakukohde = Hakukohde("1.2.246.562.20.00000000000", haku.oid, List(koulutusOid))
+  val hakukohde = Hakukohde("1.2.246.562.20.00000000000", haku.oid, List(koulutusOid), "KORKEAKOULUTUS", "TUTKINTO")
   val kausi = Syksy(2015)
-  hakuService.getHakukohde(hakukohde.oid) returns Some(hakukohde)
-  hakuService.getHaku(haku.oid) returns Some(haku)
-  hakuService.getKoulutuksenAlkamiskausi(hakukohde) returns Some(kausi)
+  hakukohdeRecordService.getHakukohdeRecord(hakukohde.oid) returns HakukohdeRecord(hakukohde.oid, haku.oid, true, true, kausi)
 }
 
 trait IlmanYhdenPaikanSaantoa extends VastaanottoServiceWithMocks with Mockito with Scope with MustThrownExpectations {
   val haku = Haku("1.2.246.562.29.00000000001", true, true, true, false, true, None, Set(), List(),
     YhdenPaikanSaanto(false, "ei kk haku"))
   val koulutusOid = "1.2.246.562.17.00000000001"
-  val hakukohde = Hakukohde("1.2.246.562.20.00000000001", haku.oid, List(koulutusOid))
+  val hakukohde = Hakukohde("1.2.246.562.20.00000000001", haku.oid, List(koulutusOid), "KORKEAKOULUTUS", "TUTKINTO")
   val kausi = Syksy(2015)
-  hakuService.getHakukohde(hakukohde.oid) returns Some(hakukohde)
-  hakuService.getHaku(haku.oid) returns Some(haku)
-  hakuService.getKoulutuksenAlkamiskausi(hakukohde) returns Some(kausi)
+  hakukohdeRecordService.getHakukohdeRecord(hakukohde.oid) returns HakukohdeRecord(hakukohde.oid, haku.oid, false, true, kausi)
 }
 
 trait VastaanottoServiceWithMocks extends Mockito with Scope with MustThrownExpectations {
-  val hakuService = mock[HakuService]
+  val hakukohdeRecordService = mock[HakukohdeRecordService]
   val valintatulosService = mock[ValintatulosService]
   val hakijaVastaanottoRepository = mock[HakijaVastaanottoRepository]
   val valintatulosRepository = mock[ValintatulosRepository]
-  val v = new VastaanottoService(hakuService, valintatulosService, hakijaVastaanottoRepository, valintatulosRepository)
+  val v = new VastaanottoService(null, valintatulosService, hakijaVastaanottoRepository, hakukohdeRecordService,
+    valintatulosRepository)
   val henkiloOid = "1.2.246.562.24.00000000000"
 }

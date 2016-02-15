@@ -3,20 +3,20 @@ package fi.vm.sade.valintatulosservice.tarjonta
 import fi.vm.sade.utils.http.DefaultHttpClient
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
-import fi.vm.sade.valintatulosservice.domain.{Syksy, Kevat, Kausi}
+import fi.vm.sade.valintatulosservice.domain.{Kausi, Kevat, Syksy}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
 import org.joda.time.DateTime
-import org.json4s.JValue
+import org.json4s.JsonAST.{JInt, JObject, JString}
 import org.json4s.jackson.JsonMethods._
+import org.json4s.{MappingException, CustomSerializer, Formats}
 
 import scala.util.Try
 import scalaj.http.HttpOptions
 
 trait HakuService {
-  def getKoulutuksenAlkamiskausi(hakukohde: Hakukohde): Option[Kausi]
-
   def getHaku(oid: String): Option[Haku]
   def getHakukohde(oid: String): Option[Hakukohde]
+  def getKoulutus(koulutusOid: String): Option[Koulutus]
   def findLiittyvatHaut(haku: Haku): Set[String] = {
     val parentHaut = haku.varsinaisenHaunOid.flatMap(getHaku(_).map(parentHaku => parentHaku.sisältyvätHaut + parentHaku.oid)).getOrElse(Nil)
     (haku.sisältyvätHaut ++ parentHaut).filterNot(_ == haku.oid)
@@ -41,11 +41,29 @@ case class Hakuaika(hakuaikaId: String, alkuPvm: Option[Long], loppuPvm: Option[
   }
 }
 
-case class Hakukohde(oid: String, hakuOid: String, hakukohteenKoulutusOids: List[String])
+case class Hakukohde(oid: String, hakuOid: String, hakukohteenKoulutusOids: List[String],
+                     koulutusAsteTyyppi: String, koulutusmoduuliTyyppi: String)
+
+case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi)
+
+class KoulutusSerializer extends CustomSerializer[Koulutus]((formats: Formats) => {
+  ( {
+    case o: JObject => {
+      val JString(oid) = (o \ "oid")
+      val JInt(vuosi) = (o \ "koulutuksenAlkamisvuosi")
+      val kausi = (o \ "koulutuksenAlkamiskausi" \ "uri") match {
+        case JString("kausi_k") => Kevat(vuosi.toInt)
+        case JString("kausi_s") => Syksy(vuosi.toInt)
+        case x => throw new MappingException(s"Unrecognized kausi URI $x")
+      }
+      Koulutus(oid, kausi)
+    }
+  }, ???)
+})
 
 protected trait JsonHakuService {
   import org.json4s._
-  implicit val formats = DefaultFormats
+  implicit val formats = DefaultFormats ++ List(new KoulutusSerializer)
 
   protected def toHaku(haku: HakuTarjonnassa) = {
     val korkeakoulu: Boolean = haku.kohdejoukkoUri.startsWith("haunkohdejoukko_12#")
@@ -64,8 +82,7 @@ class CachedHakuService(wrappedService: HakuService) extends HakuService {
   override def getHakukohde(oid: String): Option[Hakukohde] = ???
   def kaikkiJulkaistutHaut: List[Haku] = all("").toList.flatten
 
-  override def getKoulutuksenAlkamiskausi(hakukohde: Hakukohde): Option[Kausi] = ???
-
+  override def getKoulutus(koulutusOid: String): Option[Koulutus] = wrappedService.getKoulutus(koulutusOid)
 }
 
 private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String, sijoittelu: Boolean,
@@ -84,13 +101,6 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
     for {
       status <- (parse(json) \ "status").extractOpt[String]
     } yield status
-  }
-
-  def getKoulutuksenAlkamiskausi(hakukohde: Hakukohde): Option[Kausi] = {
-    for {
-      koulutukset <- sequence(hakukohde.hakukohteenKoulutusOids.map(getKoulutus))
-      kausi <- unique(koulutukset.map(koulutuksenAlkamiskausi))
-    } yield kausi
   }
 
   def getHaku(oid: String): Option[Haku] = {
@@ -114,30 +124,9 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
     }.getOrElse(Nil)
   }
 
-  private def sequence[A](xs: Seq[Option[A]]): Option[Seq[A]] = xs match {
-    case Nil => Some(Nil)
-    case None::_ => None
-    case Some(x)::rest => sequence(rest).map(x +: _)
-  }
-
-  private def getKoulutus(koulutusOid: String): Option[JValue] = {
+  def getKoulutus(koulutusOid: String): Option[Koulutus] = {
     val koulutusUrl = s"${appConfig.settings.tarjontaUrl}/rest/v1/koulutus/$koulutusOid"
-    fetch(koulutusUrl) { response => parse(response) \ "result" }
-  }
-
-  private def koulutuksenAlkamiskausi(koulutus: JValue): Kausi = {
-    val vuosi = (koulutus \ "koulutuksenAlkamisvuosi").extract[Int]
-    (koulutus \ "koulutuksenAlkamiskausi" \ "uri").extract[String] match {
-      case "kausi_k" => Kevat(vuosi)
-      case "kausi_s" => Syksy(vuosi)
-    }
-  }
-
-  private def unique[A](kaudet: Seq[A]): Option[A] = {
-    kaudet match {
-      case x::rest if rest.forall(x == _) => Some(x)
-      case _ => None
-    }
+    fetch(koulutusUrl) { response => (parse(response) \ "result").extract[Koulutus] }
   }
 
   private def fetch[T](url: String)(parse: (String => T)): Option[T] = {
