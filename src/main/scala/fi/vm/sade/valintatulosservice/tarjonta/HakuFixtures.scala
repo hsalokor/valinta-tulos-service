@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.tarjonta
 
 import java.io.InputStream
 
-import fi.vm.sade.valintatulosservice.domain.Kausi
+import org.json4s.JValue
 import org.json4s.jackson.JsonMethods._
 
 object HakuFixtures extends HakuService with JsonHakuService {
@@ -53,7 +53,7 @@ object HakuFixtures extends HakuService with JsonHakuService {
     }
   }
 
-  override def getKoulutuksenAlkamiskausi(hakukohde: Hakukohde): Option[Kausi] = ???
-
   override def getHakukohde(oid: String): Option[Hakukohde] = ???
+
+  override def getKoulutus(koulutusOid: String): Option[Koulutus] = ???
 }

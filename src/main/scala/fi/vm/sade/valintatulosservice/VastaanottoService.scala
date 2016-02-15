@@ -5,13 +5,14 @@ import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
-import fi.vm.sade.valintatulosservice.valintarekisteri.HakijaVastaanottoRepository
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, HakijaVastaanottoRepository}
 
 import scala.util.{Success, Failure, Try}
 
 class VastaanottoService(hakuService: HakuService,
                          valintatulosService: ValintatulosService,
                          hakijaVastaanottoRepository: HakijaVastaanottoRepository,
+                         hakukohdeRecordService: HakukohdeRecordService,
                          tulokset: ValintatulosRepository) {
 
   val sallitutVastaanottotilat: Set[ValintatuloksenTila] = Set(VASTAANOTTANUT_SITOVASTI, EHDOLLISESTI_VASTAANOTTANUT, PERUNUT)
@@ -49,13 +50,12 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   def vastaanotaHakukohde(vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
-    val hakukohde = hakuService.getHakukohde(vastaanottoEvent.hakukohdeOid).get
-    val haku = hakuService.getHaku(hakukohde.hakuOid).get
-    val aiemmatVastaanotot = if (haku.yhdenPaikanSaanto.voimassa) {
-      val koulutuksenAlkamiskausi = hakuService.getKoulutuksenAlkamiskausi(hakukohde).get
+    val HakukohdeRecord(_, hakuOid, yhdenPaikanSaantoVoimassa, _, koulutuksenAlkamiskausi) =
+      hakukohdeRecordService.getHakukohdeRecord(vastaanottoEvent.hakukohdeOid)
+    val aiemmatVastaanotot = if (yhdenPaikanSaantoVoimassa) {
       hakijaVastaanottoRepository.findKkTutkintoonJohtavatVastaanotot(vastaanottoEvent.henkiloOid, koulutuksenAlkamiskausi)
     } else {
-      hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(vastaanottoEvent.henkiloOid, haku.oid)
+      hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(vastaanottoEvent.henkiloOid, hakuOid)
     }
 
     if (aiemmatVastaanotot.isEmpty) {

@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.domain.{VastaanottoAction, Kausi, VastaanottoEvent, VastaanottoRecord}
+import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
 import org.flywaydb.core.Flyway
 import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation, _}
@@ -15,7 +15,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 
-class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with HakijaVastaanottoRepository with Logging {
+class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with HakijaVastaanottoRepository with HakukohdeRepository with Logging {
   val user = if (dbConfig.hasPath("user")) dbConfig.getString("user") else null
   val password = if (dbConfig.hasPath("password")) dbConfig.getString("password") else null
   logger.info(s"Database configuration: ${dbConfig.withValue("password", ConfigValueFactory.fromAnyRef("***"))}")
@@ -106,4 +106,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   def run[R](operations: DBIO[R], timeout: Duration = Duration(1, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
+
+  override def findHakukohde(oid: String): Option[HakukohdeRecord] = ???
+
+  override def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit = ???
 }
