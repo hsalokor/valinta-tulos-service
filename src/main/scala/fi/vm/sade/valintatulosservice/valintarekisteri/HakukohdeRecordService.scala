@@ -3,6 +3,8 @@ package fi.vm.sade.valintatulosservice.valintarekisteri
 import fi.vm.sade.valintatulosservice.domain.HakukohdeRecord
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuService, Hakukohde}
 
+import scala.util.Try
+
 class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: HakukohdeRepository) {
   def getHakukohdeRecord(oid: String): HakukohdeRecord = {
     val record: Option[HakukohdeRecord] = hakukohdeRepository.findHakukohde(oid)
@@ -10,15 +12,19 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
   }
 
   private def fetchAndStoreHakukohdeDetails(oid: String): HakukohdeRecord = {
+    def withError[T](o: Option[T], errorMessage: String): Try[T] = {
+      Try { o.getOrElse(throw new RuntimeException(errorMessage)) }
+    }
     val h = for {
-      hakukohde <- hakuService.getHakukohde(oid)
-      haku <- hakuService.getHaku(hakukohde.hakuOid)
-      koulutukset <- sequence(hakukohde.hakukohteenKoulutusOids.map(hakuService.getKoulutus))
-      alkamiskausi <- unique(koulutukset.map(_.koulutuksenAlkamiskausi))
+      hakukohde <- withError(hakuService.getHakukohde(oid), s"Could not find hakukohde $oid")
+      haku <- withError(hakuService.getHaku(hakukohde.hakuOid), s"Could not find haku ${hakukohde.hakuOid}")
+      koulutukset <- withError(sequence(hakukohde.hakukohteenKoulutusOids.map(hakuService.getKoulutus)),
+        s"Could not resolve koulutukset ${hakukohde.hakukohteenKoulutusOids}")
+      alkamiskausi <- withError(unique(koulutukset.map(_.koulutuksenAlkamiskausi)), s"No unique koulutuksen alkamiskausi in $koulutukset")
     } yield HakukohdeRecord(hakukohde.oid, haku.oid, haku.yhdenPaikanSaanto.voimassa,
       hakukohdeJohtaaKkTutkintoon(hakukohde), alkamiskausi)
-    h.foreach(hakukohdeRepository.storeHakukohde(_))
-    h.getOrElse(throw new RuntimeException(s"Could not retrieve details for hakukohde $oid"))
+    h.foreach(hakukohdeRepository.storeHakukohde)
+    h.get
   }
 
   private def hakukohdeJohtaaKkTutkintoon(hakukohde: Hakukohde): Boolean = {
