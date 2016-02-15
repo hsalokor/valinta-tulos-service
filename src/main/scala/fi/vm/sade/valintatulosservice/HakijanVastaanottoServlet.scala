@@ -14,7 +14,7 @@ import scala.util.Try
 
 class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
 
-  override val applicationName = Some("hakija-vastaanotto")
+  override val applicationName = Some("vastaanotto")
 
   override protected def applicationDescription: String = "Opiskelupaikan vastaanoton REST API"
 
