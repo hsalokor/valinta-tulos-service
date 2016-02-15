@@ -22,9 +22,9 @@ class ValintarekisteriDbSpec extends Specification with ITSetup {
 
   step(appConfig.start)
   step(db.run(DBIOAction.seq(
-    sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava, koulutuksen_alkamiskausi)
+    sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, koulutuksen_alkamiskausi)
            values ($hakukohdeOid, $hakuOid, true, '2015K')""",
-    sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava, koulutuksen_alkamiskausi)
+    sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, koulutuksen_alkamiskausi)
                values ($otherHakukohdeOid, $otherHakuOid, true, '2015S')""")))
 
   "ValintarekisteriDb" should {
@@ -58,7 +58,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup {
     "find vastaanotot rows leading to higher education degrees of person" in {
       db.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
       db.store(VastaanottoEvent(henkiloOid + "2", hakukohdeOid, VastaanotaSitovasti))
-      db.run(sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava, koulutuksen_alkamiskausi)
+      db.run(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, koulutuksen_alkamiskausi)
                        values (${hakukohdeOid + "1"}, ${hakuOid + "1"}, false, '2015K')""")
       db.store(VastaanottoEvent(henkiloOid, hakukohdeOid + "1", VastaanotaSitovasti))
       val recordsFromDb = db.findKkTutkintoonJohtavatVastaanotot(henkiloOid, Kausi("2015K"))
