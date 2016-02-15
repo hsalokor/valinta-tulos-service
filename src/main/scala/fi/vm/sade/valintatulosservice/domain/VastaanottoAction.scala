@@ -12,10 +12,12 @@ case object VastaanotaSitovasti extends VastaanottoAction
 case object VastaanotaEhdollisesti extends VastaanottoAction
 
 object VastaanottoAction {
-  def apply(value: String): VastaanottoAction = value match {
-    case "Peru" => Peru
-    case "VastaanotaSitovasti" => VastaanotaSitovasti
-    case "VastaanotaEhdollisesti" => VastaanotaEhdollisesti
-    case unknown => throw new IllegalArgumentException(s"Unknown action '$unknown'")
-  }
+  private val valueMapping = Map(
+    "Peru" -> Peru,
+    "VastaanotaSitovasti" -> VastaanotaSitovasti,
+    "VastaanotaEhdollisesti" -> VastaanotaEhdollisesti)
+  val values: Seq[String] = valueMapping.keysIterator.toList
+  def apply(value: String): VastaanottoAction = valueMapping.getOrElse(value, {
+    throw new IllegalArgumentException(s"Unknown action '$value', expected one of $values")
+  })
 }

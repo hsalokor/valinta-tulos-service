@@ -23,7 +23,7 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
     parameter bodyParam(Model(id = classOf[VastaanottoAction].getSimpleName, name = classOf[VastaanottoAction].getSimpleName,
         properties = List("action" -> ModelProperty(`type` = DataType.String, position = 0, required = true,
-          allowableValues = AllowableValues("Peru", "VastaanotaSitovasti", "VastaanotaEhdollisesti")))
+          allowableValues = AllowableValues(VastaanottoAction.values)))
     )))
   post("/henkilo/:henkiloOid/hakukohde/:hakukohdeOid", operation(postVastaanottoSwagger)) {
     val personOid = params("henkiloOid")
@@ -38,16 +38,16 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
 }
 
 class VastaanottoActionSerializer extends CustomSerializer[VastaanottoAction]((formats: Formats) => {
-  def throwMappingException(json: String) = throw new MappingException(
-    s"Can't convert $json to ${classOf[VastaanottoAction].getSimpleName}. " +
-      s"Expected one of Peru, VastaanotaSitovasti, VastaanotaEhdollisesti.")
-  ( {
-    case json@JObject(JField("action", JString(action)) :: Nil) => action match {
-      case "Peru" => Peru
-      case "VastaanotaSitovasti" => VastaanotaSitovasti
-      case "VastaanotaEhdollisesti" => VastaanotaEhdollisesti
-      case _ => throwMappingException(compactJson(json))
+  def throwMappingException(json: String, cause: Option[Exception] = None) = {
+    val message = s"Can't convert $json to ${classOf[VastaanottoAction].getSimpleName}."
+    cause match {
+      case Some(e) => throw new MappingException(s"$message : ${e.getMessage}", e)
+      case None => throw new MappingException(message)
     }
+  }
+  ( {
+    case json@JObject(JField("action", JString(action)) :: Nil) => Try(VastaanottoAction(action)).recoverWith {
+      case cause: Exception => throwMappingException(compactJson(json), Some(cause)) }.get
     case json: JValue => throwMappingException(compactJson(json))
   }, {
     case x: VastaanottoAction => JObject(JField("action", JString(x.toString)))
