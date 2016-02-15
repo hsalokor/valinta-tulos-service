@@ -31,14 +31,14 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
 
   step({
     Await.ready(valintarekisteriDb.run(DBIOAction.seq(
-      sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava, koulutuksen_alkamiskausi)
+      sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, koulutuksen_alkamiskausi)
              values ($hakukohde, $haku, true, '2015K')""",
       sqlu"""insert into vastaanotot
              (henkilo, hakukohde, action, active, ilmoittaja, "timestamp", deleted)
              values ($henkilo, $hakukohde, 'VastaanotaSitovasti'::vastaanotto_action, true, 'ilmoittaja', ${timestamp.getMillis}, null)""",
-      sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, "kkTutkintoonJohtava", ilmoittaja, "timestamp", deleted)
+      sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, "timestamp", deleted)
              values ($henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${vanha_timestamp.getMillis}, null)""",
-      sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, "kkTutkintoonJohtava", ilmoittaja, "timestamp", deleted)
+      sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, "timestamp", deleted)
              values ($vanha_henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${vanha_timestamp.getMillis}, null)"""
     ).transactionally), Duration(1, TimeUnit.SECONDS))
   })

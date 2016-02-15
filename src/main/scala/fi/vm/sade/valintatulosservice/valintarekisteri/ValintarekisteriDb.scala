@@ -30,15 +30,15 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     val d = run(
           sql"""select min(all_vastaanotot."timestamp") from
                     (select "timestamp", koulutuksen_alkamiskausi from vastaanotot
-                    join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
-                                        and hakukohteet.kktutkintoonjohtava
+                    join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
+                                        and hakukohteet.kk_tutkintoon_johtava
                     where vastaanotot.henkilo = $personOid
                           and vastaanotot.active
                     union
                     select "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
                     where vanhat_vastaanotot.henkilo = $personOid
                           and vanhat_vastaanotot.deleted is null
-                          and vanhat_vastaanotot."kkTutkintoonJohtava") as all_vastaanotot
+                          and vanhat_vastaanotot.kk_tutkintoon_johtava) as all_vastaanotot
                 where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
             """.as[Option[Long]])
     Ensikertalaisuus(personOid, d.head.map(new Date(_)))
@@ -61,13 +61,13 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     val findVastaanottos =
       sql"""select person_oids.oid, min(all_vastaanotot."timestamp") from person_oids
             left join (select henkilo, "timestamp", koulutuksen_alkamiskausi from vastaanotot
-                       join hakukohteet on hakukohteet."hakukohdeOid" = vastaanotot.hakukohde
-                                           and hakukohteet.kktutkintoonjohtava
+                       join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
+                                           and hakukohteet.kk_tutkintoon_johtava
                        where vastaanotot.active and (vastaanotot.action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti'))
                        union
                        select henkilo, "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
                        where vanhat_vastaanotot.deleted is null
-                             and vanhat_vastaanotot."kkTutkintoonJohtava") as all_vastaanotot
+                             and vanhat_vastaanotot.kk_tutkintoon_johtava) as all_vastaanotot
                 on all_vastaanotot.henkilo = person_oids.oid
                    and all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
             group by person_oids.oid
@@ -79,21 +79,21 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   override def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
-    val vastaanottoRecords = run(sql"""select vo.henkilo as henkiloOid,  hk."hakuOid" as hakuOid, hk."hakukohdeOid" as hakukohdeOid,
+    val vastaanottoRecords = run(sql"""select vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
                                   vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
                            from vastaanotot vo
-                           join hakukohteet hk on hk."hakukohdeOid" = vo.hakukohde
-                           where vo.henkilo = $henkiloOid and hk."hakuOid" = $hakuOid""".as[VastaanottoRecord])
+                           join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
+                           where vo.henkilo = $henkiloOid and hk.haku_oid = $hakuOid""".as[VastaanottoRecord])
     vastaanottoRecords.toSet
   }
 
   override def findKkTutkintoonJohtavatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Set[VastaanottoRecord] = {
-    val vastaanottoRecords = run(sql"""select vo.henkilo as henkiloOid,  hk."hakuOid" as hakuOid, hk."hakukohdeOid" as hakukohdeOid,
+    val vastaanottoRecords = run(sql"""select vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
                                   vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
                            from vastaanotot vo
-                           join hakukohteet hk on hk."hakukohdeOid" = vo.hakukohde
+                           join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
                            where vo.henkilo = $henkiloOid
-                             and hk.kktutkintoonjohtava = true
+                             and hk.kk_tutkintoon_johtava = true
                              and hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}""".as[VastaanottoRecord])
     vastaanottoRecords.toSet
   }
