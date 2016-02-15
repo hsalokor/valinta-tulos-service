@@ -116,5 +116,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
          """.as[HakukohdeRecord]).headOption
   }
 
-  override def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit = ???
+  override def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit =
+    run(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi)
+               values (${hakukohdeRecord.oid}, ${hakukohdeRecord.hakuOid}, ${hakukohdeRecord.yhdenPaikanSaantoVoimassa},
+                       ${hakukohdeRecord.kktutkintoonJohtava}, ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec})
+        """)
 }
