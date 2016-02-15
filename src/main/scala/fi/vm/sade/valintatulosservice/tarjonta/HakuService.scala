@@ -41,7 +41,7 @@ case class Hakuaika(hakuaikaId: String, alkuPvm: Option[Long], loppuPvm: Option[
   }
 }
 
-case class Hakukohde(oid: String, hakuOid: String, hakukohteenKoulutusOids: List[String],
+case class Hakukohde(oid: String, hakuOid: String, hakukohdeKoulutusOids: List[String],
                      koulutusAsteTyyppi: String, koulutusmoduuliTyyppi: String)
 
 case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi)
@@ -58,7 +58,7 @@ class KoulutusSerializer extends CustomSerializer[Koulutus]((formats: Formats) =
       }
       Koulutus(oid, kausi)
     }
-  }, ???)
+  }, { case o => ??? })
 })
 
 protected trait JsonHakuService {
@@ -79,7 +79,7 @@ class CachedHakuService(wrappedService: HakuService) extends HakuService {
   private val all: (String) => Option[List[Haku]] = TTLOptionalMemoize.memoize({any : String => Some(wrappedService.kaikkiJulkaistutHaut)}, 4 * 60 * 60)
 
   override def getHaku(oid: String) = byOid(oid)
-  override def getHakukohde(oid: String): Option[Hakukohde] = ???
+  override def getHakukohde(oid: String): Option[Hakukohde] = wrappedService.getHakukohde(oid)
   def kaikkiJulkaistutHaut: List[Haku] = all("").toList.flatten
 
   override def getKoulutus(koulutusOid: String): Option[Koulutus] = wrappedService.getKoulutus(koulutusOid)
