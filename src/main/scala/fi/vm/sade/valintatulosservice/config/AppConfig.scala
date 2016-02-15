@@ -141,7 +141,7 @@ object AppConfig extends Logging {
   }
 
   trait AppConfig {
-    lazy val sijoitteluContext = new SijoitteluSpringContext(this, SijoitteluSpringContext.createApplicationContext(this), HakuService(this))
+    lazy val sijoitteluContext = new SijoitteluSpringContext(this, SijoitteluSpringContext.createApplicationContext(this))
 
     def start {}
     def stop {}
