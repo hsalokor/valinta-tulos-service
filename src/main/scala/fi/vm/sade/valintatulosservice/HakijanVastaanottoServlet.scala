@@ -1,7 +1,11 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.{VastaanottoAction, VastaanottoEvent}
+import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
+import org.json4s.JsonAST.{JField, JValue, JString}
+import org.json4s.jackson.compactJson
+import org.json4s.{MappingException, JObject, Formats, CustomSerializer}
 import org.scalatra._
 import org.scalatra.swagger.Swagger
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
@@ -29,5 +33,22 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
     }.get
 
   }
-
 }
+
+class VastaanottoActionSerializer extends CustomSerializer[VastaanottoAction]((formats: Formats) => {
+  def throwMappingException(json: String) = throw new MappingException(
+    s"Can't convert $json to ${classOf[VastaanottoAction].getSimpleName}. " +
+      s"Expected one of Peru, VastaanotaSitovasti, VastaanotaEhdollisesti.")
+  ( {
+    case json@JObject(JField("action", JString(action)) :: Nil) => action match {
+      case "Peru" => Peru
+      case "VastaanotaSitovasti" => VastaanotaSitovasti
+      case "VastaanotaEhdollisesti" => VastaanotaEhdollisesti
+      case _ => throwMappingException(compactJson(json))
+    }
+    case json: JValue => throwMappingException(compactJson(json))
+  }, {
+    case x: VastaanottoAction => JObject(JField("action", JString(x.toString)))
+  })
+}
+)
