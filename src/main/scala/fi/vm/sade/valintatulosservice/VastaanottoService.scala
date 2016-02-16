@@ -50,14 +50,7 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   def vastaanotaHakukohde(vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
-    val HakukohdeRecord(_, hakuOid, yhdenPaikanSaantoVoimassa, _, koulutuksenAlkamiskausi) =
-      hakukohdeRecordService.getHakukohdeRecord(vastaanottoEvent.hakukohdeOid)
-    val aiemmatVastaanotot = if (yhdenPaikanSaantoVoimassa) {
-      hakijaVastaanottoRepository.findKkTutkintoonJohtavatVastaanotot(vastaanottoEvent.henkiloOid, koulutuksenAlkamiskausi)
-    } else {
-      hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(vastaanottoEvent.henkiloOid, hakuOid)
-    }
-
+    val aiemmatVastaanotot = haeAiemmatVastaanotot(vastaanottoEvent.hakukohdeOid, vastaanottoEvent.henkiloOid)
     if (aiemmatVastaanotot.isEmpty) {
       Success(hakijaVastaanottoRepository.store(vastaanottoEvent))
     } else if (aiemmatVastaanotot.size == 1) {
@@ -66,6 +59,17 @@ class VastaanottoService(hakuService: HakuService,
     } else {
       Failure(new IllegalStateException(s"Hakijalla ${vastaanottoEvent.henkiloOid} useita vastaanottoja: $aiemmatVastaanotot"))
     }
+  }
+
+  private def haeAiemmatVastaanotot(hakukohdeOid: String, hakijaOid: String): Set[VastaanottoRecord] = {
+    val HakukohdeRecord(_, hakuOid, yhdenPaikanSaantoVoimassa, _, koulutuksenAlkamiskausi) =
+      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
+    val aiemmatVastaanotot = if (yhdenPaikanSaantoVoimassa) {
+      hakijaVastaanottoRepository.findKkTutkintoonJohtavatVastaanotot(hakijaOid, koulutuksenAlkamiskausi)
+    } else {
+      hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(hakijaOid, hakuOid)
+    }
+    aiemmatVastaanotot
   }
 
   private def tarkistaHakutoiveenJaValintatuloksenTila(hakutoive: Hakutoiveentulos, haluttuTila: ValintatuloksenTila) {
