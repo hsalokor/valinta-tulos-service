@@ -17,6 +17,15 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
 
   override protected def applicationDescription: String = "Opiskelupaikan vastaanoton REST API"
 
+  private val getVastaanotettavuusSwagger: OperationBuilder = (apiOperation[Seq[VastaanottoAction]]("getVastaanotettavuus")
+    summary s"Palauttaa tietyn hakemksen hakutoiveelle mahdolliset vastaanottotoimenpiteet (0-kaikki näistä: ${VastaanottoAction.values}))"
+    parameter pathParam[String]("hakuOid").description("Haun oid")
+    parameter pathParam[String]("hakemusOid").description("Hakemuksen oid")
+    parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid"))
+  get("/:hakuOid/hakemus/:hakemusOid/hakukohde/:hakukohdeOid/vastaanotettavuus", operation(getVastaanotettavuusSwagger)) {
+    vastaanottoService.paatteleVastaanotettavuus(params("hakuOid"), params("hakemusOid"), params("hakukohdeOid"))
+  }
+
   val postVastaanottoSwagger: OperationBuilder = (apiOperation[Unit]("postVastaanotto")
     summary "Tallenna hakukohteelle uusi vastaanottotila"
     parameter pathParam[String]("henkiloOid").description("Hakijan henkilönumero")

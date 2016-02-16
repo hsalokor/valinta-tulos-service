@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice
 import fi.vm.sade.utils.Timer.timed
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
@@ -76,6 +77,13 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
   }
 
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, None, Nil)
+
+  // TODO selvitetään voitaisiinko koko Vastaanotettavuustila luiskata
+  def selvitaVastaanotettavuus(hakutoiveentulos: Hakutoiveentulos, haku: Haku): Vastaanotettavuustila = {
+    val ohjausparametrit = ohjausparametritService.ohjausparametrit(haku.oid)
+    val hakutoiveenTulosWithVastaanotettavuustila = sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(List(hakutoiveentulos), haku, ohjausparametrit).head
+    hakutoiveenTulosWithVastaanotettavuustila.vastaanotettavuustila
+  }
 
   private def sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     if (haku.korkeakoulu && haku.yhteishaku && haku.varsinainenhaku) {
