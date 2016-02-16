@@ -2,6 +2,8 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila._
 import fi.vm.sade.sijoittelu.domain._
+import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
@@ -13,7 +15,7 @@ class VastaanottoService(hakuService: HakuService,
                          valintatulosService: ValintatulosService,
                          hakijaVastaanottoRepository: HakijaVastaanottoRepository,
                          hakukohdeRecordService: HakukohdeRecordService,
-                         tulokset: ValintatulosRepository) {
+                         tulokset: ValintatulosRepository) extends Logging{
 
   val sallitutVastaanottotilat: Set[ValintatuloksenTila] = Set(VASTAANOTTANUT_SITOVASTI, EHDOLLISESTI_VASTAANOTTANUT, PERUNUT)
 
@@ -47,6 +49,29 @@ class VastaanottoService(hakuService: HakuService,
 
       peruMuutHyvaksytyt(tarkistettavatHakemukset, vastaanotto, haku, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
     }
+  }
+
+  def paatteleVastaanotettavuus(hakuOid: String, hakemusOid: String, hakukohdeOid: String): Seq[VastaanottoAction] = {
+    // TODO pitäisikö tässä kohtaa tarkistaa, että haku <-> hakukohde <-> hakemus liittyvät toisiinsa?
+
+    val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException(s"Hakua $hakuOid ei löydy"))
+    val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException(s"Hakemusta $hakemusOid ei löydy"))
+
+    val aiemmatVastaanotot = haeAiemmatVastaanotot(hakukohdeOid, hakemuksenTulos.hakijaOid)
+    if (aiemmatVastaanotot.nonEmpty) {
+      logger.debug(s"Ei voida ottaa vastaan, koska löytyi aiempi vastaanotto: $aiemmatVastaanotot.")
+      return Nil
+    }
+    val hakutoiveenTulos = hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(
+      throw new IllegalStateException(s"Ei löydy kohteen $hakukohdeOid tulosta hakemuksen tuloksesta $hakemuksenTulos"))
+    if (!Valintatila.isHyväksytty(hakutoiveenTulos.valintatila)) {
+      logger.debug(s"Ei voida ottaa vastaan, koska hakutoiveen valintatila ei ole hyväksytty: ${hakutoiveenTulos.valintatila}")
+      return Nil
+    }
+
+    val vastaanotettavuusHaunPerusteella = valintatulosService.selvitaVastaanotettavuus(hakutoiveenTulos, haku)
+    // TODO: päättele korkeakoulukeissistä, palautetaanko sekä sitova että ehdollinen vai vain toinen niistä
+    ???
   }
 
   def vastaanotaHakukohde(vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
