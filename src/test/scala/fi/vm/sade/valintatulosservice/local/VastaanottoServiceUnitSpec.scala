@@ -86,6 +86,15 @@ class VastaanottoServiceUnitSpec extends Specification {
           there was no(hakijaVastaanottoRepository).store(vastaanottoEvent)
           there was no(hakijaVastaanottoRepository).findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
+        "kun hakija on perunut aiemman paikan samassa haussa" in new IlmanYhdenPaikanSaantoa {
+          val vastaanottoEvent = VastaanottoEvent(henkiloOid, hakukohde.oid, VastaanotaSitovasti)
+          val previousVastaanottoRecord = VastaanottoRecord(henkiloOid, haku.oid, hakukohde.oid,
+            Peru, ilmoittaja = "", new Date(0))
+
+          hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, haku.oid) returns Set(previousVastaanottoRecord)
+          v.vastaanotaHakukohde(vastaanottoEvent) must beEqualTo(Success(()))
+          there was one(hakijaVastaanottoRepository).store(vastaanottoEvent)
+        }
         "hakijalla ei voi olla useita vastaanottoja samassa haussa" in new IlmanYhdenPaikanSaantoa {
           val vastaanottoEvent = VastaanottoEvent(henkiloOid, hakukohde.oid, VastaanotaSitovasti)
           val previousVastaanottoRecord = VastaanottoRecord(

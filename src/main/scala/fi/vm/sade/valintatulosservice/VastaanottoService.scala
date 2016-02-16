@@ -69,7 +69,7 @@ class VastaanottoService(hakuService: HakuService,
     } else {
       hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(hakijaOid, hakuOid)
     }
-    aiemmatVastaanotot
+    aiemmatVastaanotot.filter(_.action != Peru)
   }
 
   private def tarkistaHakutoiveenJaValintatuloksenTila(hakutoive: Hakutoiveentulos, haluttuTila: ValintatuloksenTila) {
