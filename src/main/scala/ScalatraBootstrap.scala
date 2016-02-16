@@ -19,6 +19,11 @@ class ScalatraBootstrap extends LifeCycle {
 
   override def init(context: ServletContext) {
     implicit val appConfig: AppConfig = AppConfig.fromOptionalString(Option(context.getAttribute("valintatulos.profile").asInstanceOf[String]))
+    globalConfig = Some(appConfig)
+    appConfig.start
+    if (appConfig.isInstanceOf[IT] || appConfig.isInstanceOf[Dev]) {
+      context.mount(new FixtureServlet, "/util")
+    }
     lazy val hakuService = HakuService(appConfig)
     lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
     lazy val hakukohdeRecordService = new HakukohdeRecordService(hakuService, valintarekisteriDb)
@@ -29,8 +34,6 @@ class ScalatraBootstrap extends LifeCycle {
     lazy val valintatulosCollection = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
     lazy val mailPoller = new MailPoller(valintatulosCollection, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 100)
 
-    globalConfig = Some(appConfig)
-    appConfig.start
     context.mount(new BuildInfoServlet, "/")
 
     context.mount(new PrivateValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
@@ -45,13 +48,9 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new PublicValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/cas/haku")
 
     context.mount(new SwaggerServlet, "/swagger/*")
-
-    if (appConfig.isInstanceOf[IT] || appConfig.isInstanceOf[Dev])
-      context.mount(new FixtureServlet, "/util")
   }
 
   override def destroy(context: ServletContext) = {
-    globalConfig.foreach(_.stop)
     super.destroy(context)
   }
 }
