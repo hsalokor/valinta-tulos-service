@@ -1,6 +1,5 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.valintatulosservice.config.AppConfig
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.webapp.WebAppContext
 
@@ -21,8 +20,6 @@ class JettyLauncher(val port: Int, profile: Option[String] = None) {
   server.setHandler(context)
 
   def start = {
-    val appConfig = AppConfig.fromOptionalString(profile)
-    appConfig.start
     server.start
     server
   }

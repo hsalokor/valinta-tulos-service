@@ -2,7 +2,6 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.json.JsonFormats
-import org.json4s.jackson.Serialization
 import org.scalatra.test.HttpComponentsClient
 import org.specs2.mutable.Specification
 import org.specs2.specification.{Fragments, Step}
@@ -15,7 +14,7 @@ trait ServletSpecification extends Specification with ITSetup with TimeWarp with
   override lazy val hakemusFixtureImporter = HakemusFixtures()
 
   override def map(fs: => Fragments) = {
-    Step(SharedJetty.start) ^ super.map(fs) ^ Step(appConfig.stop)
+    Step(SharedJetty.start) ^ super.map(fs)
   }
 
   def postJSON[T](path: String, body: String, headers: Map[String, String] = Map.empty)(block: => T): T = {

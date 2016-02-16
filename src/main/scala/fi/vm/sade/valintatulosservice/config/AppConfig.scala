@@ -68,11 +68,15 @@ object AppConfig extends Logging {
    *  IT (integration test) profiles. Uses embedded mongo and PostgreSQL databases, and stubbed external deps
    */
   class IT extends ExampleTemplatedProps with StubbedExternalDeps with MockSecurity {
-    private var mongo: Option[MongoServer] = None
     private lazy val itPostgres = new ItPostgres(itPostgresPortChooser)
 
     override def start {
-      mongo = EmbeddedMongo.start(embeddedMongoPortChooser)
+      val mongo = EmbeddedMongo.start(embeddedMongoPortChooser)
+      Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
+        override def run() {
+          mongo.foreach(_.stop)
+        }
+      }))
       itPostgres.start()
       try {
         importFixturesToSijoitteluDatabase
@@ -89,11 +93,6 @@ object AppConfig extends Logging {
 
     protected def importFixturesToHakemusDatabase {
       HakemusFixtures()(this).clear.importDefaultFixtures
-    }
-
-    override def stop {
-      mongo.foreach(_.stop)
-      mongo = None
     }
 
     override lazy val settings = loadSettings
@@ -147,16 +146,6 @@ object AppConfig extends Logging {
     lazy val sijoitteluContext = new SijoitteluSpringContext(this, SijoitteluSpringContext.createApplicationContext(this))
 
     def start {}
-    def stop {}
-
-    def withConfig[T](f: (AppConfig => T)): T = {
-      start
-      try {
-        f(this)
-      } finally {
-        stop
-      }
-    }
 
     lazy val ohjausparametritService = this match {
       case _ : StubbedExternalDeps => new StubbedOhjausparametritService()
