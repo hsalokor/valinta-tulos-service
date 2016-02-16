@@ -30,6 +30,7 @@ class ScalatraBootstrap extends LifeCycle {
     lazy val mailPoller = new MailPoller(valintatulosCollection, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 100)
 
     globalConfig = Some(appConfig)
+    appConfig.start
     context.mount(new BuildInfoServlet, "/")
 
     context.mount(new PrivateValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
