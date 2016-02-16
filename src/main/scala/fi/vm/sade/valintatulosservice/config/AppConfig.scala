@@ -113,7 +113,10 @@ object AppConfig extends Logging {
       .withOverride("hakemus.mongodb.uri", "mongodb://localhost:" + System.getProperty("hakemus.embeddedmongo.port", "28018"))
       .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
       .withOverride(("sijoittelu-service.mongodb.dbname", "sijoittelu"))
-    
+      .withOverride("valinta-tulos-service.valintarekisteri.db.url", s"jdbc:postgresql://localhost:${itPostgresPortChooser.chosenPort}/valintarekisteri")
+      .withoutPath("valinta-tulos-service.valintarekisteri.db.user")
+      .withoutPath("valinta-tulos-service.valintarekisteri.db.password")
+
     override def importFixturesToHakemusDatabase { /* Don't import initial fixtures, as database is considered external */ }
   }
 
