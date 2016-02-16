@@ -37,26 +37,6 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     )
   }
 
-  def hakemustenTulosByHakukohdeAndPerson(hakukohdeOid: String, personOid: String): Option[Hakemuksentulos] = {
-    timed(s"Fetch hakemusten tulos for hakukohde: $hakukohdeOid and person: $personOid", 1000) {
-      val hakemukset = hakemusRepository.findHakemuksetByHakukohdeAndPerson(hakukohdeOid, personOid)
-      if (hakemukset.nonEmpty) {
-        Some({
-          val hakemus = hakemukset.next()
-          val hakuOid = hakemus.hakuOid
-          val haku = hakuService.getHaku(hakuOid).getOrElse(throw new Exception(s"haku $hakuOid not found"))
-          val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-          val sijoitteluTulos = timed("Fetch sijoittelun tulos", 1000) {
-            sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid)
-          }.getOrElse(tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
-          julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
-        })
-      } else {
-        None
-      }
-    }
-  }
-
   private def fetchTulokset(hakuOid: String, getHakemukset: Haku => Iterator[Hakemus], getSijoittelunTulos: (Haku) => Seq[HakemuksenSijoitteluntulos]): Option[Iterator[Hakemuksentulos]] = {
     for (
       haku <- hakuService.getHaku(hakuOid)
