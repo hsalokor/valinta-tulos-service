@@ -83,7 +83,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                                   vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
                            from vastaanotot vo
                            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
-                           where vo.henkilo = $henkiloOid and hk.haku_oid = $hakuOid""".as[VastaanottoRecord])
+                           where vo.henkilo = $henkiloOid
+                              and hk.haku_oid = $hakuOid
+                              and vo.deleted is null""".as[VastaanottoRecord])
     vastaanottoRecords.toSet
   }
 
@@ -94,6 +96,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
                            where vo.henkilo = $henkiloOid
                              and hk.kk_tutkintoon_johtava = true
+                             and vo.deleted is null
                              and hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}""".as[VastaanottoRecord])
     vastaanottoRecords.toSet
   }
