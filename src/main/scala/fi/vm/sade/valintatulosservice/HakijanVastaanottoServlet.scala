@@ -17,23 +17,15 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
 
   override protected def applicationDescription: String = "Opiskelupaikan vastaanoton REST API"
 
-  private val getVastaanotettavuusSwagger: OperationBuilder = (apiOperation[Seq[VastaanottoAction]]("getVastaanotettavuus")
-    summary s"Palauttaa tietyn hakemksen hakutoiveelle mahdolliset vastaanottotoimenpiteet (0-kaikki näistä: ${VastaanottoAction.values}))"
-    parameter pathParam[String]("hakuOid").description("Haun oid")
-    parameter pathParam[String]("hakemusOid").description("Hakemuksen oid")
-    parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid"))
-  get("/:hakuOid/hakemus/:hakemusOid/hakukohde/:hakukohdeOid/vastaanotettavuus", operation(getVastaanotettavuusSwagger)) {
-    vastaanottoService.paatteleVastaanotettavuus(params("hakuOid"), params("hakemusOid"), params("hakukohdeOid"))
-  }
+  registerModel(Model(id = classOf[VastaanottoAction].getSimpleName, name = classOf[VastaanottoAction].getSimpleName,
+          properties = List("action" -> ModelProperty(`type` = DataType.String, position = 0, required = true,
+            allowableValues = AllowableValues(VastaanottoAction.values)))))
 
   val postVastaanottoSwagger: OperationBuilder = (apiOperation[Unit]("postVastaanotto")
     summary "Tallenna hakukohteelle uusi vastaanottotila"
     parameter pathParam[String]("henkiloOid").description("Hakijan henkilönumero")
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
-    parameter bodyParam(Model(id = classOf[VastaanottoAction].getSimpleName, name = classOf[VastaanottoAction].getSimpleName,
-        properties = List("action" -> ModelProperty(`type` = DataType.String, position = 0, required = true,
-          allowableValues = AllowableValues(VastaanottoAction.values)))
-    )))
+    parameter bodyParam[VastaanottoAction])
   post("/henkilo/:henkiloOid/hakukohde/:hakukohdeOid", operation(postVastaanottoSwagger)) {
     val personOid = params("henkiloOid")
     val hakukohdeOid = params("hakukohdeOid")
@@ -42,7 +34,15 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
     Try(vastaanottoService.vastaanotaHakukohde(VastaanottoEvent(personOid, hakukohdeOid, action))).map((_) => Ok()).recover{
       case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
     }.get
+  }
 
+  private val getVastaanotettavuusSwagger: OperationBuilder = (apiOperation[Seq[VastaanottoAction]]("getVastaanotettavuus")
+    summary s"Palauttaa tietyn hakemksen hakutoiveelle mahdolliset vastaanottotoimenpiteet (0-kaikki näistä: ${VastaanottoAction.values}))"
+    parameter pathParam[String]("hakuOid").description("Haun oid")
+    parameter pathParam[String]("hakemusOid").description("Hakemuksen oid")
+    parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid"))
+  get("/:hakuOid/hakemus/:hakemusOid/hakukohde/:hakukohdeOid/vastaanotettavuus", operation(getVastaanotettavuusSwagger)) {
+    vastaanottoService.paatteleVastaanotettavuus(params("hakuOid"), params("hakemusOid"), params("hakukohdeOid"))
   }
 }
 
