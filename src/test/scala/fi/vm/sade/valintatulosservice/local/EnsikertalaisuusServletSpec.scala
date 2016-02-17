@@ -30,7 +30,7 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
   val vanha_timestamp = new DateTime(2014, 6, 19, 0, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
 
   step({
-    singleConnectionValintarekisteriDb.run(DBIOAction.seq(
+    singleConnectionValintarekisteriDb.runBlocking(DBIOAction.seq(
           sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
                  values ($hakukohde, $haku, true, true, '2015K')""",
           sqlu"""insert into vastaanotot

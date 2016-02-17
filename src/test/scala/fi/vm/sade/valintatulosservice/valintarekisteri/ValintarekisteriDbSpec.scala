@@ -22,7 +22,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
   private val otherHakuOid = "1.2.246.561.29.00000000002"
 
   step(appConfig.start)
-  step(db.run(DBIOAction.seq(
+  step(db.runBlocking(DBIOAction.seq(
     sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
            values ($hakukohdeOid, $hakuOid, true, true, '2015K')""",
     sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
@@ -31,7 +31,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
   "ValintarekisteriDb" should {
     "store vastaanotto actions" in {
       db.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
-      val henkiloOidsAndActionsFromDb = db.run(
+      val henkiloOidsAndActionsFromDb = db.runBlocking(
         sql"""select henkilo, action from vastaanotot
               where henkilo = $henkiloOid and hakukohde = $hakukohdeOid""".as[(String, String)])
       henkiloOidsAndActionsFromDb must have size 1
@@ -57,7 +57,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     "find vastaanotot rows leading to higher education degrees of person" in {
       db.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
       db.store(VastaanottoEvent(henkiloOid + "2", hakukohdeOid, VastaanotaSitovasti))
-      db.run(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
+      db.runBlocking(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
                        values (${hakukohdeOid + "1"}, ${hakuOid + "1"}, false, false, '2015K')""")
       db.store(VastaanottoEvent(henkiloOid, hakukohdeOid + "1", VastaanotaSitovasti))
       val recordsFromDb = db.findKkTutkintoonJohtavatVastaanotot(henkiloOid, Kausi("2015K"))
