@@ -14,7 +14,6 @@ import slick.driver.PostgresDriver.api._
 @RunWith(classOf[JUnitRunner])
 class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfterExample {
   sequential
-  private lazy val db = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
   private val henkiloOid = "1.2.246.562.24.00000000001"
   private val hakukohdeOid = "1.2.246.561.20.00000000001"
   private val otherHakukohdeOid = "1.2.246.561.20.00000000002"
@@ -22,7 +21,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
   private val otherHakuOid = "1.2.246.561.29.00000000002"
 
   step(appConfig.start)
-  step(db.runBlocking(DBIOAction.seq(
+  step(singleConnectionValintarekisteriDb.runBlocking(DBIOAction.seq(
     sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
            values ($hakukohdeOid, $hakuOid, true, true, '2015K')""",
     sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
@@ -30,8 +29,8 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
 
   "ValintarekisteriDb" should {
     "store vastaanotto actions" in {
-      db.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
-      val henkiloOidsAndActionsFromDb = db.runBlocking(
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
+      val henkiloOidsAndActionsFromDb = singleConnectionValintarekisteriDb.runBlocking(
         sql"""select henkilo, action from vastaanotot
               where henkilo = $henkiloOid and hakukohde = $hakukohdeOid""".as[(String, String)])
       henkiloOidsAndActionsFromDb must have size 1
@@ -39,10 +38,10 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     }
 
     "find vastaanotot rows of person for given haku" in {
-      db.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
-      db.store(VastaanottoEvent(henkiloOid, otherHakukohdeOid, VastaanotaSitovasti))
-      db.store(VastaanottoEvent(henkiloOid + "2", hakukohdeOid, VastaanotaSitovasti))
-      val vastaanottoRowsFromDb = db.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, otherHakukohdeOid, VastaanotaSitovasti))
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid + "2", hakukohdeOid, VastaanotaSitovasti))
+      val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
       vastaanottoRowsFromDb must have size 1
       val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
         ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.head
@@ -55,26 +54,22 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     }
 
     "find vastaanotot rows leading to higher education degrees of person" in {
-      db.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
-      db.store(VastaanottoEvent(henkiloOid + "2", hakukohdeOid, VastaanotaSitovasti))
-      db.runBlocking(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakukohdeOid, VastaanotaSitovasti))
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid + "2", hakukohdeOid, VastaanotaSitovasti))
+      singleConnectionValintarekisteriDb.runBlocking(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
                        values (${hakukohdeOid + "1"}, ${hakuOid + "1"}, false, false, '2015K')""")
-      db.store(VastaanottoEvent(henkiloOid, hakukohdeOid + "1", VastaanotaSitovasti))
-      val recordsFromDb = db.findKkTutkintoonJohtavatVastaanotot(henkiloOid, Kausi("2015K"))
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakukohdeOid + "1", VastaanotaSitovasti))
+      val recordsFromDb = singleConnectionValintarekisteriDb.findKkTutkintoonJohtavatVastaanotot(henkiloOid, Kausi("2015K"))
       recordsFromDb must have size 1
       recordsFromDb.head.hakukohdeOid mustEqual hakukohdeOid
     }
   }
 
-  private def cleanVastaanottosFromDb(): Unit = {
-    db.db.run(sqlu"delete from vastaanotot")
-  }
-
   override protected def before: Unit = {
-    cleanVastaanottosFromDb()
+    ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
   }
 
   override protected def after: Unit = {
-    cleanVastaanottosFromDb()
+    ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
   }
 }
