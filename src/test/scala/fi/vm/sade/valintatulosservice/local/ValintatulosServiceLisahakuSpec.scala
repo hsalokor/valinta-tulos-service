@@ -48,8 +48,8 @@ class ValintatulosServiceLisahakuSpec extends ITSpecification with TimeWarp {
   }
 
   lazy val hakuService = HakuService(appConfig)
-  lazy val valintarekisteriDb1 = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
-  lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb1)
+  lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
+  lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb)
   lazy val valintatulosService = new ValintatulosService(sijoittelutulosService, hakuService)
 
   val hakuOid: String = "korkeakoulu-lisahaku1"

@@ -339,8 +339,8 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
   }
 
   lazy val hakuService = HakuService(appConfig)
-  lazy val valintarekisteriDb1 = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
-  lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb1)
+  lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
+  lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb)
   lazy val valintatulosService = new ValintatulosService(sijoittelutulosService, hakuService)
 
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
