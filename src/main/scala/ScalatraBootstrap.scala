@@ -6,6 +6,7 @@ import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
+import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb, ValintarekisteriService}
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{ValintatulosMongoCollection, MailDecorator, MailPoller}
@@ -27,7 +28,8 @@ class ScalatraBootstrap extends LifeCycle {
     lazy val hakuService = HakuService(appConfig)
     lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
     lazy val hakukohdeRecordService = new HakukohdeRecordService(hakuService, valintarekisteriDb)
-    lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
+    lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb)
+    lazy val valintatulosService = new ValintatulosService(sijoittelutulosService, hakuService)(appConfig)
     lazy val vastaanottoService = new VastaanottoService(hakuService, valintatulosService, valintarekisteriDb,
       hakukohdeRecordService, appConfig.sijoitteluContext.valintatulosRepository)
     lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
