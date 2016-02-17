@@ -1,22 +1,20 @@
 package fi.vm.sade.valintatulosservice.local
 
-import java.util.concurrent.TimeUnit
-
 import fi.vm.sade.valintatulosservice.ServletSpecification
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.{EiEnsikertalainen, Ensikertalainen, Ensikertalaisuus, EnsikertalaisuusServlet}
+import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriTools
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.jackson.Serialization._
 import org.junit.runner.RunWith
+import org.specs2.mutable.BeforeAfter
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.After
 import slick.dbio.DBIOAction
 import slick.driver.PostgresDriver.api._
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-
 @RunWith(classOf[JUnitRunner])
-class EnsikertalaisuusServletSpec extends ServletSpecification {
+class EnsikertalaisuusServletSpec extends ServletSpecification with After {
   override implicit val formats = EnsikertalaisuusServlet.ensikertalaisuusJsonFormats
   val henkilo = "1.2.246.562.24.00000000001"
   val vastaanottamaton_henkilo = "1.2.246.562.24.00000000002"
@@ -29,6 +27,7 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
   val timestamp = new DateTime(2014, 7, 1, 0, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
   val vanha_timestamp = new DateTime(2014, 6, 19, 0, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
 
+  step(ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb))
   step({
     singleConnectionValintarekisteriDb.runBlocking(DBIOAction.seq(
           sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
@@ -123,4 +122,6 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
       }
     }
   }
+
+  override def after: Unit = ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
 }
