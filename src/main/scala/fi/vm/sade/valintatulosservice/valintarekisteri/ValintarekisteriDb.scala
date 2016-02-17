@@ -27,7 +27,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     r.nextString(), VastaanottoAction(r.nextString()), r.nextString(), new Date(r.nextLong())))
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
-    val d = run(
+    val d = runBlocking(
           sql"""select min(all_vastaanotot."timestamp") from
                     (select "timestamp", koulutuksen_alkamiskausi from vastaanotot
                     join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
@@ -74,12 +74,12 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
         """.as[(String, Option[Long])]
 
     val operations = createTempTable.andThen(insertPersonOids).andThen(findVastaanottos)
-    val result = run(operations.transactionally, Duration(1, TimeUnit.MINUTES))
+    val result = runBlocking(operations.transactionally, Duration(1, TimeUnit.MINUTES))
     result.map(row => Ensikertalaisuus(row._1, row._2.map(new Date(_)))).toSet
   }
 
   override def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
-    val vastaanottoRecords = run(sql"""select vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
+    val vastaanottoRecords = runBlocking(sql"""select vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
                                   vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
                            from vastaanotot vo
                            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
@@ -90,7 +90,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   override def findKkTutkintoonJohtavatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Set[VastaanottoRecord] = {
-    val vastaanottoRecords = run(sql"""select vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
+    val vastaanottoRecords = runBlocking(sql"""select vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
                                   vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
                            from vastaanotot vo
                            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
@@ -104,23 +104,23 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
     val VastaanottoEvent(henkiloOid, hakukohdeOid, action) = vastaanottoEvent
     val now = System.currentTimeMillis()
-    run(sqlu"""insert into vastaanotot (hakukohde, henkilo, active, action, ilmoittaja, "timestamp")
+    runBlocking(sqlu"""insert into vastaanotot (hakukohde, henkilo, active, action, ilmoittaja, "timestamp")
               values ($hakukohdeOid, $henkiloOid, true, ${action.toString}::vastaanotto_action, $henkiloOid, $now)""")
   }
 
-  def run[R](operations: DBIO[R], timeout: Duration = Duration(1, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
+  def runBlocking[R](operations: DBIO[R], timeout: Duration = Duration(1, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
 
   override def findHakukohde(oid: String): Option[HakukohdeRecord] = {
     implicit val getHakukohdeResult = GetResult(r =>
       HakukohdeRecord(r.nextString(), r.nextString(), r.nextBoolean(), r.nextBoolean(), Kausi(r.nextString())))
-    run(sql"""select hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi
+    runBlocking(sql"""select hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi
            from hakukohteet
            where hakukohde_oid = $oid
          """.as[HakukohdeRecord]).headOption
   }
 
   override def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit =
-    run(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi)
+    runBlocking(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi)
                values (${hakukohdeRecord.oid}, ${hakukohdeRecord.hakuOid}, ${hakukohdeRecord.yhdenPaikanSaantoVoimassa},
                        ${hakukohdeRecord.kktutkintoonJohtava}, ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec})
         """)
