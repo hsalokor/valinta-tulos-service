@@ -6,7 +6,7 @@ import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
-import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
+import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb, ValintarekisteriService}
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{ValintatulosMongoCollection, MailDecorator, MailPoller}
@@ -23,7 +23,8 @@ class ScalatraBootstrap extends LifeCycle {
     globalConfig = Some(appConfig)
     appConfig.start
     if (appConfig.isInstanceOf[IT] || appConfig.isInstanceOf[Dev]) {
-      context.mount(new FixtureServlet, "/util")
+      context.mount(new FixtureServlet(valintarekisteriDb), "/util")
+      SijoitteluFixtures(appConfig.sijoitteluContext.database, valintarekisteriDb).importFixture("hyvaksytty-kesken-julkaistavissa.json")
     }
     lazy val hakuService = HakuService(appConfig)
     lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)

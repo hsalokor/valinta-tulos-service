@@ -11,11 +11,14 @@ import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriDb
 trait ITSetup {
   implicit val appConfig = new AppConfig.IT
   private val dbConfig = appConfig.settings.valintaRekisteriDbConfig
-  lazy val valintarekisteriDb = new ValintarekisteriDb(
-    dbConfig.withValue("connectionPool", ConfigValueFactory.fromAnyRef("disabled"))).db
+
+  lazy private val valintarekisteriDb1 = new ValintarekisteriDb(
+    dbConfig.withValue("connectionPool", ConfigValueFactory.fromAnyRef("disabled")))
+
+  lazy val valintarekisteriDb = valintarekisteriDb1.db
   lazy val hakemusFixtureImporter = HakemusFixtures()(appConfig)
 
-  lazy val sijoitteluFixtures = SijoitteluFixtures(appConfig.sijoitteluContext.database)
+  lazy val sijoitteluFixtures = SijoitteluFixtures(appConfig.sijoitteluContext.database, valintarekisteriDb1)
 
   def useFixture(fixtureName: String,
                  extraFixtureNames: List[String] = List(),
