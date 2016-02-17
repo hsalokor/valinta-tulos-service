@@ -7,11 +7,12 @@ import fi.vm.sade.valintatulosservice.domain.{Kausi, VastaanotaSitovasti, Vastaa
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.BeforeAfterExample
 import slick.dbio.DBIOAction
 import slick.driver.PostgresDriver.api._
 
 @RunWith(classOf[JUnitRunner])
-class ValintarekisteriDbSpec extends Specification with ITSetup {
+class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfterExample {
   sequential
   private lazy val db = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
   private val henkiloOid = "1.2.246.562.24.00000000001"
@@ -33,7 +34,6 @@ class ValintarekisteriDbSpec extends Specification with ITSetup {
       val henkiloOidsAndActionsFromDb = db.run(
         sql"""select henkilo, action from vastaanotot
               where henkilo = $henkiloOid and hakukohde = $hakukohdeOid""".as[(String, String)])
-      valintarekisteriDb.run(sqlu"delete from vastaanotot")
       henkiloOidsAndActionsFromDb must have size 1
       henkiloOidsAndActionsFromDb.head mustEqual (henkiloOid, VastaanotaSitovasti.toString)
     }
@@ -43,7 +43,6 @@ class ValintarekisteriDbSpec extends Specification with ITSetup {
       db.store(VastaanottoEvent(henkiloOid, otherHakukohdeOid, VastaanotaSitovasti))
       db.store(VastaanottoEvent(henkiloOid + "2", hakukohdeOid, VastaanotaSitovasti))
       val vastaanottoRowsFromDb = db.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
-      valintarekisteriDb.run(sqlu"delete from vastaanotot")
       vastaanottoRowsFromDb must have size 1
       val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
         ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.head
@@ -65,5 +64,17 @@ class ValintarekisteriDbSpec extends Specification with ITSetup {
       recordsFromDb must have size 1
       recordsFromDb.head.hakukohdeOid mustEqual hakukohdeOid
     }
+  }
+
+  private def cleanVastaanottosFromDb(): Unit = {
+    db.db.run(sqlu"delete from vastaanotot")
+  }
+
+  override protected def before: Unit = {
+    cleanVastaanottosFromDb()
+  }
+
+  override protected def after: Unit = {
+    cleanVastaanottosFromDb()
   }
 }
