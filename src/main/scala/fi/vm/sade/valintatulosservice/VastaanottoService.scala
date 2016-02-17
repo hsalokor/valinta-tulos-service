@@ -59,16 +59,17 @@ class VastaanottoService(hakuService: HakuService,
 
     val aiemmatVastaanotot = haeAiemmatVastaanotot(hakukohdeOid, hakemuksenTulos.hakijaOid)
     if (aiemmatVastaanotot.nonEmpty) {
-      return Vastaanotettavuus(Nil, Some(s"Ei voida ottaa vastaan, koska löytyi aiempi vastaanotto: $aiemmatVastaanotot."))
+      Vastaanotettavuus(Nil, Some(s"Ei voida ottaa vastaan, koska löytyi aiempi vastaanotto: $aiemmatVastaanotot."))
+    } else {
+      val hakutoiveenTulos = hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(
+        throw new IllegalStateException(s"Ei löydy kohteen $hakukohdeOid tulosta hakemuksen tuloksesta $hakemuksenTulos"))
+      if (!Valintatila.isHyväksytty(hakutoiveenTulos.valintatila)) {
+        Vastaanotettavuus(Nil, Some(s"Ei voida ottaa vastaan, koska hakutoiveen valintatila ei ole hyväksytty: ${hakutoiveenTulos.valintatila}"))
+      } else {
+        val vastaanotettavissaEhdollisesti = valintatulosService.onkoVastaanotettavissaEhdollisesti(hakutoiveenTulos, haku)
+        Vastaanotettavuus(List(Peru, VastaanotaSitovasti) ++ (if (vastaanotettavissaEhdollisesti) List(VastaanotaEhdollisesti) else Nil))
+      }
     }
-    val hakutoiveenTulos = hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(
-      throw new IllegalStateException(s"Ei löydy kohteen $hakukohdeOid tulosta hakemuksen tuloksesta $hakemuksenTulos"))
-    if (!Valintatila.isHyväksytty(hakutoiveenTulos.valintatila)) {
-      return Vastaanotettavuus(Nil, Some(s"Ei voida ottaa vastaan, koska hakutoiveen valintatila ei ole hyväksytty: ${hakutoiveenTulos.valintatila}"))
-    }
-
-    val vastaanotettavissaEhdollisesti = valintatulosService.onkoVastaanotettavissaEhdollisesti(hakutoiveenTulos, haku)
-    Vastaanotettavuus(List(Peru, VastaanotaSitovasti) ++ (if (vastaanotettavissaEhdollisesti) List(VastaanotaEhdollisesti) else Nil))
   }
 
   def vastaanotaHakukohde(vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
