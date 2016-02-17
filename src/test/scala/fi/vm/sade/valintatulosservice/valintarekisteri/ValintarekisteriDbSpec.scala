@@ -65,11 +65,6 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     }
   }
 
-  override protected def before: Unit = {
-    ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
-  }
-
-  override protected def after: Unit = {
-    ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
-  }
+  override protected def before: Unit = ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
+  override protected def after: Unit = ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
 }
