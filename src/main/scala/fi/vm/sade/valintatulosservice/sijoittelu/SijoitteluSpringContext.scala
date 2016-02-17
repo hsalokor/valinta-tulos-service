@@ -26,7 +26,7 @@ class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext) {
 }
 
 object SijoitteluSpringContext {
-  def check {}
+  def check() {}
 
   def createApplicationContext(configuration: AppConfig): AnnotationConfigApplicationContext = {
     val appContext: AnnotationConfigApplicationContext = new AnnotationConfigApplicationContext
@@ -35,8 +35,8 @@ object SijoitteluSpringContext {
     appContext.getEnvironment.setActiveProfiles(springConfiguration.profile)
     customPropertiesHack(appContext, configuration)
     appContext.register(springConfiguration.getClass)
-    appContext.refresh
-    return appContext
+    appContext.refresh()
+    appContext
   }
 
   private def customPropertiesHack(appContext: AnnotationConfigApplicationContext, configuration: AppConfig) {
