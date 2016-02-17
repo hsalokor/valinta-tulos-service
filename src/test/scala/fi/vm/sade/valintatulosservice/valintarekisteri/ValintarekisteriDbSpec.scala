@@ -21,6 +21,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
   private val otherHakuOid = "1.2.246.561.29.00000000002"
 
   step(appConfig.start)
+  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
   step(singleConnectionValintarekisteriDb.runBlocking(DBIOAction.seq(
     sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
            values ($hakukohdeOid, $hakuOid, true, true, '2015K')""",
@@ -67,4 +68,6 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
 
   override protected def before: Unit = ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
   override protected def after: Unit = ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
+
+  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
 }
