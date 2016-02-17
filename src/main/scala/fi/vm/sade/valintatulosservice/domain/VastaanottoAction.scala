@@ -21,3 +21,5 @@ object VastaanottoAction {
     throw new IllegalArgumentException(s"Unknown action '$value', expected one of $values")
   })
 }
+
+case class Vastaanotettavuus(allowedActions: Seq[VastaanottoAction], reason: Option[String] = None)
