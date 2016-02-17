@@ -12,13 +12,12 @@ trait ITSetup {
   implicit val appConfig = new AppConfig.IT
   private val dbConfig = appConfig.settings.valintaRekisteriDbConfig
 
-  lazy private val valintarekisteriDb1 = new ValintarekisteriDb(
+  lazy val singleConnectionValintarekisteriDb = new ValintarekisteriDb(
     dbConfig.withValue("connectionPool", ConfigValueFactory.fromAnyRef("disabled")))
 
-  lazy val valintarekisteriDb = valintarekisteriDb1.db
   lazy val hakemusFixtureImporter = HakemusFixtures()(appConfig)
 
-  lazy val sijoitteluFixtures = SijoitteluFixtures(appConfig.sijoitteluContext.database, valintarekisteriDb1)
+  lazy val sijoitteluFixtures = SijoitteluFixtures(appConfig.sijoitteluContext.database, singleConnectionValintarekisteriDb)
 
   def useFixture(fixtureName: String,
                  extraFixtureNames: List[String] = List(),

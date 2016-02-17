@@ -30,17 +30,17 @@ class EnsikertalaisuusServletSpec extends ServletSpecification {
   val vanha_timestamp = new DateTime(2014, 6, 19, 0, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
 
   step({
-    Await.ready(valintarekisteriDb.run(DBIOAction.seq(
-      sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
-             values ($hakukohde, $haku, true, true, '2015K')""",
-      sqlu"""insert into vastaanotot
-             (henkilo, hakukohde, action, active, ilmoittaja, "timestamp", deleted)
-             values ($henkilo, $hakukohde, 'VastaanotaSitovasti'::vastaanotto_action, true, 'ilmoittaja', ${timestamp.getMillis}, null)""",
-      sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, "timestamp", deleted)
-             values ($henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${vanha_timestamp.getMillis}, null)""",
-      sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, "timestamp", deleted)
-             values ($vanha_henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${vanha_timestamp.getMillis}, null)"""
-    ).transactionally), Duration(1, TimeUnit.SECONDS))
+    singleConnectionValintarekisteriDb.run(DBIOAction.seq(
+          sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
+                 values ($hakukohde, $haku, true, true, '2015K')""",
+          sqlu"""insert into vastaanotot
+                 (henkilo, hakukohde, action, active, ilmoittaja, "timestamp", deleted)
+                 values ($henkilo, $hakukohde, 'VastaanotaSitovasti'::vastaanotto_action, true, 'ilmoittaja', ${timestamp.getMillis}, null)""",
+          sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, "timestamp", deleted)
+                 values ($henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${vanha_timestamp.getMillis}, null)""",
+          sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, "timestamp", deleted)
+                 values ($vanha_henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${vanha_timestamp.getMillis}, null)"""
+        ).transactionally)
   })
 
   "GET /ensikertalaisuus/:henkiloOid" should {
