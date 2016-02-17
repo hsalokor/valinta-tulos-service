@@ -51,7 +51,7 @@ class VastaanottoService(hakuService: HakuService,
     }
   }
 
-  def paatteleVastaanotettavuus(hakuOid: String, hakemusOid: String, hakukohdeOid: String): Seq[VastaanottoAction] = {
+  def paatteleVastaanotettavuus(hakuOid: String, hakemusOid: String, hakukohdeOid: String): Vastaanotettavuus = {
     // TODO pitäisikö tässä kohtaa tarkistaa, että haku <-> hakukohde <-> hakemus liittyvät toisiinsa?
 
     val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException(s"Hakua $hakuOid ei löydy"))
@@ -59,18 +59,16 @@ class VastaanottoService(hakuService: HakuService,
 
     val aiemmatVastaanotot = haeAiemmatVastaanotot(hakukohdeOid, hakemuksenTulos.hakijaOid)
     if (aiemmatVastaanotot.nonEmpty) {
-      logger.debug(s"Ei voida ottaa vastaan, koska löytyi aiempi vastaanotto: $aiemmatVastaanotot.")
-      return Nil
+      return Vastaanotettavuus(Nil, Some(s"Ei voida ottaa vastaan, koska löytyi aiempi vastaanotto: $aiemmatVastaanotot."))
     }
     val hakutoiveenTulos = hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(
       throw new IllegalStateException(s"Ei löydy kohteen $hakukohdeOid tulosta hakemuksen tuloksesta $hakemuksenTulos"))
     if (!Valintatila.isHyväksytty(hakutoiveenTulos.valintatila)) {
-      logger.debug(s"Ei voida ottaa vastaan, koska hakutoiveen valintatila ei ole hyväksytty: ${hakutoiveenTulos.valintatila}")
-      return Nil
+      return Vastaanotettavuus(Nil, Some(s"Ei voida ottaa vastaan, koska hakutoiveen valintatila ei ole hyväksytty: ${hakutoiveenTulos.valintatila}"))
     }
 
     val vastaanotettavissaEhdollisesti = valintatulosService.onkoVastaanotettavissaEhdollisesti(hakutoiveenTulos, haku)
-    List(Peru, VastaanotaSitovasti) ++ (if (vastaanotettavissaEhdollisesti) List(VastaanotaEhdollisesti) else Nil)
+    Vastaanotettavuus(List(Peru, VastaanotaSitovasti) ++ (if (vastaanotettavissaEhdollisesti) List(VastaanotaEhdollisesti) else Nil))
   }
 
   def vastaanotaHakukohde(vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
