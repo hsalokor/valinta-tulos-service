@@ -7,7 +7,6 @@ import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriTools
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.jackson.Serialization._
 import org.junit.runner.RunWith
-import org.specs2.mutable.BeforeAfter
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.After
 import slick.dbio.DBIOAction
@@ -27,7 +26,7 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
   val timestamp = new DateTime(2014, 7, 1, 0, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
   val vanha_timestamp = new DateTime(2014, 6, 19, 0, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
 
-  step(ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb))
+  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
   step({
     singleConnectionValintarekisteriDb.runBlocking(DBIOAction.seq(
           sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
@@ -123,5 +122,5 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
     }
   }
 
-  override def after: Unit = ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
+  override def after: Unit = ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb)
 }
