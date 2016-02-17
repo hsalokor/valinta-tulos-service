@@ -29,7 +29,7 @@ class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService, 
 
   post("/", operation(postEnsikertalaisuusSwagger)) {
     val henkilot = read[Set[String]](request.body).map(henkiloOid)
-    if (henkilot.size > maxHenkiloOids) throw new IllegalArgumentException("Too many henkilo oids")
+    if (henkilot.size > maxHenkiloOids) throw new IllegalArgumentException(s"Too many henkilo oids (limit is $maxHenkiloOids, got ${henkilot.size})")
 
     valintarekisteriService.findEnsikertalaisuus(henkilot, parseKausi(params("koulutuksenAlkamiskausi")))
   }
