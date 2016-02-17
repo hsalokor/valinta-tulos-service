@@ -69,9 +69,8 @@ class VastaanottoService(hakuService: HakuService,
       return Nil
     }
 
-    val vastaanotettavuusHaunPerusteella = valintatulosService.selvitaVastaanotettavuus(hakutoiveenTulos, haku)
-    // TODO: päättele korkeakoulukeissistä, palautetaanko sekä sitova että ehdollinen vai vain toinen niistä
-    ???
+    val vastaanotettavissaEhdollisesti = valintatulosService.onkoVastaanotettavissaEhdollisesti(hakutoiveenTulos, haku)
+    List(Peru, VastaanotaSitovasti) ++ (if (vastaanotettavissaEhdollisesti) List(VastaanotaEhdollisesti) else Nil)
   }
 
   def vastaanotaHakukohde(vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
