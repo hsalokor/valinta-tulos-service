@@ -78,11 +78,10 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
 
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, None, Nil)
 
-  // TODO selvitetään voitaisiinko koko Vastaanotettavuustila luiskata
-  def selvitaVastaanotettavuus(hakutoiveentulos: Hakutoiveentulos, haku: Haku): Vastaanotettavuustila = {
+  def onkoVastaanotettavissaEhdollisesti(hakutoiveentulos: Hakutoiveentulos, haku: Haku): Boolean = {
     val ohjausparametrit = ohjausparametritService.ohjausparametrit(haku.oid)
     val hakutoiveenTulosWithVastaanotettavuustila = sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(List(hakutoiveentulos), haku, ohjausparametrit).head
-    hakutoiveenTulosWithVastaanotettavuustila.vastaanotettavuustila
+    hakutoiveenTulosWithVastaanotettavuustila.vastaanotettavuustila == Vastaanotettavuustila.vastaanotettavissa_ehdollisesti
   }
 
   private def sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
