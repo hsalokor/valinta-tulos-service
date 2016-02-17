@@ -5,7 +5,9 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotetta
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
+import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
+import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriDb
 import fi.vm.sade.valintatulosservice.{ITSpecification, TimeWarp, ValintatulosService}
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
@@ -337,7 +339,9 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
   }
 
   lazy val hakuService = HakuService(appConfig)
-  lazy val valintatulosService = new ValintatulosService(hakuService)
+  lazy val valintarekisteriDb1 = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
+  lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb1)
+  lazy val valintatulosService = new ValintatulosService(sijoittelutulosService, hakuService)
 
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
   val sijoitteluAjoId: String = "latest"

@@ -79,16 +79,11 @@ object AppConfig extends Logging {
       }))
       itPostgres.start()
       try {
-        importFixturesToSijoitteluDatabase
         importFixturesToHakemusDatabase
       } catch {
         case e: Exception =>
           throw e
       }
-    }
-
-    protected def importFixturesToSijoitteluDatabase {
-      SijoitteluFixtures(sijoitteluContext.database).importFixture("hyvaksytty-kesken-julkaistavissa.json")
     }
 
     protected def importFixturesToHakemusDatabase {
