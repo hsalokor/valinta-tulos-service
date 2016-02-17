@@ -4,7 +4,7 @@ import java.util.Date
 
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
-import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakukohde, YhdenPaikanSaanto}
+import fi.vm.sade.valintatulosservice.tarjonta.{HakuService, Haku, Hakukohde, YhdenPaikanSaanto}
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, HakukohdeRecordService}
 import fi.vm.sade.valintatulosservice.{PriorAcceptanceException, ValintatulosService, VastaanottoService}
 import org.junit.runner.RunWith
@@ -114,6 +114,39 @@ class VastaanottoServiceUnitSpec extends Specification {
         }
       }
     }
+    "haeVastaanotettavuus" >> {
+      val hakemusOid = "1.2.246.562.11.00000441784"
+      "kun hakijalla on aiempia vastaanottoja" in new YhdenPaikanSaantoVoimassa with MockedHakemuksenTulos {
+        val previousVastaanottoRecord = VastaanottoRecord(
+          henkiloOid,
+          haku.oid,
+          hakukohde.oid,
+          VastaanotaSitovasti,
+          ilmoittaja = "",
+          new Date(0)
+        )
+
+        hakuService.getHaku(haku.oid) returns Some(haku)
+        hakijaVastaanottoRepository.findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.eq(kausi)) returns Set(previousVastaanottoRecord)
+        val vastaanotettavuus = v.paatteleVastaanotettavuus(haku.oid, hakemusOid, hakukohde.oid)
+        vastaanotettavuus.allowedActions must beEmpty
+        vastaanotettavuus.reason.isDefined must beTrue
+        vastaanotettavuus.reason.get must contain("aiempi vastaanotto")
+      }
+      "kun hakijalla ei ole aiempia vastaanottoja, mutta hakemusta ei ole hyväksytty" in new YhdenPaikanSaantoVoimassa with MockedHakemuksenTulos {
+        hakuService.getHaku(haku.oid) returns Some(haku)
+        hakijaVastaanottoRepository.findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.eq(kausi)) returns Set()
+        val hakutoiveenTulos = mock[Hakutoiveentulos]
+        hakemuksenTulos.findHakutoive(hakukohde.oid) returns Some(hakutoiveenTulos)
+        hakutoiveenTulos.valintatila returns Valintatila.hylätty
+
+        val vastaanotettavuus = v.paatteleVastaanotettavuus(haku.oid, hakemusOid, hakukohde.oid)
+        vastaanotettavuus.allowedActions must beEmpty
+        vastaanotettavuus.reason.isDefined must beTrue
+        vastaanotettavuus.reason.get must contain("hakutoiveen valintatila ei ole hyväksytty")
+        vastaanotettavuus.reason.get must contain(hakutoiveenTulos.valintatila.toString)
+      }
+    }
   }
 }
 
@@ -140,7 +173,13 @@ trait VastaanottoServiceWithMocks extends Mockito with Scope with MustThrownExpe
   val valintatulosService = mock[ValintatulosService]
   val hakijaVastaanottoRepository = mock[HakijaVastaanottoRepository]
   val valintatulosRepository = mock[ValintatulosRepository]
-  val v = new VastaanottoService(null, valintatulosService, hakijaVastaanottoRepository, hakukohdeRecordService,
+  val hakuService = mock[HakuService]
+  val v = new VastaanottoService(hakuService, valintatulosService, hakijaVastaanottoRepository, hakukohdeRecordService,
     valintatulosRepository)
   val henkiloOid = "1.2.246.562.24.00000000000"
+}
+
+trait MockedHakemuksenTulos extends Mockito { this: VastaanottoServiceWithMocks =>
+  val hakemuksenTulos = mock[Hakemuksentulos]
+  valintatulosService.hakemuksentulos(Matchers.any[String], Matchers.any[String]) returns Some(hakemuksenTulos)
 }
