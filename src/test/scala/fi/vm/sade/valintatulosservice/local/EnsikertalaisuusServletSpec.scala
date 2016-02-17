@@ -116,7 +116,8 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
     }
 
     "return 400 Bad Request if too many henkilo oids is sent" in {
-      postJSON("ensikertalaisuus?koulutuksenAlkamiskausi=2015K", write((1 to (maxHenkiloOids + 1)).map(i => s"1.2.246.562.24.$i")), Map()) {
+      val tooManyPersonOids = appConfig.settings.valintaRekisteriEnsikertalaisuusMaxPersonOids + 1
+      postJSON("ensikertalaisuus?koulutuksenAlkamiskausi=2015K", write((1 to tooManyPersonOids).map(i => s"1.2.246.562.24.$i")), Map()) {
         status mustEqual 400
       }
     }
