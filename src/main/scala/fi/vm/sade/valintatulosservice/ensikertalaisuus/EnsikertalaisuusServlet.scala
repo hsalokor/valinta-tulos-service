@@ -14,7 +14,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 
-class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService)(implicit val swagger: Swagger, appConfig: AppConfig)
+class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService, maxHenkiloOids: Int)(implicit val swagger: Swagger, appConfig: AppConfig)
   extends VtsServletBase with EnsikertalaisuusSwagger {
   override implicit val jsonFormats: Formats = EnsikertalaisuusServlet.ensikertalaisuusJsonFormats
 
@@ -46,8 +46,6 @@ object EnsikertalaisuusServlet {
   val ensikertalaisuusJsonFormats: Formats = finnishDateFormats ++ JsonFormats.customSerializers
 
   def parseKausi(d: String): Kausi = Kausi(d)
-
-  val maxHenkiloOids = 1000000
 }
 
 trait EnsikertalaisuusSwagger extends VtsSwaggerBase { this: SwaggerSupport =>

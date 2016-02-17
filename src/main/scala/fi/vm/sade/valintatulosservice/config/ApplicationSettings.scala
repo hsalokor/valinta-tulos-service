@@ -11,6 +11,7 @@ case class ApplicationSettings(config: Config) extends fi.vm.sade.utils.config.A
   val tarjontaUrl = config.getString("tarjonta-service.url")
   val securitySettings = new SecuritySettings(config)
   val valintaRekisteriDbConfig = config.getConfig("valinta-tulos-service.valintarekisteri.db")
+  val valintaRekisteriEnsikertalaisuusMaxPersonOids = config.getInt("valinta-tulos-service.valintarekisteri.ensikertalaisuus.max.henkilo.oids")
 
   val ilmoittautuminenEnabled = {
     val value = config.getString("valinta-tulos-service.ilmoittautuminen.enabled")
