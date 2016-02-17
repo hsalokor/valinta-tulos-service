@@ -146,6 +146,14 @@ class VastaanottoServiceUnitSpec extends Specification {
         vastaanotettavuus.reason.get must contain("hakutoiveen valintatila ei ole hyväksytty")
         vastaanotettavuus.reason.get must contain(hakutoiveenTulos.valintatila.toString)
       }
+      "kun hakijalla ei ole aiempia vastaanottoja ja hakemus on hyväksytty eikä paikka ole vastaanotettavissa ehdollisesti" in new HyvaksyttyHakemus(false) {
+        val vastaanotettavuus = v.paatteleVastaanotettavuus(haku.oid, hakemusOid, hakukohde.oid)
+        vastaanotettavuus.allowedActions mustEqual List(Peru, VastaanotaSitovasti)
+      }
+      "kun hakijalla ei ole aiempia vastaanottoja ja hakemus on hyväksytty ja paikka on vastaanotettavissa ehdollisesti" in new HyvaksyttyHakemus(true) {
+        val vastaanotettavuus = v.paatteleVastaanotettavuus(haku.oid, hakemusOid, hakukohde.oid)
+        vastaanotettavuus.allowedActions mustEqual List(Peru, VastaanotaSitovasti, VastaanotaEhdollisesti)
+      }
     }
   }
 }
@@ -182,4 +190,13 @@ trait VastaanottoServiceWithMocks extends Mockito with Scope with MustThrownExpe
 trait MockedHakemuksenTulos extends Mockito { this: VastaanottoServiceWithMocks =>
   val hakemuksenTulos = mock[Hakemuksentulos]
   valintatulosService.hakemuksentulos(Matchers.any[String], Matchers.any[String]) returns Some(hakemuksenTulos)
+}
+
+class HyvaksyttyHakemus(vastaanotettavissaEhdollisesti: Boolean) extends YhdenPaikanSaantoVoimassa with MockedHakemuksenTulos{
+  hakuService.getHaku(haku.oid) returns Some(haku)
+  hakijaVastaanottoRepository.findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.eq(kausi)) returns Set()
+  val hakutoiveenTulos = mock[Hakutoiveentulos]
+  hakemuksenTulos.findHakutoive(hakukohde.oid) returns Some(hakutoiveenTulos)
+  hakutoiveenTulos.valintatila returns Valintatila.hyväksytty
+  valintatulosService.onkoVastaanotettavissaEhdollisesti(hakutoiveenTulos, haku) returns vastaanotettavissaEhdollisesti
 }
