@@ -22,14 +22,22 @@ class VastaanottoServiceUnitSpec extends Specification {
   "VastaanottoService" >> {
     "vastaanotaHakukohde" >> {
       "haulle jossa yhden paikan sääntö voimassa" >> {
-        "kun hakijalla ei aiempia vastaanottoja samalle koulutuksen alkamiskaudelle" in new YhdenPaikanSaantoVoimassa {
+        "hakukohteelle joka ei ole hakijan hakutoive" in new YhdenPaikanSaantoVoimassa with EiHakutoivetta {
+          val vastaanottoEvent = VastaanottoEvent(henkiloOid, hakukohde.oid, VastaanotaSitovasti)
+
+          v.vastaanotaHakukohde(vastaanottoEvent) must beFailedTry.withThrowable[IllegalStateException]
+          there was no(hakijaVastaanottoRepository).findHenkilonVastaanototHaussa(Matchers.any[String], Matchers.any[String])
+          there was no(hakijaVastaanottoRepository).findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
+          there was no(hakijaVastaanottoRepository).store(vastaanottoEvent)
+        }
+        "kun hakijalla ei aiempia vastaanottoja samalle koulutuksen alkamiskaudelle" in new YhdenPaikanSaantoVoimassaHakutoiveLoytyy {
           val vastaanottoEvent = VastaanottoEvent(henkiloOid, hakukohde.oid, VastaanotaSitovasti)
 
           hakijaVastaanottoRepository.findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.eq(kausi)) returns Set.empty[VastaanottoRecord]
           v.vastaanotaHakukohde(vastaanottoEvent) must beEqualTo(Success(()))
           there was one(hakijaVastaanottoRepository).store(vastaanottoEvent)
         }
-        "kun hakijalla yksi aiempi vastaanotto samalle koulutuksen alkamiskaudelle" in new YhdenPaikanSaantoVoimassa {
+        "kun hakijalla yksi aiempi vastaanotto samalle koulutuksen alkamiskaudelle" in new YhdenPaikanSaantoVoimassaHakutoiveLoytyy {
           val vastaanottoEvent = VastaanottoEvent(henkiloOid, hakukohde.oid, VastaanotaSitovasti)
           val previousVastaanottoRecord = VastaanottoRecord(
             henkiloOid,
@@ -44,7 +52,7 @@ class VastaanottoServiceUnitSpec extends Specification {
           v.vastaanotaHakukohde(vastaanottoEvent) must beFailedTry.withThrowable[PriorAcceptanceException]
           there was no(hakijaVastaanottoRepository).store(vastaanottoEvent)
         }
-        "hakijalla ei voi olla useita aiempia vastaanottoja samalle alkamiskaudelle" in new YhdenPaikanSaantoVoimassa {
+        "hakijalla ei voi olla useita aiempia vastaanottoja samalle alkamiskaudelle" in new YhdenPaikanSaantoVoimassaHakutoiveLoytyy {
           val vastaanottoEvent = VastaanottoEvent(henkiloOid, hakukohde.oid, VastaanotaSitovasti)
           val previousVastaanottoRecord = VastaanottoRecord(
             henkiloOid,
@@ -62,7 +70,7 @@ class VastaanottoServiceUnitSpec extends Specification {
         }
       }
       "haulle ilman yhden paikan sääntöä" >> {
-        "kun hakijalla ei aiempia vastaanottoja samassa haussa" in new IlmanYhdenPaikanSaantoa {
+        "kun hakijalla ei aiempia vastaanottoja samassa haussa" in new IlmanYhdenPaikanSaantoaHakutoiveLoytyy {
           val vastaanottoEvent = VastaanottoEvent(henkiloOid, hakukohde.oid, VastaanotaSitovasti)
 
           hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, haku.oid) returns Set()
@@ -70,7 +78,7 @@ class VastaanottoServiceUnitSpec extends Specification {
           there was one(hakijaVastaanottoRepository).store(vastaanottoEvent)
           there was no(hakijaVastaanottoRepository).findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
-        "kun hakijalla yksi aiempi vastaanotto samassa haussa" in new IlmanYhdenPaikanSaantoa {
+        "kun hakijalla yksi aiempi vastaanotto samassa haussa" in new IlmanYhdenPaikanSaantoaHakutoiveLoytyy {
           val vastaanottoEvent = VastaanottoEvent(henkiloOid, hakukohde.oid, VastaanotaSitovasti)
           val previousVastaanottoRecord = VastaanottoRecord(
             henkiloOid,
@@ -86,7 +94,7 @@ class VastaanottoServiceUnitSpec extends Specification {
           there was no(hakijaVastaanottoRepository).store(vastaanottoEvent)
           there was no(hakijaVastaanottoRepository).findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
-        "kun hakija on perunut aiemman paikan samassa haussa" in new IlmanYhdenPaikanSaantoa {
+        "kun hakija on perunut aiemman paikan samassa haussa" in new IlmanYhdenPaikanSaantoaHakutoiveLoytyy {
           val vastaanottoEvent = VastaanottoEvent(henkiloOid, hakukohde.oid, VastaanotaSitovasti)
           val previousVastaanottoRecord = VastaanottoRecord(henkiloOid, haku.oid, hakukohde.oid,
             Peru, ilmoittaja = "", new Date(0))
@@ -95,7 +103,7 @@ class VastaanottoServiceUnitSpec extends Specification {
           v.vastaanotaHakukohde(vastaanottoEvent) must beEqualTo(Success(()))
           there was one(hakijaVastaanottoRepository).store(vastaanottoEvent)
         }
-        "hakijalla ei voi olla useita vastaanottoja samassa haussa" in new IlmanYhdenPaikanSaantoa {
+        "hakijalla ei voi olla useita vastaanottoja samassa haussa" in new IlmanYhdenPaikanSaantoaHakutoiveLoytyy {
           val vastaanottoEvent = VastaanottoEvent(henkiloOid, hakukohde.oid, VastaanotaSitovasti)
           val previousVastaanottoRecord = VastaanottoRecord(
             henkiloOid,
@@ -177,6 +185,8 @@ trait IlmanYhdenPaikanSaantoa extends VastaanottoServiceWithMocks with Mockito w
 }
 
 trait VastaanottoServiceWithMocks extends Mockito with Scope with MustThrownExpectations {
+  val haku: Haku
+  val hakukohde: Hakukohde
   val hakukohdeRecordService = mock[HakukohdeRecordService]
   val valintatulosService = mock[ValintatulosService]
   val hakijaVastaanottoRepository = mock[HakijaVastaanottoRepository]
@@ -189,7 +199,8 @@ trait VastaanottoServiceWithMocks extends Mockito with Scope with MustThrownExpe
 
 trait MockedHakemuksenTulos extends Mockito { this: VastaanottoServiceWithMocks =>
   val hakemuksenTulos = mock[Hakemuksentulos]
-  valintatulosService.hakemuksentulos(Matchers.any[String], Matchers.any[String]) returns Some(hakemuksenTulos)
+  valintatulosService.hakemuksentulos(Matchers.eq(haku.oid), Matchers.any[String]) returns Some(hakemuksenTulos)
+  valintatulosService.hakemuksentuloksetByPerson(haku.oid, henkiloOid) returns List(hakemuksenTulos)
 }
 
 class HyvaksyttyHakemus(vastaanotettavissaEhdollisesti: Boolean) extends YhdenPaikanSaantoVoimassa with MockedHakemuksenTulos{
@@ -200,3 +211,16 @@ class HyvaksyttyHakemus(vastaanotettavissaEhdollisesti: Boolean) extends YhdenPa
   hakutoiveenTulos.valintatila returns Valintatila.hyväksytty
   valintatulosService.onkoVastaanotettavissaEhdollisesti(hakutoiveenTulos, haku) returns vastaanotettavissaEhdollisesti
 }
+
+trait HakutoiveLoytyy extends MockedHakemuksenTulos { this: VastaanottoServiceWithMocks =>
+  val hakutoiveenTulos = mock[Hakutoiveentulos]
+  hakemuksenTulos.findHakutoive(hakukohde.oid) returns Some(hakutoiveenTulos)
+}
+
+trait EiHakutoivetta extends MockedHakemuksenTulos { this: VastaanottoServiceWithMocks =>
+  hakemuksenTulos.findHakutoive(hakukohde.oid) returns None
+}
+
+class YhdenPaikanSaantoVoimassaHakutoiveLoytyy extends YhdenPaikanSaantoVoimassa with HakutoiveLoytyy {}
+
+class IlmanYhdenPaikanSaantoaHakutoiveLoytyy extends IlmanYhdenPaikanSaantoa with HakutoiveLoytyy {}
