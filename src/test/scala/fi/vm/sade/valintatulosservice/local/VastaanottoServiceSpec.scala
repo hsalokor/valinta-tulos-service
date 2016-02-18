@@ -434,7 +434,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
   lazy val valintatulosService = new ValintatulosService(sijoittelutulosService, hakuService)(appConfig)
   lazy val vastaanottoService = new VastaanottoService(hakuService, valintatulosService,
     valintarekisteriDb, hakukohdeRecordService, appConfig.sijoitteluContext.valintatulosRepository)
-  lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
+  lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService,
+    appConfig.sijoitteluContext.valintatulosRepository, valintarekisteriDb)
 
   private def hakemuksenTulos: Hakemuksentulos = hakemuksenTulos(hakuOid, hakemusOid)
   private def hakemuksenTulos(hakuOid: String, hakemusOid: String) = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).get
