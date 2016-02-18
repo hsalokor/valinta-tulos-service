@@ -57,7 +57,8 @@ class VastaanottoService(hakuService: HakuService,
     val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException(s"Hakua $hakuOid ei löydy"))
     val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException(s"Hakemusta $hakemusOid ei löydy"))
 
-    val aiemmatVastaanotot = haeAiemmatVastaanotot(hakukohdeOid, hakemuksenTulos.hakijaOid)
+    val hakukohdeRecord = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
+    val aiemmatVastaanotot = haeAiemmatVastaanotot(hakukohdeRecord, hakemuksenTulos.hakijaOid)
     if (aiemmatVastaanotot.nonEmpty) {
       Vastaanotettavuus(Nil, Some(s"Ei voida ottaa vastaan, koska löytyi aiempi vastaanotto: $aiemmatVastaanotot."))
     } else {
@@ -73,9 +74,29 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   def vastaanotaHakukohde(vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
-    val aiemmatVastaanotot = haeAiemmatVastaanotot(vastaanottoEvent.hakukohdeOid, vastaanottoEvent.henkiloOid)
+    val hakukohdeRecord = hakukohdeRecordService.getHakukohdeRecord(vastaanottoEvent.hakukohdeOid)
+    for {
+      _ <- tarkistaHakutoive(hakukohdeRecord, vastaanottoEvent)
+      _ <- tarkistaAiemmatVastaanotot(hakukohdeRecord, vastaanottoEvent)
+    } yield {
+      hakijaVastaanottoRepository.store(vastaanottoEvent)
+    }
+  }
+
+  private def  tarkistaHakutoive(hakukohdeRecord: HakukohdeRecord, vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
+    val hakemukset = valintatulosService.hakemuksentuloksetByPerson(hakukohdeRecord.hakuOid, vastaanottoEvent.henkiloOid)
+    if (hakemukset.find(hakemus => hakemus.findHakutoive(vastaanottoEvent.hakukohdeOid).isDefined).isEmpty) {
+      Failure(new IllegalStateException(s"Hakijalla ${vastaanottoEvent.henkiloOid} ei hakemusta hakutoiveella ${vastaanottoEvent.hakukohdeOid}"))
+    } else {
+      Success(())
+    }
+  }
+
+  private def tarkistaAiemmatVastaanotot(hakukohdeRecord: HakukohdeRecord,
+                                         vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
+    val aiemmatVastaanotot = haeAiemmatVastaanotot(hakukohdeRecord, vastaanottoEvent.henkiloOid)
     if (aiemmatVastaanotot.isEmpty) {
-      Success(hakijaVastaanottoRepository.store(vastaanottoEvent))
+      Success(())
     } else if (aiemmatVastaanotot.size == 1) {
       val aiempiVastaanotto = aiemmatVastaanotot.head
       Failure(PriorAcceptanceException(aiempiVastaanotto, vastaanottoEvent))
@@ -84,9 +105,8 @@ class VastaanottoService(hakuService: HakuService,
     }
   }
 
-  private def haeAiemmatVastaanotot(hakukohdeOid: String, hakijaOid: String): Set[VastaanottoRecord] = {
-    val HakukohdeRecord(_, hakuOid, yhdenPaikanSaantoVoimassa, _, koulutuksenAlkamiskausi) =
-      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
+  private def haeAiemmatVastaanotot(hakukohdeRecord: HakukohdeRecord, hakijaOid: String): Set[VastaanottoRecord] = {
+    val HakukohdeRecord(_, hakuOid, yhdenPaikanSaantoVoimassa, _, koulutuksenAlkamiskausi) = hakukohdeRecord
     val aiemmatVastaanotot = if (yhdenPaikanSaantoVoimassa) {
       hakijaVastaanottoRepository.findKkTutkintoonJohtavatVastaanotot(hakijaOid, koulutuksenAlkamiskausi)
     } else {

@@ -440,7 +440,11 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
   private def hakemuksenTulos(hakuOid: String, hakemusOid: String) = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).get
 
   private def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: String, selite: String, personOid: String) = {
-    vastaanottoService.vastaanota(hakuOid, hakemusOid, Vastaanotto(hakukohdeOid, tila, muokkaaja, selite))
+    vastaanottoService.vastaanotaHakukohde(VastaanottoEvent(personOid, hakukohdeOid, tila match {
+      case Vastaanottotila.perunut => Peru
+      case Vastaanottotila.vastaanottanut => VastaanotaSitovasti
+      case Vastaanottotila.ehdollisesti_vastaanottanut => VastaanotaEhdollisesti
+    })).get
     success
   }
 
@@ -461,7 +465,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       block
       failure("Expected exception")
     } catch {
-      case e: IllegalArgumentException => assertErrorMsg match {
+      case e: Exception => assertErrorMsg match {
         case Some(msg) => e.getMessage must_== msg
         case None => success
       }
