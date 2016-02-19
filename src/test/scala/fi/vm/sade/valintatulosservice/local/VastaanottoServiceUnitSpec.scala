@@ -124,7 +124,7 @@ class VastaanottoServiceUnitSpec extends Specification {
     }
     "haeVastaanotettavuus" >> {
       val hakemusOid = "1.2.246.562.11.00000441784"
-      "kun hakijalla on aiempia vastaanottoja" in new YhdenPaikanSaantoVoimassa with MockedHakemuksenTulos {
+      "kun hakijalla on aiempia vastaanottoja" in new YhdenPaikanSaantoVoimassaHakutoiveLoytyy {
         val previousVastaanottoRecord = VastaanottoRecord(
           henkiloOid,
           haku.oid,
@@ -173,6 +173,7 @@ trait YhdenPaikanSaantoVoimassa extends VastaanottoServiceWithMocks with Mockito
   val hakukohde = Hakukohde("1.2.246.562.20.00000000000", haku.oid, List(koulutusOid), "KORKEAKOULUTUS", "TUTKINTO")
   val kausi = Syksy(2015)
   hakukohdeRecordService.getHakukohdeRecord(hakukohde.oid) returns HakukohdeRecord(hakukohde.oid, haku.oid, true, true, kausi)
+  hakuService.getHaku(haku.oid) returns Some(haku)
 }
 
 trait IlmanYhdenPaikanSaantoa extends VastaanottoServiceWithMocks with Mockito with Scope with MustThrownExpectations {
@@ -182,6 +183,7 @@ trait IlmanYhdenPaikanSaantoa extends VastaanottoServiceWithMocks with Mockito w
   val hakukohde = Hakukohde("1.2.246.562.20.00000000001", haku.oid, List(koulutusOid), "KORKEAKOULUTUS", "TUTKINTO")
   val kausi = Syksy(2015)
   hakukohdeRecordService.getHakukohdeRecord(hakukohde.oid) returns HakukohdeRecord(hakukohde.oid, haku.oid, false, true, kausi)
+  hakuService.getHaku(haku.oid) returns Some(haku)
 }
 
 trait VastaanottoServiceWithMocks extends Mockito with Scope with MustThrownExpectations {
@@ -200,12 +202,11 @@ trait VastaanottoServiceWithMocks extends Mockito with Scope with MustThrownExpe
 
 trait MockedHakemuksenTulos extends Mockito { this: VastaanottoServiceWithMocks =>
   val hakemuksenTulos = mock[Hakemuksentulos]
-  valintatulosService.hakemuksentulos(Matchers.eq(haku.oid), Matchers.any[String]) returns Some(hakemuksenTulos)
+  valintatulosService.hakemuksentulos(haku.oid, hakemusOid) returns Some(hakemuksenTulos)
   valintatulosService.hakemuksentuloksetByPerson(haku.oid, henkiloOid) returns List(hakemuksenTulos)
 }
 
 class HyvaksyttyHakemus(vastaanotettavissaEhdollisesti: Boolean) extends YhdenPaikanSaantoVoimassa with MockedHakemuksenTulos{
-  hakuService.getHaku(haku.oid) returns Some(haku)
   hakijaVastaanottoRepository.findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.eq(kausi)) returns Set()
   val hakutoiveenTulos = mock[Hakutoiveentulos]
   hakemuksenTulos.findHakutoive(hakukohde.oid) returns Some(hakutoiveenTulos)
@@ -215,6 +216,7 @@ class HyvaksyttyHakemus(vastaanotettavissaEhdollisesti: Boolean) extends YhdenPa
 
 trait HakutoiveLoytyy extends MockedHakemuksenTulos { this: VastaanottoServiceWithMocks =>
   val hakutoiveenTulos = mock[Hakutoiveentulos]
+  hakutoiveenTulos.valintatila returns (Valintatila.hyväksytty)
   hakemuksenTulos.findHakutoive(hakukohde.oid) returns Some(hakutoiveenTulos)
 }
 
