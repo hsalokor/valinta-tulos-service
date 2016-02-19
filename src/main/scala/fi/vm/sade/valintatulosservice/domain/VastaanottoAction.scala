@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.domain
 import java.util.Date
 
 case class VastaanottoRecord(henkiloOid: String, hakuOid: String, hakukohdeOid: String, action: VastaanottoAction, ilmoittaja: String, timestamp: Date)
-case class VastaanottoEvent(henkiloOid: String, hakukohdeOid: String, action: VastaanottoAction)
+case class VastaanottoEvent(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, action: VastaanottoAction)
 
 sealed trait VastaanottoAction
 
@@ -22,4 +22,4 @@ object VastaanottoAction {
   })
 }
 
-case class Vastaanotettavuus(allowedActions: Seq[VastaanottoAction], reason: Option[String] = None)
+case class Vastaanotettavuus(allowedActions: Seq[VastaanottoAction], reason: Option[Exception] = None)

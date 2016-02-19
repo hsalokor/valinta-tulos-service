@@ -26,12 +26,14 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
     parameter pathParam[String]("henkiloOid").description("Hakijan henkilönumero")
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
     parameter bodyParam[VastaanottoAction])
-  post("/henkilo/:henkiloOid/hakukohde/:hakukohdeOid", operation(postVastaanottoSwagger)) {
+  post("/henkilo/:henkiloOid/hakemus/:hakemusOid/hakukohde/:hakukohdeOid", operation(postVastaanottoSwagger)) {
+
     val personOid = params("henkiloOid")
+    val hakemusOid = params("hakemusOid")
     val hakukohdeOid = params("hakukohdeOid")
     val action = parsedBody.extract[VastaanottoAction]
 
-    Try(vastaanottoService.vastaanotaHakukohde(VastaanottoEvent(personOid, hakukohdeOid, action))).map((_) => Ok()).recover{
+    Try(vastaanottoService.vastaanotaHakukohde(VastaanottoEvent(personOid, hakemusOid, hakukohdeOid, action))).map((_) => Ok()).recover{
       case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
     }.get
   }
@@ -41,8 +43,9 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
     parameter pathParam[String]("hakuOid").description("Haun oid")
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid")
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid"))
-  get("/:hakuOid/hakemus/:hakemusOid/hakukohde/:hakukohdeOid/vastaanotettavuus", operation(getVastaanotettavuusSwagger)) {
-    vastaanottoService.paatteleVastaanotettavuus(params("hakuOid"), params("hakemusOid"), params("hakukohdeOid"))
+  get("/henkilo/:henkiloOid/hakemus/:hakemusOid/hakukohde/:hakukohdeOid/vastaanotettavuus", operation(getVastaanotettavuusSwagger)) {
+
+    vastaanottoService.paatteleVastaanotettavuus(params("henkiloOid"), params("hakemusOid"), params("hakukohdeOid"))
   }
 }
 

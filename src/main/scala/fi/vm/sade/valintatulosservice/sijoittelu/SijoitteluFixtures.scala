@@ -2,22 +2,24 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 
 import java.util.concurrent.TimeUnit
 
-import com.mongodb.{DBObject, DB}
+import com.mongodb.DB
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriDb
-import org.json4s.{DefaultFormats, Serialization}
-import org.json4s.jackson.Serialization
-import org.json4s.jackson.JsonMethods._
+import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JArray
+import org.json4s.jackson.JsonMethods._
 import org.springframework.core.io.ClassPathResource
-import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation, _}
+import slick.driver.PostgresDriver.api.actionBasedSQLInterpolation
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
-  def importFixture(fixtureName: String, clear: Boolean = false) {
+  def importFixture(fixtureName: String,
+                    clear: Boolean = false,
+                    yhdenPaikanSaantoVoimassa: Boolean = false,
+                    kktutkintoonJohtava: Boolean = false) {
     if (clear) {
       clearFixtures
       Await.result(valintarekisteriDb.db.run(sqlu"DELETE FROM vastaanotot"), Duration(1, TimeUnit.SECONDS))
@@ -25,6 +27,14 @@ case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
     }
     val tulokset = MongoMockData.readJson("fixtures/sijoittelu/" + fixtureName)
     MongoMockData.insertData(db, tulokset)
+
+    importJsonFixturesToPostgres(fixtureName, yhdenPaikanSaantoVoimassa, kktutkintoonJohtava);
+
+  }
+
+  private def importJsonFixturesToPostgres(fixtureName: String,
+                                           yhdenPaikanSaantoVoimassa: Boolean = false,
+                                           kktutkintoonJohtava: Boolean = false): Unit = {
 
     implicit val formats = DefaultFormats
 
@@ -38,9 +48,9 @@ case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
           valintarekisteriDb.storeHakukohde(HakukohdeRecord(
             (valintatulos \ "hakukohdeOid").extract[String],
             (valintatulos \ "hakuOid").extract[String],
-            false,
-            false,
-            Syksy(2016)
+            yhdenPaikanSaantoVoimassa,
+            kktutkintoonJohtava,
+            Kevat(2016)
           ))
         } catch {
           case e: Exception => "Yritettiin lisätä samaa hakukohdetta uudelleen"
@@ -48,6 +58,7 @@ case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
 
         valintarekisteriDb.store(VastaanottoEvent(
           (valintatulos \ "hakijaOid").extract[String],
+          (valintatulos \ "hakemusOid").extract[String],
           (valintatulos \ "hakukohdeOid").extract[String],
           action
         ))
