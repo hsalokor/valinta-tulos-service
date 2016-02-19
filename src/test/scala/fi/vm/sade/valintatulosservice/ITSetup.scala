@@ -23,11 +23,14 @@ trait ITSetup {
                  extraFixtureNames: List[String] = List(),
                  ohjausparametritFixture: String = OhjausparametritFixtures.vastaanottoLoppuu2100,
                  hakemusFixtures: List[String] = HakemusFixtures.defaultFixtures,
-                 hakuFixture: String = HakuFixtures.korkeakouluYhteishaku) {
+                 hakuFixture: String = HakuFixtures.korkeakouluYhteishaku,
+                 yhdenPaikanSaantoVoimassa: Boolean = false,
+                 kktutkintoonJohtava: Boolean = false
+                ) {
 
-    sijoitteluFixtures.importFixture(fixtureName, true)
+    sijoitteluFixtures.importFixture(fixtureName, true, yhdenPaikanSaantoVoimassa, kktutkintoonJohtava)
     extraFixtureNames.map(fixtureName =>
-      sijoitteluFixtures.importFixture(fixtureName, false)
+      sijoitteluFixtures.importFixture(fixtureName, false, yhdenPaikanSaantoVoimassa, kktutkintoonJohtava)
     )
 
     OhjausparametritFixtures.activeFixture = ohjausparametritFixture

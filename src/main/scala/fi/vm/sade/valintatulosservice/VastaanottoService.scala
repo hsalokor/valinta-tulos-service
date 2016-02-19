@@ -51,57 +51,66 @@ class VastaanottoService(hakuService: HakuService,
     }
   }
 
-  def paatteleVastaanotettavuus(hakuOid: String, hakemusOid: String, hakukohdeOid: String): Vastaanotettavuus = {
+  def paatteleVastaanotettavuus(henkiloOid: String, hakemusOid: String, hakukohdeOid: String): Vastaanotettavuus = {
     // TODO pitäisikö tässä kohtaa tarkistaa, että haku <-> hakukohde <-> hakemus liittyvät toisiinsa?
 
-    val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException(s"Hakua $hakuOid ei löydy"))
-    val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException(s"Hakemusta $hakemusOid ei löydy"))
-
     val hakukohdeRecord = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
-    val aiemmatVastaanotot = haeAiemmatVastaanotot(hakukohdeRecord, hakemuksenTulos.hakijaOid)
-    if (aiemmatVastaanotot.nonEmpty) {
-      Vastaanotettavuus(Nil, Some(s"Ei voida ottaa vastaan, koska löytyi aiempi vastaanotto: $aiemmatVastaanotot."))
-    } else {
-      val hakutoiveenTulos = hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(
-        throw new IllegalStateException(s"Ei löydy kohteen $hakukohdeOid tulosta hakemuksen tuloksesta $hakemuksenTulos"))
-      if (!Valintatila.isHyväksytty(hakutoiveenTulos.valintatila)) {
-        Vastaanotettavuus(Nil, Some(s"Ei voida ottaa vastaan, koska hakutoiveen valintatila ei ole hyväksytty: ${hakutoiveenTulos.valintatila}"))
-      } else {
-        val vastaanotettavissaEhdollisesti = valintatulosService.onkoVastaanotettavissaEhdollisesti(hakutoiveenTulos, haku)
-        Vastaanotettavuus(List(Peru, VastaanotaSitovasti) ++ (if (vastaanotettavissaEhdollisesti) List(VastaanotaEhdollisesti) else Nil))
-      }
-    }
+
+    (( for {
+      hakutoive <- findHyvaksyttyHakutoive(henkiloOid, hakemusOid, hakukohdeRecord)
+      _ <- tarkistaAiemmatVastaanotot(henkiloOid, hakukohdeRecord)
+    } yield {
+      val haku = hakuService.getHaku(hakukohdeRecord.hakuOid).get
+      val vastaanotettavissaEhdollisesti = valintatulosService.onkoVastaanotettavissaEhdollisesti(hakutoive, haku)
+      Vastaanotettavuus(List(Peru, VastaanotaSitovasti) ++ (if (vastaanotettavissaEhdollisesti) List(VastaanotaEhdollisesti) else Nil))
+    }) recover {
+      case e: IllegalStateException => Vastaanotettavuus(Nil, Some(e))
+      case e: PriorAcceptanceException => Vastaanotettavuus(Nil, Some(e))
+    }).get
   }
 
   def vastaanotaHakukohde(vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
     val hakukohdeRecord = hakukohdeRecordService.getHakukohdeRecord(vastaanottoEvent.hakukohdeOid)
-    for {
-      _ <- tarkistaHakutoive(hakukohdeRecord, vastaanottoEvent)
-      _ <- tarkistaAiemmatVastaanotot(hakukohdeRecord, vastaanottoEvent)
-    } yield {
-      hakijaVastaanottoRepository.store(vastaanottoEvent)
-    }
-  }
-
-  private def  tarkistaHakutoive(hakukohdeRecord: HakukohdeRecord, vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
-    val hakemukset = valintatulosService.hakemuksentuloksetByPerson(hakukohdeRecord.hakuOid, vastaanottoEvent.henkiloOid)
-    if (hakemukset.find(hakemus => hakemus.findHakutoive(vastaanottoEvent.hakukohdeOid).isDefined).isEmpty) {
-      Failure(new IllegalStateException(s"Hakijalla ${vastaanottoEvent.henkiloOid} ei hakemusta haussa ${hakukohdeRecord.hakuOid} hakutoiveella ${vastaanottoEvent.hakukohdeOid}"))
+    val Vastaanotettavuus(allowedActions, reason) = paatteleVastaanotettavuus(vastaanottoEvent.henkiloOid, vastaanottoEvent.hakemusOid, vastaanottoEvent.hakukohdeOid)
+    if( allowedActions.contains(vastaanottoEvent.action) ) {
+      Success(hakijaVastaanottoRepository.store(vastaanottoEvent))
     } else {
-      Success(())
+      Failure(reason.getOrElse(new IllegalStateException(s"${vastaanottoEvent.action} ei ole sallittu. Sallittuja ovat ${allowedActions}")))
     }
   }
 
-  private def tarkistaAiemmatVastaanotot(hakukohdeRecord: HakukohdeRecord,
-                                         vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
-    val aiemmatVastaanotot = haeAiemmatVastaanotot(hakukohdeRecord, vastaanottoEvent.henkiloOid)
+  private def findHyvaksyttyHakutoive(henkiloOid: String, hakemusOid: String, hakukohdeRecord: HakukohdeRecord): Try[Hakutoiveentulos] = {
+    findHakemus(henkiloOid, hakemusOid, hakukohdeRecord).flatMap(findHakutoive(_, hakukohdeRecord)).flatMap(isHakutoiveHyvaksytty)
+  }
+
+  private def findHakemus(henkiloOid: String, hakemusOid: String, hakukohdeRecord: HakukohdeRecord) = {
+    valintatulosService.hakemuksentulos(hakukohdeRecord.hakuOid, hakemusOid).map(Success(_)).getOrElse(
+      Failure(new IllegalStateException(s"Hakemusta $hakemusOid ei löydy")))
+  }
+
+  private def findHakutoive(hakemuksenTulos: Hakemuksentulos, hakukohdeRecord: HakukohdeRecord) = {
+    hakemuksenTulos.findHakutoive(hakukohdeRecord.oid).map(Success(_)).getOrElse(
+      Failure(new IllegalStateException(s"Ei löydy kohteen ${hakukohdeRecord.oid} tulosta hakemuksen tuloksesta $hakemuksenTulos")))
+  }
+
+  private def isHakutoiveHyvaksytty(hakutoive: Hakutoiveentulos) = {
+    if( Valintatila.isHyväksytty(hakutoive.valintatila) ) {
+      Success(hakutoive)
+    } else {
+      Failure(new IllegalStateException(s"Ei voida ottaa vastaan, koska hakutoiveen valintatila ei ole hyväksytty: ${hakutoive.valintatila}"))
+    }
+  }
+
+  private def tarkistaAiemmatVastaanotot( henkiloOid: String,
+                                          hakukohdeRecord: HakukohdeRecord ): Try[Unit] = {
+    val aiemmatVastaanotot = haeAiemmatVastaanotot(hakukohdeRecord, henkiloOid)
     if (aiemmatVastaanotot.isEmpty) {
       Success(())
     } else if (aiemmatVastaanotot.size == 1) {
       val aiempiVastaanotto = aiemmatVastaanotot.head
-      Failure(PriorAcceptanceException(aiempiVastaanotto, vastaanottoEvent))
+      Failure(PriorAcceptanceException(aiempiVastaanotto))
     } else {
-      Failure(new IllegalStateException(s"Hakijalla ${vastaanottoEvent.henkiloOid} useita vastaanottoja: $aiemmatVastaanotot"))
+      Failure(new IllegalStateException(s"Hakijalla ${henkiloOid} useita vastaanottoja: $aiemmatVastaanotot"))
     }
   }
 
@@ -165,5 +174,5 @@ class VastaanottoService(hakuService: HakuService,
   }
 }
 
-case class PriorAcceptanceException(aiempiVastaanotto: VastaanottoRecord, yritettyVastaanotto: VastaanottoEvent)
-  extends IllegalArgumentException(s"Löytyi aiempi vastaanotto $aiempiVastaanotto yrittäessä vastaanottoa $yritettyVastaanotto")
+case class PriorAcceptanceException(aiempiVastaanotto: VastaanottoRecord)
+  extends IllegalArgumentException(s"Löytyi aiempi vastaanotto $aiempiVastaanotto")
