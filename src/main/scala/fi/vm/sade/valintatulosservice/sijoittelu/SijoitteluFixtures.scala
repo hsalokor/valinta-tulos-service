@@ -21,6 +21,7 @@ case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
     if (clear) {
       clearFixtures
       Await.result(valintarekisteriDb.db.run(sqlu"DELETE FROM vastaanotot"), Duration(1, TimeUnit.SECONDS))
+      Await.result(valintarekisteriDb.db.run(sqlu"DELETE FROM hakukohteet"), Duration(1, TimeUnit.SECONDS))
     }
     val tulokset = MongoMockData.readJson("fixtures/sijoittelu/" + fixtureName)
     MongoMockData.insertData(db, tulokset)
