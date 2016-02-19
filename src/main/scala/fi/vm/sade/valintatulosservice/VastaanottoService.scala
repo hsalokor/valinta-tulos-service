@@ -86,7 +86,7 @@ class VastaanottoService(hakuService: HakuService,
   private def  tarkistaHakutoive(hakukohdeRecord: HakukohdeRecord, vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
     val hakemukset = valintatulosService.hakemuksentuloksetByPerson(hakukohdeRecord.hakuOid, vastaanottoEvent.henkiloOid)
     if (hakemukset.find(hakemus => hakemus.findHakutoive(vastaanottoEvent.hakukohdeOid).isDefined).isEmpty) {
-      Failure(new IllegalStateException(s"Hakijalla ${vastaanottoEvent.henkiloOid} ei hakemusta hakutoiveella ${vastaanottoEvent.hakukohdeOid}"))
+      Failure(new IllegalStateException(s"Hakijalla ${vastaanottoEvent.henkiloOid} ei hakemusta haussa ${hakukohdeRecord.hakuOid} hakutoiveella ${vastaanottoEvent.hakukohdeOid}"))
     } else {
       Success(())
     }
