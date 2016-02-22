@@ -102,7 +102,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
-    val VastaanottoEvent(henkiloOid, hakukohdeOid, action) = vastaanottoEvent
+    val VastaanottoEvent(henkiloOid, _, hakukohdeOid, action) = vastaanottoEvent
     val now = System.currentTimeMillis()
     runBlocking(sqlu"""insert into vastaanotot (hakukohde, henkilo, active, action, ilmoittaja, "timestamp")
               values ($hakukohdeOid, $henkiloOid, true, ${action.toString}::vastaanotto_action, $henkiloOid, $now)""")
