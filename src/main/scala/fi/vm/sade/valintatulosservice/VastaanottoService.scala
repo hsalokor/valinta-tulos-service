@@ -37,11 +37,17 @@ class VastaanottoService(hakuService: HakuService,
 
     val tarkistettavatHakemukset = korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku, hakemuksenTulos.hakijaOid, haluttuTila)
 
-    tarkistaEttaEiVastaanottoja(tarkistettavatHakemukset, haluttuTila, hakutoive, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
+    //tarkistaEttaEiVastaanottoja(tarkistettavatHakemukset, haluttuTila, hakutoive, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
 
     if (tallennaValintatulosmuutos) {
       tarkistaHakutoiveenJaValintatuloksenTila(hakutoive, haluttuTila)
 
+      hakijaVastaanottoRepository.store(
+        VastaanottoEvent(hakemuksenTulos.hakijaOid, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid, haluttuTila match {
+          case ValintatuloksenTila.PERUNUT => Peru
+          case ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI => VastaanotaSitovasti
+          case ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT => VastaanotaEhdollisesti
+      }))
       tulokset.modifyValintatulos(
         vastaanotto.hakukohdeOid,
         hakutoive.valintatapajonoOid,
@@ -49,15 +55,6 @@ class VastaanottoService(hakuService: HakuService,
       ) { valintatulos => valintatulos.setTila(haluttuTila, vastaanotto.selite, vastaanotto.muokkaaja) }
 
       peruMuutHyvaksytyt(tarkistettavatHakemukset, vastaanotto, haku, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
-    }
-  }
-
-  def vastaanotaHakukohde(vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
-    val Vastaanotettavuus(allowedActions, reason) = vastaanotettavuusService.vastaanotettavuus(vastaanottoEvent.henkiloOid, vastaanottoEvent.hakemusOid, vastaanottoEvent.hakukohdeOid)
-    if( allowedActions.contains(vastaanottoEvent.action) ) {
-      Success(hakijaVastaanottoRepository.store(vastaanottoEvent))
-    } else {
-      Failure(reason.getOrElse(new IllegalStateException(s"${vastaanottoEvent.action} ei ole sallittu. Sallittuja ovat ${allowedActions}")))
     }
   }
 
