@@ -206,13 +206,8 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
         }
 
-        "hyvaksytty Valintatulos peruutettu" in {
-          useFixture("hyvaksytty-valintatulos-peruutettu.json", hakuFixture = hakuFixture)
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.peruutettu, Vastaanottotila.peruutettu, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-        }
-
         "hyvaksytty Valintatulos perunut" in {
-          useFixture("hyvaksytty-valintatulos-perunut.json", hakuFixture = hakuFixture)
+          useFixture("hyvaksytty-valintatulos-perunut-2.json", hakuFixture = hakuFixture)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.perunut, Vastaanottotila.perunut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
         }
 
@@ -223,8 +218,8 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
 
         "vastaanoton deadline näytetään" in {
           withFixedDateTime("26.11.2014 12:00") {
-            useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
-            getHakutoive("1.2.246.562.5.16303028779").vastaanottoDeadline must_== Some(parseDate("10.1.2100 12:00"))
+            useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
+            getHakutoive("1.2.246.562.5.72607738902").vastaanottoDeadline must_== Some(parseDate("10.1.2100 12:00"))
           }
         }
 
