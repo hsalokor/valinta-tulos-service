@@ -11,8 +11,6 @@ class VastaanotettavuusService(valintatulosService: ValintatulosService,
                                hakukohdeRecordService: HakukohdeRecordService,
                                hakijaVastaanottoRepository: HakijaVastaanottoRepository) {
   def vastaanotettavuus(henkiloOid: String, hakemusOid: String, hakukohdeOid: String): Vastaanotettavuus = {
-    // TODO pitäisikö tässä kohtaa tarkistaa, että haku <-> hakukohde <-> hakemus liittyvät toisiinsa?
-
     val hakukohdeRecord = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
 
     (( for {
