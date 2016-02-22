@@ -53,7 +53,7 @@ case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
             Kevat(2016)
           ))
         } catch {
-          case e: Exception => "Yritettiin lisätä samaa hakukohdetta uudelleen"
+          case e: Exception => println(e.getMessage)
         }
 
         valintarekisteriDb.store(VastaanottoEvent(

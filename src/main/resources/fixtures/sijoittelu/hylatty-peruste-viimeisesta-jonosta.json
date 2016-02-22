@@ -10,7 +10,7 @@
       },
       "oid": "1.2.246.562.5.72607738902",
       "tarjoajaOid": "1.2.246.562.10.591352080610",
-      "kaikkiJonotSijoiteltu": false,
+      "kaikkiJonotSijoiteltu": true,
       "valintatapajonot": [
         {
           "tasasijasaanto": "YLITAYTTO",
