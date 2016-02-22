@@ -12,7 +12,7 @@ object MailPollerPerformanceTester extends App with Logging {
   implicit val appConfig: AppConfig = new AppConfig.Dev
   val hakuService = HakuService(appConfig)
   lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, null)
-  lazy val valintatulosService = new ValintatulosService(sijoittelutulosService, hakuService)
+  lazy val valintatulosService = new ValintatulosService(null, sijoittelutulosService, hakuService)
   lazy val valintatulokset = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
   lazy val mailPoller = new MailPoller(valintatulokset, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 1000)
 

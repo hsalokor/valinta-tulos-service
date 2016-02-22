@@ -428,8 +428,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
   lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
   lazy val hakukohdeRecordService = new HakukohdeRecordService(hakuService, valintarekisteriDb)
   lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb)
-  lazy val valintatulosService = new ValintatulosService(sijoittelutulosService, hakuService)(appConfig)
-  lazy val vastaanotettavuusService = new VastaanotettavuusService(valintatulosService, hakuService, hakukohdeRecordService, valintarekisteriDb)
+  lazy val vastaanotettavuusService = new VastaanotettavuusService(hakukohdeRecordService, valintarekisteriDb)
+  lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, hakuService)(appConfig)
   lazy val vastaanottoService = new VastaanottoService(hakuService, vastaanotettavuusService, valintatulosService,
     valintarekisteriDb, hakukohdeRecordService, appConfig.sijoitteluContext.valintatulosRepository)
   lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService,
@@ -439,11 +439,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
   private def hakemuksenTulos(hakuOid: String, hakemusOid: String) = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).get
 
   private def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: String, selite: String, personOid: String) = {
-    vastaanottoService.vastaanotaHakukohde(VastaanottoEvent(personOid, hakemusOid, hakukohdeOid, tila match {
-      case Vastaanottotila.perunut => Peru
-      case Vastaanottotila.vastaanottanut => VastaanotaSitovasti
-      case Vastaanottotila.ehdollisesti_vastaanottanut => VastaanotaEhdollisesti
-    })).get
+    vastaanottoService.vastaanota(hakuOid, hakemusOid, Vastaanotto(hakukohdeOid, tila, muokkaaja, selite))
     success
   }
 

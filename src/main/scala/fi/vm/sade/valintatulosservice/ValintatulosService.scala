@@ -13,8 +13,12 @@ import org.joda.time.DateTime
 
 private object HakemustenTulosHakuLock
 
-class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjausparametritService: OhjausparametritService, hakemusRepository: HakemusRepository, hakuService: HakuService)(implicit appConfig: AppConfig) extends Logging {
-  def this(sijoittelutulosService: SijoittelutulosService, hakuService: HakuService)(implicit appConfig: AppConfig) = this(sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), hakuService)
+class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
+                          sijoittelutulosService: SijoittelutulosService,
+                          ohjausparametritService: OhjausparametritService,
+                          hakemusRepository: HakemusRepository,
+                          hakuService: HakuService)(implicit appConfig: AppConfig) extends Logging {
+  def this(vastaanotettavuusService: VastaanotettavuusService, sijoittelutulosService: SijoittelutulosService, hakuService: HakuService)(implicit appConfig: AppConfig) = this(vastaanotettavuusService, sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), hakuService)
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
     fetchTulokset(hakuOid, (haku) => hakemusRepository.findHakemus(hakemusOid).iterator, (haku) => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid).toSeq).flatMap(_.toSeq.headOption)
@@ -71,6 +75,7 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
       .map(sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä)
       .map(sovellaKorkeakoulujenLisähaunSääntöjä)
       .map(piilotaKuvauksetKeskeneräisiltä)
+      .map(asetaVastaanotettavuusValintarekisterinPerusteella(h.henkiloOid))
       .tulokset
 
     Hakemuksentulos(haku.oid, h.oid, sijoitteluTulos.hakijaOid.getOrElse(h.henkiloOid), ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullisetTulokset)
@@ -82,6 +87,16 @@ class ValintatulosService(sijoittelutulosService: SijoittelutulosService, ohjaus
     val ohjausparametrit = ohjausparametritService.ohjausparametrit(haku.oid)
     val hakutoiveenTulosWithVastaanotettavuustila = sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(List(hakutoiveentulos), haku, ohjausparametrit).head
     hakutoiveenTulosWithVastaanotettavuustila.vastaanotettavuustila == Vastaanotettavuustila.vastaanotettavissa_ehdollisesti
+  }
+
+  private def asetaVastaanotettavuusValintarekisterinPerusteella(henkiloOid: String)(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+    tulokset.map(tulos => {
+      if (vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, tulos.hakukohdeOid).isFailure) {
+        tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
+      } else {
+        tulos
+      }
+    })
   }
 
   private def sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
