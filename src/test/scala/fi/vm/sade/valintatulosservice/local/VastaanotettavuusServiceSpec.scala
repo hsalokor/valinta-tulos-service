@@ -18,8 +18,8 @@ import org.specs2.specification.Scope
 class VastaanotettavuusServiceSpec extends Specification {
   "VastaanotettavuusService" in {
     "vastaanotettavuus" in {
-      val hakemusOid = "1.2.246.562.11.00000441784"
       "kun hakukohdetta ei löydy" in new VastaanotettavuusServiceWithMocks {
+        val hakemusOid = "1.2.246.562.11.00000441784"
         hakukohdeRecordService.getHakukohdeRecord("non-existent-oid") throws new RuntimeException("test msg")
         v.vastaanotettavuus("henkilo-oid", hakemusOid, "non-existent-oid") must throwA[RuntimeException](message = "test msg")
       }
@@ -106,6 +106,16 @@ class VastaanotettavuusServiceSpec extends Specification {
         valintatulosService.onkoVastaanotettavissaEhdollisesti(hakutoiveenTulos, haku) returns false
         v.vastaanotettavuus(henkiloOid, hakemusOid, hakukohde.oid) must beEqualTo(Vastaanotettavuus(List(Peru, VastaanotaSitovasti), None))
         there was no(hakijaVastaanottoRepository).findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
+      }
+      "kun hakija on perunut aiemman hakutoiveen ja hakutoive vastaanotettavissa" in new VastaanotettavuusServiceWithMocks with YhdenPaikanSaantoVoimassa {
+        hakutoiveenTulos.valintatila returns (Valintatila.hyväksytty)
+        hakemuksenTulos.findHakutoive(hakukohde.oid) returns Some(hakutoiveenTulos)
+        valintatulosService.hakemuksentulos(haku.oid, hakemusOid) returns Some(hakemuksenTulos)
+
+        hakijaVastaanottoRepository.findKkTutkintoonJohtavatVastaanotot(henkiloOid, kausi) returns Set(previousVastaanottoRecord.copy(action = Peru))
+        valintatulosService.onkoVastaanotettavissaEhdollisesti(hakutoiveenTulos, haku) returns false
+        v.vastaanotettavuus(henkiloOid, hakemusOid, hakukohde.oid) must beEqualTo(Vastaanotettavuus(List(Peru, VastaanotaSitovasti), None))
+        there was no(hakijaVastaanottoRepository).findHenkilonVastaanototHaussa(Matchers.any[String], Matchers.any[String])
       }
       "kun hakutoive ei ole vastaanotettavissa ehdollisesti" in new VastaanotettavuusServiceWithMocks with YhdenPaikanSaantoVoimassa {
         hakutoiveenTulos.valintatila returns (Valintatila.hyväksytty)

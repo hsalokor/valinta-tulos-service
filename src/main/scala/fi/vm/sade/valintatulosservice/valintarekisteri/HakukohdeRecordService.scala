@@ -7,6 +7,7 @@ import scala.util.Try
 
 class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: HakukohdeRepository) {
   def getHakukohdeRecord(oid: String): HakukohdeRecord = {
+    // hakukohdeRecord is cached in DB to enable vastaanotto queries
     val record: Option[HakukohdeRecord] = hakukohdeRepository.findHakukohde(oid)
     record.getOrElse(fetchAndStoreHakukohdeDetails(oid))
   }

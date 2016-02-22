@@ -53,7 +53,6 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   def vastaanotaHakukohde(vastaanottoEvent: VastaanottoEvent): Try[Unit] = {
-    val hakukohdeRecord = hakukohdeRecordService.getHakukohdeRecord(vastaanottoEvent.hakukohdeOid)
     val Vastaanotettavuus(allowedActions, reason) = vastaanotettavuusService.vastaanotettavuus(vastaanottoEvent.henkiloOid, vastaanottoEvent.hakemusOid, vastaanottoEvent.hakukohdeOid)
     if( allowedActions.contains(vastaanottoEvent.action) ) {
       Success(hakijaVastaanottoRepository.store(vastaanottoEvent))
