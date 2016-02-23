@@ -93,7 +93,7 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     val vastaanotto = parsedBody.extract[Vastaanotto]
 
 
-    Try(vastaanottoService.vastaanota(hakuOid, hakemusOid, vastaanotto)).map((_) => Ok()).recover{
+    Try(vastaanottoService.vastaanota(hakemusOid, vastaanotto)).map((_) => Ok()).recover{
       case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
     }.get
   }
@@ -105,7 +105,7 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
     )
   get("/:hakuOid/hakemus/:hakemusOid/hakukohde/:hakukohdeOid/vastaanotettavuus", operation(getHakukohteenVastaanotettavuusSwagger)) {
-    Try(vastaanottoService.tarkistaVastaanotettavuus( params("hakuOid"), params("hakemusOid"), params("hakukohdeOid")))
+    Try(vastaanottoService.tarkistaVastaanotettavuus(params("hakemusOid"), params("hakukohdeOid")))
       .map((_) => Ok())
       .recover({ case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage) })
       .get

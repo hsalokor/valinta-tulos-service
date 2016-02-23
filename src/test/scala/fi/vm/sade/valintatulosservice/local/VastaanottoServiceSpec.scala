@@ -204,8 +204,14 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
     "yhden paikan sääntö" in {
       "vastaanota varsinaisessa haussa, kun lisähaussa vastaanottavissa -> lisähaun paikka ei vastaanotettavissa" in {
         useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+
+        HakuFixtures.useFixture("korkeakoulu-lisahaku1", List(HakuFixtures.korkeakouluLisahaku1))
         hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
+
+        HakuFixtures.useFixture("korkeakoulu-yhteishaku")
         vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
+
+        HakuFixtures.useFixture("korkeakoulu-lisahaku1", List(HakuFixtures.korkeakouluLisahaku1))
         val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
         lisaHaunTulos.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
         lisaHaunTulos.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
@@ -213,23 +219,31 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
       "vastaanota lisähaussa, kun varsinaisessa haussa vastaanottavissa -> varsinaisen haun paikka ei vastaanotettavissa" in {
         useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+
         val lisahakuHakemusOid = "1.2.246.562.11.00000878230"
         val lisahaunVastaanotettavaHakukohdeOid = "1.2.246.562.14.2014022408541751568934"
 
+        HakuFixtures.useFixture("korkeakoulu-lisahaku1", List(HakuFixtures.korkeakouluLisahaku1))
         hakemuksenTulos("korkeakoulu-lisahaku1", lisahakuHakemusOid).hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
         hakemuksenTulos("korkeakoulu-lisahaku1", lisahakuHakemusOid).hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
+
+        HakuFixtures.useFixture("korkeakoulu-yhteishaku")
         hakemuksenTulos("1.2.246.562.5.2013080813081926341928", "1.2.246.562.11.00000441369").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
 
+        HakuFixtures.useFixture("korkeakoulu-lisahaku1", List(HakuFixtures.korkeakouluLisahaku1))
         vastaanota("korkeakoulu-lisahaku1", lisahakuHakemusOid, lisahaunVastaanotettavaHakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
 
         val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", lisahakuHakemusOid)
         lisaHaunTulos.hakutoiveet(0).vastaanottotila == Vastaanottotila.vastaanottanut
         lisaHaunTulos.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
 
+        HakuFixtures.useFixture("korkeakoulu-yhteishaku")
         hakemuksenTulos("1.2.246.562.5.2013080813081926341928", "1.2.246.562.11.00000441369").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
       }
       "vastaanota lisahaussa kahdesta hakutoiveesta toinen -> ei-vastaanotettu paikka ei vastaanotettavissa" in {
         useFixture("lisahaku-vastaanotettavissa.json", hakuFixture = HakuFixtures.korkeakouluLisahaku1, hakemusFixtures = List("00000878230"), yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+        HakuFixtures.useFixture("korkeakoulu-lisahaku1", List(HakuFixtures.korkeakouluLisahaku1))
+
         hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
         hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
 
@@ -242,8 +256,14 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
 
       "vastaanota ehdollisesti varsinaisessa haussa, kun lisähaussa vastaanottavissa -> lisähaun paikka ei vastaanotettavissa" in {
         useFixture("hyvaksytty-ylempi-varalla.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+
+        HakuFixtures.useFixture("korkeakoulu-lisahaku1", List(HakuFixtures.korkeakouluLisahaku1))
         hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
+
+        HakuFixtures.useFixture("korkeakoulu-yhteishaku")
         vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
+
+        HakuFixtures.useFixture("korkeakoulu-lisahaku1", List(HakuFixtures.korkeakouluLisahaku1))
         val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
         lisaHaunTulos.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
         lisaHaunTulos.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
@@ -418,12 +438,12 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
   private def hakemuksenTulos(hakuOid: String, hakemusOid: String) = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).get
 
   private def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: String, selite: String, personOid: String) = {
-    vastaanottoService.vastaanota(hakuOid, hakemusOid, Vastaanotto(hakukohdeOid, tila, muokkaaja, selite))
+    vastaanottoService.vastaanota(hakemusOid, Vastaanotto(hakukohdeOid, tila, muokkaaja, selite))
     success
   }
 
   private def tarkistaVastaanotettavuus(hakuOid: String, hakemusOid: String, hakukohdeOid: String) = {
-    vastaanottoService.tarkistaVastaanotettavuus(hakuOid, hakemusOid, hakukohdeOid)
+    vastaanottoService.tarkistaVastaanotettavuus(hakemusOid, hakukohdeOid)
     success
   }
 

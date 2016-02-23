@@ -2,14 +2,24 @@ package fi.vm.sade.valintatulosservice.domain
 
 import java.util.Date
 
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
+
 case class VastaanottoRecord(henkiloOid: String, hakuOid: String, hakukohdeOid: String, action: VastaanottoAction, ilmoittaja: String, timestamp: Date)
 case class VastaanottoEvent(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, action: VastaanottoAction)
 
-sealed trait VastaanottoAction
+sealed trait VastaanottoAction {
+  def vastaanottotila: Vastaanottotila
+}
 
-case object Peru extends VastaanottoAction
-case object VastaanotaSitovasti extends VastaanottoAction
-case object VastaanotaEhdollisesti extends VastaanottoAction
+case object Peru extends VastaanottoAction {
+  val vastaanottotila = Vastaanottotila.perunut
+}
+case object VastaanotaSitovasti extends VastaanottoAction {
+  val vastaanottotila = Vastaanottotila.vastaanottanut
+}
+case object VastaanotaEhdollisesti extends VastaanottoAction {
+  val vastaanottotila = Vastaanottotila.ehdollisesti_vastaanottanut
+}
 
 object VastaanottoAction {
   private val valueMapping = Map(
