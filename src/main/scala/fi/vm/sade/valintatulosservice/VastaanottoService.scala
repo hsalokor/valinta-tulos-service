@@ -47,6 +47,7 @@ class VastaanottoService(hakuService: HakuService,
           case ValintatuloksenTila.PERUNUT => Peru
           case ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI => VastaanotaSitovasti
           case ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT => VastaanotaEhdollisesti
+          case _ => throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + haluttuTila)
       }))
       tulokset.modifyValintatulos(
         vastaanotto.hakukohdeOid,
