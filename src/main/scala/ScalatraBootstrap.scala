@@ -41,6 +41,7 @@ class ScalatraBootstrap extends LifeCycle {
 
     context.mount(new BuildInfoServlet, "/")
 
+    context.mount(new VirkailijanVastaanottoServlet(valintatulosService), "/virkailija")
     context.mount(new PrivateValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
     context.mount(new EmailStatusServlet(mailPoller, valintatulosCollection, new MailDecorator(new HakemusRepository(), valintatulosCollection)), "/vastaanottoposti")
     context.mount(new EnsikertalaisuusServlet(valintarekisteriDb, appConfig.settings.valintaRekisteriEnsikertalaisuusMaxPersonOids), "/ensikertalaisuus")
