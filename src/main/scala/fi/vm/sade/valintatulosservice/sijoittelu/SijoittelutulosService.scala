@@ -61,8 +61,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
       var valintatila: Valintatila = jononValintatila(jono, hakutoive)
       val viimeisinHakemuksenTilanMuutos: Option[Date] = Option(jono.getHakemuksenTilanViimeisinMuutos)
       val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos)
-      val vastaanottoDeadline: Option[DateTime] = laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos, valintatila)
-      val vastaanottotila: Vastaanottotila = laskeVastaanottotila(valintatila, vastaanotto, aikataulu, vastaanottoDeadline)
+      val ( vastaanottotila, vastaanottoDeadline ) = laskeVastaanottotila(valintatila, vastaanotto, aikataulu, viimeisinHakemuksenTilanMuutos)
       valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
       val vastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, vastaanottotila)
       val julkaistavissa = jono.isJulkaistavissa
@@ -115,7 +114,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     }
   }
 
-  private def laskeVastaanottotila(valintatila: Valintatila, vastaanotto: Option[VastaanottoAction], aikataulu: Option[Vastaanottoaikataulu], vastaanottoDeadline: Option[DateTime]): Vastaanottotila = {
+  private def laskeVastaanottotila(valintatila: Valintatila, vastaanotto: Option[VastaanottoAction], aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date]): ( Vastaanottotila, Option[DateTime] ) = {
     val vastaanottotila: Vastaanottotila =
       vastaanotto match {
         case None => Vastaanottotila.kesken
@@ -124,11 +123,23 @@ class SijoittelutulosService(raportointiService: RaportointiService,
         case Some(VastaanotaEhdollisesti) => Vastaanottotila.ehdollisesti_vastaanottanut
       }
 
-    (vastaanottotila, vastaanottoDeadline) match {
-      case (Vastaanottotila.kesken, Some(deadline)) if Valintatila.isHyväksytty(valintatila) && new DateTime().isAfter(deadline) =>
-        Vastaanottotila.ei_vastaanotettu_määräaikana
-      case (tila, _) =>
-        tila
+    vastaanottotila match {
+      case Vastaanottotila.kesken if ( Valintatila.isHyväksytty(valintatila) || valintatila == Valintatila.perunut ) =>
+        laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos) match {
+          case Some(deadline) if new DateTime().isAfter(deadline) => ( Vastaanottotila.ei_vastaanotettu_määräaikana, Some(deadline) )
+          case deadline => (vastaanottotila, deadline)
+        }
+      case tila => (tila, None)
+    }
+  }
+
+  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date]): Option[DateTime] = {
+    (aikataulu) match {
+      case Some(Vastaanottoaikataulu(Some(deadlineFromHaku), buffer)) =>
+        val deadlineFromHakemuksenTilanMuutos = getDeadlineWithBuffer(viimeisinHakemuksenTilanMuutos, buffer, deadlineFromHaku)
+        val deadlines = Some(deadlineFromHaku) ++ deadlineFromHakemuksenTilanMuutos
+        Some(deadlines.maxBy((a: DateTime) => a.getMillis))
+      case _ => None
     }
   }
 
@@ -152,16 +163,6 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     Valintatila.withName(tila.name)
   }
 
-
-  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], valintatila: Valintatila): Option[DateTime] = {
-    (aikataulu) match {
-      case Some(Vastaanottoaikataulu(Some(deadlineFromHaku), buffer)) if Valintatila.isHyväksytty(valintatila) =>
-        val deadlineFromHakemuksenTilanMuutos = getDeadlineWithBuffer(viimeisinHakemuksenTilanMuutos, buffer, deadlineFromHaku)
-        val deadlines = Some(deadlineFromHaku) ++ deadlineFromHakemuksenTilanMuutos
-        Some(deadlines.maxBy((a: DateTime) => a.getMillis))
-      case _ => None
-    }
-  }
 
   private def getDeadlineWithBuffer(viimeisinMuutosOption: Option[Date], bufferOption: Option[Int], deadline: DateTime): Option[DateTime] = {
     for {
