@@ -83,12 +83,6 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, None, Nil)
 
-  def onkoVastaanotettavissaEhdollisesti(hakutoiveentulos: Hakutoiveentulos, haku: Haku): Boolean = {
-    val ohjausparametrit = ohjausparametritService.ohjausparametrit(haku.oid)
-    val hakutoiveenTulosWithVastaanotettavuustila = sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(List(hakutoiveentulos), haku, ohjausparametrit).head
-    hakutoiveenTulosWithVastaanotettavuustila.vastaanotettavuustila == Vastaanotettavuustila.vastaanotettavissa_ehdollisesti
-  }
-
   private def asetaVastaanotettavuusValintarekisterinPerusteella(henkiloOid: String)(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     tulokset.map(tulos => {
       if (vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, tulos.hakukohdeOid).isFailure) {
