@@ -31,7 +31,7 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService)(im
     Try(valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid).getOrElse(List())).map(hakemuksentulos => {
       val v =
       hakemuksentulos
-          .map(t => t.hakemusOid -> t.findHakutoive(hakukohdeOid).map(_.vastaanottotila).getOrElse(Vastaanottotila.kesken)) toMap
+          .map(t => t.hakemusOid -> t.findHakutoive(hakukohdeOid).map(_.vastaanottotila.toString).getOrElse(Vastaanottotila.kesken.toString)) toMap
 
       Ok(v)
     }).recover{
