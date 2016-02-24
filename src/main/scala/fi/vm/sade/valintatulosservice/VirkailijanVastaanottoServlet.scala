@@ -31,7 +31,7 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService)(im
     Try(valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid).getOrElse(List())).map(
       h => Ok(h.map(t => {
         val hakutoive = t.findHakutoive(hakukohdeOid)
-        HakemuksenValinnantila(t.hakemusOid, hakutoive.map(_.valintatapajonoOid), hakutoive.map(_.vastaanottotila))
+        HakemuksenVastaanottotila(t.hakemusOid, hakutoive.map(_.valintatapajonoOid), hakutoive.map(_.vastaanottotila))
       }).toList)
     ).recover{
       case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
