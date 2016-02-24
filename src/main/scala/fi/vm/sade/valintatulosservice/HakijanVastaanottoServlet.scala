@@ -14,15 +14,16 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
 
   override protected def applicationDescription: String = "Opiskelupaikan vastaanoton REST API"
 
-  registerModel(Model(id = classOf[VastaanottoAction].getSimpleName, name = classOf[VastaanottoAction].getSimpleName,
-          properties = List("action" -> ModelProperty(`type` = DataType.String, position = 0, required = true,
-            allowableValues = AllowableValues(VastaanottoAction.values)))))
+  private val vastaanottoActionModel = Model(
+    id = classOf[VastaanottoAction].getSimpleName,
+    name = classOf[VastaanottoAction].getSimpleName,
+    properties = List("action" -> ModelProperty(`type` = DataType.String, required = true, allowableValues = AllowableValues(VastaanottoAction.values))))
 
   val postVastaanottoSwagger: OperationBuilder = (apiOperation[Unit]("postVastaanotto")
     summary "Tallenna hakukohteelle uusi vastaanottotila"
     parameter pathParam[String]("henkiloOid").description("Hakijan henkilönumero")
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
-    parameter bodyParam[VastaanottoAction])
+    parameter bodyParam(vastaanottoActionModel))
   post("/henkilo/:henkiloOid/hakemus/:hakemusOid/hakukohde/:hakukohdeOid", operation(postVastaanottoSwagger)) {
 
     val personOid = params("henkiloOid")
