@@ -26,10 +26,10 @@ object VastaanottoAction {
     "Peru" -> Peru,
     "VastaanotaSitovasti" -> VastaanotaSitovasti,
     "VastaanotaEhdollisesti" -> VastaanotaEhdollisesti)
-  val values: Seq[String] = valueMapping.keysIterator.toList
+  val values: List[String] = valueMapping.keysIterator.toList
   def apply(value: String): VastaanottoAction = valueMapping.getOrElse(value, {
     throw new IllegalArgumentException(s"Unknown action '$value', expected one of $values")
   })
 }
 
-case class Vastaanotettavuus(allowedActions: Seq[VastaanottoAction], reason: Option[Exception] = None)
+case class Vastaanotettavuus(allowedActions: List[VastaanottoAction], reason: Option[Exception] = None)
