@@ -46,14 +46,14 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     }).getOrElse(Nil)
   }
 
-  private def fetchVastaanotto(henkiloOid: String, hakuOid: String): Option[VastaanottoRecord] = {
-    hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, hakuOid).headOption
+  private def fetchVastaanotto(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
+    hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
   }
 
   private def hakemuksenYhteenveto(hakija: HakijaDTO,
                                    aikataulu: Option[Vastaanottoaikataulu],
                                    vastaanotettavuudet: Vastaanotettavuudet,
-                                   vastaanottoRecord: Option[VastaanottoRecord]): HakemuksenSijoitteluntulos = {
+                                   vastaanottoRecord: Set[VastaanottoRecord]): HakemuksenSijoitteluntulos = {
 
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val vastaanotto = vastaanottoRecord.find(v => v.hakukohdeOid == hakutoive.getHakukohdeOid).map(_.action)
