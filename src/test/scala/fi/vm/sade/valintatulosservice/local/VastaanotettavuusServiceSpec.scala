@@ -42,25 +42,18 @@ class VastaanotettavuusServiceSpec extends Specification {
         }
       }
       "kun yhden paikan sääntö ei voimassa" in {
-        "kun hakijalla useita aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
-          val anotherPreviousVastaanottoRecord = previousVastaanottoRecord.copy(hakukohdeOid = hakukohde.oid + "1")
-          val aiemmatVastaanotot = Set(previousVastaanottoRecord, anotherPreviousVastaanottoRecord)
-          hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, haku.oid) returns aiemmatVastaanotot
-          v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beFailedTry.withThrowable[IllegalStateException]
-          there was no(hakijaVastaanottoRepository).findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
-        }
         "kun hakijalla yksi aiempi vastaanotto" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
-          hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, haku.oid) returns Set(previousVastaanottoRecord)
+          hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns Some(previousVastaanottoRecord)
           v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beFailedTry.withThrowable[PriorAcceptanceException]
           there was no(hakijaVastaanottoRepository).findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
         "kun hakijalla aiempi peruttu hakutoive" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
-          hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, haku.oid) returns Set(previousVastaanottoRecord.copy(action = Peru))
+          hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns Some(previousVastaanottoRecord.copy(action = Peru))
           v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beSuccessfulTry
           there was no(hakijaVastaanottoRepository).findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
         "kun hakijalla ei aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
-          hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, haku.oid) returns Set()
+          hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns None
           v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beSuccessfulTry
           there was no(hakijaVastaanottoRepository).findKkTutkintoonJohtavatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }

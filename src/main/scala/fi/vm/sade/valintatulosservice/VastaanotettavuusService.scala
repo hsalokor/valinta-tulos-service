@@ -21,11 +21,11 @@ class VastaanotettavuusService(hakukohdeRecordService: HakukohdeRecordService,
   }
 
   private def haeAiemmatVastaanotot(hakukohdeRecord: HakukohdeRecord, hakijaOid: String): Set[VastaanottoRecord] = {
-    val HakukohdeRecord(_, hakuOid, yhdenPaikanSaantoVoimassa, _, koulutuksenAlkamiskausi) = hakukohdeRecord
+    val HakukohdeRecord(hakukohdeOid, _, yhdenPaikanSaantoVoimassa, _, koulutuksenAlkamiskausi) = hakukohdeRecord
     val aiemmatVastaanotot = if (yhdenPaikanSaantoVoimassa) {
       hakijaVastaanottoRepository.findKkTutkintoonJohtavatVastaanotot(hakijaOid, koulutuksenAlkamiskausi)
     } else {
-      hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(hakijaOid, hakuOid)
+      hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(hakijaOid, hakukohdeOid).toSet
     }
     aiemmatVastaanotot.filter(_.action != Peru)
   }

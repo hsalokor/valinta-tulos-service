@@ -89,6 +89,17 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     vastaanottoRecords.toSet
   }
 
+  override def findHenkilonVastaanottoHakukohteeseen(henkiloOid: String, hakukohdeOid: String): Option[VastaanottoRecord] = {
+    val vastaanottoRecords = runBlocking(sql"""select vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
+                                  vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
+                           from vastaanotot vo
+                           join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
+                           where vo.henkilo = $henkiloOid
+                              and hk.hakukohde_oid = $hakukohdeOid
+                              and vo.deleted is null""".as[VastaanottoRecord])
+    vastaanottoRecords.headOption
+  }
+
   override def findKkTutkintoonJohtavatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Set[VastaanottoRecord] = {
     val vastaanottoRecords = runBlocking(sql"""select vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
                                   vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
