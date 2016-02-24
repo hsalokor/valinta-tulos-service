@@ -191,6 +191,8 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
     }
   }
 
+  step(valintarekisteriDb.db.shutdown)
+
   private def verifyMailSent(hakemusOid: String, hakukohdeOid: String, timestamp: Long) {
     val valintatulosCollection = MongoFactory.createDB(appConfig.settings.valintatulosMongoConfig)("Valintatulos")
     val query = MongoDBObject(

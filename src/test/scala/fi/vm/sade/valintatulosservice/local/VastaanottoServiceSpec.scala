@@ -421,6 +421,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
     }
   }
 
+  step(valintarekisteriDb.db.shutdown)
+
   private lazy val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
 
   lazy val hakuService = HakuService(appConfig)
