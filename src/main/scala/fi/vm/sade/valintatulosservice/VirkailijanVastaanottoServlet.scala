@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.{Vastaanottotila, Hakemuksentulos, Vastaanotto, VastaanottoAction}
+import fi.vm.sade.valintatulosservice.domain._
 import org.scalatra.{Forbidden, Ok}
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
@@ -29,7 +29,10 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService)(im
     val hakukohdeOid = params("hakukohdeOid")
 
     Try(valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid).getOrElse(List())).map(
-      h => Ok(h.map(t => t.hakemusOid -> t.findHakutoive(hakukohdeOid).map(_.vastaanottotila.toString).getOrElse(Vastaanottotila.kesken.toString)) toMap)
+      h => Ok(h.map(t => {
+        val hakutoive = t.findHakutoive(hakukohdeOid)
+        HakemuksenValinnantila(t.hakemusOid, hakutoive.map(_.valintatapajonoOid), hakutoive.map(_.vastaanottotila))
+      }).toList)
     ).recover{
       case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
     }.get
