@@ -2,26 +2,32 @@
     "Sijoittelu": [
         {
             "_id": {
-                "$oid": "547f0c17e4b0755315d44e0a"
+                "$oid": "53fc79b8e4b0b0b110900768"
             },
-            "className" : "fi.vm.sade.sijoittelu.domain.Sijoittelu",
-            "hakuOid" : "1.2.246.562.29.173465377510",
-            "sijoitteluajoId": {
-                "$numberLong": "1409055160622"
+            "className": "fi.vm.sade.sijoittelu.domain.Sijoittelu",
+            "hakuOid": "korkeakoulu-erillishaku",
+            "sijoitteluId": {
+                "$numberLong": "1409055160624"
             },
             "created": {
-                "$date": "2014-12-03T13:11:51.186Z"
+                "$date": "2014-08-26T15:12:40.621Z"
             },
-            "sijoittele" : true,
-            "sijoitteluajot" : [
+            "sijoittele": true,
+            "sijoitteluajot": [
                 {
                     "sijoitteluajoId": {
-                        "$numberLong": "1409055160621"
+                        "$numberLong": "1409055160624"
                     },
-                    "hakuOid" : "1.2.246.562.29.173465377510",
-                    "hakukohteet" : [
+                    "hakuOid": "korkeakoulu-erillishaku",
+                    "startMils": {
+                        "$numberLong": "1409055160617"
+                    },
+                    "endMils": {
+                        "$numberLong": "1409055160623"
+                    },
+                    "hakukohteet": [
                         {
-                            "oid" : "1.2.246.562.5.72607738902"
+                            "oid": "1.2.246.562.5.72607738902"
                         }
                     ]
                 }
