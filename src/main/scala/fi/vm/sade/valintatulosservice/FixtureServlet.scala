@@ -25,7 +25,18 @@ class FixtureServlet(valintarekisteriDb: ValintarekisteriDb)(implicit val appCon
     val ohjausparametrit = paramOption("ohjausparametrit").getOrElse(OhjausparametritFixtures.vastaanottoLoppuu2100)
     OhjausparametritFixtures.activeFixture = ohjausparametrit
     val haku = paramOption("haku").getOrElse(HakuFixtures.korkeakouluYhteishaku)
-    HakuFixtures.useFixture(haku)
+    val useHakuAsHakuOid = paramOption("useHakuAsHakuOid").getOrElse("false")
+    val useHakuOid = paramOption("useHakuOid")
+    if(useHakuOid.isDefined) {
+      HakuFixtures.useFixture(haku, List(useHakuOid.get))
+    } else {
+      if("true".equalsIgnoreCase(useHakuAsHakuOid)) {
+        HakuFixtures.useFixture(haku, List(haku))
+      } else {
+        HakuFixtures.useFixture(haku)
+      }
+
+    }
   }
 
   put("/fixtures/generate") {
