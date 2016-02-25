@@ -47,8 +47,8 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
 
   val postVastaanottoActionsSwagger: OperationBuilder = (apiOperation[List[VastaanottoResult]]("postVastaanotto")
     summary "Tallenna vastaanottotapahtumat"
-    parameter bodyParam[Set[VastaanottoEvent]])
-  post("/", operation(postVastaanottoActionsSwagger)) {
+    parameter bodyParam[List[VastaanottoEvent]])
+  post("/vastaanotto", operation(postVastaanottoActionsSwagger)) {
 
     val vastaanottoEvents = parsedBody.extract[List[VastaanottoEvent]]
     vastaanottoService.virkailijanVastaanota(vastaanottoEvents)
