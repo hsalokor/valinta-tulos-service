@@ -37,7 +37,6 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                     union
                     select "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
                     where vanhat_vastaanotot.henkilo = $personOid
-                          and vanhat_vastaanotot.deleted is null
                           and vanhat_vastaanotot.kk_tutkintoon_johtava) as all_vastaanotot
                 where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
             """.as[Option[Long]])
@@ -66,8 +65,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                        where vastaanotot.active and (vastaanotot.action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti'))
                        union
                        select henkilo, "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
-                       where vanhat_vastaanotot.deleted is null
-                             and vanhat_vastaanotot.kk_tutkintoon_johtava) as all_vastaanotot
+                       where vanhat_vastaanotot.kk_tutkintoon_johtava) as all_vastaanotot
                 on all_vastaanotot.henkilo = person_oids.oid
                    and all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
             group by person_oids.oid
@@ -85,7 +83,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
                            where vo.henkilo = $henkiloOid
                               and hk.haku_oid = $hakuOid
-                              and vo.deleted is null""".as[VastaanottoRecord])
+                              and vo.id not in (select vastaanotto from deleted_vastaanotot)""".as[VastaanottoRecord])
     vastaanottoRecords.toSet
   }
 
@@ -96,7 +94,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
                            where vo.henkilo = $henkiloOid
                               and hk.hakukohde_oid = $hakukohdeOid
-                              and vo.deleted is null""".as[VastaanottoRecord])
+                              and vo.id not in (select vastaanotto from deleted_vastaanotot)""".as[VastaanottoRecord])
     vastaanottoRecords.headOption
   }
 
@@ -107,7 +105,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
                            where vo.henkilo = $henkiloOid
                              and hk.kk_tutkintoon_johtava = true
-                             and vo.deleted is null
+                             and vo.id not in (select vastaanotto from deleted_vastaanotot)
                              and hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}""".as[VastaanottoRecord])
     vastaanottoRecords.toSet
   }
