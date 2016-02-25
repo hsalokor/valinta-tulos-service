@@ -8,7 +8,7 @@ import org.scalatra.{Forbidden, Ok}
 
 import scala.util.Try
 
-class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService)(implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
+class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, vastaanottoService: VastaanottoService)(implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
 
   override val applicationName = Some("virkailija")
 
@@ -49,7 +49,9 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService)(im
     summary "Tallenna vastaanottotapahtumat"
     parameter bodyParam[Set[VastaanottoEvent]])
   post("/", operation(postVastaanottoActionsSwagger)) {
-    List()
+
+    val vastaanottoEvents = parsedBody.extract[List[VastaanottoEvent]]
+    vastaanottoService.virkailijanVastaanota(vastaanottoEvents)
   }
 }
 
