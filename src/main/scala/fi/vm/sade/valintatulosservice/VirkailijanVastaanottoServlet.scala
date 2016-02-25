@@ -43,9 +43,11 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
       "action" -> ModelProperty(`type` = DataType.String, required = true, allowableValues = AllowableValues(VastaanottoAction.values))
     ))
 
+  registerModel(vastaanottoEventModel)
+
   val postVastaanottoActionsSwagger: OperationBuilder = (apiOperation[List[VastaanottoResult]]("postVastaanotto")
     summary "Tallenna vastaanottotapahtumat"
-    parameter bodyParam(vastaanottoEventModel))
+    parameter bodyParam[Set[VastaanottoEvent]])
   post("/", operation(postVastaanottoActionsSwagger)) {
 
     val vastaanottoEvents = parsedBody.extract[List[VastaanottoEvent]]
