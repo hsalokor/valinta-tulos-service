@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.valintarekisteri
 import java.util.Date
 
 import fi.vm.sade.valintatulosservice.ITSetup
-import fi.vm.sade.valintatulosservice.domain.{Kausi, VastaanotaSitovasti, VastaanottoEvent, VastaanottoRecord}
+import fi.vm.sade.valintatulosservice.domain._
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -18,6 +18,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
   private val hakemusOid = "1.2.246.562.99.00000000001"
   private val hakukohdeOid = "1.2.246.561.20.00000000001"
   private val otherHakukohdeOid = "1.2.246.561.20.00000000002"
+  private val otherHakukohdeOidForHakuOid = "1.2.246.561.20.00000000003"
   private val hakuOid = "1.2.246.561.29.00000000001"
   private val otherHakuOid = "1.2.246.561.29.00000000002"
 
@@ -27,7 +28,9 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
            values ($hakukohdeOid, $hakuOid, true, true, '2015K')""",
     sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
-               values ($otherHakukohdeOid, $otherHakuOid, true, true, '2015S')""")))
+               values ($otherHakukohdeOid, $otherHakuOid, true, true, '2015S')""",
+    sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
+               values ($otherHakukohdeOidForHakuOid, $hakuOid, true, true, '2015K')""")))
 
   "ValintarekisteriDb" should {
     "store vastaanotto actions" in {
@@ -40,13 +43,38 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     }
 
     "find vastaanotot rows of person for given haku" in {
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid))
       singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, otherHakukohdeOidForHakuOid, VastaanotaSitovasti, henkiloOid))
       singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOid))
       singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
       val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
-      vastaanottoRowsFromDb must have size 1
+      vastaanottoRowsFromDb must have size 2
+      val a = vastaanottoRowsFromDb.find(_.hakukohdeOid == hakukohdeOid).get
+      a.henkiloOid mustEqual henkiloOid
+      a.hakuOid mustEqual hakuOid
+      a.hakukohdeOid mustEqual hakukohdeOid
+      a.action mustEqual VastaanotaSitovasti
+      a.ilmoittaja mustEqual henkiloOid
+      a.timestamp.before(new Date()) must beTrue
+      val b = vastaanottoRowsFromDb.find(_.hakukohdeOid == otherHakukohdeOidForHakuOid).get
+      b.henkiloOid mustEqual henkiloOid
+      b.hakuOid mustEqual hakuOid
+      b.hakukohdeOid mustEqual otherHakukohdeOidForHakuOid
+      b.action mustEqual VastaanotaSitovasti
+      b.ilmoittaja mustEqual henkiloOid
+      b.timestamp.before(new Date()) must beTrue
+    }
+
+    "find vastaanotot rows of person for given hakukohde" in {
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid)
+      vastaanottoRowsFromDb must beSome
       val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
-        ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.head
+        ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.get
       henkiloOidFromDb mustEqual henkiloOid
       hakuOidFromDb mustEqual hakuOid
       hakukohdeOidFromDb mustEqual hakukohdeOid
@@ -56,14 +84,17 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     }
 
     "find vastaanotot rows leading to higher education degrees of person" in {
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid))
       singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, otherHakukohdeOidForHakuOid, VastaanotaEhdollisesti, henkiloOid))
       singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
       singleConnectionValintarekisteriDb.runBlocking(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
                        values (${hakukohdeOid + "1"}, ${hakuOid + "1"}, false, false, '2015K')""")
       singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid + "1", VastaanotaSitovasti, henkiloOid))
       val recordsFromDb = singleConnectionValintarekisteriDb.findKkTutkintoonJohtavatVastaanotot(henkiloOid, Kausi("2015K"))
-      recordsFromDb must have size 1
-      recordsFromDb.head.hakukohdeOid mustEqual hakukohdeOid
+      recordsFromDb must have size 2
+      recordsFromDb.find(_.hakukohdeOid == hakukohdeOid).map(_.action) must beSome(VastaanotaSitovasti)
+      recordsFromDb.find(_.hakukohdeOid == otherHakukohdeOidForHakuOid).map(_.action) must beSome(VastaanotaEhdollisesti)
     }
   }
 
