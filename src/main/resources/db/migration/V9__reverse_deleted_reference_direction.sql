@@ -1,6 +1,4 @@
-create or replace function rollbackIfDeletedVanhatVastaanototDataIsFound()
-  RETURNS void AS
-$$
+do $$
 declare
   count integer;
 begin
@@ -8,11 +6,7 @@ begin
   if count > 0 then
     raise exception 'Old deleted vastaanotot found!!';
   end if;
-end;
-$$
-language 'plpgsql' immutable;
-
-select rollbackIfDeletedVanhatVastaanototDataIsFound();
+end $$;
 
 alter table vanhat_vastaanotot drop column deleted;
 
@@ -24,4 +18,4 @@ update deleted_vastaanotot set vastaanotto = q.id from (
   as q where q.deleted = deleted_vastaanotot.id;
 alter table vastaanotot drop column deleted;
 alter table deleted_vastaanotot drop column id;
-
+alter table deleted_vastaanotot add primary key (vastaanotto);
