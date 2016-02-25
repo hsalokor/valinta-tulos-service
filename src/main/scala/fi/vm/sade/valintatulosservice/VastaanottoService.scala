@@ -29,7 +29,7 @@ class VastaanottoService(hakuService: HakuService,
           Vastaanotto(
             vastaanottoEvent.hakukohdeOid,
             vastaanottoEvent.action.vastaanottotila,
-            "TODO: kirjaaja",
+            vastaanottoEvent.ilmoittaja,
             "Virkailijan tekemä vastaanotto"))
 
         createVastaanottoResult(200, None, vastaanottoEvent)
@@ -56,12 +56,17 @@ class VastaanottoService(hakuService: HakuService,
     tarkistaHakutoiveenJaValintatuloksenTila(hakutoive, haluttuTila)
 
     tallennaVastaanotto(
-      VastaanottoEvent(hakemuksenTulos.hakijaOid, vastaanotettavaHakemusOid, vastaanotto.hakukohdeOid, haluttuTila match {
-      case ValintatuloksenTila.PERUNUT => Peru
-      case ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI => VastaanotaSitovasti
-      case ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT => VastaanotaEhdollisesti
-      case _ => throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + haluttuTila)
-    }), hakutoive, vastaanotto)
+      VastaanottoEvent(hakemuksenTulos.hakijaOid, vastaanotettavaHakemusOid, vastaanotto.hakukohdeOid, getHaluttuTila(haluttuTila), hakemuksenTulos.hakijaOid),
+      hakutoive,
+      vastaanotto
+    )
+  }
+
+  def getHaluttuTila(haluttuTila: ValintatuloksenTila) = haluttuTila match {
+    case ValintatuloksenTila.PERUNUT => Peru
+    case ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI => VastaanotaSitovasti
+    case ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT => VastaanotaEhdollisesti
+    case _ => throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + haluttuTila)
   }
 
   private def checkVastaanotettavuus(hakemusOid: String, hakukohdeOid: String): (Hakemuksentulos, Hakutoiveentulos) = {

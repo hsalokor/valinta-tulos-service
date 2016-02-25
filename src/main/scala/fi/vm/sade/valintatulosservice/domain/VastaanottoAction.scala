@@ -5,7 +5,7 @@ import java.util.Date
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 
 case class VastaanottoRecord(henkiloOid: String, hakuOid: String, hakukohdeOid: String, action: VastaanottoAction, ilmoittaja: String, timestamp: Date)
-case class VastaanottoEvent(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, action: VastaanottoAction)
+case class VastaanottoEvent(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, action: VastaanottoAction, ilmoittaja: String)
 
 sealed trait VastaanottoAction {
   def vastaanottotila: Vastaanottotila
