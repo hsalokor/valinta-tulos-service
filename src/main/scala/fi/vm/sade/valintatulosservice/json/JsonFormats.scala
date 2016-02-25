@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice.json
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.vm.sade.utils.json4s.GenericJsonFormats
 import fi.vm.sade.valintatulosservice.VastaanottoActionSerializer
 import fi.vm.sade.valintatulosservice.domain._
@@ -15,6 +16,8 @@ object JsonFormats {
   def formatJson(found: AnyRef): String = {
     org.json4s.jackson.Serialization.write(found)(jsonFormats)
   }
+
+  def javaObjectToJsonString(x: Object): String = new ObjectMapper().writeValueAsString(x)
 }
 
 trait JsonFormats {

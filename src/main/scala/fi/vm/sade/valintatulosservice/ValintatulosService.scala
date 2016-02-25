@@ -1,15 +1,19 @@
 package fi.vm.sade.valintatulosservice
 
+import java.util
+
+import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.utils.Timer.timed
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 import org.joda.time.DateTime
+
+import scala.collection.JavaConverters._
 
 private object HakemustenTulosHakuLock
 
@@ -40,6 +44,21 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
       fetchTulokset(hakuOid, () => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid), (haku) => sijoittelutulosService.hakemustenTulos(hakuOid, Some(hakukohdeOid)))
     )
+  }
+
+  def findValintaTulokset(hakuOid: String, hakukohdeOid: String): util.List[Valintatulos] = {
+    val hakemustenTulokset = hakemustenTulosByHakukohde(hakuOid, hakukohdeOid).getOrElse(List())
+    val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
+    val valintatulokset = valintatulosDao.loadValintatuloksetForHakukohde(hakukohdeOid)
+    valintatulokset.asScala.foreach(valintaTulos => {
+      hakemustenTulokset.find(_.hakijaOid == valintaTulos.getHakijaOid).foreach(hakemuksenTulos => {
+        hakemuksenTulos.findHakutoive(hakukohdeOid).foreach(hakutoiveenTulos => {
+          val valintatuloksenTila = ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString)
+          valintaTulos.setTila(valintatuloksenTila, "")
+        })
+      })
+    })
+    valintatulokset
   }
 
   private def fetchTulokset(hakuOid: String, getHakemukset: () => Iterator[Hakemus], getSijoittelunTulos: (Haku) => Seq[HakemuksenSijoitteluntulos]): Option[Iterator[Hakemuksentulos]] = {
