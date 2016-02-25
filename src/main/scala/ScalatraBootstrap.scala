@@ -32,8 +32,7 @@ class ScalatraBootstrap extends LifeCycle {
     lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb)
     lazy val vastaanotettavuusService = new VastaanotettavuusService(hakukohdeRecordService, valintarekisteriDb)
     lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, hakuService)(appConfig)
-    lazy val vastaanottoService = new VastaanottoService(hakuService, vastaanotettavuusService, valintatulosService, valintarekisteriDb,
-      hakukohdeRecordService, appConfig.sijoitteluContext.valintatulosRepository)
+    lazy val vastaanottoService = new VastaanottoService(hakuService, vastaanotettavuusService, valintatulosService, valintarekisteriDb, appConfig.sijoitteluContext.valintatulosRepository)
     lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService,
       appConfig.sijoitteluContext.valintatulosRepository, valintarekisteriDb)
     lazy val valintatulosCollection = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
@@ -41,7 +40,7 @@ class ScalatraBootstrap extends LifeCycle {
 
     context.mount(new BuildInfoServlet, "/")
 
-    context.mount(new VirkailijanVastaanottoServlet(valintatulosService), "/virkailija")
+    context.mount(new VirkailijanVastaanottoServlet(valintatulosService, vastaanottoService), "/virkailija")
     context.mount(new PrivateValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
     context.mount(new EmailStatusServlet(mailPoller, valintatulosCollection, new MailDecorator(new HakemusRepository(), valintatulosCollection)), "/vastaanottoposti")
     context.mount(new EnsikertalaisuusServlet(valintarekisteriDb, appConfig.settings.valintaRekisteriEnsikertalaisuusMaxPersonOids), "/ensikertalaisuus")
