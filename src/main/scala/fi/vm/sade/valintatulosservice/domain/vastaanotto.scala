@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice.domain
 
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
+import fi.vm.sade.valintatulosservice.VastaanottoEventDto
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.{ehdollisesti_vastaanottanut, Vastaanottotila}
 import fi.vm.sade.valintatulosservice.valintarekisteri.VastaanottoEvent
 
 @Deprecated //Used by old Vastaanotto API
@@ -11,6 +12,12 @@ case class HakijanVastaanotto(henkiloOid: String, hakemusOid: String, hakukohdeO
 }
 
 case class VirkailijanVastaanotto(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, action: VirkailijanVastaanottoAction, ilmoittaja: String) extends VastaanottoEvent
+
+object VirkailijanVastaanotto {
+  def apply(dto: VastaanottoEventDto): VirkailijanVastaanotto = {
+    VirkailijanVastaanotto(dto.henkiloOid, dto.hakemusOid, dto.hakukohdeOid, VirkailijanVastaanottoAction.getVirkailijanVastaanottoAction(dto.tila), dto.ilmoittaja)
+  }
+}
 
 sealed trait VastaanottoAction
 
@@ -23,6 +30,7 @@ case object VastaanotaSitovasti extends VirkailijanVastaanottoAction with Hakija
 case object VastaanotaEhdollisesti extends VirkailijanVastaanottoAction with HakijanVastaanottoAction
 case object Peruuta extends VirkailijanVastaanottoAction
 case object Poista extends VirkailijanVastaanottoAction
+case object Noop extends VirkailijanVastaanottoAction
 
 object HakijanVastaanottoAction {
   private val valueMapping = Map(
@@ -54,12 +62,12 @@ object VirkailijanVastaanottoAction {
     throw new IllegalArgumentException(s"Unknown action '$value', expected one of $values")
   })
 
-  def getVirkailijanVastaanottoAction(vastaanottotila: Vastaanottotila): VirkailijanVastaanottoAction = vastaanottotila match {
-    case Vastaanottotila.ehdollisesti_vastaanottanut => VastaanotaEhdollisesti
-    case Vastaanottotila.vastaanottanut => VastaanotaSitovasti
-    case Vastaanottotila.peruutettu => Peruuta
-    case Vastaanottotila.perunut => Peru
-    case Vastaanottotila.kesken => Poista
+  def getVirkailijanVastaanottoAction(vastaanottotila: Vastaanottotila): VirkailijanVastaanottoAction = vastaanottotila.toString match {
+    case x if x == Vastaanottotila.ehdollisesti_vastaanottanut.toString => VastaanotaEhdollisesti
+    case x if x == Vastaanottotila.vastaanottanut.toString => VastaanotaSitovasti
+    case x if x == Vastaanottotila.peruutettu.toString => Peruuta
+    case x if x == Vastaanottotila.perunut.toString => Peru
+    case x if x == Vastaanottotila.kesken.toString => Poista
     case x  => throw new IllegalArgumentException(s"Tila ${x} ei ole sallittu")
   }
 }

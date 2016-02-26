@@ -4,6 +4,7 @@ import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats.javaObjectToJsonString
+import fi.vm.sade.valintatulosservice.valintarekisteri.VastaanottoEvent
 import org.json4s.MappingException
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
@@ -60,6 +61,7 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
       "henkiloOid" -> ModelProperty(`type` = DataType.String, required = true),
       "hakemusOid" -> ModelProperty(`type` = DataType.String, required = true),
       "hakukohdeOid" -> ModelProperty(`type` = DataType.String, required = true),
+      "hakuOid" -> ModelProperty(`type` = DataType.String, required = true),
       "ilmoittaja" -> ModelProperty(`type` = DataType.String, required = true),
       "tila" -> ModelProperty(`type` = DataType.String, required = true, allowableValues = AllowableValues(Vastaanottotila.values.toList))
     ))
@@ -71,11 +73,10 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
   post("/vastaanotto", operation(postVirkailijanVastaanottoActionsSwagger)) {
 
     val vastaanottoEvents = parsedBody.extract[List[VastaanottoEventDto]]
-    vastaanottoService.virkailijanVastaanota(vastaanottoEvents.map(e =>
-      VirkailijanVastaanotto(e.henkiloOid, e.hakemusOid, e.hakukohdeOid, VirkailijanVastaanottoAction.getVirkailijanVastaanottoAction(e.tila), e.ilmoittaja)))
+    vastaanottoService.virkailijanVastaanota(vastaanottoEvents)
   }
 }
 
 case class Result(status: Int, message: Option[String])
 case class VastaanottoResult(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, result: Result)
-case class VastaanottoEventDto(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, ilmoittaja: String)
+case class VastaanottoEventDto(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String, tila: Vastaanottotila, ilmoittaja: String)

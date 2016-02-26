@@ -15,7 +15,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 
-class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with HakijaVastaanottoRepository with HakukohdeRepository with Logging {
+class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with HakijaVastaanottoRepository
+  with HakukohdeRepository with VirkailijaVastaanottoRepository with Logging {
   val user = if (dbConfig.hasPath("user")) dbConfig.getString("user") else null
   val password = if (dbConfig.hasPath("password")) dbConfig.getString("password") else null
   logger.info(s"Database configuration: ${dbConfig.withValue("password", ConfigValueFactory.fromAnyRef("***"))}")
@@ -139,4 +140,16 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                values (${hakukohdeRecord.oid}, ${hakukohdeRecord.hakuOid}, ${hakukohdeRecord.yhdenPaikanSaantoVoimassa},
                        ${hakukohdeRecord.kktutkintoonJohtava}, ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec})
         """)
+
+  override def findHakukohteenVastaanotot(hakukohdeOid: String): Set[VastaanottoRecord] = {
+    val vastaanottoRecords = runBlocking(
+      sql"""select distinct on (vo.henkilo, vo.hakukohde) vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
+                                            vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
+            from vastaanotot vo
+            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
+            where vo.hakukohde = $hakukohdeOid
+                and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vo.id)
+            order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord])
+    vastaanottoRecords.toSet
+  }
 }
