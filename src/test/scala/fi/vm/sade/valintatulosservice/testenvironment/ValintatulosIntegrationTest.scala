@@ -16,7 +16,7 @@ import org.specs2.runner.JUnitRunner
 class ValintatulosIntegrationTest extends Specification {
   "in luokka environment" should {
     "return valintatulos for " in {
-      val varsFile = "../environment-ophitest/deploy/ophitest_vars.yml"
+      val varsFile = "ENVIRONMENT OPHITEST PATH HERE/deploy/ophitest_vars.yml"
       if (new File(varsFile).exists()) {
         implicit val appConfig = new AppConfig.LocalTestingWithTemplatedVars(varsFile)
 
