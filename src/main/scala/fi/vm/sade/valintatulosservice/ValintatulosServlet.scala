@@ -83,7 +83,7 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
             "henkilö: 5.5.5.5",
             "kuvaus mitä kautta muokkaus tehty"
         )
-      )) + ".\nMahdolliset vastaanottotilat: " + vastaanottoService.sallitutVastaanottotilat
+      )) + ".\nMahdolliset vastaanottotilat: " + List(VastaanotaSitovasti.vastaanottotila, VastaanotaEhdollisesti.vastaanottotila, Peru.vastaanottotila)
     parameter pathParam[String]("hakuOid").description("Haun oid")
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
   )

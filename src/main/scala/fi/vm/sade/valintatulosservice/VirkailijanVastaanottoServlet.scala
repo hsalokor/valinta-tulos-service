@@ -53,32 +53,29 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
     Ok(javaObjectToJsonString(valintatulosService.findValintaTulokset(hakuOid)))
   }
 
-    val vastaanottoEventModel = Model(
-    id = classOf[VastaanottoEvent].getSimpleName,
-    name = classOf[VastaanottoEvent].getSimpleName,
+  val vastaanottoEventModel = Model(
+    id = classOf[VastaanottoEventDto].getSimpleName,
+    name = classOf[VastaanottoEventDto].getSimpleName,
     properties = List(
       "henkiloOid" -> ModelProperty(`type` = DataType.String, required = true),
       "hakemusOid" -> ModelProperty(`type` = DataType.String, required = true),
       "hakukohdeOid" -> ModelProperty(`type` = DataType.String, required = true),
-      "hakuOid" -> ModelProperty(`type` = DataType.String, required = true),
       "ilmoittaja" -> ModelProperty(`type` = DataType.String, required = true),
-      "uusiVastaanottotila" -> ModelProperty(`type` = DataType.String, required = true, allowableValues = AllowableValues(Vastaanottotila.values.map(_.toString())))
+      "tila" -> ModelProperty(`type` = DataType.String, required = true, allowableValues = AllowableValues(Vastaanottotila.values.toList))
     ))
   registerModel(vastaanottoEventModel)
-  val postVastaanottoActionsSwagger: OperationBuilder = (apiOperation[List[VastaanottoResult]]("postVastaanotto")
-    summary "Tallenna vastaanottotapahtumat"
-    parameter bodyParam[List[VastaanottoEvent]])
-  post("/vastaanotto", operation(postVastaanottoActionsSwagger)) {
-    val newEntries = parsedBody.extract[List[VirkailijanVastaanottoEntry]]
-    vastaanottoService.virkailijanVastaanota(newEntries)
-  }
-}
 
-case class VirkailijanVastaanottoEntry(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String, ilmoittaja: String, uusiVastaanottotila: Vastaanottotila) {
-  def toEvent: VastaanottoEvent = {
-    VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanottoAction.of(uusiVastaanottotila), ilmoittaja)
+  val postVirkailijanVastaanottoActionsSwagger: OperationBuilder = (apiOperation[List[VastaanottoResult]]("postVastaanotto")
+    summary "Tallenna vastaanottotapahtumat"
+    parameter bodyParam[List[VastaanottoEventDto]])
+  post("/vastaanotto", operation(postVirkailijanVastaanottoActionsSwagger)) {
+
+    val vastaanottoEvents = parsedBody.extract[List[VastaanottoEventDto]]
+    vastaanottoService.virkailijanVastaanota(vastaanottoEvents.map(e =>
+      VirkailijanVastaanotto(e.henkiloOid, e.hakemusOid, e.hakukohdeOid, VirkailijanVastaanottoAction.getVirkailijanVastaanottoAction(e.tila), e.ilmoittaja)))
   }
 }
 
 case class Result(status: Int, message: Option[String])
 case class VastaanottoResult(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, result: Result)
+case class VastaanottoEventDto(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, ilmoittaja: String)

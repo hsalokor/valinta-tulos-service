@@ -440,7 +440,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
   private def hakemuksenTulos(hakuOid: String, hakemusOid: String) = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).get
 
   private def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: String, selite: String, personOid: String) = {
-    vastaanottoService.vastaanota(hakemusOid, Vastaanotto(hakukohdeOid, tila, muokkaaja, selite))
+    vastaanottoService.vastaanota(HakijanVastaanotto(personOid, hakemusOid, hakukohdeOid, HakijanVastaanottoAction.getHakijanVastaanottoAction(tila)))
     success
   }
 
@@ -475,8 +475,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
     logEntries.size must_== 2
     val logEntry: LogEntry = logEntries(1)
     logEntry.getMuutos must_== tila
-    logEntry.getSelite must_== selite
-    logEntry.getMuokkaaja must_== muokkaaja
+    //logEntry.getSelite must_== selite
+    //logEntry.getMuokkaaja must_== muokkaaja
     new LocalDate(logEntry.getLuotu) must_== new LocalDate(System.currentTimeMillis())
   }
 }
