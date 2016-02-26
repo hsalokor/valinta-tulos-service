@@ -1,8 +1,10 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats.javaObjectToJsonString
+import org.json4s.MappingException
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 import org.scalatra.{Forbidden, Ok}
@@ -50,25 +52,31 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
     val hakuOid = params("hakuOid")
     Ok(javaObjectToJsonString(valintatulosService.findValintaTulokset(hakuOid)))
   }
-  val vastaanottoEventModel = Model(
+
+    val vastaanottoEventModel = Model(
     id = classOf[VastaanottoEvent].getSimpleName,
     name = classOf[VastaanottoEvent].getSimpleName,
     properties = List(
       "henkiloOid" -> ModelProperty(`type` = DataType.String, required = true),
       "hakemusOid" -> ModelProperty(`type` = DataType.String, required = true),
       "hakukohdeOid" -> ModelProperty(`type` = DataType.String, required = true),
-      "action" -> ModelProperty(`type` = DataType.String, required = true, allowableValues = AllowableValues(VastaanottoAction.values))
+      "hakuOid" -> ModelProperty(`type` = DataType.String, required = true),
+      "ilmoittaja" -> ModelProperty(`type` = DataType.String, required = true),
+      "newState" -> ModelProperty(`type` = DataType.String, required = true, allowableValues = AllowableValues(Vastaanottotila.values.map(_.toString())))
     ))
-
   registerModel(vastaanottoEventModel)
-
   val postVastaanottoActionsSwagger: OperationBuilder = (apiOperation[List[VastaanottoResult]]("postVastaanotto")
     summary "Tallenna vastaanottotapahtumat"
     parameter bodyParam[List[VastaanottoEvent]])
   post("/vastaanotto", operation(postVastaanottoActionsSwagger)) {
+    val newEntries = parsedBody.extract[List[VirkailijanVastaanottoEntry]]
+    vastaanottoService.virkailijanVastaanota(newEntries)
+  }
+}
 
-    val vastaanottoEvents = parsedBody.extract[List[VastaanottoEvent]]
-    vastaanottoService.virkailijanVastaanota(vastaanottoEvents)
+case class VirkailijanVastaanottoEntry(hakijaOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String, ilmoittaja: String, newState: Vastaanottotila) {
+  def toEvent: VastaanottoEvent = {
+    VastaanottoEvent(hakijaOid, hakemusOid, hakukohdeOid, VastaanottoAction.of(newState), ilmoittaja)
   }
 }
 

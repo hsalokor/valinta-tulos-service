@@ -36,6 +36,11 @@ object VastaanottoAction {
     throw new IllegalArgumentException(s"Unknown action '$value', expected one of $values")
   })
   def from(hakijaApiAction: HakijanVastaanottoAction) = valueMapping(hakijaApiAction.toString)
+
+  def of(vastaanottoTila: Vastaanottotila): VastaanottoAction = valueMapping.values.find(_.vastaanottotila == vastaanottoTila) match {
+    case Some(a) => a
+    case None => throw new IllegalArgumentException(s"${classOf[VastaanottoAction].getSimpleName} cannot be constructed from $vastaanottoTila")
+  }
 }
 
 case class Vastaanotettavuus(allowedActions: List[VastaanottoAction], reason: Option[Exception] = None)
