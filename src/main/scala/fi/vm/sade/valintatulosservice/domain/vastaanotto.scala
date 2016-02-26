@@ -12,33 +12,17 @@ case class HakijanVastaanotto(henkiloOid: String, hakemusOid: String, hakukohdeO
 
 case class VirkailijanVastaanotto(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, action: VirkailijanVastaanottoAction, ilmoittaja: String) extends VastaanottoEvent
 
-sealed trait VastaanottoAction {
-  def vastaanottotila: Vastaanottotila
-}
+sealed trait VastaanottoAction
 
-sealed trait HakijanVastaanottoAction extends VastaanottoAction {
-  def vastaanottotila: Vastaanottotila
-}
+sealed trait HakijanVastaanottoAction extends VastaanottoAction
 
-sealed trait VirkailijanVastaanottoAction extends VastaanottoAction {
-  def vastaanottotila: Vastaanottotila
-}
+sealed trait VirkailijanVastaanottoAction extends VastaanottoAction
 
-case object Peru extends VirkailijanVastaanottoAction with HakijanVastaanottoAction {
-  val vastaanottotila = Vastaanottotila.perunut
-}
-case object VastaanotaSitovasti extends VirkailijanVastaanottoAction with HakijanVastaanottoAction {
-  val vastaanottotila = Vastaanottotila.vastaanottanut
-}
-case object VastaanotaEhdollisesti extends VirkailijanVastaanottoAction with HakijanVastaanottoAction {
-  val vastaanottotila = Vastaanottotila.ehdollisesti_vastaanottanut
-}
-case object Peruuta extends VirkailijanVastaanottoAction {
-  val vastaanottotila = Vastaanottotila.peruutettu
-}
-case object Poista extends VirkailijanVastaanottoAction {
-  val vastaanottotila = Vastaanottotila.kesken
-}
+case object Peru extends VirkailijanVastaanottoAction with HakijanVastaanottoAction
+case object VastaanotaSitovasti extends VirkailijanVastaanottoAction with HakijanVastaanottoAction
+case object VastaanotaEhdollisesti extends VirkailijanVastaanottoAction with HakijanVastaanottoAction
+case object Peruuta extends VirkailijanVastaanottoAction
+case object Poista extends VirkailijanVastaanottoAction
 
 object HakijanVastaanottoAction {
   private val valueMapping = Map(
