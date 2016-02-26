@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
-import fi.vm.sade.valintatulosservice.domain.{VastaanottoRecord, Kausi, VastaanottoEvent}
+import fi.vm.sade.valintatulosservice.domain.Kausi
 
 trait HakijaVastaanottoRepository {
   def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord]

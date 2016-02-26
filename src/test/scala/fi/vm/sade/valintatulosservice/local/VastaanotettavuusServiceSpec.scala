@@ -4,7 +4,7 @@ import java.util.Date
 
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakukohde, YhdenPaikanSaanto}
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, HakukohdeRecordService}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{VastaanottoRecord, HakijaVastaanottoRepository, HakukohdeRecordService}
 import fi.vm.sade.valintatulosservice.{PriorAcceptanceException, VastaanotettavuusService}
 import org.junit.runner.RunWith
 import org.mockito.Matchers

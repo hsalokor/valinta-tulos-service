@@ -34,7 +34,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
 
   "ValintarekisteriDb" should {
     "store vastaanotto actions" in {
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
       val henkiloOidsAndActionsFromDb = singleConnectionValintarekisteriDb.runBlocking(
         sql"""select henkilo, action from vastaanotot
               where henkilo = $henkiloOid and hakukohde = $hakukohdeOid""".as[(String, String)])
@@ -43,11 +43,11 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     }
 
     "find vastaanotot rows of person for given haku" in {
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid))
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, otherHakukohdeOidForHakuOid, VastaanotaSitovasti, henkiloOid))
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOid))
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOidForHakuOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
       val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
       vastaanottoRowsFromDb must have size 2
       val a = vastaanottoRowsFromDb.find(_.hakukohdeOid == hakukohdeOid).get
@@ -67,10 +67,10 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     }
 
     "find vastaanotot rows of person for given hakukohde" in {
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid))
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOid))
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
       val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid)
       vastaanottoRowsFromDb must beSome
       val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
@@ -84,13 +84,13 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     }
 
     "find vastaanotot rows leading to higher education degrees of person" in {
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid))
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, otherHakukohdeOidForHakuOid, VastaanotaEhdollisesti, henkiloOid))
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOidForHakuOid, VastaanotaEhdollisesti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
       singleConnectionValintarekisteriDb.runBlocking(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
                        values (${hakukohdeOid + "1"}, ${hakuOid + "1"}, false, false, '2015K')""")
-      singleConnectionValintarekisteriDb.store(VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid + "1", VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid + "1", VastaanotaSitovasti, henkiloOid))
       val recordsFromDb = singleConnectionValintarekisteriDb.findKkTutkintoonJohtavatVastaanotot(henkiloOid, Kausi("2015K"))
       recordsFromDb must have size 2
       recordsFromDb.find(_.hakukohdeOid == hakukohdeOid).map(_.action) must beSome(VastaanotaSitovasti)

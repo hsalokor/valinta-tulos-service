@@ -11,7 +11,7 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
 import fi.vm.sade.valintatulosservice.tarjonta.Haku
-import fi.vm.sade.valintatulosservice.valintarekisteri.HakijaVastaanottoRepository
+import fi.vm.sade.valintatulosservice.valintarekisteri.{VastaanottoRecord, HakijaVastaanottoRepository}
 import org.apache.commons.lang.StringUtils
 import org.joda.time.DateTime
 
@@ -117,11 +117,11 @@ class SijoittelutulosService(raportointiService: RaportointiService,
   private def laskeVastaanottotila(valintatila: Valintatila, vastaanotto: Option[VastaanottoAction], aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date]): ( Vastaanottotila, Option[DateTime] ) = {
     val vastaanottotila: Vastaanottotila =
       vastaanotto match {
-        case None => Vastaanottotila.kesken
-        case Some(Peruuta) => Vastaanottotila.peruutettu
+        case Some(Poista) | None => Vastaanottotila.kesken
         case Some(Peru) => Vastaanottotila.perunut
         case Some(VastaanotaSitovasti) => Vastaanottotila.vastaanottanut
         case Some(VastaanotaEhdollisesti) => Vastaanottotila.ehdollisesti_vastaanottanut
+        case Some(Peruuta) => Vastaanottotila.peruutettu
       }
 
     vastaanottotila match {
