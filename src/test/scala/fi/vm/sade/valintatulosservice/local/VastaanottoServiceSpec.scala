@@ -1,14 +1,14 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.sijoittelu.domain.{LogEntry, ValintatuloksenTila, Valintatulos}
-import fi.vm.sade.valintatulosservice._
-import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila._
+import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila.{Ilmoittautumistila, läsnä_koko_lukuvuosi}
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
-import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, HakijanVastaanotto, HakijanVastaanottoAction, HakutoiveenIlmoittautumistila, Ilmoittautuminen, Ilmoittautumisaika, Ilmoittautumistila, Valintatila, Vastaanotettavuustila, Vastaanottotila}
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
+import fi.vm.sade.valintatulosservice.{ITSpecification, IlmoittautumisService, TimeWarp, ValintatulosService, VastaanotettavuusService, VastaanottoService}
 import org.joda.time.{DateTime, LocalDate}
 import org.junit.runner.RunWith
 import org.specs2.execute.{FailureException, Result}
@@ -430,7 +430,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
   lazy val vastaanotettavuusService = new VastaanotettavuusService(hakukohdeRecordService, valintarekisteriDb)
   lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, hakuService)(appConfig)
   lazy val vastaanottoService = new VastaanottoService(hakuService, vastaanotettavuusService, valintatulosService,
-    valintarekisteriDb, appConfig.sijoitteluContext.valintatulosRepository)
+    valintarekisteriDb, valintarekisteriDb, appConfig.sijoitteluContext.valintatulosRepository)
   lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService,
     appConfig.sijoitteluContext.valintatulosRepository, valintarekisteriDb)
 
