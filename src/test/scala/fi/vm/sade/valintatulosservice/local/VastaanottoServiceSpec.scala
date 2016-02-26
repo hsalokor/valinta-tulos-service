@@ -177,7 +177,6 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
-      valintatulosDao.loadValintatulos("1.2.246.562.5.72607738902", "14090336922663576781797489829886", hakemusOid).getTila must_== ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI
       yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.kesken
     }
@@ -394,7 +393,6 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.vastaanottanut
-      valintatulosDao.loadValintatulos("1.2.246.562.5.72607738904", "14090336922663576781797489829888", hakemusOid).getTila must_== ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI
     }
 
     "vastaanota varsinaisessa haussa, kun lisähaussa jo vastaanottanut, onnistuu" in {
