@@ -62,7 +62,7 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
       "hakukohdeOid" -> ModelProperty(`type` = DataType.String, required = true),
       "hakuOid" -> ModelProperty(`type` = DataType.String, required = true),
       "ilmoittaja" -> ModelProperty(`type` = DataType.String, required = true),
-      "newState" -> ModelProperty(`type` = DataType.String, required = true, allowableValues = AllowableValues(Vastaanottotila.values.map(_.toString())))
+      "uusiVastaanottotila" -> ModelProperty(`type` = DataType.String, required = true, allowableValues = AllowableValues(Vastaanottotila.values.map(_.toString())))
     ))
   registerModel(vastaanottoEventModel)
   val postVastaanottoActionsSwagger: OperationBuilder = (apiOperation[List[VastaanottoResult]]("postVastaanotto")
@@ -74,9 +74,9 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
   }
 }
 
-case class VirkailijanVastaanottoEntry(hakijaOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String, ilmoittaja: String, newState: Vastaanottotila) {
+case class VirkailijanVastaanottoEntry(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String, ilmoittaja: String, uusiVastaanottotila: Vastaanottotila) {
   def toEvent: VastaanottoEvent = {
-    VastaanottoEvent(hakijaOid, hakemusOid, hakukohdeOid, VastaanottoAction.of(newState), ilmoittaja)
+    VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, VastaanottoAction.of(uusiVastaanottotila), ilmoittaja)
   }
 }
 
