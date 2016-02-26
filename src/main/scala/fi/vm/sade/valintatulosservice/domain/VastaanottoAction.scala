@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice.domain
 
 import java.util.Date
 
+import fi.vm.sade.valintatulosservice.HakijanVastaanottoAction.HakijanVastaanottoAction
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 
 case class VastaanottoRecord(henkiloOid: String, hakuOid: String, hakukohdeOid: String, action: VastaanottoAction, ilmoittaja: String, timestamp: Date)
@@ -30,6 +31,7 @@ object VastaanottoAction {
   def apply(value: String): VastaanottoAction = valueMapping.getOrElse(value, {
     throw new IllegalArgumentException(s"Unknown action '$value', expected one of $values")
   })
+  def from(hakijaApiAction: HakijanVastaanottoAction) = valueMapping(hakijaApiAction.toString)
 }
 
 case class Vastaanotettavuus(allowedActions: List[VastaanottoAction], reason: Option[Exception] = None)
