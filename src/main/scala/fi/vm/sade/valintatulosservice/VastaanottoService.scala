@@ -19,7 +19,7 @@ class VastaanottoService(hakuService: HakuService,
   def virkailijanVastaanota(vastaanottoEntries: List[VirkailijanVastaanottoEntry]): List[VastaanottoResult] = {
     for(vastaanottoEntry <- vastaanottoEntries) yield {
       try {
-        val ( hakemuksenTulos, hakutoive ) = checkVastaanotettavuus(vastaanottoEntry.hakemusOid, vastaanottoEntry.hakukohdeOid)
+        val ( hakemuksenTulos, hakutoive ) = findHakemusAndHakutoive(vastaanottoEntry.hakemusOid, vastaanottoEntry.hakukohdeOid)
 
         if (List(vastaanottanut, ehdollisesti_vastaanottanut).contains(vastaanottoEntry.uusiVastaanottotila)) {
           vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanottoEntry.henkiloOid, vastaanottoEntry.hakukohdeOid).get
@@ -47,11 +47,11 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   def tarkistaVastaanotettavuus(vastaanotettavaHakemusOid: String, hakukohdeOid: String): Unit = {
-    checkVastaanotettavuus(vastaanotettavaHakemusOid, hakukohdeOid)
+    findHakemusAndHakutoive(vastaanotettavaHakemusOid, hakukohdeOid)
   }
 
   def vastaanota(vastaanotettavaHakemusOid: String, vastaanotto: Vastaanotto) {
-    val ( hakemuksenTulos, hakutoive ) = checkVastaanotettavuus(vastaanotettavaHakemusOid, vastaanotto.hakukohdeOid)
+    val ( hakemuksenTulos, hakutoive ) = findHakemusAndHakutoive(vastaanotettavaHakemusOid, vastaanotto.hakukohdeOid)
     val haluttuTila = ValintatuloksenTila.valueOf(vastaanotto.tila.toString)
 
     tarkistaHakutoiveenJaValintatuloksenTila(hakutoive, haluttuTila)
@@ -70,7 +70,7 @@ class VastaanottoService(hakuService: HakuService,
     case _ => throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + haluttuTila)
   }
 
-  private def checkVastaanotettavuus(hakemusOid: String, hakukohdeOid: String): (Hakemuksentulos, Hakutoiveentulos) = {
+  private def findHakemusAndHakutoive(hakemusOid: String, hakukohdeOid: String): (Hakemuksentulos, Hakutoiveentulos) = {
     val hakuOid = hakuService.getHakukohde(hakukohdeOid).getOrElse(throw new IllegalArgumentException(s"Tuntematon hakukohde ${hakukohdeOid}")).hakuOid
     val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
     val hakutoive = hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
