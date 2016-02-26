@@ -32,8 +32,8 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
           sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
                  values ($hakukohde, $haku, true, true, '2015K')""",
           sqlu"""insert into vastaanotot
-                 (henkilo, hakukohde, action, active, ilmoittaja, "timestamp")
-                 values ($henkilo, $hakukohde, 'VastaanotaSitovasti'::vastaanotto_action, true, 'ilmoittaja', ${timestamp.getMillis})""",
+                 (henkilo, hakukohde, action, ilmoittaja, "timestamp")
+                 values ($henkilo, $hakukohde, 'VastaanotaSitovasti'::vastaanotto_action, 'ilmoittaja', ${timestamp.getMillis})""",
           sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, "timestamp")
                  values ($henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${vanha_timestamp.getMillis})""",
           sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, "timestamp")

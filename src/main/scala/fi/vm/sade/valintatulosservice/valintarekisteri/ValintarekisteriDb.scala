@@ -33,7 +33,6 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                     join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
                                         and hakukohteet.kk_tutkintoon_johtava
                     where vastaanotot.henkilo = $personOid
-                          and vastaanotot.active
                     union
                     select "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
                     where vanhat_vastaanotot.henkilo = $personOid
@@ -62,7 +61,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             left join (select henkilo, "timestamp", koulutuksen_alkamiskausi from vastaanotot
                        join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
                                            and hakukohteet.kk_tutkintoon_johtava
-                       where vastaanotot.active and (vastaanotot.action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti'))
+                       where vastaanotot.action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti')
                        union
                        select henkilo, "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
                        where vanhat_vastaanotot.kk_tutkintoon_johtava) as all_vastaanotot
@@ -120,8 +119,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, action, ilmoittaja) = vastaanottoEvent
     val now = System.currentTimeMillis()
-    runBlocking(sqlu"""insert into vastaanotot (hakukohde, henkilo, active, action, ilmoittaja, "timestamp")
-              values ($hakukohdeOid, $henkiloOid, true, ${action.toString}::vastaanotto_action, $ilmoittaja, $now)""")
+    runBlocking(sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, "timestamp")
+              values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $now)""")
   }
 
   def runBlocking[R](operations: DBIO[R], timeout: Duration = Duration(1, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
