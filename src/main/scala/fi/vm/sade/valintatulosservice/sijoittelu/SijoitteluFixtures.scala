@@ -71,7 +71,7 @@ case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
     case "KESKEN" => None
     case "EI_VASTAANOTETTU_MAARA_AIKANA" => None
     case "PERUNUT" => Some(Peru)
-    case "PERUUTETTU" => None
+    case "PERUUTETTU" => Some(Peruuta)
     case "EHDOLLISESTI_VASTAANOTTANUT" => Some(VastaanotaEhdollisesti)
     case "VASTAANOTTANUT_SITOVASTI" => Some(VastaanotaSitovasti)
   }

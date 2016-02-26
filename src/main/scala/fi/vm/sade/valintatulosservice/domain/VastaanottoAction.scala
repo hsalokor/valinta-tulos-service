@@ -21,12 +21,16 @@ case object VastaanotaSitovasti extends VastaanottoAction {
 case object VastaanotaEhdollisesti extends VastaanottoAction {
   val vastaanottotila = Vastaanottotila.ehdollisesti_vastaanottanut
 }
+case object Peruuta extends VastaanottoAction {
+  val vastaanottotila = Vastaanottotila.peruutettu
+}
 
 object VastaanottoAction {
   private val valueMapping = Map(
     "Peru" -> Peru,
     "VastaanotaSitovasti" -> VastaanotaSitovasti,
-    "VastaanotaEhdollisesti" -> VastaanotaEhdollisesti)
+    "VastaanotaEhdollisesti" -> VastaanotaEhdollisesti,
+    "Peruuta" -> Peruuta)
   val values: List[String] = valueMapping.keysIterator.toList
   def apply(value: String): VastaanottoAction = valueMapping.getOrElse(value, {
     throw new IllegalArgumentException(s"Unknown action '$value', expected one of $values")

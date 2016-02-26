@@ -118,6 +118,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     val vastaanottotila: Vastaanottotila =
       vastaanotto match {
         case None => Vastaanottotila.kesken
+        case Some(Peruuta) => Vastaanottotila.peruutettu
         case Some(Peru) => Vastaanottotila.perunut
         case Some(VastaanotaSitovasti) => Vastaanottotila.vastaanottanut
         case Some(VastaanotaEhdollisesti) => Vastaanottotila.ehdollisesti_vastaanottanut
