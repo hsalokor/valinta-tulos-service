@@ -21,15 +21,15 @@ class VastaanottoService(hakuService: HakuService,
       try {
         val ( hakemuksenTulos, hakutoive ) = checkVastaanotettavuus(vastaanottoEntry.hakemusOid, vastaanottoEntry.hakukohdeOid)
 
-        if (List(vastaanottanut, ehdollisesti_vastaanottanut).contains(vastaanottoEntry.newState)) {
-          vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanottoEntry.hakijaOid, vastaanottoEntry.hakukohdeOid).get
+        if (List(vastaanottanut, ehdollisesti_vastaanottanut).contains(vastaanottoEntry.uusiVastaanottotila)) {
+          vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanottoEntry.henkiloOid, vastaanottoEntry.hakukohdeOid).get
         }
 
         val vastaanottoEvent = vastaanottoEntry.toEvent
         tallennaVastaanotto(vastaanottoEvent, hakutoive,
           Vastaanotto(
             vastaanottoEntry.hakukohdeOid,
-            vastaanottoEntry.newState,
+            vastaanottoEntry.uusiVastaanottotila,
             vastaanottoEntry.ilmoittaja,
             "Virkailijan tekemä vastaanotto"))
 
