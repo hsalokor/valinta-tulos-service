@@ -57,10 +57,6 @@ class VastaanottoService(hakuService: HakuService,
     tarkistaHakutoiveenJaValintatuloksenTila(hakutoive, vastaanotto.action)
 
     hakijaVastaanottoRepository.store(vastaanotto)
-    valintatulosRepository.modifyValintatulos(
-      vastaanotto.hakukohdeOid,
-      hakemuksenTulos.findHakutoive(vastaanotto.hakukohdeOid).get.valintatapajonoOid,
-      vastaanotto.hakemusOid){valintatulos => valintatulos.setTila(ValintatuloksenTila.valueOf(vastaanotto.action.vastaanottotila.toString), "Hakijan tekemä vastaanotto", vastaanotto.ilmoittaja)}
   }
 
   private def checkVastaanotettavuus(hakemusOid: String, hakukohdeOid: String): (Hakemuksentulos, Hakutoiveentulos) = {
