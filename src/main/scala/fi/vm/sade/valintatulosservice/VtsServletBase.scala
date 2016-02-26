@@ -65,7 +65,7 @@ trait VtsServletBase extends ScalatraServlet with Logging with JacksonJsonSuppor
   }
 
   private def badRequest(e: Throwable) = {
-    logger.warn(errorDescription + ": " + e.toString)
+    logger.warn(errorDescription + ": " + e.toString, e)
     BadRequest("error" -> e.getMessage)
   }
 
