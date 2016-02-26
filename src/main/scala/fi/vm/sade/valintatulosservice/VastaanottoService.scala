@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice
 import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila._
 import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.{ehdollisesti_vastaanottanut, vastaanottanut}
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
@@ -13,30 +14,30 @@ class VastaanottoService(hakuService: HakuService,
                          valintatulosService: ValintatulosService,
                          hakijaVastaanottoRepository: HakijaVastaanottoRepository,
                          valintatulosRepository: ValintatulosRepository) extends Logging{
-
   val sallitutVastaanottotilat: Set[ValintatuloksenTila] = Set(VASTAANOTTANUT_SITOVASTI, EHDOLLISESTI_VASTAANOTTANUT, PERUNUT)
 
-  def virkailijanVastaanota(vastaanottoEvents: List[VastaanottoEvent]): List[VastaanottoResult] = {
-    for(vastaanottoEvent <- vastaanottoEvents) yield {
+  def virkailijanVastaanota(vastaanottoEntries: List[VirkailijanVastaanottoEntry]): List[VastaanottoResult] = {
+    for(vastaanottoEntry <- vastaanottoEntries) yield {
       try {
-        val ( hakemuksenTulos, hakutoive ) = checkVastaanotettavuus(vastaanottoEvent.hakemusOid, vastaanottoEvent.hakukohdeOid)
+        val ( hakemuksenTulos, hakutoive ) = checkVastaanotettavuus(vastaanottoEntry.hakemusOid, vastaanottoEntry.hakukohdeOid)
 
-        if(vastaanottoEvent.action == VastaanotaEhdollisesti || vastaanottoEvent.action == VastaanotaSitovasti ) {
-          vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanottoEvent.henkiloOid, vastaanottoEvent.hakukohdeOid).get
+        if (List(vastaanottanut, ehdollisesti_vastaanottanut).contains(vastaanottoEntry.newState)) {
+          vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanottoEntry.hakijaOid, vastaanottoEntry.hakukohdeOid).get
         }
 
+        val vastaanottoEvent = vastaanottoEntry.toEvent
         tallennaVastaanotto(vastaanottoEvent, hakutoive,
           Vastaanotto(
-            vastaanottoEvent.hakukohdeOid,
-            vastaanottoEvent.action.vastaanottotila,
-            vastaanottoEvent.ilmoittaja,
+            vastaanottoEntry.hakukohdeOid,
+            vastaanottoEntry.newState,
+            vastaanottoEntry.ilmoittaja,
             "Virkailijan tekemä vastaanotto"))
 
         createVastaanottoResult(200, None, vastaanottoEvent)
 
       } catch {
-        case e:PriorAcceptanceException => createVastaanottoResult( 403, Some(e), vastaanottoEvent)
-        case e:Exception => createVastaanottoResult( 400, Some(e), vastaanottoEvent)
+        case e:PriorAcceptanceException => createVastaanottoResult( 403, Some(e), vastaanottoEntry.toEvent)
+        case e:Exception => createVastaanottoResult( 400, Some(e), vastaanottoEntry.toEvent)
       }
     }
   }
@@ -64,8 +65,8 @@ class VastaanottoService(hakuService: HakuService,
 
   def getHaluttuTila(haluttuTila: ValintatuloksenTila) = haluttuTila match {
     case ValintatuloksenTila.PERUNUT => Peru
-    case ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI => VastaanotaSitovasti
-    case ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT => VastaanotaEhdollisesti
+    case VASTAANOTTANUT_SITOVASTI => VastaanotaSitovasti
+    case EHDOLLISESTI_VASTAANOTTANUT => VastaanotaEhdollisesti
     case _ => throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + haluttuTila)
   }
 
