@@ -45,7 +45,19 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       fetchTulokset(hakuOid, () => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid), (haku) => sijoittelutulosService.hakemustenTulos(hakuOid, Some(hakukohdeOid)))
     )
   }
-
+  def findValintaTulokset(hakuOid: String): util.List[Valintatulos] = {
+    val hakemustenTulokset = hakemustenTulosByHaku(hakuOid).getOrElse(List())
+    val valintatulokset = appConfig.sijoitteluContext.valintatulosDao.loadValintatulokset(hakuOid)
+    valintatulokset.asScala.foreach(valintaTulos => {
+      hakemustenTulokset.find(_.hakijaOid == valintaTulos.getHakijaOid).foreach(hakemuksenTulos => {
+        hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid).foreach(hakutoiveenTulos => {
+          val valintatuloksenTila = ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString)
+          valintaTulos.setTila(valintatuloksenTila, "")
+        })
+      })
+    })
+    valintatulokset
+  }
   def findValintaTulokset(hakuOid: String, hakukohdeOid: String): util.List[Valintatulos] = {
     val hakemustenTulokset = hakemustenTulosByHakukohde(hakuOid, hakukohdeOid).getOrElse(List())
     val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao

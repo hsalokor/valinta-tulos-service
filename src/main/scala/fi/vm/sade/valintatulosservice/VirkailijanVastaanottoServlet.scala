@@ -43,7 +43,13 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
     val hakukohdeOid = params("hakukohdeOid")
     Ok(javaObjectToJsonString(valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid)))
   }
-
+  val getValintatuloksetByHakuSwagger: OperationBuilder = (apiOperation[Unit]("getValintatuloksetByHaku")
+    summary "Hakee valintatulokset haun hakijoille"
+    parameter pathParam[String]("hakuOid").description("Haun oid"))
+  get("/valintatulos/haku/:hakuOid", operation(getValintatuloksetByHakuSwagger)) {
+    val hakuOid = params("hakuOid")
+    Ok(javaObjectToJsonString(valintatulosService.findValintaTulokset(hakuOid)))
+  }
   val vastaanottoEventModel = Model(
     id = classOf[VastaanottoEvent].getSimpleName,
     name = classOf[VastaanottoEvent].getSimpleName,
