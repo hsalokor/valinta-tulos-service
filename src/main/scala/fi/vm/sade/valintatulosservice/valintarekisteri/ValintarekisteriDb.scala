@@ -29,21 +29,25 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
     val d = runBlocking(
-          sql"""select min(all_vastaanotot."timestamp") from
-                    ((select vastaanotto_events."timestamp", vastaanotto_events.koulutuksen_alkamiskausi from
-                        (select distinct on (vastaanotot.hakukohde) "timestamp", koulutuksen_alkamiskausi, action from vastaanotot
-                        join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
-                                        and hakukohteet.kk_tutkintoon_johtava
-                        where vastaanotot.henkilo = $personOid
-                            and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vastaanotot.id)
-                        order by vastaanotot.hakukohde, vastaanotot.id desc) as vastaanotto_events
-                    where vastaanotto_events.action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti'))
-                    union
-                    (select "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
-                    where vanhat_vastaanotot.henkilo = $personOid
-                          and vanhat_vastaanotot.kk_tutkintoon_johtava)) as all_vastaanotot
-                where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
-            """.as[Option[Long]])
+          sql"""with newest_vastaanotto_events as (
+                select distinct on (vastaanotot.hakukohde) "timestamp", koulutuksen_alkamiskausi, action from vastaanotot
+                join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
+                                and hakukohteet.kk_tutkintoon_johtava
+                where vastaanotot.henkilo = $personOid
+                    and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vastaanotot.id)
+                order by vastaanotot.hakukohde, vastaanotot.id desc
+                ), new_vastaanotot as (
+                select "timestamp", koulutuksen_alkamiskausi from newest_vastaanotto_events
+                where action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti')
+                ), old_vastaanotot as (
+                select "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
+                where henkilo = $personOid and kk_tutkintoon_johtava
+                )
+                select min(all_vastaanotot."timestamp")
+                from (select "timestamp", koulutuksen_alkamiskausi from new_vastaanotot
+                      union
+                      select "timestamp", koulutuksen_alkamiskausi from old_vastaanotot) as all_vastaanotot
+                where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}""".as[Option[Long]])
     Ensikertalaisuus(personOid, d.head.map(new Date(_)))
   }
 
