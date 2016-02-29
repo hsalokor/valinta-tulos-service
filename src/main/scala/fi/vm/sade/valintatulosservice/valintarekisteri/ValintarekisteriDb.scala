@@ -30,14 +30,18 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
     val d = runBlocking(
           sql"""select min(all_vastaanotot."timestamp") from
-                    (select "timestamp", koulutuksen_alkamiskausi from vastaanotot
-                    join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
+                    ((select vastaanotto_events."timestamp", vastaanotto_events.koulutuksen_alkamiskausi from
+                        (select distinct on (vastaanotot.hakukohde) "timestamp", koulutuksen_alkamiskausi, action from vastaanotot
+                        join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
                                         and hakukohteet.kk_tutkintoon_johtava
-                    where vastaanotot.henkilo = $personOid
+                        where vastaanotot.henkilo = $personOid
+                            and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vastaanotot.id)
+                        order by vastaanotot.hakukohde, vastaanotot.id desc) as vastaanotto_events
+                    where vastaanotto_events.action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti'))
                     union
-                    select "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
+                    (select "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
                     where vanhat_vastaanotot.henkilo = $personOid
-                          and vanhat_vastaanotot.kk_tutkintoon_johtava) as all_vastaanotot
+                          and vanhat_vastaanotot.kk_tutkintoon_johtava)) as all_vastaanotot
                 where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
             """.as[Option[Long]])
     Ensikertalaisuus(personOid, d.head.map(new Date(_)))
@@ -59,13 +63,17 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     })
     val findVastaanottos =
       sql"""select person_oids.oid, min(all_vastaanotot."timestamp") from person_oids
-            left join (select henkilo, "timestamp", koulutuksen_alkamiskausi from vastaanotot
-                       join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
-                                           and hakukohteet.kk_tutkintoon_johtava
-                       where vastaanotot.action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti')
+            left join ((select vastaanotto_events.henkilo, vastaanotto_events."timestamp", vastaanotto_events.koulutuksen_alkamiskausi
+                        from (select distinct on (vastaanotot.henkilo, vastaanotot.hakukohde)
+                                  henkilo, "timestamp", koulutuksen_alkamiskausi, action from vastaanotot
+                              join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
+                                              and hakukohteet.kk_tutkintoon_johtava
+                              where not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vastaanotot.id)
+                              order by vastaanotot.henkilo, vastaanotot.hakukohde, vastaanotot.id desc) as vastaanotto_events
+                        where vastaanotto_events.action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti'))
                        union
-                       select henkilo, "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
-                       where vanhat_vastaanotot.kk_tutkintoon_johtava) as all_vastaanotot
+                       (select henkilo, "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
+                       where vanhat_vastaanotot.kk_tutkintoon_johtava)) as all_vastaanotot
                 on all_vastaanotot.henkilo = person_oids.oid
                    and all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
             group by person_oids.oid

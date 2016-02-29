@@ -111,6 +111,23 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       singleConnectionValintarekisteriDb.kumoaVastaanottotapahtumat(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, Poista, henkiloOid))
       singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid) must beNone
     }
+
+    "findEnsikertalaisuus" in {
+      "tarkastelee vastaanottotiedon viimeisintä tilaa" in {
+        singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+        singleConnectionValintarekisteriDb.findEnsikertalaisuus(henkiloOid, Kevat(2015)) must beAnInstanceOf[EiEnsikertalainen]
+        singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, Peruuta, henkiloOid))
+        singleConnectionValintarekisteriDb.findEnsikertalaisuus(henkiloOid, Kevat(2015)) must beEqualTo(Ensikertalainen(henkiloOid))
+        singleConnectionValintarekisteriDb.findEnsikertalaisuus(Set(henkiloOid), Kevat(2015)) must beEqualTo(Set(Ensikertalainen(henkiloOid)))
+      }
+      "ei ota huomioon kumottuja vastaanottotietoja" in {
+        singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+        singleConnectionValintarekisteriDb.findEnsikertalaisuus(henkiloOid, Kevat(2015)) must beAnInstanceOf[EiEnsikertalainen]
+        singleConnectionValintarekisteriDb.kumoaVastaanottotapahtumat(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, Poista, henkiloOid))
+        singleConnectionValintarekisteriDb.findEnsikertalaisuus(henkiloOid, Kevat(2015)) must beEqualTo(Ensikertalainen(henkiloOid))
+        singleConnectionValintarekisteriDb.findEnsikertalaisuus(Set(henkiloOid), Kevat(2015)) must beEqualTo(Set(Ensikertalainen(henkiloOid)))
+      }
+    }
   }
 
   override protected def before: Unit = ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
