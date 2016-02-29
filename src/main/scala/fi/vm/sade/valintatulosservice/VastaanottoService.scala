@@ -52,7 +52,7 @@ class VastaanottoService(hakuService: HakuService,
       case Success(()) => createVastaanottoResult(200, None, vastaanotto)
       case Failure(e: IllegalArgumentException) => createVastaanottoResult(400, Some(e), vastaanotto)
     }
-    case Peruuta => ???
+    case Peruuta => peruutaAiempiVastaanotto(vastaanotto)
     case Poista => ???
   }
 
@@ -62,9 +62,18 @@ class VastaanottoService(hakuService: HakuService,
       vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid).get
       hakijaVastaanottoRepository.store(vastaanotto)
       createVastaanottoResult(200, None, vastaanotto)
-
     } catch {
       case e: PriorAcceptanceException => createVastaanottoResult(403, Some(e), vastaanotto)
+      case e: Exception => createVastaanottoResult(400, Some(e), vastaanotto)
+    }
+  }
+
+  private def peruutaAiempiVastaanotto(vastaanotto: VirkailijanVastaanotto): VastaanottoResult = {
+    try {
+      findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+      hakijaVastaanottoRepository.store(vastaanotto)
+      createVastaanottoResult(200, None, vastaanotto)
+    } catch {
       case e: Exception => createVastaanottoResult(400, Some(e), vastaanotto)
     }
   }
