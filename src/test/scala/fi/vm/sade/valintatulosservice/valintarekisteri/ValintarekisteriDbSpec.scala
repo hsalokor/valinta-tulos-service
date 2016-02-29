@@ -91,7 +91,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       singleConnectionValintarekisteriDb.runBlocking(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
                        values (${hakukohdeOid + "1"}, ${hakuOid + "1"}, false, false, '2015K')""")
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid + "1", VastaanotaSitovasti, henkiloOid))
-      val recordsFromDb = singleConnectionValintarekisteriDb.findKkTutkintoonJohtavatVastaanotot(henkiloOid, Kausi("2015K"))
+      val recordsFromDb = singleConnectionValintarekisteriDb.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, Kausi("2015K"))
       recordsFromDb must have size 2
       recordsFromDb.find(_.hakukohdeOid == hakukohdeOid).map(_.action) must beSome(VastaanotaSitovasti)
       recordsFromDb.find(_.hakukohdeOid == otherHakukohdeOidForHakuOid).map(_.action) must beSome(VastaanotaEhdollisesti)
