@@ -51,6 +51,10 @@ class VastaanottoService(hakuService: HakuService,
     case Peru => vastaanotaHakijana(vastaanotto) match {
       case Success(()) => createVastaanottoResult(200, None, vastaanotto)
       case Failure(e: IllegalArgumentException) => createVastaanottoResult(400, Some(e), vastaanotto)
+      case Failure(e: Throwable) => {
+        logger.error("Unexpected error when saving vastaanotto", e)
+        createVastaanottoResult(500, Some(e), vastaanotto)
+      }
     }
     case Peruuta => peruutaAiempiVastaanotto(vastaanotto)
     case Poista => ???
@@ -78,8 +82,8 @@ class VastaanottoService(hakuService: HakuService,
     }
   }
 
-  private def createVastaanottoResult(statusCode: Int, exception: Option[Exception], vastaanottoEvent: VastaanottoEvent) = {
-    VastaanottoResult(vastaanottoEvent.henkiloOid, vastaanottoEvent.hakemusOid, vastaanottoEvent.hakukohdeOid, Result(statusCode, (exception.map(_.getMessage))))
+  private def createVastaanottoResult(statusCode: Int, exception: Option[Throwable], vastaanottoEvent: VastaanottoEvent) = {
+    VastaanottoResult(vastaanottoEvent.henkiloOid, vastaanottoEvent.hakemusOid, vastaanottoEvent.hakukohdeOid, Result(statusCode, exception.map(_.getMessage)))
   }
 
   @Deprecated
