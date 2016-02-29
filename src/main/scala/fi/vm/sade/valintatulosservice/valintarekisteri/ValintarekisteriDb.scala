@@ -134,6 +134,16 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
               values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $now)""")
   }
 
+  override def kumoaVastaanottotapahtumat(vastaanottoEvent: VastaanottoEvent): Unit = {
+    val VastaanottoEvent(henkiloOid, _, hakukohdeOid, _, ilmoittaja) = vastaanottoEvent
+    val now = System.currentTimeMillis()
+    runBlocking(
+      sqlu"""insert into deleted_vastaanotot
+             select $ilmoittaja, $now, id from vastaanotot
+             where vastaanotot.henkilo = $henkiloOid
+                 and vastaanotot.hakukohde = $hakukohdeOid""")
+  }
+
   def runBlocking[R](operations: DBIO[R], timeout: Duration = Duration(1, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
 
   override def findHakukohde(oid: String): Option[HakukohdeRecord] = {
