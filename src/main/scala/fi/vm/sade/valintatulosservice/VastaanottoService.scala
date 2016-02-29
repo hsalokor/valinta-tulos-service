@@ -28,21 +28,21 @@ class VastaanottoService(hakuService: HakuService,
 
   private def tallennaHakukohteenVastaanotot(hakukohdeOid: String, hakuOid: String, uudetVastaanotot: List[VastaanottoEventDto]): List[VastaanottoResult] = {
     val hakukohteenValintatulokset: List[Valintatulos] = valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.toList
-    val paivitykset = uudetVastaanotot.map(paivitysToiminnoksi(_, hakukohteenValintatulokset))
-    paivitykset.map {
-      case (paivitys, true) => tallenna(paivitys)
-      case (vastaanotto, false) => createVastaanottoResult(200, None, vastaanotto)
-    }
+    uudetVastaanotot.map(vastaanottoDto => {
+      if (isPaivitys(vastaanottoDto, hakukohteenValintatulokset)) {
+        tallenna(VirkailijanVastaanotto(vastaanottoDto))
+      } else {
+        VastaanottoResult(vastaanottoDto.henkiloOid, vastaanottoDto.hakemusOid, vastaanottoDto.hakukohdeOid, Result(200, None))
+      }
+    })
   }
 
-  private def paivitysToiminnoksi(virkailijanVastaanotto: VastaanottoEventDto, valintatulokset: Iterable[Valintatulos]): (VirkailijanVastaanotto, Boolean) = {
-      val valintatulos = valintatulokset.find(_.getHakijaOid == virkailijanVastaanotto.henkiloOid)
-      if (valintatulos.isDefined && Vastaanottotila.matches(virkailijanVastaanotto.tila, valintatulos.get.getTila)) {
-        (VirkailijanVastaanotto(virkailijanVastaanotto), false)
-      } else if (valintatulos.isEmpty && statesMatchingInexistentActions.contains(virkailijanVastaanotto.tila)) {
-        (VirkailijanVastaanotto(virkailijanVastaanotto), false)
-      } else (VirkailijanVastaanotto(virkailijanVastaanotto), true)
+  private def isPaivitys(virkailijanVastaanotto: VastaanottoEventDto, valintatulokset: Iterable[Valintatulos]): Boolean = {
+    valintatulokset.find(v => v.getHakijaOid == virkailijanVastaanotto.henkiloOid) match {
+      case Some(valintatulos) => !Vastaanottotila.matches(virkailijanVastaanotto.tila, valintatulos.getTila)
+      case None => !statesMatchingInexistentActions.contains(virkailijanVastaanotto.tila)
     }
+  }
 
   private def tallenna(vastaanotto: VirkailijanVastaanotto): VastaanottoResult = vastaanotto.action match {
     case VastaanotaSitovasti => tallennaJosEiAiempiaVastaanottoja(vastaanotto)
