@@ -32,8 +32,6 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
     val hakukohdeOid = params("hakukohdeOid")
     val action = parsedBody.extract[HakijanVastaanottoAction]
 
-    Try(vastaanottoService.vastaanota(HakijanVastaanotto(personOid, hakemusOid, hakukohdeOid, action))).map((_) => Ok()).recover{
-      case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
-    }.get
+    vastaanottoService.vastaanotaHakijana(HakijanVastaanotto(personOid, hakemusOid, hakukohdeOid, action)).get
   }
 }
