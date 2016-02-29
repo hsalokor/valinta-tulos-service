@@ -30,7 +30,6 @@ case object VastaanotaSitovasti extends VirkailijanVastaanottoAction with Hakija
 case object VastaanotaEhdollisesti extends VirkailijanVastaanottoAction with HakijanVastaanottoAction
 case object Peruuta extends VirkailijanVastaanottoAction
 case object Poista extends VirkailijanVastaanottoAction
-case object Noop extends VirkailijanVastaanottoAction
 
 object HakijanVastaanottoAction {
   private val valueMapping = Map(

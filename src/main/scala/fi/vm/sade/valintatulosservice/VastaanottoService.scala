@@ -29,20 +29,22 @@ class VastaanottoService(hakuService: HakuService,
   private def tallennaHakukohteenVastaanotot(hakukohdeOid: String, hakuOid: String, uudetVastaanotot: List[VastaanottoEventDto]): List[VastaanottoResult] = {
     val hakukohteenValintatulokset: List[Valintatulos] = valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.toList
     val paivitykset = uudetVastaanotot.map(paivitysToiminnoksi(_, hakukohteenValintatulokset))
-    paivitykset.map(tallenna)
+    paivitykset.map {
+      case (paivitys, true) => tallenna(paivitys)
+      case (vastaanotto, false) => createVastaanottoResult(200, None, vastaanotto)
+    }
   }
 
-  private def paivitysToiminnoksi(virkailijanVastaanotto: VastaanottoEventDto, valintatulokset: Iterable[Valintatulos]): VirkailijanVastaanotto = {
+  private def paivitysToiminnoksi(virkailijanVastaanotto: VastaanottoEventDto, valintatulokset: Iterable[Valintatulos]): (VirkailijanVastaanotto, Boolean) = {
       val valintatulos = valintatulokset.find(_.getHakijaOid == virkailijanVastaanotto.henkiloOid)
       if (valintatulos.isDefined && Vastaanottotila.matches(virkailijanVastaanotto.tila, valintatulos.get.getTila)) {
-        VirkailijanVastaanotto(virkailijanVastaanotto).copy(action = Noop)
+        (VirkailijanVastaanotto(virkailijanVastaanotto), false)
       } else if (valintatulos.isEmpty && statesMatchingInexistentActions.contains(virkailijanVastaanotto.tila)) {
-        VirkailijanVastaanotto(virkailijanVastaanotto).copy(action = Noop)
-      } else VirkailijanVastaanotto(virkailijanVastaanotto)
+        (VirkailijanVastaanotto(virkailijanVastaanotto), false)
+      } else (VirkailijanVastaanotto(virkailijanVastaanotto), true)
     }
 
   private def tallenna(vastaanotto: VirkailijanVastaanotto): VastaanottoResult = vastaanotto.action match {
-    case Noop => createVastaanottoResult(200, None, vastaanotto)
     case VastaanotaSitovasti => tallennaJosEiAiempiaVastaanottoja(vastaanotto)
     case VastaanotaEhdollisesti => tallennaJosEiAiempiaVastaanottoja(vastaanotto)
     case Peru => ???
