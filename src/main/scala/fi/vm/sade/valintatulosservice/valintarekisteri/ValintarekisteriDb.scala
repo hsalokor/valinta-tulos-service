@@ -100,7 +100,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                 and hk.hakukohde_oid = $hakukohdeOid
                 and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vo.id)
             order by vo.henkilo, vo.id desc""".as[VastaanottoRecord])
-    vastaanottoRecords.headOption
+    vastaanottoRecords.find(vastaanottoRecord => {
+      Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
+    })
   }
 
   override def findKkTutkintoonJohtavatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Set[VastaanottoRecord] = {
@@ -114,7 +116,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                 and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vo.id)
                 and hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}
             order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord])
-    vastaanottoRecords.toSet
+    vastaanottoRecords.filter(vastaanottoRecord => {
+      Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
+    }).toSet
   }
 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
