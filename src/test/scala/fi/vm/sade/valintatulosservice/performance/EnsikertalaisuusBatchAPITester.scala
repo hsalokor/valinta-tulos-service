@@ -24,18 +24,18 @@ object EnsikertalaisuusBatchAPITester extends App with Logging {
   lazy val valintarekisteriDb = new ValintarekisteriDb(
     dbConfig.withValue("connectionPool", ConfigValueFactory.fromAnyRef("disabled"))).db
   SharedJetty.start
-  private val testDataSize = 1000000
+  private val testDataSize = appConfig.settings.valintaRekisteriEnsikertalaisuusMaxPersonOids
   val oids = 1.to(testDataSize).map(i => s"1.2.246.562.24.$i")
 
   println(s"***** Inserting $testDataSize rows of test data. This might take a while...")
   Await.ready(valintarekisteriDb.run(
-    sqlu"""insert into hakukohteet ("hakukohdeOid", "hakuOid", kktutkintoonjohtava, koulutuksen_alkamiskausi)
-             values ('1.2.246.561.20.00000000001', '1.2.246.561.29.00000000001', true, '2015K')"""
+    sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, koulutuksen_alkamiskausi, yhden_paikan_saanto_voimassa)
+             values ('1.2.246.561.20.00000000001', '1.2.246.561.29.00000000001', true, '2015K', true)"""
   ), Duration(1, TimeUnit.SECONDS))
   Await.ready(valintarekisteriDb.run(SimpleDBIO[Unit](jdbcActionContext => {
     val insertStatement = jdbcActionContext.connection.prepareStatement(
-      """insert into vastaanotot (henkilo, hakukohde, active, ilmoittaja, "timestamp", deleted)
-         values (?, '1.2.246.561.20.00000000001', true, 'ilmoittaja', 1000, null)""")
+      """insert into vastaanotot (henkilo, hakukohde, ilmoittaja, "timestamp", action)
+         values (?, '1.2.246.561.20.00000000001', 'ilmoittaja', 1000, 'VastaanotaSitovasti'::vastaanotto_action)""")
     try {
       oids.foreach(oid => {
         insertStatement.setString(1, oid)
@@ -45,7 +45,7 @@ object EnsikertalaisuusBatchAPITester extends App with Logging {
     } finally {
       insertStatement.close()
     }
-  })), Duration(2, TimeUnit.MINUTES))
+  })), Duration(4, TimeUnit.MINUTES))
   println("...done inserting test data, let's make some requests...")
   val fetchOids = Random.shuffle(oids.zipWithIndex.filter(t => (t._2 % 10) == 0).map(t => t._1))
   var start = System.currentTimeMillis()
