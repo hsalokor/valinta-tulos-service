@@ -57,7 +57,10 @@ class VastaanottoService(hakuService: HakuService,
       }
     }
     case Peruuta => peruutaAiempiVastaanotto(vastaanotto)
-    case Poista => ???
+    case Poista => {
+      hakijaVastaanottoRepository.kumoaVastaanottotapahtumat(vastaanotto)
+      createVastaanottoResult(200, None, vastaanotto)
+    }
   }
 
   private def tallennaJosEiAiempiaVastaanottoja(vastaanotto: VirkailijanVastaanotto): VastaanottoResult = {

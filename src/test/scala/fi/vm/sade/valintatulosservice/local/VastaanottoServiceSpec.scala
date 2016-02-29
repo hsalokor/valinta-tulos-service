@@ -492,6 +492,13 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       r.result.status must_== 400
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
     }
+    "poista yhden hakijan vastaanotto" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
+      vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
+      val r = vastaanotaVirkailijana(personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.kesken, muokkaaja).head
+      r.result.status must_== 200
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+    }
   }
 
   step(valintarekisteriDb.db.shutdown)
