@@ -73,7 +73,7 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
   post("/vastaanotto", operation(postVirkailijanVastaanottoActionsSwagger)) {
 
     val vastaanottoEvents = parsedBody.extract[List[VastaanottoEventDto]]
-    vastaanottoService.virkailijanVastaanota(vastaanottoEvents)
+    vastaanottoService.vastaanotaVirkailijana(vastaanottoEvents)
   }
 }
 

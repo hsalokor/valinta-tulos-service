@@ -8,6 +8,7 @@ import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoEvent, VastaanottoRecord, VirkailijaVastaanottoRepository}
 
 import scala.collection.JavaConverters._
+import scala.util.{Success, Failure, Try}
 
 
 class VastaanottoService(hakuService: HakuService,
@@ -20,7 +21,7 @@ class VastaanottoService(hakuService: HakuService,
   private val statesMatchingInexistentActions = Set(Vastaanottotila.kesken, Vastaanottotila.ei_vastaanotettu_määräaikana)
 
 
-  def virkailijanVastaanota(vastaanotot: List[VastaanottoEventDto]): Iterable[VastaanottoResult] = {
+  def vastaanotaVirkailijana(vastaanotot: List[VastaanottoEventDto]): Iterable[VastaanottoResult] = {
     val vastaanototByHakukohdeOid: Map[(String, String), List[VastaanottoEventDto]] = vastaanotot.groupBy(v => (v.hakukohdeOid, v.hakuOid))
     vastaanototByHakukohdeOid.keys.flatMap(hakuKohdeAndHakuOids =>
       tallennaHakukohteenVastaanotot(hakuKohdeAndHakuOids._1, hakuKohdeAndHakuOids._2, vastaanototByHakukohdeOid(hakuKohdeAndHakuOids)))
@@ -47,14 +48,17 @@ class VastaanottoService(hakuService: HakuService,
   private def tallenna(vastaanotto: VirkailijanVastaanotto): VastaanottoResult = vastaanotto.action match {
     case VastaanotaSitovasti => tallennaJosEiAiempiaVastaanottoja(vastaanotto)
     case VastaanotaEhdollisesti => tallennaJosEiAiempiaVastaanottoja(vastaanotto)
-    case Peru => ???
+    case Peru => vastaanotaHakijana(vastaanotto) match {
+      case Success(()) => createVastaanottoResult(200, None, vastaanotto)
+      case Failure(e: IllegalArgumentException) => createVastaanottoResult(400, Some(e), vastaanotto)
+    }
     case Peruuta => ???
     case Poista => ???
   }
 
   private def tallennaJosEiAiempiaVastaanottoja(vastaanotto: VirkailijanVastaanotto): VastaanottoResult = {
     try {
-      val (hakemuksenTulos, hakutoive) = checkVastaanotettavuus(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+      findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
       vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid).get
       hakijaVastaanottoRepository.store(vastaanotto)
       createVastaanottoResult(200, None, vastaanotto)
@@ -69,36 +73,39 @@ class VastaanottoService(hakuService: HakuService,
     VastaanottoResult(vastaanottoEvent.henkiloOid, vastaanottoEvent.hakemusOid, vastaanottoEvent.hakukohdeOid, Result(statusCode, (exception.map(_.getMessage))))
   }
 
+  @Deprecated
   def tarkistaVastaanotettavuus(vastaanotettavaHakemusOid: String, hakukohdeOid: String): Unit = {
-    checkVastaanotettavuus(vastaanotettavaHakemusOid, hakukohdeOid)
+    findHakutoive(vastaanotettavaHakemusOid, hakukohdeOid)
   }
 
   @Deprecated
   def vastaanota(hakemusOid: String, vastaanotto: Vastaanotto): Unit = {
-    vastaanota(HakijanVastaanotto(
+    vastaanotaHakijana(HakijanVastaanotto(
       vastaanotto.muokkaaja,
       hakemusOid,
       vastaanotto.hakukohdeOid,
       HakijanVastaanottoAction.getHakijanVastaanottoAction(vastaanotto.tila)
-    ))
+    )).get
   }
 
-  def vastaanota(vastaanotto: HakijanVastaanotto) {
-    val ( hakemuksenTulos, hakutoive ) = checkVastaanotettavuus(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
-
-    tarkistaHakutoiveenJaValintatuloksenTila(hakutoive, vastaanotto.action)
-
-    hakijaVastaanottoRepository.store(vastaanotto)
+  def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Try[Unit] = {
+    try {
+      val hakutoive = findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+      tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
+      hakijaVastaanottoRepository.store(vastaanotto)
+      Success(())
+    } catch {
+      case e: IllegalArgumentException => Failure(e)
+    }
   }
 
-  private def checkVastaanotettavuus(hakemusOid: String, hakukohdeOid: String): (Hakemuksentulos, Hakutoiveentulos) = {
+  private def findHakutoive(hakemusOid: String, hakukohdeOid: String): Hakutoiveentulos = {
     val hakuOid = hakuService.getHakukohde(hakukohdeOid).getOrElse(throw new IllegalArgumentException(s"Tuntematon hakukohde ${hakukohdeOid}")).hakuOid
     val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
-    val hakutoive = hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
-    ( hakemuksenTulos, hakutoive )
+    hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
   }
 
-  private def tarkistaHakutoiveenJaValintatuloksenTila(hakutoive: Hakutoiveentulos, haluttuTila: HakijanVastaanottoAction) {
+  private def tarkistaHakutoiveenVastaanotettavuus(hakutoive: Hakutoiveentulos, haluttuTila: VastaanottoAction): Unit = {
     if (List(Peru, VastaanotaSitovasti).contains(haluttuTila) && !List(Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, Vastaanotettavuustila.vastaanotettavissa_sitovasti).contains(hakutoive.vastaanotettavuustila)) {
       throw new IllegalArgumentException("Väärä vastaanotettavuustila kohteella " + hakutoive.hakukohdeOid + ": " + hakutoive.vastaanotettavuustila.toString + " (yritetty muutos: " + haluttuTila + ")")
     }
