@@ -8,7 +8,7 @@ import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
-import fi.vm.sade.valintatulosservice.{ITSpecification, IlmoittautumisService, TimeWarp, ValintatulosService, VastaanotettavuusService, VastaanottoService}
+import fi.vm.sade.valintatulosservice._
 import org.joda.time.{DateTime, LocalDate}
 import org.junit.runner.RunWith
 import org.specs2.execute.{FailureException, Result}
@@ -198,8 +198,6 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)}
     }
 
-    // Tilat tarkistetaan suoraan kannasta jotta varmistutaan siitä että virkailijakäyttöliittymä saa identtiset tilat lukiessaan
-    // suoraan kantaa, historiallisesti OHP tekee kannan tilan pohjalta päättelyä siitä mitä oppijalle näytetään
     "yhden paikan sääntö" in {
       "vastaanota varsinaisessa haussa, kun lisähaussa vastaanottavissa -> lisähaun paikka ei vastaanotettavissa" in {
         useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanotettavissa.json"), hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
@@ -419,6 +417,39 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
     }
   }
 
+  "vastaanotaVirkailijana" in {
+    "vastaanota sitovasti yksi hakija" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
+      val r = vastaanotaVirkailijana(personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.vastaanottanut, muokkaaja).head
+      r.result.status must_== 200
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
+    }
+    "vastaanota ehdollisesti yksi hakija" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
+      val r = vastaanotaVirkailijana(personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja).head
+      r.result.status must_== 200
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
+    }
+    "peru yksi hakija" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
+      val r = vastaanotaVirkailijana(personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.perunut, muokkaaja).head
+      r.result.status must_== 200
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
+    }
+    "vastaanota yksi hakija joka ottanut vastaan toisen kk paikan -> error" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = HakuFixtures.korkeakouluYhteishaku, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+      val r = vastaanotaVirkailijana(personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.vastaanottanut, muokkaaja).head
+      r.result.status must_== 403
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+    }
+    "peru yksi hakija jonka paikka ei vastaanotettavissa -> error" in {
+      useFixture("hylatty-ei-valintatulosta.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
+      val r = vastaanotaVirkailijana(personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.perunut, muokkaaja).head
+      r.result.status must_== 400
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+    }
+  }
+
   step(valintarekisteriDb.db.shutdown)
 
   private lazy val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
@@ -440,6 +471,10 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
   private def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: String, selite: String, personOid: String) = {
     vastaanottoService.vastaanotaHakijana(HakijanVastaanotto(personOid, hakemusOid, hakukohdeOid, HakijanVastaanottoAction.getHakijanVastaanottoAction(tila))).get
     success
+  }
+
+  private def vastaanotaVirkailijana(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String, tila: Vastaanottotila, ilmoittaja: String) = {
+    vastaanottoService.vastaanotaVirkailijana(List(VastaanottoEventDto(henkiloOid, hakemusOid, hakukohdeOid, hakuOid, tila, ilmoittaja)))
   }
 
   private def tarkistaVastaanotettavuus(hakuOid: String, hakemusOid: String, hakukohdeOid: String) = {
