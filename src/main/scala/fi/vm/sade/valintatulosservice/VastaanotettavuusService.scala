@@ -9,23 +9,17 @@ class VastaanotettavuusService(hakukohdeRecordService: HakukohdeRecordService,
                                hakijaVastaanottoRepository: HakijaVastaanottoRepository) {
   def tarkistaAiemmatVastaanotot(henkiloOid: String, hakukohdeOid: String): Try[Unit] = {
     val hakukohdeRecord = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
-    val aiemmatVastaanotot = haeAiemmatVastaanotot(hakukohdeRecord, henkiloOid)
-    if (aiemmatVastaanotot.isEmpty) {
-      Success(())
-    } else if (aiemmatVastaanotot.size == 1) {
-      val aiempiVastaanotto = aiemmatVastaanotot.head
+    haeAiemmatVastaanotot(hakukohdeRecord, henkiloOid).map(aiempiVastaanotto => {
       Failure(PriorAcceptanceException(aiempiVastaanotto))
-    } else {
-      Failure(new IllegalStateException(s"Hakijalla ${henkiloOid} useita vastaanottoja: $aiemmatVastaanotot"))
-    }
+    }).getOrElse(Success(()))
   }
 
-  private def haeAiemmatVastaanotot(hakukohdeRecord: HakukohdeRecord, hakijaOid: String): Set[VastaanottoRecord] = {
+  private def haeAiemmatVastaanotot(hakukohdeRecord: HakukohdeRecord, hakijaOid: String): Option[VastaanottoRecord] = {
     val HakukohdeRecord(hakukohdeOid, _, yhdenPaikanSaantoVoimassa, _, koulutuksenAlkamiskausi) = hakukohdeRecord
     if (yhdenPaikanSaantoVoimassa) {
       hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(hakijaOid, koulutuksenAlkamiskausi)
     } else {
-      hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(hakijaOid, hakukohdeOid).toSet
+      hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(hakijaOid, hakukohdeOid)
     }
   }
 }

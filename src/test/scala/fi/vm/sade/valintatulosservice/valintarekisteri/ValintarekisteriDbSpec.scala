@@ -83,18 +83,24 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       timestampFromDb.before(new Date()) mustEqual true
     }
 
-    "find vastaanotot rows leading to higher education degrees of person" in {
+    "find vastaanotot rows of person affecting yhden paikan saanto" in {
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid))
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOidForHakuOid, VastaanotaEhdollisesti, henkiloOid))
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
       singleConnectionValintarekisteriDb.runBlocking(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
                        values (${hakukohdeOid + "1"}, ${hakuOid + "1"}, false, false, '2015K')""")
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid + "1", VastaanotaSitovasti, henkiloOid))
       val recordsFromDb = singleConnectionValintarekisteriDb.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, Kausi("2015K"))
-      recordsFromDb must have size 2
-      recordsFromDb.find(_.hakukohdeOid == hakukohdeOid).map(_.action) must beSome(VastaanotaSitovasti)
-      recordsFromDb.find(_.hakukohdeOid == otherHakukohdeOidForHakuOid).map(_.action) must beSome(VastaanotaEhdollisesti)
+      recordsFromDb must beSome[VastaanottoRecord]
+      recordsFromDb.get.hakukohdeOid must beEqualTo(hakukohdeOid)
+      recordsFromDb.get.action must beEqualTo(VastaanotaSitovasti)
+    }
+
+    "find vastaanotot rows of person affecting yhden paikan saanto throws if multiple vastaanottos in db" in {
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOidForHakuOid, VastaanotaSitovasti, henkiloOid))
+      singleConnectionValintarekisteriDb.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, Kausi("2015K")) must throwA[RuntimeException]
     }
   }
 

@@ -99,13 +99,16 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             where vo.henkilo = $henkiloOid
                 and hk.hakukohde_oid = $hakukohdeOid
                 and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vo.id)
-            order by vo.henkilo, vo.id desc""".as[VastaanottoRecord])
-    vastaanottoRecords.find(vastaanottoRecord => {
+            order by vo.henkilo, vo.id desc""".as[VastaanottoRecord]).filter(vastaanottoRecord => {
       Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
     })
+    if (vastaanottoRecords.size > 1) {
+      throw new RuntimeException(s"Hakijalla ${henkiloOid} useita vastaanottoja samaan hakukohteeseen: $vastaanottoRecords")
+    }
+    vastaanottoRecords.headOption
   }
 
-  override def findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Set[VastaanottoRecord] = {
+  override def findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Option[VastaanottoRecord] = {
     val vastaanottoRecords = runBlocking(
       sql"""select distinct on (vo.henkilo, vo.hakukohde) vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
                                             vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
@@ -115,10 +118,13 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                 and hk.yhden_paikan_saanto_voimassa
                 and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vo.id)
                 and hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}
-            order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord])
-    vastaanottoRecords.filter(vastaanottoRecord => {
+            order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord]).filter(vastaanottoRecord => {
       Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
-    }).toSet
+    })
+    if (vastaanottoRecords.size > 1) {
+      throw new RuntimeException(s"Hakijalla ${henkiloOid} useita vastaanottoja yhden paikan säännön piirissä: $vastaanottoRecords")
+    }
+    vastaanottoRecords.headOption
   }
 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
