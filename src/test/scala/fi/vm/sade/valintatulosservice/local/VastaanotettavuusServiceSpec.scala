@@ -20,24 +20,24 @@ class VastaanotettavuusServiceSpec extends Specification {
     "tarkistaAiemmatVastaanotot" in {
       "kun haussa yhden paikan sääntö voimassa" in {
         "kun hakijalla useita aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with YhdenPaikanSaantoVoimassa {
-          val anotherPreviousVastaanottoRecord = previousVastaanottoRecord.copy(
-            hakukohdeOid = hakukohde.oid + "1",
-            hakuOid = haku.oid + "1"
-          )
-          val aiemmatVastaanotot = Set(previousVastaanottoRecord, anotherPreviousVastaanottoRecord)
-          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, kausi) returns aiemmatVastaanotot
-          v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beFailedTry.withThrowable[IllegalStateException]
+          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, kausi) throws (new RuntimeException("test msg"))
+          v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must throwA("test msg")
         }
         "kun hakijalla yksi aiempi vastaanotto" in new VastaanotettavuusServiceWithMocks with YhdenPaikanSaantoVoimassa {
-          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, kausi) returns Set(previousVastaanottoRecord)
+          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, kausi) returns Some(previousVastaanottoRecord)
           v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beFailedTry.withThrowable[PriorAcceptanceException]
         }
         "kun hakijalla ei aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with YhdenPaikanSaantoVoimassa {
-          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, kausi) returns Set()
+          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, kausi) returns None
           v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beSuccessfulTry
         }
       }
       "kun yhden paikan sääntö ei voimassa" in {
+        "kun hakijalla useita aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
+          hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) throws (new RuntimeException("test msg"))
+          v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must throwA("test msg")
+          there was no(hakijaVastaanottoRepository).findYhdenPaikanSaannonPiirissaOlevatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
+        }
         "kun hakijalla yksi aiempi vastaanotto" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
           hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns Some(previousVastaanottoRecord)
           v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beFailedTry.withThrowable[PriorAcceptanceException]
