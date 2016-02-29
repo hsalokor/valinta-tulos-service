@@ -105,14 +105,14 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     })
   }
 
-  override def findKkTutkintoonJohtavatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Set[VastaanottoRecord] = {
+  override def findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Set[VastaanottoRecord] = {
     val vastaanottoRecords = runBlocking(
       sql"""select distinct on (vo.henkilo, vo.hakukohde) vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
                                             vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
             from vastaanotot vo
             join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
             where vo.henkilo = $henkiloOid
-                and hk.kk_tutkintoon_johtava = true
+                and hk.yhden_paikan_saanto_voimassa
                 and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vo.id)
                 and hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}
             order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord])
