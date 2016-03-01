@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice
 import java.text.ParseException
 
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.json.JsonFormats
+import fi.vm.sade.valintatulosservice.json.{StreamingFailureException, JsonFormats}
 import org.json4s.MappingException
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.SwaggerSupport
@@ -36,6 +36,9 @@ trait VtsServletBase extends ScalatraServlet with Logging with JacksonJsonSuppor
           badRequest(e)
         case e: NoSuchElementException =>
           badRequest(e)
+        case e: StreamingFailureException =>
+          logger.error(errorDescription, e)
+          InternalServerError(e.contentToInsertToBody)
         case e =>
           logger.error(errorDescription, e)
           InternalServerError("error" -> "500 Internal Server Error")
