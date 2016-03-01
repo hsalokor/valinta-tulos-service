@@ -25,7 +25,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   flyway.migrate()
   val db = Database.forConfig("", dbConfig)
   private implicit val getVastaanottoResult = GetResult(r => VastaanottoRecord(r.nextString(), r.nextString(),
-    r.nextString(), VastaanottoAction(r.nextString()), r.nextString(), new Date(r.nextLong())))
+    r.nextString(), VastaanottoAction(r.nextString()), r.nextString(), r.nextTimestamp()))
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
     val d = runBlocking(
@@ -47,8 +47,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                 from (select "timestamp", koulutuksen_alkamiskausi from new_vastaanotot
                       union
                       select "timestamp", koulutuksen_alkamiskausi from old_vastaanotot) as all_vastaanotot
-                where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}""".as[Option[Long]])
-    Ensikertalaisuus(personOid, d.head.map(new Date(_)))
+                where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}""".as[Option[java.sql.Timestamp]])
+    Ensikertalaisuus(personOid, d.head)
   }
 
   override def findEnsikertalaisuus(personOids: Set[String], koulutuksenAlkamisKausi: Kausi): Set[Ensikertalaisuus] = {
@@ -81,11 +81,11 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                 on all_vastaanotot.henkilo = person_oids.oid
                    and all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
             group by person_oids.oid
-        """.as[(String, Option[Long])]
+        """.as[(String, Option[java.sql.Timestamp])]
 
     val operations = createTempTable.andThen(insertPersonOids).andThen(findVastaanottos)
     val result = runBlocking(operations.transactionally, Duration(1, TimeUnit.MINUTES))
-    result.map(row => Ensikertalaisuus(row._1, row._2.map(new Date(_)))).toSet
+    result.map(row => Ensikertalaisuus(row._1, row._2)).toSet
   }
 
   override def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
@@ -141,16 +141,14 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, action, ilmoittaja, selite) = vastaanottoEvent
-    val now = System.currentTimeMillis()
-    runBlocking(sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, "timestamp", selite)
-              values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $now, $selite)""")
+    runBlocking(sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, selite)
+              values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite)""")
   }
 
   override def kumoaVastaanottotapahtumat(vastaanottoEvent: VastaanottoEvent): Unit = {
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, _, ilmoittaja, selite) = vastaanottoEvent
-    val now = System.currentTimeMillis()
     runBlocking(DBIO.seq(
-      sqlu"""insert into deleted_vastaanotot (poistaja, timestamp, selite) values ($ilmoittaja, $now, $selite)""",
+      sqlu"""insert into deleted_vastaanotot (poistaja, selite) values ($ilmoittaja, $selite)""",
       sqlu"""update vastaanotot set deleted = currval('deleted_vastaanotot_id')
              where vastaanotot.henkilo = $henkiloOid
                  and vastaanotot.hakukohde = $hakukohdeOid""").transactionally)
