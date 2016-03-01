@@ -147,10 +147,10 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   override def kumoaVastaanottotapahtumat(vastaanottoEvent: VastaanottoEvent): Unit = {
-    val VastaanottoEvent(henkiloOid, _, hakukohdeOid, _, ilmoittaja, _) = vastaanottoEvent
+    val VastaanottoEvent(henkiloOid, _, hakukohdeOid, _, ilmoittaja, selite) = vastaanottoEvent
     val now = System.currentTimeMillis()
     runBlocking(DBIO.seq(
-      sqlu"""insert into deleted_vastaanotot (poistaja, timestamp) values ($ilmoittaja, $now)""",
+      sqlu"""insert into deleted_vastaanotot (poistaja, timestamp, selite) values ($ilmoittaja, $now, $selite)""",
       sqlu"""update vastaanotot set deleted = currval('deleted_vastaanotot_id')
              where vastaanotot.henkilo = $henkiloOid
                  and vastaanotot.hakukohde = $hakukohdeOid""").transactionally)
