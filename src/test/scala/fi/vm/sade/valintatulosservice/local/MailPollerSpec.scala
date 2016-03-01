@@ -3,14 +3,15 @@ package fi.vm.sade.valintatulosservice.local
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.TypeImports._
 import fi.vm.sade.sijoittelu.domain.HakemuksenTila
+import fi.vm.sade.valintatulosservice.domain.{Vastaanottotila, VirkailijanVastaanotto}
 import fi.vm.sade.valintatulosservice.generatedfixtures._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
-import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
+import fi.vm.sade.valintatulosservice.sijoittelu.{ValintatulosRepository, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
 import fi.vm.sade.valintatulosservice.vastaanottomeili._
-import fi.vm.sade.valintatulosservice.{VastaanotettavuusService, ITSpecification, TimeWarp, ValintatulosService}
+import fi.vm.sade.valintatulosservice._
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
@@ -23,6 +24,8 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
   lazy val hakukohdeRecordService = new HakukohdeRecordService(hakuService, valintarekisteriDb)
   lazy val vastaanotettavuusService = new VastaanotettavuusService(hakukohdeRecordService, valintarekisteriDb)
   lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, hakuService)(appConfig)
+  lazy val vastaanottoService = new VastaanottoService(hakuService, vastaanotettavuusService, valintatulosService,
+    valintarekisteriDb, valintarekisteriDb, appConfig.sijoitteluContext.valintatulosRepository)
   lazy val valintatulokset = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
   lazy val poller = new MailPoller(valintatulokset, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 3)
   lazy val mailDecorator = new MailDecorator(new HakemusRepository(), valintatulokset)
@@ -189,6 +192,16 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
           hakemusFixtures = List("00000441369", "00000441372-no-email"))
       poller.searchMailsToSend(mailDecorator = mailDecorator).size must_== 1
     }
+  }
+
+  "Kun hakija jo vastaanottanut paikan, mailStatus.message kenttään ei kosketa" in {
+    lazy val fixture = new GeneratedFixture(new SimpleGeneratedHakuFixture(1, 1))
+    fixture.apply
+    vastaanottoService.vastaanotaVirkailijana(List(VastaanottoEventDto("1.1", "1.1", "1", "1", Vastaanottotila.vastaanottanut, "ilmoittaja")))
+    poller.pollForMailables() must beEmpty
+    val valintatulos = MongoFactory.createDB(appConfig.settings.valintatulosMongoConfig)("Valintatulos")
+      .findOne(Map("hakijaOid" -> "1.1", "hakemusOid" -> "1.1")).get
+    valintatulos.get("mailStatus").asInstanceOf[BasicDBObject].contains("message") must beFalse
   }
 
   step(valintarekisteriDb.db.shutdown)

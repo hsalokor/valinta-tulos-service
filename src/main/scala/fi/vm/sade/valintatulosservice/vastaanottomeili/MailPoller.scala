@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.vastaanottomeili
 
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.ValintatulosService
-import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Hakutoiveentulos, Valintatila, Vastaanotettavuustila}
+import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
@@ -54,7 +54,7 @@ class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatul
 
     val statii: Set[HakemusMailStatus] = for {
       candidateId <- candidates
-      hakemuksenTulos <- fetchHakemuksentulos(candidateId)
+      hakemuksenTulos <- fetchHakemuksentulos(candidateId) if hakemuksenTulos.hakutoiveet.exists(hk => hk.vastaanottotila == Vastaanottotila.kesken)
     } yield {
       mailStatusFor(hakemuksenTulos)
     }

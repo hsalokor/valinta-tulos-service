@@ -39,7 +39,7 @@ class GeneratedFixture(haut: List[GeneratedHakuFixture] = List(new GeneratedHaku
       insertWithProgress(haku.hakukohteet)(appConfig.sijoitteluContext.hakukohdeDao.persistHakukohde(_))
       logger.info("Hakemus-kantaan...")
       haku.hakemukset
-        .map { hakemus => HakemusFixture(hakemus.hakemusOid, hakemus.hakutoiveet.zipWithIndex.map{ case (hakutoive, index) => HakutoiveFixture(index+1, hakutoive.tarjoajaOid, hakutoive.hakukohdeOid) })}
+        .map { hakemus => HakemusFixture(haku.hakuOid, hakemus.hakemusOid, hakemus.hakutoiveet.zipWithIndex.map{ case (hakutoive, index) => HakutoiveFixture(index+1, hakutoive.tarjoajaOid, hakutoive.hakukohdeOid) })}
         .foreach(hakemusFixtures.importTemplateFixture(_))
     }
     logger.info("Done")

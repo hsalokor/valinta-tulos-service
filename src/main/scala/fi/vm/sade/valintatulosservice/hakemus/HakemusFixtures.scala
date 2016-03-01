@@ -60,11 +60,23 @@ class HakemusFixtures(config: MongoConfig) {
   def importTemplateFixture(hakemus: HakemusFixture) = {
     templateObject.put("_id", new ObjectId())
     templateObject.put("oid", hakemus.hakemusOid)
+    templateObject.put("applicationSystemId", hakemus.hakuOid)
+    templateObject.put("personOid", hakemus.hakemusOid)
     val hakutoiveetDbObject = templateObject.get("answers").asInstanceOf[BasicDBObject].get("hakutoiveet").asInstanceOf[BasicDBObject]
+    val hakutoiveetMetaDbList = templateObject
+      .get("authorizationMeta").asInstanceOf[BasicDBObject]
+      .get("applicationPreferences").asInstanceOf[BasicDBList]
 
     hakemus.hakutoiveet.foreach { hakutoive =>
       hakutoiveetDbObject.put("preference" + hakutoive.index + "-Koulutus-id", hakutoive.hakukohdeOid)
       hakutoiveetDbObject.put("preference" + hakutoive.index + "-Opetuspiste-id", hakutoive.tarjoajaOid)
+      hakutoiveetMetaDbList.add(BasicDBObjectBuilder.start()
+        .add("ordinal", hakutoive.index)
+        .push("preferenceData")
+        .add("Koulutus-id", hakutoive.hakukohdeOid)
+        .add("Opetuspiste-id", hakutoive.tarjoajaOid)
+        .pop()
+        .get())
     }
 
     db.underlying.getCollection("application").insert(templateObject)
@@ -80,5 +92,5 @@ object HakemusFixtures {
   }
 }
 
-case class HakemusFixture(hakemusOid: String, hakutoiveet: List[HakutoiveFixture])
+case class HakemusFixture(hakuOid: String, hakemusOid: String, hakutoiveet: List[HakutoiveFixture])
 case class HakutoiveFixture(index: Int, tarjoajaOid: String, hakukohdeOid: String)
