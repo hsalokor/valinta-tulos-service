@@ -33,11 +33,11 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
                  values ($hakukohde, $haku, true, true, '2015K')""",
           sqlu"""insert into vastaanotot
                  (henkilo, hakukohde, action, ilmoittaja, "timestamp", selite)
-                 values ($henkilo, $hakukohde, 'VastaanotaSitovasti'::vastaanotto_action, 'ilmoittaja', ${timestamp.getMillis}, 'testiselite')""",
+                 values ($henkilo, $hakukohde, 'VastaanotaSitovasti'::vastaanotto_action, 'ilmoittaja', ${new java.sql.Timestamp(timestamp.getMillis)}, 'testiselite')""",
           sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, "timestamp")
-                 values ($henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${vanha_timestamp.getMillis})""",
+                 values ($henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${new java.sql.Timestamp(vanha_timestamp.getMillis)})""",
           sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, "timestamp")
-                 values ($vanha_henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${vanha_timestamp.getMillis})"""
+                 values ($vanha_henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${new java.sql.Timestamp(vanha_timestamp.getMillis)})"""
         ).transactionally)
   })
 
