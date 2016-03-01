@@ -14,7 +14,6 @@ class ValintatulosMongoCollection(mongoConfig: MongoConfig) {
   def pollForCandidates(hakuOids: List[String], limit: Int, recheckIntervalHours: Int = 24,  excludeHakemusOids: Set[String] = Set.empty): Set[HakemusIdentifier] = {
     val query = Map(
       "hakuOid" -> Map("$in" -> hakuOids),
-      "tila" -> "KESKEN",
       "julkaistavissa" -> true,
       "mailStatus.sent" -> Map("$exists" -> false),
       "$or" -> List(
