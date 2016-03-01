@@ -9,13 +9,16 @@ case class Vastaanotto(hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: S
 
 case class HakijanVastaanotto(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, action: HakijanVastaanottoAction) extends VastaanottoEvent {
   val ilmoittaja = henkiloOid
+  val selite = "Hakijan oma vastaanotto"
 }
 
-case class VirkailijanVastaanotto(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, action: VirkailijanVastaanottoAction, ilmoittaja: String) extends VastaanottoEvent
+case class VirkailijanVastaanotto(henkiloOid: String, hakemusOid: String, hakukohdeOid: String,
+                                  action: VirkailijanVastaanottoAction, ilmoittaja: String, selite: String) extends VastaanottoEvent
 
 object VirkailijanVastaanotto {
   def apply(dto: VastaanottoEventDto): VirkailijanVastaanotto = {
-    VirkailijanVastaanotto(dto.henkiloOid, dto.hakemusOid, dto.hakukohdeOid, VirkailijanVastaanottoAction.getVirkailijanVastaanottoAction(dto.tila), dto.ilmoittaja)
+    VirkailijanVastaanotto(dto.henkiloOid, dto.hakemusOid, dto.hakukohdeOid,
+      VirkailijanVastaanottoAction.getVirkailijanVastaanottoAction(dto.tila), dto.ilmoittaja, dto.selite)
   }
 }
 

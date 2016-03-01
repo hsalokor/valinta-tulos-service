@@ -525,7 +525,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
   }
 
   private def vastaanotaVirkailijana(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String, tila: Vastaanottotila, ilmoittaja: String) = {
-    vastaanottoService.vastaanotaVirkailijana(List(VastaanottoEventDto(henkiloOid, hakemusOid, hakukohdeOid, hakuOid, tila, ilmoittaja)))
+    vastaanottoService.vastaanotaVirkailijana(List(VastaanottoEventDto(henkiloOid, hakemusOid, hakukohdeOid, hakuOid, tila, ilmoittaja, "testiselite")))
   }
 
   private def tarkistaVastaanotettavuus(hakuOid: String, hakemusOid: String, hakukohdeOid: String) = {

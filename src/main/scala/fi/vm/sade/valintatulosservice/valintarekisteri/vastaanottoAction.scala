@@ -12,10 +12,12 @@ trait VastaanottoEvent {
   def hakukohdeOid: String
   def action: VastaanottoAction
   def ilmoittaja: String
+  def selite: String
 }
 object VastaanottoEvent {
-  def unapply(vastaanottoEvent: VastaanottoEvent): Option[(String, String, String, VastaanottoAction, String)] = {
-    Some((vastaanottoEvent.henkiloOid, vastaanottoEvent.hakemusOid, vastaanottoEvent.hakukohdeOid, vastaanottoEvent.action, vastaanottoEvent.ilmoittaja))
+  def unapply(vastaanottoEvent: VastaanottoEvent): Option[(String, String, String, VastaanottoAction, String, String)] = {
+    Some((vastaanottoEvent.henkiloOid, vastaanottoEvent.hakemusOid, vastaanottoEvent.hakukohdeOid,
+      vastaanottoEvent.action, vastaanottoEvent.ilmoittaja, vastaanottoEvent.selite))
   }
 }
 

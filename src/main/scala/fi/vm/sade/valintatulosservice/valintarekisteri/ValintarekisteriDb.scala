@@ -140,14 +140,14 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
-    val VastaanottoEvent(henkiloOid, _, hakukohdeOid, action, ilmoittaja) = vastaanottoEvent
+    val VastaanottoEvent(henkiloOid, _, hakukohdeOid, action, ilmoittaja, selite) = vastaanottoEvent
     val now = System.currentTimeMillis()
-    runBlocking(sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, "timestamp")
-              values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $now)""")
+    runBlocking(sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, "timestamp", selite)
+              values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $now, $selite)""")
   }
 
   override def kumoaVastaanottotapahtumat(vastaanottoEvent: VastaanottoEvent): Unit = {
-    val VastaanottoEvent(henkiloOid, _, hakukohdeOid, _, ilmoittaja) = vastaanottoEvent
+    val VastaanottoEvent(henkiloOid, _, hakukohdeOid, _, ilmoittaja, _) = vastaanottoEvent
     val now = System.currentTimeMillis()
     runBlocking(
       sqlu"""insert into deleted_vastaanotot
@@ -156,7 +156,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                  and vastaanotot.hakukohde = $hakukohdeOid""")
   }
 
-  def runBlocking[R](operations: DBIO[R], timeout: Duration = Duration(1, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
+  def runBlocking[R](operations: DBIO[R], timeout: Duration = Duration(2, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
 
   override def findHakukohde(oid: String): Option[HakukohdeRecord] = {
     implicit val getHakukohdeResult = GetResult(r =>

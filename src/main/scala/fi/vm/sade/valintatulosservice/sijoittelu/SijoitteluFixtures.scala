@@ -61,7 +61,8 @@ case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
           (valintatulos \ "hakemusOid").extract[String],
           (valintatulos \ "hakukohdeOid").extract[String],
           action,
-          (valintatulos \ "hakijaOid").extract[String]
+          (valintatulos \ "hakijaOid").extract[String],
+          "Tuotu vanhasta järjestelmästä"
         ))
       })
     }

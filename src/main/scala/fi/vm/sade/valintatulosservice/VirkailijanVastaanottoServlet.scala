@@ -63,7 +63,8 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
       "hakukohdeOid" -> ModelProperty(`type` = DataType.String, required = true),
       "hakuOid" -> ModelProperty(`type` = DataType.String, required = true),
       "ilmoittaja" -> ModelProperty(`type` = DataType.String, required = true),
-      "tila" -> ModelProperty(`type` = DataType.String, required = true, allowableValues = AllowableValues(Vastaanottotila.values.toList))
+      "tila" -> ModelProperty(`type` = DataType.String, required = true, allowableValues = AllowableValues(Vastaanottotila.values.toList)),
+      "selite" -> ModelProperty(`type` = DataType.String, required = true)
     ))
   registerModel(vastaanottoEventModel)
 
@@ -79,4 +80,5 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
 
 case class Result(status: Int, message: Option[String])
 case class VastaanottoResult(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, result: Result)
-case class VastaanottoEventDto(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String, tila: Vastaanottotila, ilmoittaja: String)
+case class VastaanottoEventDto(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String,
+                               tila: Vastaanottotila, ilmoittaja: String, selite: String)
