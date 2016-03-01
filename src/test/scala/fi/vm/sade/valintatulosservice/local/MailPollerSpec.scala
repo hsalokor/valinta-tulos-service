@@ -197,7 +197,7 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
   "Kun hakija jo vastaanottanut paikan, mailStatus.message kenttään ei kosketa" in {
     lazy val fixture = new GeneratedFixture(new SimpleGeneratedHakuFixture(1, 1))
     fixture.apply
-    vastaanottoService.vastaanotaVirkailijana(List(VastaanottoEventDto("1.1", "1.1", "1", "1", Vastaanottotila.vastaanottanut, "ilmoittaja")))
+    vastaanottoService.vastaanotaVirkailijana(List(VastaanottoEventDto("1.1", "1.1", "1", "1", Vastaanottotila.vastaanottanut, "ilmoittaja", "selite")))
     poller.pollForMailables() must beEmpty
     val valintatulos = MongoFactory.createDB(appConfig.settings.valintatulosMongoConfig)("Valintatulos")
       .findOne(Map("hakijaOid" -> "1.1", "hakemusOid" -> "1.1")).get
