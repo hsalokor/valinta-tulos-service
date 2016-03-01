@@ -17,8 +17,8 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
       Try { o.getOrElse(throw new RuntimeException(errorMessage)) }
     }
     val h = for {
-      hakukohde <- withError(hakuService.getHakukohde(oid), s"Could not find hakukohde $oid")
-      haku <- withError(hakuService.getHaku(hakukohde.hakuOid), s"Could not find haku ${hakukohde.hakuOid}")
+      hakukohde <- withError(hakuService.getHakukohde(oid), s"Could not find hakukohde $oid from tarjonta")
+      haku <- withError(hakuService.getHaku(hakukohde.hakuOid), s"Could not find haku ${hakukohde.hakuOid} from tarjonta")
       koulutukset <- withError(sequence(hakukohde.hakukohdeKoulutusOids.map(hakuService.getKoulutus)),
         s"Could not resolve koulutukset ${hakukohde.hakukohdeKoulutusOids}")
       alkamiskausi <- withError(unique(koulutukset.map(_.koulutuksenAlkamiskausi)),
