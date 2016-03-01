@@ -29,8 +29,8 @@ object EnsikertalaisuusBatchAPITester extends App with Logging {
 
   println(s"***** Inserting $testDataSize rows of test data. This might take a while...")
   Await.ready(valintarekisteriDb.run(
-    sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, koulutuksen_alkamiskausi, yhden_paikan_saanto_voimassa)
-             values ('1.2.246.561.20.00000000001', '1.2.246.561.29.00000000001', true, '2015K', true)"""
+    sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, koulutuksen_alkamiskausi, yhden_paikan_saanto_voimassa, deleted)
+             values ('1.2.246.561.20.00000000001', '1.2.246.561.29.00000000001', true, '2015K', true, null)"""
   ), Duration(1, TimeUnit.SECONDS))
   Await.ready(valintarekisteriDb.run(SimpleDBIO[Unit](jdbcActionContext => {
     val insertStatement = jdbcActionContext.connection.prepareStatement(

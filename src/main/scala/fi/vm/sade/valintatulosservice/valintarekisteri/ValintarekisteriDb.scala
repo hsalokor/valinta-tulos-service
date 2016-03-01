@@ -34,7 +34,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                 join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
                                 and hakukohteet.kk_tutkintoon_johtava
                 where vastaanotot.henkilo = $personOid
-                    and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vastaanotot.id)
+                    and vastaanotot.deleted is null
                 order by vastaanotot.hakukohde, vastaanotot.id desc
                 ), new_vastaanotot as (
                 select "timestamp", koulutuksen_alkamiskausi from newest_vastaanotto_events
@@ -72,7 +72,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                                   henkilo, "timestamp", koulutuksen_alkamiskausi, action from vastaanotot
                               join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
                                               and hakukohteet.kk_tutkintoon_johtava
-                              where not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vastaanotot.id)
+                              where vastaanotot.deleted is null
                               order by vastaanotot.henkilo, vastaanotot.hakukohde, vastaanotot.id desc) as vastaanotto_events
                         where vastaanotto_events.action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti'))
                        union
@@ -97,7 +97,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
             where vo.henkilo = $henkiloOid
                 and hk.haku_oid = $hakuOid
-                and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vo.id)
+                and vo.deleted is null
             order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord])
     vastaanottoRecords.toSet
   }
@@ -110,7 +110,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
             where vo.henkilo = $henkiloOid
                 and hk.hakukohde_oid = $hakukohdeOid
-                and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vo.id)
+                and vo.deleted is null
             order by vo.henkilo, vo.id desc""".as[VastaanottoRecord]).filter(vastaanottoRecord => {
       Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
     })
@@ -128,7 +128,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
             where vo.henkilo = $henkiloOid
                 and hk.yhden_paikan_saanto_voimassa
-                and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vo.id)
+                and vo.deleted is null
                 and hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}
             order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord]).filter(vastaanottoRecord => {
       Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
@@ -149,11 +149,11 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   override def kumoaVastaanottotapahtumat(vastaanottoEvent: VastaanottoEvent): Unit = {
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, _, ilmoittaja, _) = vastaanottoEvent
     val now = System.currentTimeMillis()
-    runBlocking(
-      sqlu"""insert into deleted_vastaanotot
-             select $ilmoittaja, $now, id from vastaanotot
+    runBlocking(DBIO.seq(
+      sqlu"""insert into deleted_vastaanotot (poistaja, timestamp) values ($ilmoittaja, $now)""",
+      sqlu"""update vastaanotot set deleted = currval('deleted_vastaanotot_id')
              where vastaanotot.henkilo = $henkiloOid
-                 and vastaanotot.hakukohde = $hakukohdeOid""")
+                 and vastaanotot.hakukohde = $hakukohdeOid""").transactionally)
   }
 
   def runBlocking[R](operations: DBIO[R], timeout: Duration = Duration(2, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
@@ -180,7 +180,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             from vastaanotot vo
             join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
             where vo.hakukohde = $hakukohdeOid
-                and not exists (select 1 from deleted_vastaanotot where deleted_vastaanotot.vastaanotto = vo.id)
+                and vo.deleted is null
             order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord])
     vastaanottoRecords.toSet
   }
