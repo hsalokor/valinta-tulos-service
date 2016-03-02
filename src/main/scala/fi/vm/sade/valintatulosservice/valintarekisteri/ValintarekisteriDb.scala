@@ -1,6 +1,5 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
-import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
@@ -139,19 +138,34 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     vastaanottoRecords.headOption
   }
 
-  override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
-    val VastaanottoEvent(henkiloOid, _, hakukohdeOid, action, ilmoittaja, selite) = vastaanottoEvent
-    runBlocking(sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, selite)
-              values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite)""")
+  override def store(vastaanottoEvents: List[VastaanottoEvent]): Unit = {
+    runBlocking(DBIO.sequence(
+      vastaanottoEvents.map(storeAction)
+    ).transactionally)
   }
 
-  override def kumoaVastaanottotapahtumat(vastaanottoEvent: VastaanottoEvent): Unit = {
+  override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
+    runBlocking(storeAction(vastaanottoEvent))
+  }
+
+  private def storeAction(vastaanottoEvent: VastaanottoEvent) = vastaanottoEvent.action match {
+    case Poista => kumoaVastaanottotapahtumatAction(vastaanottoEvent)
+    case _ => tallennaVastaanottoTapahtumaAction(vastaanottoEvent)
+  }
+
+  private def tallennaVastaanottoTapahtumaAction(vastaanottoEvent: VastaanottoEvent) = {
+    val VastaanottoEvent(henkiloOid, _, hakukohdeOid, action, ilmoittaja, selite) = vastaanottoEvent
+    sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, selite)
+              values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite)"""
+  }
+
+  private def kumoaVastaanottotapahtumatAction(vastaanottoEvent: VastaanottoEvent) = {
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, _, ilmoittaja, selite) = vastaanottoEvent
-    runBlocking(DBIO.seq(
+    DBIO.seq(
       sqlu"""insert into deleted_vastaanotot (poistaja, selite) values ($ilmoittaja, $selite)""",
       sqlu"""update vastaanotot set deleted = currval('deleted_vastaanotot_id')
              where vastaanotot.henkilo = $henkiloOid
-                 and vastaanotot.hakukohde = $hakukohdeOid""").transactionally)
+                 and vastaanotot.hakukohde = $hakukohdeOid""").transactionally
   }
 
   def runBlocking[R](operations: DBIO[R], timeout: Duration = Duration(2, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
