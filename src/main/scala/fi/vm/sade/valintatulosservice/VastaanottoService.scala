@@ -39,8 +39,8 @@ class VastaanottoService(hakuService: HakuService,
   private def generateTallennettavatVastaanototList(vastaanotot: List[VastaanottoEventDto]): List[VirkailijanVastaanotto] = {
     (for {
       ((hakukohdeOid, hakuOid), vastaanottoEventDtos) <- vastaanotot.groupBy(v => (v.hakukohdeOid, v.hakuOid))
-      hakukohteenValintatulokset = valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.toList
-      vastaanottoEventDto <- vastaanottoEventDtos if (isPaivitys(vastaanottoEventDto, hakukohteenValintatulokset))
+      hakukohteenValintatulokset = findValintatulokset(hakuOid, hakukohdeOid)
+      vastaanottoEventDto <- vastaanottoEventDtos if (isPaivitys(vastaanottoEventDto, hakukohteenValintatulokset.get(vastaanottoEventDto.henkiloOid)))
     } yield {
       VirkailijanVastaanotto(vastaanottoEventDto)
     }).toList
@@ -64,9 +64,9 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   private def tallennaHakukohteenVastaanotot(hakukohdeOid: String, hakuOid: String, uudetVastaanotot: List[VastaanottoEventDto]): List[VastaanottoResult] = {
-    val hakukohteenValintatulokset: List[Valintatulos] = valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.toList
+    val hakukohteenValintatulokset = findValintatulokset(hakuOid, hakukohdeOid)
     uudetVastaanotot.map(vastaanottoDto => {
-      if (isPaivitys(vastaanottoDto, hakukohteenValintatulokset)) {
+      if (isPaivitys(vastaanottoDto, hakukohteenValintatulokset.get(vastaanottoDto.henkiloOid))) {
         tallenna(VirkailijanVastaanotto(vastaanottoDto))
       } else {
         VastaanottoResult(vastaanottoDto.henkiloOid, vastaanottoDto.hakemusOid, vastaanottoDto.hakukohdeOid, Result(200, None))
@@ -74,11 +74,13 @@ class VastaanottoService(hakuService: HakuService,
     })
   }
 
-  private def isPaivitys(virkailijanVastaanotto: VastaanottoEventDto, valintatulokset: Iterable[Valintatulos]): Boolean = {
-    valintatulokset.find(v => v.getHakijaOid == virkailijanVastaanotto.henkiloOid) match {
-      case Some(valintatulos) => !Vastaanottotila.matches(virkailijanVastaanotto.tila, valintatulos.getTila)
-      case None => !statesMatchingInexistentActions.contains(virkailijanVastaanotto.tila)
-    }
+  private def isPaivitys(virkailijanVastaanotto: VastaanottoEventDto, valintatulos: Option[Valintatulos]): Boolean = valintatulos match {
+    case Some(valintatulos) => !Vastaanottotila.matches(virkailijanVastaanotto.tila, valintatulos.getTila)
+    case None => !statesMatchingInexistentActions.contains(virkailijanVastaanotto.tila)
+  }
+
+  private def findValintatulokset(hakuOid: String, hakukohdeOid: String): Map[String, Valintatulos] = {
+    valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.toList.groupBy(_.getHakijaOid).mapValues(_.head)
   }
 
   private def tallenna(vastaanotto: VirkailijanVastaanotto): VastaanottoResult = vastaanotto.action match {
