@@ -112,6 +112,25 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid) must beNone
     }
 
+    "rollback failing transaction" in {
+      singleConnectionValintarekisteriDb.store( List(
+        VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"),
+        VirkailijanVastaanotto("123!", "2222323", "134134134.123", VastaanotaSitovasti, "123!", "testiselite"))) must throwA[Exception]
+      singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid) must beNone
+    }
+
+    "store vastaanotot in transaction" in {
+      singleConnectionValintarekisteriDb.store( List(
+        VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"),
+        VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))) must beEqualTo(())
+      val henkiloOidsAndActionsFromDb = singleConnectionValintarekisteriDb.runBlocking(
+        sql"""select henkilo, action, hakukohde from vastaanotot
+              where henkilo = $henkiloOid order by hakukohde""".as[(String, String, String)])
+      henkiloOidsAndActionsFromDb must have size 2
+      henkiloOidsAndActionsFromDb(0) mustEqual (henkiloOid, VastaanotaSitovasti.toString, hakukohdeOid)
+      henkiloOidsAndActionsFromDb(1) mustEqual (henkiloOid, VastaanotaSitovasti.toString, otherHakukohdeOid)
+    }
+
     "findEnsikertalaisuus" in {
       "tarkastelee vastaanottotiedon viimeisintä tilaa" in {
         singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
