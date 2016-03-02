@@ -76,6 +76,15 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
     val vastaanottoEvents = parsedBody.extract[List[VastaanottoEventDto]]
     vastaanottoService.vastaanotaVirkailijana(vastaanottoEvents)
   }
+
+  val postTransactionalVirkailijanVastaanottoActionsSwagger: OperationBuilder = (apiOperation[Unit]("postVastaanotto")
+    summary "Tallenna vastaanottotapahtumat transaktiossa"
+    parameter bodyParam[List[VastaanottoEventDto]])
+  post("/trasactional-vastaanotto", operation(postTransactionalVirkailijanVastaanottoActionsSwagger)) {
+
+    val vastaanottoEvents = parsedBody.extract[List[VastaanottoEventDto]]
+    vastaanottoService.vastaanotaVirkailijanaInTransaction(vastaanottoEvents).get
+  }
 }
 
 case class Result(status: Int, message: Option[String])

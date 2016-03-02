@@ -27,6 +27,43 @@ class VastaanottoService(hakuService: HakuService,
       tallennaHakukohteenVastaanotot(hakuKohdeAndHakuOids._1, hakuKohdeAndHakuOids._2, vastaanototByHakukohdeOid(hakuKohdeAndHakuOids)))
   }
 
+  def vastaanotaVirkailijanaInTransaction(vastaanotot: List[VastaanottoEventDto]): Try[Unit] = {
+
+    val tallennettavatVastaanotot = generateTallennettavatVastaanototList(vastaanotot)
+    tallennettavatVastaanotot.toStream.map(checkVastaanotettavuus).find(_.isFailure) match {
+      case Some(failure) => failure
+      case None => Try {hakijaVastaanottoRepository.store(tallennettavatVastaanotot) }
+    }
+  }
+
+  private def generateTallennettavatVastaanototList(vastaanotot: List[VastaanottoEventDto]): List[VirkailijanVastaanotto] = {
+    val vastaanototByHakukohdeOid: Map[(String, String), List[VastaanottoEventDto]] = vastaanotot.groupBy(v => (v.hakukohdeOid, v.hakuOid))
+    (for{
+      (hakukohdeOid, hakuOid) <- vastaanototByHakukohdeOid.keys
+      hakukohteenValintatulokset: List[Valintatulos] = valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.toList
+      vastaanottoEventDto <- vastaanototByHakukohdeOid((hakukohdeOid, hakuOid)) if (isPaivitys(vastaanottoEventDto, hakukohteenValintatulokset))
+    } yield {
+      VirkailijanVastaanotto(vastaanottoEventDto)
+    }).toList
+  }
+
+  private def checkVastaanotettavuus(vastaanotto: VirkailijanVastaanotto): Try[Unit] = {
+    Try {
+      vastaanotto.action match {
+        case VastaanotaSitovasti | VastaanotaEhdollisesti => {
+          findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+          vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid).get
+        }
+        case Peru => {
+          val hakutoive = findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+          tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
+        }
+        case Peruuta => findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+        case Poista => ()
+      }
+    }
+  }
+
   private def tallennaHakukohteenVastaanotot(hakukohdeOid: String, hakuOid: String, uudetVastaanotot: List[VastaanottoEventDto]): List[VastaanottoResult] = {
     val hakukohteenValintatulokset: List[Valintatulos] = valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.toList
     uudetVastaanotot.map(vastaanottoDto => {
@@ -58,7 +95,7 @@ class VastaanottoService(hakuService: HakuService,
     }
     case Peruuta => peruutaAiempiVastaanotto(vastaanotto)
     case Poista => {
-      hakijaVastaanottoRepository.kumoaVastaanottotapahtumat(vastaanotto)
+      hakijaVastaanottoRepository.store(vastaanotto)
       createVastaanottoResult(200, None, vastaanotto)
     }
   }

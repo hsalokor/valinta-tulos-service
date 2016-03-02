@@ -7,5 +7,5 @@ trait HakijaVastaanottoRepository {
   def findHenkilonVastaanottoHakukohteeseen(henkiloOid: String, hakukohdeOid: String): Option[VastaanottoRecord]
   def findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Option[VastaanottoRecord]
   def store(vastaanottoEvent: VastaanottoEvent): Unit
-  def kumoaVastaanottotapahtumat(vastaanottoEvent: VastaanottoEvent): Unit
+  def store(vastaanottoEvents: List[VastaanottoEvent]): Unit
 }
