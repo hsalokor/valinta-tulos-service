@@ -8,7 +8,7 @@ import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoEvent, VastaanottoRecord, VirkailijaVastaanottoRepository}
 
 import scala.collection.JavaConverters._
-import scala.util.{Success, Failure, Try}
+import scala.util.{Success, Try}
 
 
 class VastaanottoService(hakuService: HakuService,
@@ -16,7 +16,7 @@ class VastaanottoService(hakuService: HakuService,
                          valintatulosService: ValintatulosService,
                          hakijaVastaanottoRepository: HakijaVastaanottoRepository,
                          virkailijaVastaanottoRepository: VirkailijaVastaanottoRepository,
-                         valintatulosRepository: ValintatulosRepository) extends Logging{
+                         valintatulosRepository: ValintatulosRepository) extends Logging {
 
   private val statesMatchingInexistentActions = Set(Vastaanottotila.kesken, Vastaanottotila.ei_vastaanotettu_määräaikana)
 
@@ -28,11 +28,10 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   def vastaanotaVirkailijanaInTransaction(vastaanotot: List[VastaanottoEventDto]): Try[Unit] = {
-
     val tallennettavatVastaanotot = generateTallennettavatVastaanototList(vastaanotot)
-    tallennettavatVastaanotot.toStream.map(checkVastaanotettavuus).find(_.isFailure) match {
+    tallennettavatVastaanotot.toStream.map(checkVastaanotettavuusVirkailijana).find(_.isFailure) match {
       case Some(failure) => failure
-      case None => Try {hakijaVastaanottoRepository.store(tallennettavatVastaanotot) }
+      case None => Try { hakijaVastaanottoRepository.store(tallennettavatVastaanotot) }
     }
   }
 
@@ -46,7 +45,7 @@ class VastaanottoService(hakuService: HakuService,
     }).toList
   }
 
-  private def checkVastaanotettavuus(vastaanotto: VirkailijanVastaanotto): Try[Unit] = vastaanotto.action match {
+  private def checkVastaanotettavuusVirkailijana(vastaanotto: VirkailijanVastaanotto): Try[Unit] = vastaanotto.action match {
     case VastaanotaSitovasti | VastaanotaEhdollisesti => for {
       _ <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
       _ <- vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)
@@ -65,7 +64,7 @@ class VastaanottoService(hakuService: HakuService,
     val hakukohteenValintatulokset = findValintatulokset(hakuOid, hakukohdeOid)
     uudetVastaanotot.map(vastaanottoDto => {
       if (isPaivitys(vastaanottoDto, hakukohteenValintatulokset.get(vastaanottoDto.henkiloOid))) {
-        tallenna(VirkailijanVastaanotto(vastaanottoDto))
+        tallenna(VirkailijanVastaanotto(vastaanottoDto)).get
       } else {
         VastaanottoResult(vastaanottoDto.henkiloOid, vastaanottoDto.hakemusOid, vastaanottoDto.hakukohdeOid, Result(200, None))
       }
@@ -81,48 +80,17 @@ class VastaanottoService(hakuService: HakuService,
     valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.toList.groupBy(_.getHakijaOid).mapValues(_.head)
   }
 
-  private def tallenna(vastaanotto: VirkailijanVastaanotto): VastaanottoResult = vastaanotto.action match {
-    case VastaanotaSitovasti => tallennaJosEiAiempiaVastaanottoja(vastaanotto)
-    case VastaanotaEhdollisesti => tallennaJosEiAiempiaVastaanottoja(vastaanotto)
-    case Peru => vastaanotaHakijana(vastaanotto) match {
-      case Success(()) => createVastaanottoResult(200, None, vastaanotto)
-      case Failure(e: IllegalArgumentException) => createVastaanottoResult(400, Some(e), vastaanotto)
-      case Failure(e: Throwable) => {
-        logger.error("Unexpected error when saving vastaanotto", e)
-        createVastaanottoResult(500, Some(e), vastaanotto)
-      }
-    }
-    case Peruuta => peruutaAiempiVastaanotto(vastaanotto)
-    case Poista => {
-      hakijaVastaanottoRepository.store(vastaanotto)
-      createVastaanottoResult(200, None, vastaanotto)
-    }
-  }
-
-  private def tallennaJosEiAiempiaVastaanottoja(vastaanotto: VirkailijanVastaanotto): VastaanottoResult = {
+  private def tallenna(vastaanotto: VirkailijanVastaanotto): Try[VastaanottoResult] = {
     (for {
-      _ <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
-      _ <- vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)
+      _ <- checkVastaanotettavuusVirkailijana(vastaanotto)
       _ <- Try { hakijaVastaanottoRepository.store(vastaanotto) }
     } yield {
       createVastaanottoResult(200, None, vastaanotto)
     }).recover {
       case e: PriorAcceptanceException => createVastaanottoResult(403, Some(e), vastaanotto)
       case e @ (_: IllegalArgumentException | _: IllegalStateException) => createVastaanottoResult(400, Some(e), vastaanotto)
-      case e => createVastaanottoResult(500, Some(e), vastaanotto)
-    }.get
-  }
-
-  private def peruutaAiempiVastaanotto(vastaanotto: VirkailijanVastaanotto): VastaanottoResult = {
-    (for {
-      _ <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
-      _ <- Try { hakijaVastaanottoRepository.store(vastaanotto) }
-    } yield {
-      createVastaanottoResult(200, None, vastaanotto)
-    }).recover {
-      case e @ (_: IllegalArgumentException | _: IllegalStateException) => createVastaanottoResult(400, Some(e), vastaanotto)
-      case e => createVastaanottoResult(500, Some(e), vastaanotto)
-    }.get
+      case e: Exception => createVastaanottoResult(500, Some(e), vastaanotto)
+    }
   }
 
   private def createVastaanottoResult(statusCode: Int, exception: Option[Throwable], vastaanottoEvent: VastaanottoEvent) = {
