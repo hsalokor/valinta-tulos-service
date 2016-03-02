@@ -22,9 +22,9 @@ class VastaanottoService(hakuService: HakuService,
 
 
   def vastaanotaVirkailijana(vastaanotot: List[VastaanottoEventDto]): Iterable[VastaanottoResult] = {
-    val vastaanototByHakukohdeOid: Map[(String, String), List[VastaanottoEventDto]] = vastaanotot.groupBy(v => (v.hakukohdeOid, v.hakuOid))
-    vastaanototByHakukohdeOid.keys.flatMap(hakuKohdeAndHakuOids =>
-      tallennaHakukohteenVastaanotot(hakuKohdeAndHakuOids._1, hakuKohdeAndHakuOids._2, vastaanototByHakukohdeOid(hakuKohdeAndHakuOids)))
+    vastaanotot.groupBy(v => (v.hakukohdeOid, v.hakuOid)).flatMap {
+      case ((hakukohdeOid, hakuOid), vastaanottoEventDtos) => tallennaHakukohteenVastaanotot(hakukohdeOid, hakuOid, vastaanottoEventDtos)
+    }
   }
 
   def vastaanotaVirkailijanaInTransaction(vastaanotot: List[VastaanottoEventDto]): Try[Unit] = {
@@ -37,11 +37,10 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   private def generateTallennettavatVastaanototList(vastaanotot: List[VastaanottoEventDto]): List[VirkailijanVastaanotto] = {
-    val vastaanototByHakukohdeOid: Map[(String, String), List[VastaanottoEventDto]] = vastaanotot.groupBy(v => (v.hakukohdeOid, v.hakuOid))
-    (for{
-      (hakukohdeOid, hakuOid) <- vastaanototByHakukohdeOid.keys
-      hakukohteenValintatulokset: List[Valintatulos] = valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.toList
-      vastaanottoEventDto <- vastaanototByHakukohdeOid((hakukohdeOid, hakuOid)) if (isPaivitys(vastaanottoEventDto, hakukohteenValintatulokset))
+    (for {
+      ((hakukohdeOid, hakuOid), vastaanottoEventDtos) <- vastaanotot.groupBy(v => (v.hakukohdeOid, v.hakuOid))
+      hakukohteenValintatulokset = valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.toList
+      vastaanottoEventDto <- vastaanottoEventDtos if (isPaivitys(vastaanottoEventDto, hakukohteenValintatulokset))
     } yield {
       VirkailijanVastaanotto(vastaanottoEventDto)
     }).toList
