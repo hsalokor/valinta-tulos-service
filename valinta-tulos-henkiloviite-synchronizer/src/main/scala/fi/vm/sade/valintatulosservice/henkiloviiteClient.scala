@@ -38,22 +38,15 @@ class HenkiloviiteClient(config: Properties) {
 
   private def parseResourceUrl(): Uri = {
     val date = config.getProperty("authentication.service.duplicatehenkilos.date")
-    try {
-      new SimpleDateFormat("yyyy-MM-dd").parse(date)
-    } catch {
-      case e: Exception => throw new RuntimeException(s"Invalid authentication.service.duplicatehenkilos.date $date")
-    }
     val url = config.getProperty("authentication.service.duplicatehenkilos.url")
-    Uri.fromString(url)
+    Try(new SimpleDateFormat("yyyy-MM-dd").parse(date))
+      .getOrElse(throw new RuntimeException(s"Invalid authentication.service.duplicatehenkilos.date $date"))
+    Try(Uri.fromString(url).map(_.withQueryParam("date", date)).toOption.get)
       .getOrElse(throw new RuntimeException(s"Invalid authentication.service.duplicatehenkilos.url $url"))
-      .withQueryParam("date", date)
   }
 
-  private def getConfiguration(key:String):String = {
-    config.getProperty(key) match {
-      case null => throw new RuntimeException(s"Configuration $key is missing")
-      case conf => conf
-    }
+  private def getConfiguration(key:String): String = {
+    Option(config.getProperty(key)).getOrElse(throw new RuntimeException(s"Configuration $key is missing"))
   }
 
   private def createCasClient(): CasAuthenticatingClient = {

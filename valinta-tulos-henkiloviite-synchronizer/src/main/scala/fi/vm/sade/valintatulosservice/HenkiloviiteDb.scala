@@ -11,7 +11,8 @@ import scala.util.{Success, Try, Failure}
 class HenkiloviiteDb(dbConfig: Properties) {
   val user = dbConfig.getProperty("henkiloviite.database.username")
   val password = dbConfig.getProperty("henkiloviite.database.password")
-  val url = getConfiguration("henkiloviite.database.url")
+  val url = Option("henkiloviite.database.url")
+    .getOrElse(throw new RuntimeException("Configuration henkiloviite.database.url is missing"))
 
   val logger = LoggerFactory.getLogger(classOf[HenkiloviiteDb])
 
@@ -83,13 +84,6 @@ class HenkiloviiteDb(dbConfig: Properties) {
       } catch {
         case e:Exception => logger.error("Closing a database resource failed.", e)
       }
-    }
-  }
-
-  private def getConfiguration(key:String):String = {
-    dbConfig.getProperty(key) match {
-      case null => throw new RuntimeException(s"Configuration $key is missing")
-      case conf => conf
     }
   }
 

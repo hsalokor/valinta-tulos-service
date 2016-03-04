@@ -13,8 +13,7 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
   def startSync(): Try[Unit] = {
     if(startRunning()) {
       logger.info("Starting henkiloviite sync.")
-      new Thread(new HenkiloviiteRunnable).start()
-      Success(())
+      Try(new Thread(new HenkiloviiteRunnable).start())
     } else {
       logger.warn("Attempt to start henkiloviite sync while already running.")
       Failure(new IllegalStateException("Already running."))
@@ -40,14 +39,13 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
       (for {
         henkiloviitteet <- henkiloClient.fetchHenkiloviitteet()
         _ <- db.refresh(henkiloviitteet.toSet)
-      } yield {
-        logger.info("Henkiloviite sync finished successfully.")
-        stopRunning("OK")
-      }).recover{
-        case e => {
+      } yield ()) match {
+        case Success(_) =>
+          logger.info("Henkiloviite sync finished successfully.")
+          stopRunning("OK")
+        case Failure(e) =>
           logger.error("Henkiloviite sync failed.", e)
           stopRunning(s"Not OK. ${e.getMessage}")
-        }
       }
     }
   }
