@@ -27,7 +27,7 @@ class HenkiloviiteDb(dbConfig: Properties) {
       connection = DriverManager.getConnection(url, user, password)
       connection.setAutoCommit(false)
 
-      logger.info(s"Emptying henkiloviitteet table")
+      logger.debug(s"Emptying henkiloviitteet table")
       val delete = "delete from henkiloviitteet"
 
       statement = connection.prepareStatement(delete)
@@ -38,7 +38,7 @@ class HenkiloviiteDb(dbConfig: Properties) {
       val insert = "insert into henkiloviitteet (master_oid, henkilo_oid) values (?, ?)"
       statement = connection.prepareStatement(insert)
 
-      logger.info(s"Inserting ${henkiloviitteet.size} henkiloviite")
+      logger.debug(s"Inserting ${henkiloviitteet.size} henkiloviite")
 
       for((henkiloviite, i) <- henkiloviitteet.zipWithIndex) {
         statement.setString(1, henkiloviite.masterOid)
@@ -56,7 +56,7 @@ class HenkiloviiteDb(dbConfig: Properties) {
       statement.executeBatch()
       connection.commit()
 
-      logger.info("Henkiloviitteet updated nicely")
+      logger.debug("Henkiloviitteet updated nicely")
 
       Success(())
 
