@@ -42,29 +42,36 @@ case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
     val JArray(valintatulokset) = ( json \ "Valintatulos" )
 
     for(valintatulos <- valintatulokset) {
-      getVastaanottoAction((valintatulos \ "tila").extract[String]).foreach(action => {
+      val tilaOption = (valintatulos \ "tila").extractOpt[String]
+      tilaOption match {
+        case None =>
+          // pass
+        case Some(tila) =>
+          getVastaanottoAction(tila).foreach(action => {
 
-        try {
-          valintarekisteriDb.storeHakukohde(HakukohdeRecord(
-            (valintatulos \ "hakukohdeOid").extract[String],
-            (valintatulos \ "hakuOid").extract[String],
-            yhdenPaikanSaantoVoimassa,
-            kktutkintoonJohtava,
-            Kevat(2016)
-          ))
-        } catch {
-          case e: Exception => println(e.getMessage)
-        }
+            try {
+              valintarekisteriDb.storeHakukohde(HakukohdeRecord(
+                (valintatulos \ "hakukohdeOid").extract[String],
+                (valintatulos \ "hakuOid").extract[String],
+                yhdenPaikanSaantoVoimassa,
+                kktutkintoonJohtava,
+                Kevat(2016)
+              ))
+            } catch {
+              case e: Exception => println(e.getMessage)
+            }
 
-        valintarekisteriDb.store(VirkailijanVastaanotto(
-          (valintatulos \ "hakijaOid").extract[String],
-          (valintatulos \ "hakemusOid").extract[String],
-          (valintatulos \ "hakukohdeOid").extract[String],
-          action,
-          (valintatulos \ "hakijaOid").extract[String],
-          "Tuotu vanhasta järjestelmästä"
-        ))
-      })
+            valintarekisteriDb.store(VirkailijanVastaanotto(
+              (valintatulos \ "hakijaOid").extract[String],
+              (valintatulos \ "hakemusOid").extract[String],
+              (valintatulos \ "hakukohdeOid").extract[String],
+              action,
+              (valintatulos \ "hakijaOid").extract[String],
+              "Tuotu vanhasta järjestelmästä"
+            ))
+          })
+      }
+
     }
   }
 
