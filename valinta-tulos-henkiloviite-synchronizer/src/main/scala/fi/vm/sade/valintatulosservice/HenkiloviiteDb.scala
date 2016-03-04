@@ -2,14 +2,16 @@ package fi.vm.sade.valintatulosservice
 
 import java.util.Properties
 
-import fi.vm.sade.utils.slf4j.Logging
+import org.slf4j.LoggerFactory
 
 import java.sql._
 
-class HenkiloviiteDb(dbConfig: Properties) extends Logging {
+class HenkiloviiteDb(dbConfig: Properties) {
   val user = dbConfig.getProperty("henkiloviite.database.username")
   val password = dbConfig.getProperty("henkiloviite.database.password")
   val url = getConfiguration("henkiloviite.database.url")
+
+  val logger = LoggerFactory.getLogger(classOf[HenkiloviiteDb])
 
   logger.info(s"Using database configuration user=${user} and url=${url} with password")
 
