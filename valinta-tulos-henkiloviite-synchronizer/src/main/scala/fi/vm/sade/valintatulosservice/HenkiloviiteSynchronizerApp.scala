@@ -11,7 +11,7 @@ object HenkiloviiteSynchronizerApp {
   def main(args: Array[String]): Unit = {
     val config = readConfig()
     val henkiloviiteClient = new HenkiloviiteClient(config)
-    val db = new Db
+    val db = new HenkiloviiteDb(config)
     val synchronizer = new HenkiloviiteSynchronizer(henkiloviiteClient, db)
     val servlet = new HenkiloviiteSynchronizerServlet(synchronizer)
 
