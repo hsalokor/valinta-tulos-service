@@ -34,6 +34,11 @@ class SijoittelutulosService(raportointiService: RaportointiService,
   }
 
   def hakemustenTulos(hakuOid: String, hakukohdeOid: Option[String] = None, hakijaOidsByHakemusOids: Map[String, String]): List[HakemuksenSijoitteluntulos] = {
+    def fetchVastaanottos(h: HakijaDTO): Set[VastaanottoRecord] = hakijaOidsByHakemusOids.get(h.getHakemusOid) match {
+      case Some(hakijaOid) => fetchVastaanotto(hakijaOid, hakuOid)
+      case None => Set()
+    }
+
     val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
     val hakukohde: java.util.List[String] = if (hakukohdeOid.isEmpty) null else hakukohdeOid.map(List(_)).get
     (for (
@@ -41,7 +46,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
       hakijat <- Option(raportointiService.hakemukset(sijoittelu, null, null, null, hakukohde, null, null)).map(_.getResults.toList)
     ) yield {
       val vastaanotettavuudet = vastaanotettavuusTilat(hakijat)
-      hakijat.map(h => hakemuksenYhteenveto(h, aikataulu, vastaanotettavuudet(h.getHakijaOid), fetchVastaanotto(hakijaOidsByHakemusOids(h.getHakemusOid), hakuOid)))
+      hakijat.map(h => hakemuksenYhteenveto(h, aikataulu, vastaanotettavuudet(h.getHakijaOid), fetchVastaanottos(h)))
     }).getOrElse(Nil)
   }
 
