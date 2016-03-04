@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory
 
 import java.sql._
 
+import scala.util.{Success, Try, Failure}
+
 class HenkiloviiteDb(dbConfig: Properties) {
   val user = dbConfig.getProperty("henkiloviite.database.username")
   val password = dbConfig.getProperty("henkiloviite.database.password")
@@ -17,7 +19,7 @@ class HenkiloviiteDb(dbConfig: Properties) {
 
   Class.forName("org.postgresql.Driver")
 
-  def refresh(henkiloviitteet: Set[Henkiloviite]): Unit = {
+  def refresh(henkiloviitteet: Set[Henkiloviite]): Try[Unit] = {
     var connection:Connection = null
     var statement:PreparedStatement = null
 
@@ -56,6 +58,8 @@ class HenkiloviiteDb(dbConfig: Properties) {
 
       logger.info("Henkiloviitteet updated nicely")
 
+      Success(())
+
     } catch {
       case e:Exception if null != connection => try {
         logger.error("Something when wrong. Going to rollback.", e)
@@ -63,6 +67,7 @@ class HenkiloviiteDb(dbConfig: Properties) {
       } catch {
         case e: Exception => logger.error("Rollback failed.", e)
       }
+      Failure(e)
     }
     finally {
       closeInTry(statement)
