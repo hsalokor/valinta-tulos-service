@@ -49,10 +49,17 @@ class HenkiloviiteClient(config: Properties) {
       .withQueryParam("date", date)
   }
 
+  private def getConfiguration(key:String):String = {
+    config.getProperty(key) match {
+      case null => throw new RuntimeException(s"Configuration $key is missing")
+      case conf => conf
+    }
+  }
+
   private def createCasClient(): CasAuthenticatingClient = {
-    val username = config.getProperty("authentication.service.username")
-    val password = config.getProperty("authentication.service.password")
-    val casUrl = config.getProperty("host.cas")
+    val username = getConfiguration("authentication.service.username")
+    val password = getConfiguration("authentication.service.password")
+    val casUrl = getConfiguration("host.cas")
     val casParams = CasParams("/authentication-service", username, password)
     new CasAuthenticatingClient(
       new CasClient(casUrl, org.http4s.client.blaze.defaultClient),
