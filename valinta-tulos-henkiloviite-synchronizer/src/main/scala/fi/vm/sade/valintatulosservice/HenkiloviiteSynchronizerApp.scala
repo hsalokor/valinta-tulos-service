@@ -20,12 +20,13 @@ object HenkiloviiteSynchronizerApp {
     val db = new HenkiloviiteDb(config)
     val synchronizer = new HenkiloviiteSynchronizer(henkiloviiteClient, db)
     val servlet = new HenkiloviiteSynchronizerServlet(synchronizer)
-    val synchronizerScheduler = startScheduledSynchronization(config)
 
     val server = new Server(8080)
     val servletHandler = new ServletHandler
     server.setHandler(servletHandler)
     servletHandler.addServletWithMapping(new ServletHolder(servlet), "/*")
+
+    val synchronizerScheduler = startScheduledSynchronization(config, synchronizer)
     Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
       override def run(): Unit = {
         server.stop()
@@ -59,7 +60,7 @@ object HenkiloviiteSynchronizerApp {
       })
   }
 
-  private def startScheduledSynchronization(config: Properties): ScheduledThreadPoolExecutor = {
+  private def startScheduledSynchronization(config: Properties, synchronizer: HenkiloviiteSynchronizer): ScheduledThreadPoolExecutor = {
     val scheduler = new ScheduledThreadPoolExecutor(1)
     hoursUntilSchedulerStart(config) match {
       case Some(delay) =>
