@@ -2,12 +2,11 @@ package fi.vm.sade.valintatulosservice
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-
 import org.slf4j.LoggerFactory
 
 import scala.util.{Failure, Try, Success}
 
-class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: HenkiloviiteDb) {
+class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: HenkiloviiteDb) extends Runnable {
 
   val logger = LoggerFactory.getLogger(classOf[HenkiloviiteSynchronizer])
 
@@ -19,6 +18,15 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
     } else {
       logger.warn("Attempt to start henkiloviite sync while already running.")
       Failure(new IllegalStateException("Already running."))
+    }
+  }
+
+  def run(): Unit = {
+    if(startRunning()) {
+      logger.info("Starting henkiloviite sync by scheduler.")
+      (new HenkiloviiteRunnable).run()
+    } else {
+      logger.warn("Attempt to start henkiloviite sync by scheduler while already running.")
     }
   }
 
@@ -55,7 +63,6 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
     lastRunStatus = status
     running.set(false)
   }
-
 }
 
 
