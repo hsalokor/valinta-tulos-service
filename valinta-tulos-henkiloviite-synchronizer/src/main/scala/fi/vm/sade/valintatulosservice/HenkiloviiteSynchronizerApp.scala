@@ -21,7 +21,8 @@ object HenkiloviiteSynchronizerApp {
     val synchronizer = new HenkiloviiteSynchronizer(henkiloviiteClient, db)
     val servlet = new HenkiloviiteSynchronizerServlet(synchronizer)
 
-    val server = new Server(8080)
+    val port = config.getProperty("henkiloviite.port")
+    val server = new Server(Try(port.toInt).getOrElse(throw new RuntimeException(s"Invalid henkiloviite.port $port")))
     val servletHandler = new ServletHandler
     server.setHandler(servletHandler)
     servletHandler.addServletWithMapping(new ServletHolder(servlet), "/*")
