@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.sijoittelu.domain.Valintatulos
+import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, LogEntry, Valintatulos}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
@@ -118,6 +118,9 @@ class VastaanottoService(hakuService: HakuService,
       _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
     } yield {
       hakijaVastaanottoRepository.store(vastaanotto)
+      valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid,hakutoive.valintatapajonoOid,vastaanotto.hakemusOid) { valintatulos =>
+        valintatulos.setTila(hakutoive.vastaanottotila.toString, vastaanotto.action.toString, vastaanotto.selite, vastaanotto.ilmoittaja)
+      }
     }
   }
 

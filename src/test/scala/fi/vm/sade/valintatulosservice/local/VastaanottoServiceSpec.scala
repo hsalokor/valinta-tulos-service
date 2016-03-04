@@ -366,7 +366,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
       vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
-      assertSecondLogEntry(valintatulos, "tila: KESKEN -> VASTAANOTTANUT_SITOVASTI", selite)
+      assertSecondLogEntry(valintatulos, "tila: KESKEN -> VastaanotaSitovasti", selite)
     }
 
     "ilmoittautuminen" in {
@@ -431,7 +431,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
       vastaanota(hakuOid, hakemusOid, vastaanotettavissaHakuKohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val valintatulos: Valintatulos = valintatulosDao.loadValintatulos(vastaanotettavissaHakuKohdeOid, "14090336922663576781797489829886", hakemusOid)
-      assertSecondLogEntry(valintatulos, "tila: KESKEN -> VASTAANOTTANUT_SITOVASTI", selite)
+      assertSecondLogEntry(valintatulos, "tila: KESKEN -> VastaanotaSitovasti", selite)
     }
 
     "ilmoittautuminen" in {
