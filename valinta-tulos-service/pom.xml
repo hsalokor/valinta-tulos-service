@@ -6,7 +6,6 @@
         <artifactId>valinta-tulos-service-parent</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
-    <groupId>fi.vm.sade</groupId>
     <artifactId>valinta-tulos-service</artifactId>
     <packaging>war</packaging>
     <description>valinta-tulos-service</description>
@@ -514,23 +513,6 @@
     </build>
     <repositories>
         <repository>
-            <id>oph-sade-artifactory-snapshots</id>
-            <url>https://artifactory.oph.ware.fi/artifactory/oph-sade-snapshot-local</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
-        <repository>
-            <id>oph-sade-artifactory-releases</id>
-            <url>https://artifactory.oph.ware.fi/artifactory/oph-sade-release-local</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-        <repository>
             <id>ScalazBintrayRepo</id>
             <name>Scalaz Bintray Repo</name>
             <url>http://dl.bintray.com/scalaz/releases/</url>
@@ -539,16 +521,4 @@
             </releases>
         </repository>
     </repositories>
-    <distributionManagement>
-        <repository>
-            <id>oph-sade-artifactory</id>
-            <name>oph-sade-artifactory-releases</name>
-            <url>https://artifactory.oph.ware.fi/artifactory/oph-sade-release-local</url>
-        </repository>
-        <snapshotRepository>
-            <id>oph-sade-artifactory</id>
-            <name>oph-sade-artifactory-snapshots</name>
-            <url>https://artifactory.oph.ware.fi/artifactory/oph-sade-snapshot-local</url>
-        </snapshotRepository>
-    </distributionManagement>
 </project>
