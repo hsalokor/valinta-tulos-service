@@ -20,14 +20,7 @@ object HenkiloviiteSynchronizerApp {
     val db = new HenkiloviiteDb(config)
     val synchronizer = new HenkiloviiteSynchronizer(henkiloviiteClient, db)
     val servlet = new HenkiloviiteSynchronizerServlet(synchronizer)
-    val synchronizerScheduler = new ScheduledThreadPoolExecutor(1)
-
-    hoursUntilSchedulerStart(config) match {
-      case Some(delay) =>
-        synchronizerScheduler.scheduleAtFixedRate(synchronizer, delay, 24, TimeUnit.HOURS)
-      case None =>
-        logger.warn("henkiloviite.scheduler.start.hour not given, scheduled synchronization not started.")
-    }
+    val synchronizerScheduler = startScheduledSynchronization(config)
 
     val server = new Server(8080)
     val servletHandler = new ServletHandler
@@ -66,4 +59,14 @@ object HenkiloviiteSynchronizerApp {
       })
   }
 
+  private def startScheduledSynchronization(config: Properties): ScheduledThreadPoolExecutor = {
+    val scheduler = new ScheduledThreadPoolExecutor(1)
+    hoursUntilSchedulerStart(config) match {
+      case Some(delay) =>
+        scheduler.scheduleAtFixedRate(synchronizer, delay, 24, TimeUnit.HOURS)
+      case None =>
+        logger.warn("henkiloviite.scheduler.start.hour not given, scheduled synchronization not started.")
+    }
+    scheduler
+  }
 }

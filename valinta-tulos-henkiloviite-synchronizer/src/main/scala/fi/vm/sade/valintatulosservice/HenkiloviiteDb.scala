@@ -65,15 +65,16 @@ class HenkiloviiteDb(dbConfig: Properties) {
       case e:Exception if null != connection => try {
         logger.error("Something when wrong. Going to rollback.", e)
         connection.rollback()
+        Failure(e)
       } catch {
-        case e: Exception => logger.error("Rollback failed.", e)
+        case e: Exception =>
+          logger.error("Rollback failed.", e)
+          Failure(e)
       }
-      Failure(e)
     }
     finally {
       closeInTry(statement)
       closeInTry(connection)
-
     }
   }
 
