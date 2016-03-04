@@ -9,6 +9,7 @@ import org.eclipse.jetty.servlet.{ServletHandler, ServletHolder}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 object HenkiloviiteSynchronizerApp {
   val logger = LoggerFactory.getLogger(HenkiloviiteSynchronizerApp.getClass)
@@ -55,12 +56,14 @@ object HenkiloviiteSynchronizerApp {
     }
   }
 
-  private def hoursUntilSchedulerStart(config:Properties): Option[Long] = {
-    Option(config.getProperty("henkiloviite.scheduler.start.hour")).map(_.toLong).map(startHour => {
-      val hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-      if(hourOfDay < startHour) startHour - hourOfDay
-      else 24 - hourOfDay + startHour
-    })
+  private def hoursUntilSchedulerStart(config: Properties): Option[Long] = {
+    Option(config.getProperty("henkiloviite.scheduler.start.hour"))
+      .map(s => Try(s.toLong).getOrElse(throw new RuntimeException(s"Invalid henkiloviite.scheduler.start.hour $s")))
+      .map(startHour => {
+        val hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        if (hourOfDay < startHour) startHour - hourOfDay
+        else 24 - hourOfDay + startHour
+      })
   }
 
 }
