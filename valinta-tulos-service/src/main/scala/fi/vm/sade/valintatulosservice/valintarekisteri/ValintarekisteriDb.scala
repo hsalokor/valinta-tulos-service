@@ -125,7 +125,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                                             vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
             from vastaanotot vo
             join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
-            where vo.henkilo = $henkiloOid
+            left join henkiloviitteet hv on hv.master_oid = $henkiloOid or hv.henkilo_oid = $henkiloOid
+            where (vo.henkilo = hv.henkilo_oid or vo.henkilo = hv.master_oid or vo.henkilo = $henkiloOid)
                 and hk.yhden_paikan_saanto_voimassa
                 and vo.deleted is null
                 and hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}

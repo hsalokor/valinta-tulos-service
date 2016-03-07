@@ -6,7 +6,6 @@ import fi.vm.sade.valintatulosservice.ITSetup
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.{EiEnsikertalainen, Ensikertalainen}
 import org.junit.runner.RunWith
-import org.mockito.Matchers
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterExample
@@ -103,6 +102,24 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOidForHakuOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
       singleConnectionValintarekisteriDb.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, Kausi("2015K")) must throwA[RuntimeException]
+    }
+
+    "find vastaanotot rows of person affecting yhden paikan saanto, consider linked henkilot" in {
+      val henkiloOidA = "1.2.246.562.24.0000000000a"
+      val henkiloOidB = "1.2.246.562.24.0000000000b"
+      val henkiloOidC = "1.2.246.562.24.0000000000c"
+      singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
+        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, $henkiloOidB)""",
+        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, $henkiloOidA)""",
+        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, '1.2.246.562.24.0000000000d')"""
+      ))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidA, hakemusOid, hakukohdeOid, Peru, henkiloOidA, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidB, hakemusOid + "1", otherHakukohdeOidForHakuOid, VastaanotaSitovasti, henkiloOidB, "testiselite"))
+      val r = singleConnectionValintarekisteriDb.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOidC, Kausi("2015K"))
+      r must beSome[VastaanottoRecord]
+      r.get.henkiloOid must beEqualTo(henkiloOidB)
+      r.get.hakukohdeOid must beEqualTo(otherHakukohdeOidForHakuOid)
+      r.get.action must beEqualTo(VastaanotaSitovasti)
     }
 
     "mark vastaanotot as deleted" in {
