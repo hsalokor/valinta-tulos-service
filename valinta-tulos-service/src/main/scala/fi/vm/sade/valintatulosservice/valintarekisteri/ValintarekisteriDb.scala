@@ -107,7 +107,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                                             vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
             from vastaanotot vo
             join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
-            where vo.henkilo = $henkiloOid
+            left join henkiloviitteet hv on hv.master_oid = $henkiloOid or hv.henkilo_oid = $henkiloOid
+            where (vo.henkilo = hv.henkilo_oid or vo.henkilo = hv.master_oid or vo.henkilo = $henkiloOid)
                 and hk.hakukohde_oid = $hakukohdeOid
                 and vo.deleted is null
             order by vo.henkilo, vo.id desc""".as[VastaanottoRecord]).filter(vastaanottoRecord => {
