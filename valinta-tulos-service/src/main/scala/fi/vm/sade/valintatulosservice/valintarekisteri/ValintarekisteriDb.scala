@@ -156,15 +156,16 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   override def findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): DBIOAction[Option[VastaanottoRecord], NoStream, Effect] = {
-    sql"""SELECT DISTINCT ON (vo.henkilo, vo.hakukohde) vo.henkilo AS henkiloOid,  hk.haku_oid AS hakuOid, hk.hakukohde_oid AS hakukohdeOid,
-                                            vo.action AS action, vo.ilmoittaja AS ilmoittaja, vo.timestamp AS "timestamp"
-            FROM vastaanotot vo
-            JOIN hakukohteet hk ON hk.hakukohde_oid = vo.hakukohde
-            WHERE vo.henkilo = $henkiloOid
-                AND hk.yhden_paikan_saanto_voimassa
-                AND vo.deleted IS NULL
-                AND hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}
-            ORDER BY vo.henkilo, vo.hakukohde, vo.id DESC""".as[VastaanottoRecord].map(_.filter(vastaanottoRecord => {
+    sql"""select distinct on (vo.henkilo, vo.hakukohde) vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
+                                            vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
+            from vastaanotot vo
+            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
+            left join henkiloviitteet hv on hv.master_oid = $henkiloOid or hv.henkilo_oid = $henkiloOid
+            where (vo.henkilo = hv.henkilo_oid or vo.henkilo = hv.master_oid or vo.henkilo = $henkiloOid)
+                and hk.yhden_paikan_saanto_voimassa
+                and vo.deleted is null
+                and hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}
+            order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord].map(_.filter(vastaanottoRecord => {
       Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
     })).map(vastaanottoRecords => {
       if (vastaanottoRecords.size > 1) {

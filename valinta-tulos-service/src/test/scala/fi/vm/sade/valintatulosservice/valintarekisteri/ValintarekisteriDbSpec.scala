@@ -128,6 +128,24 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, Kausi("2015K"))) must throwA[RuntimeException]
     }
 
+    "find vastaanotot rows of person affecting yhden paikan saanto, consider linked henkilot" in {
+      val henkiloOidA = "1.2.246.562.24.0000000000a"
+      val henkiloOidB = "1.2.246.562.24.0000000000b"
+      val henkiloOidC = "1.2.246.562.24.0000000000c"
+      singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
+        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, $henkiloOidB)""",
+        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, $henkiloOidA)""",
+        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, '1.2.246.562.24.0000000000d')"""
+      ))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOidA, hakemusOid, hakukohdeOid, Peru, henkiloOidA, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOidB, hakemusOid + "1", otherHakukohdeOidForHakuOid, VastaanotaSitovasti, henkiloOidB, "testiselite"))
+      val r = singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOidC, Kausi("2015K")))
+      r must beSome[VastaanottoRecord]
+      r.get.henkiloOid must beEqualTo(henkiloOidB)
+      r.get.hakukohdeOid must beEqualTo(otherHakukohdeOidForHakuOid)
+      r.get.action must beEqualTo(VastaanotaSitovasti)
+    }
+
     "mark vastaanotot as deleted" in {
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid, "testiselite"))
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
