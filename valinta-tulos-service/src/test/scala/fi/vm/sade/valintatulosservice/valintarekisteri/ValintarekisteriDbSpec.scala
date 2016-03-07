@@ -108,6 +108,31 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       timestampFromDb.before(new Date()) mustEqual true
     }
 
+    "find vastaanotot rows of person for given hakukohde, consider linked henkilot" in {
+      val henkiloOidA = "1.2.246.562.24.0000000000a"
+      val henkiloOidB = "1.2.246.562.24.0000000000b"
+      val henkiloOidC = "1.2.246.562.24.0000000000c"
+      singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
+        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, $henkiloOidB)""",
+        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, $henkiloOidA)""",
+        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, '1.2.246.562.24.0000000000d')"""
+      ))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOidA, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOidA, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOidA, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOidA, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOidB, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOidB, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid + "2", "testiselite"))
+      val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOidC, hakukohdeOid))
+      vastaanottoRowsFromDb must beSome
+      val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
+      ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.get
+      henkiloOidFromDb mustEqual henkiloOidA
+      hakuOidFromDb mustEqual hakuOid
+      hakukohdeOidFromDb mustEqual hakukohdeOid
+      actionFromDb mustEqual VastaanotaSitovasti
+      ilmoittajaFromDb mustEqual henkiloOidA
+      timestampFromDb.before(new Date()) mustEqual true
+    }
+
     "find vastaanotot rows of person affecting yhden paikan saanto" in {
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid, "testiselite"))
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))

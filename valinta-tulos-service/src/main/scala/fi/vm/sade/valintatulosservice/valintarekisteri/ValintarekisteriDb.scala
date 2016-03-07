@@ -137,14 +137,15 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   override def findHenkilonVastaanottoHakukohteeseen(henkiloOid: String, hakukohdeOid: String): DBIOAction[Option[VastaanottoRecord], NoStream, Effect] = {
-    sql"""SELECT DISTINCT ON (vo.henkilo) vo.henkilo AS henkiloOid,  hk.haku_oid AS hakuOid, hk.hakukohde_oid AS hakukohdeOid,
-                                                vo.action AS action, vo.ilmoittaja AS ilmoittaja, vo.timestamp AS "timestamp"
-                FROM vastaanotot vo
-                JOIN hakukohteet hk ON hk.hakukohde_oid = vo.hakukohde
-                WHERE vo.henkilo = $henkiloOid
-                    AND hk.hakukohde_oid = $hakukohdeOid
-                    AND vo.deleted IS NULL
-                ORDER BY vo.henkilo, vo.id DESC""".as[VastaanottoRecord].map(_.filter(vastaanottoRecord => {
+    sql"""select distinct on (vo.henkilo) vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
+                                            vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
+            from vastaanotot vo
+            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
+            left join henkiloviitteet hv on hv.master_oid = $henkiloOid or hv.henkilo_oid = $henkiloOid
+            where (vo.henkilo = hv.henkilo_oid or vo.henkilo = hv.master_oid or vo.henkilo = $henkiloOid)
+                and hk.hakukohde_oid = $hakukohdeOid
+                and vo.deleted is null
+            order by vo.henkilo, vo.id desc""".as[VastaanottoRecord].map(_.filter(vastaanottoRecord => {
       Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
     })).map(vastaanottoRecords => {
       if (vastaanottoRecords.size > 1) {
