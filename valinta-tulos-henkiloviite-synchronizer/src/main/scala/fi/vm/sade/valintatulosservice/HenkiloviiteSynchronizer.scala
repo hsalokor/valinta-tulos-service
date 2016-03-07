@@ -37,8 +37,9 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
   private class HenkiloviiteRunnable extends Runnable {
     def run(): Unit = {
       (for {
-        henkiloviitteet <- henkiloClient.fetchHenkiloviitteet()
-        _ <- db.refresh(henkiloviitteet.toSet)
+        henkiloviitteetList <- henkiloClient.fetchHenkiloviitteet()
+        henkiloviitteet = henkiloviitteetList.toSet
+        _ <- db.refresh(henkiloviitteet ++ henkiloviitteet.map(_.masterOid).map(oid => Henkiloviite(oid, oid)))
       } yield ()) match {
         case Success(_) =>
           logger.info("Henkiloviite sync finished successfully.")
