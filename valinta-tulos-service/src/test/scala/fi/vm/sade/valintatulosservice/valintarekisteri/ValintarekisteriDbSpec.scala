@@ -23,6 +23,10 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
   private val hakuOid = "1.2.246.561.29.00000000001"
   private val otherHakuOid = "1.2.246.561.29.00000000002"
 
+  private val henkiloOidA = "1.2.246.562.24.0000000000a"
+  private val henkiloOidB = "1.2.246.562.24.0000000000b"
+  private val henkiloOidC = "1.2.246.562.24.0000000000c"
+
   step(appConfig.start)
   step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
   step(singleConnectionValintarekisteriDb.runBlocking(DBIOAction.seq(
@@ -68,72 +72,26 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     }
 
     "find vastaanotot rows of person for given hakukohde" in {
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid, "testiselite"))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid + "2", "testiselite"))
-      val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid)
-      vastaanottoRowsFromDb must beSome
-      val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
-        ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.get
-      henkiloOidFromDb mustEqual henkiloOid
-      hakuOidFromDb mustEqual hakuOid
-      hakukohdeOidFromDb mustEqual hakukohdeOid
-      actionFromDb mustEqual VastaanotaSitovasti
-      ilmoittajaFromDb mustEqual henkiloOid
-      timestampFromDb.before(new Date()) mustEqual true
+      storeVastaanototForVastaanottoTest(henkiloOid, henkiloOid)
+      runVastaanottoTest(henkiloOid, henkiloOid)
     }
 
-    "find vastaanotot rows of person for given hakukohde, consider sibling henkilot" in {
-      val henkiloOidA = "1.2.246.562.24.0000000000a"
-      val henkiloOidB = "1.2.246.562.24.0000000000b"
-      val henkiloOidC = "1.2.246.562.24.0000000000c"
-      singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidB)""",
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidC)""",
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidA)""",
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, '1.2.246.562.24.0000000000d')"""
-      ))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidA, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOidA, "testiselite"))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidA, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOidA, "testiselite"))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidB, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOidB, "testiselite"))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid + "2", "testiselite"))
-      val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOidC, hakukohdeOid)
-      vastaanottoRowsFromDb must beSome
-      val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
-      ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.get
-      henkiloOidFromDb mustEqual henkiloOidA
-      hakuOidFromDb mustEqual hakuOid
-      hakukohdeOidFromDb mustEqual hakukohdeOid
-      actionFromDb mustEqual VastaanotaSitovasti
-      ilmoittajaFromDb mustEqual henkiloOidA
-      timestampFromDb.before(new Date()) mustEqual true
+    "find vastaanotot rows of person for given hakukohde when sibling has vastaanotto" in {
+      storeHenkiloviitteet()
+      storeVastaanototForVastaanottoTest(henkiloOidA, henkiloOidB)
+      runVastaanottoTest(henkiloOidC, henkiloOidA)
     }
 
-    "find vastaanotot rows of person for given hakukohde, consider linked henkilot" in {
-      val henkiloOidA = "1.2.246.562.24.0000000000a"
-      val henkiloOidB = "1.2.246.562.24.0000000000b"
-      val henkiloOidC = "1.2.246.562.24.0000000000c"
-      singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, $henkiloOidC)""",
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, $henkiloOidB)""",
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, $henkiloOidA)""",
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, '1.2.246.562.24.0000000000d')"""
-      ))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidA, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOidA, "testiselite"))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidA, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOidA, "testiselite"))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidB, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOidB, "testiselite"))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid + "2", "testiselite"))
-      val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOidC, hakukohdeOid)
-      vastaanottoRowsFromDb must beSome
-      val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
-      ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.get
-      henkiloOidFromDb mustEqual henkiloOidA
-      hakuOidFromDb mustEqual hakuOid
-      hakukohdeOidFromDb mustEqual hakukohdeOid
-      actionFromDb mustEqual VastaanotaSitovasti
-      ilmoittajaFromDb mustEqual henkiloOidA
-      timestampFromDb.before(new Date()) mustEqual true
+    "find vastaanotot rows of person for given hakukohde when slave has vastaanotto" in {
+      storeHenkiloviitteet()
+      storeVastaanototForVastaanottoTest(henkiloOidA, henkiloOidC)
+      runVastaanottoTest(henkiloOidB, henkiloOidA)
+    }
+
+    "find vastaanotot rows of person for given hakukohde when master has vastaanotto" in {
+      storeHenkiloviitteet()
+      storeVastaanototForVastaanottoTest(henkiloOidB, henkiloOidC)
+      runVastaanottoTest(henkiloOidA, henkiloOidB)
     }
 
     "find vastaanotot rows of person affecting yhden paikan saanto" in {
@@ -156,42 +114,22 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       singleConnectionValintarekisteriDb.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, Kausi("2015K")) must throwA[RuntimeException]
     }
 
-    "find vastaanotot rows of person affecting yhden paikan saanto, consider sibling henkilot" in {
-      val henkiloOidA = "1.2.246.562.24.0000000000a"
-      val henkiloOidB = "1.2.246.562.24.0000000000b"
-      val henkiloOidC = "1.2.246.562.24.0000000000c"
-      singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidB)""",
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidA)""",
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidC)""",
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, '1.2.246.562.24.0000000000d')"""
-      ))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidB, hakemusOid, hakukohdeOid, Peru, henkiloOidB, "testiselite"))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidA, hakemusOid + "1", otherHakukohdeOidForHakuOid, VastaanotaSitovasti, henkiloOidA, "testiselite"))
-      val r = singleConnectionValintarekisteriDb.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOidC, Kausi("2015K"))
-      r must beSome[VastaanottoRecord]
-      r.get.henkiloOid must beEqualTo(henkiloOidA)
-      r.get.hakukohdeOid must beEqualTo(otherHakukohdeOidForHakuOid)
-      r.get.action must beEqualTo(VastaanotaSitovasti)
+    "find vastaanotot rows of person affecting yhden paikan saanto when sibling has vastaanotto" in {
+      storeHenkiloviitteet()
+      storeVastaanototForYhdenPaikanSaantoTest(henkiloOidA, henkiloOidB)
+      runYhdenPaikanSaantoTest(henkiloOidC, henkiloOidA)
     }
 
-    "find vastaanotot rows of person affecting yhden paikan saanto, consider linked henkilot" in {
-      val henkiloOidA = "1.2.246.562.24.0000000000a"
-      val henkiloOidB = "1.2.246.562.24.0000000000b"
-      val henkiloOidC = "1.2.246.562.24.0000000000c"
-      singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, $henkiloOidC)""",
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, $henkiloOidA)""",
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, $henkiloOidB)""",
-        sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidC, '1.2.246.562.24.0000000000d')"""
-      ))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidA, hakemusOid, hakukohdeOid, Peru, henkiloOidA, "testiselite"))
-      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidB, hakemusOid + "1", otherHakukohdeOidForHakuOid, VastaanotaSitovasti, henkiloOidB, "testiselite"))
-      val r = singleConnectionValintarekisteriDb.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOidC, Kausi("2015K"))
-      r must beSome[VastaanottoRecord]
-      r.get.henkiloOid must beEqualTo(henkiloOidB)
-      r.get.hakukohdeOid must beEqualTo(otherHakukohdeOidForHakuOid)
-      r.get.action must beEqualTo(VastaanotaSitovasti)
+    "find vastaanotot rows of person affecting yhden paikan saanto when slave has vastaanotto" in {
+      storeHenkiloviitteet()
+      storeVastaanototForYhdenPaikanSaantoTest(henkiloOidC, henkiloOidA)
+      runYhdenPaikanSaantoTest(henkiloOidB, henkiloOidC)
+    }
+
+    "find vastaanotot rows of person affecting yhden paikan saanto when master has vastaanotto" in {
+      storeHenkiloviitteet()
+      storeVastaanototForYhdenPaikanSaantoTest(henkiloOidB, henkiloOidC)
+      runYhdenPaikanSaantoTest(henkiloOidA, henkiloOidB)
     }
 
     "mark vastaanotot as deleted" in {
@@ -235,18 +173,30 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
         singleConnectionValintarekisteriDb.findEnsikertalaisuus(henkiloOid, Kevat(2015)) must beEqualTo(Ensikertalainen(henkiloOid))
         singleConnectionValintarekisteriDb.findEnsikertalaisuus(Set(henkiloOid), Kevat(2015)) must beEqualTo(Set(Ensikertalainen(henkiloOid)))
       }
-      "tarkastelee myös henkilöön linkitettyjen henkilöiden vastaanottoja" in {
-        val henkiloOidA = "1.2.246.562.24.0000000000a"
-        val henkiloOidB = "1.2.246.562.24.0000000000b"
-        val henkiloOidC = "1.2.246.562.24.0000000000c"
-        singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
-          sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidB)""",
-          sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidA)""",
-          sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidC)""",
-          sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, '1.2.246.562.24.0000000000d')"""
-        ))
+      "ei ensikertalainen, jos sibling henkilöllä vastaanotto" in {
+        storeHenkiloviitteet()
         singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidA, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOidA, "testiselite"))
         singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidB, hakemusOid + "1", otherHakukohdeOid, Peru, henkiloOidB, "testiselite"))
+        singleConnectionValintarekisteriDb.findEnsikertalaisuus(henkiloOidC, Kevat(2015)) must beAnInstanceOf[EiEnsikertalainen]
+        val r = singleConnectionValintarekisteriDb.findEnsikertalaisuus(Set(henkiloOidB, henkiloOidC), Kevat(2015))
+        r must have size 2
+        r.head must beAnInstanceOf[EiEnsikertalainen]
+        r.tail.head must beAnInstanceOf[EiEnsikertalainen]
+      }
+      "ei ensikertalainen, jos slave henkilöllä vastaanotto" in {
+        storeHenkiloviitteet()
+        singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidA, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOidA, "testiselite"))
+        singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidB, hakemusOid + "1", otherHakukohdeOid, Peru, henkiloOidB, "testiselite"))
+        singleConnectionValintarekisteriDb.findEnsikertalaisuus(henkiloOidB, Kevat(2015)) must beAnInstanceOf[EiEnsikertalainen]
+        val r = singleConnectionValintarekisteriDb.findEnsikertalaisuus(Set(henkiloOidC, henkiloOidB), Kevat(2015))
+        r must have size 2
+        r.head must beAnInstanceOf[EiEnsikertalainen]
+        r.tail.head must beAnInstanceOf[EiEnsikertalainen]
+      }
+      "ei ensikertalainen, jos master henkilöllä vastaanotto" in {
+        storeHenkiloviitteet()
+        singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidB, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOidB, "testiselite"))
+        singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOidA, hakemusOid + "1", otherHakukohdeOid, Peru, henkiloOidA, "testiselite"))
         singleConnectionValintarekisteriDb.findEnsikertalaisuus(henkiloOidC, Kevat(2015)) must beAnInstanceOf[EiEnsikertalainen]
         val r = singleConnectionValintarekisteriDb.findEnsikertalaisuus(Set(henkiloOidA, henkiloOidC), Kevat(2015))
         r must have size 2
@@ -254,6 +204,48 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
         r.tail.head must beAnInstanceOf[EiEnsikertalainen]
       }
     }
+  }
+
+  private def storeHenkiloviitteet() = {
+    singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
+      sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidB)""",
+      sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidA)""",
+      sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidC)""",
+      sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, '1.2.246.562.24.0000000000d')"""
+    ))
+  }
+
+  private def storeVastaanototForVastaanottoTest(vastaanottajaHenkiloOid:String, otherVastaanottajaHenkiloOid:String) = {
+    singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(vastaanottajaHenkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, vastaanottajaHenkiloOid, "testiselite"))
+    singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(vastaanottajaHenkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, vastaanottajaHenkiloOid, "testiselite"))
+    singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(otherVastaanottajaHenkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, otherVastaanottajaHenkiloOid, "testiselite"))
+    singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid + "2", "testiselite"))
+  }
+
+  private def runVastaanottoTest(findHenkiloOid:String, expectedHenkiloOid:String) = {
+    val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(findHenkiloOid, hakukohdeOid)
+    vastaanottoRowsFromDb must beSome
+    val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
+    ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.get
+    henkiloOidFromDb mustEqual expectedHenkiloOid
+    hakuOidFromDb mustEqual hakuOid
+    hakukohdeOidFromDb mustEqual hakukohdeOid
+    actionFromDb mustEqual VastaanotaSitovasti
+    ilmoittajaFromDb mustEqual expectedHenkiloOid
+    timestampFromDb.before(new Date()) mustEqual true
+  }
+
+  private def storeVastaanototForYhdenPaikanSaantoTest(vastaanottajaHenkiloOid:String, perujaHenkiloOid:String) = {
+    singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(perujaHenkiloOid, hakemusOid, hakukohdeOid, Peru, perujaHenkiloOid, "testiselite"))
+    singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(vastaanottajaHenkiloOid, hakemusOid + "1", otherHakukohdeOidForHakuOid, VastaanotaSitovasti, vastaanottajaHenkiloOid, "testiselite"))
+  }
+
+  private def runYhdenPaikanSaantoTest(findHenkiloOid:String, expectedHenkiloOid:String) = {
+    val r = singleConnectionValintarekisteriDb.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(findHenkiloOid, Kausi("2015K"))
+    r must beSome[VastaanottoRecord]
+    r.get.henkiloOid must beEqualTo(expectedHenkiloOid)
+    r.get.hakukohdeOid must beEqualTo(otherHakukohdeOidForHakuOid)
+    r.get.action must beEqualTo(VastaanotaSitovasti)
   }
 
   override protected def before: Unit = ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
