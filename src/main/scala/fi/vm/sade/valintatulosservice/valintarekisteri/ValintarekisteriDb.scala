@@ -181,8 +181,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit =
     runBlocking(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi)
-               values (${hakukohdeRecord.oid}, ${hakukohdeRecord.hakuOid}, ${hakukohdeRecord.yhdenPaikanSaantoVoimassa},
-                       ${hakukohdeRecord.kktutkintoonJohtava}, ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec})
+               select ${hakukohdeRecord.oid}, ${hakukohdeRecord.hakuOid}, ${hakukohdeRecord.yhdenPaikanSaantoVoimassa},
+                       ${hakukohdeRecord.kktutkintoonJohtava}, ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec}
+               where not exists(select 1 from hakukohteet where hakukohde_oid = ${hakukohdeRecord.oid})
         """)
 
   override def findHakukohteenVastaanotot(hakukohdeOid: String): Set[VastaanottoRecord] = {
