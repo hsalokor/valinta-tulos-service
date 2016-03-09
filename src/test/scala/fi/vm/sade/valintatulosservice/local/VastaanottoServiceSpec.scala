@@ -179,8 +179,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
-      yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
-      yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.kesken
+      yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.perunut
+      yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.perunut
     }
 
     "vastaanota alempi kun kaksi hyväksyttyä -> muut peruuntuvat" in {
@@ -190,8 +190,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
-      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
-      yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
+      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
+      yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.perunut
       yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.vastaanottanut
     }
 
@@ -345,7 +345,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
       hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
       hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
-      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
       hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
     }
 
@@ -358,7 +358,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       yhteenveto.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
 
       yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
-      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
       yhteenveto.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
     }
 
@@ -486,7 +486,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = HakuFixtures.korkeakouluYhteishaku, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
       val r = vastaanotaVirkailijana(personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.vastaanottanut, muokkaaja).head
       r.result.status must_== 403
-      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
     }
     "peru yksi hakija jonka paikka ei vastaanotettavissa -> error" in {
       useFixture("hylatty-ei-valintatulosta.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
@@ -568,7 +568,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       vastaanotaVirkailijanaTransaktiossa(List(
         VastaanottoEventDto(personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.vastaanottanut, muokkaaja, "testiselite")
       )).isFailure must beTrue
-      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
     }
     "peru yksi hakija jonka paikka ei vastaanotettavissa -> error" in {
       useFixture("hylatty-ei-valintatulosta.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)

@@ -119,8 +119,10 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   private def asetaVastaanotettavuusValintarekisterinPerusteella(henkiloOid: String)(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     tulokset.map(tulos => {
-      if (vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, tulos.hakukohdeOid).isFailure) {
-        tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
+      val vastaanotettu = List(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(tulos.vastaanottotila)
+      if (!vastaanotettu && vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, tulos.hakukohdeOid).isFailure) {
+        tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa,
+          vastaanottotila = Vastaanottotila.perunut)
       } else {
         tulos
       }
