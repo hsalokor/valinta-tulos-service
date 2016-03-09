@@ -60,20 +60,12 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   override def findEnsikertalaisuus(personOids: Set[String], koulutuksenAlkamisKausi: Kausi): Set[Ensikertalaisuus] = {
-    val createTempTable = sqlu"create temporary table person_oids (query_oid varchar, oid varchar) on commit drop"
+    val createTempTable = sqlu"create temporary table person_oids (oid varchar) on commit drop"
     val insertPersonOids = SimpleDBIO[Unit](jdbcActionContext => {
-      val statement = jdbcActionContext.connection.prepareStatement(
-        """insert into person_oids (
-               select ?, q.henkilo_oid
-               from (select h1.henkilo_oid from henkiloviitteet as h1
-                     join henkiloviitteet as h2 on h2.master_oid = h1.master_oid and h2.henkilo_oid = ?
-                     union
-                     select ? as henkilo_oid) as q)""")
+      val statement = jdbcActionContext.connection.prepareStatement("""insert into person_oids values (?)""")
       try {
         personOids.foreach(oid => {
           statement.setString(1, oid)
-          statement.setString(2, oid)
-          statement.setString(3, oid)
           statement.addBatch()
         })
         statement.executeBatch()
@@ -82,7 +74,14 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
       }
     })
     val findVastaanottos =
-      sql"""select person_oids.query_oid, min(all_vastaanotot."timestamp") from person_oids
+      sql"""with query_oids as (
+              select p.oid as query_oid, h2.henkilo_oid from person_oids p
+              inner join henkiloviitteet h1 on h1.henkilo_oid = p.oid
+              inner join henkiloviitteet h2 on h1.master_oid = h2.master_oid
+              union
+              select oid as query_oid, oid as henkilo_oid from person_oids
+            )
+            select query_oids.query_oid, min(all_vastaanotot."timestamp") from query_oids
             left join ((select vastaanotto_events.henkilo, vastaanotto_events."timestamp", vastaanotto_events.koulutuksen_alkamiskausi
                         from (select distinct on (vastaanotot.henkilo, vastaanotot.hakukohde)
                                   henkilo, "timestamp", koulutuksen_alkamiskausi, action from vastaanotot
@@ -94,9 +93,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                        union
                        (select henkilo, "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
                        where vanhat_vastaanotot.kk_tutkintoon_johtava)) as all_vastaanotot
-                on all_vastaanotot.henkilo = person_oids.oid
+                on all_vastaanotot.henkilo = query_oids.henkilo_oid
                    and all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
-            group by person_oids.query_oid
+            group by query_oids.query_oid
         """.as[(String, Option[java.sql.Timestamp])]
 
     val operations = createTempTable.andThen(insertPersonOids).andThen(findVastaanottos)
