@@ -48,18 +48,13 @@ case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
           // pass
         case Some(tila) =>
           getVastaanottoAction(tila).foreach(action => {
-
-            try {
-              valintarekisteriDb.storeHakukohde(HakukohdeRecord(
+            valintarekisteriDb.storeHakukohde(HakukohdeRecord(
                 (valintatulos \ "hakukohdeOid").extract[String],
                 (valintatulos \ "hakuOid").extract[String],
                 yhdenPaikanSaantoVoimassa,
                 kktutkintoonJohtava,
                 Kevat(2016)
-              ))
-            } catch {
-              case e: Exception => println(e.getMessage)
-            }
+            ))
 
             valintarekisteriDb.store(VirkailijanVastaanotto(
               (valintatulos \ "hakijaOid").extract[String],
