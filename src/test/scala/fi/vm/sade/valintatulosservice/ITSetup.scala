@@ -15,6 +15,8 @@ trait ITSetup {
   lazy val singleConnectionValintarekisteriDb = new ValintarekisteriDb(
     dbConfig.withValue("connectionPool", ConfigValueFactory.fromAnyRef("disabled")))
 
+  lazy val valintarekisteriDbWithPool = new ValintarekisteriDb(dbConfig)
+
   lazy val hakemusFixtureImporter = HakemusFixtures()(appConfig)
 
   lazy val sijoitteluFixtures = SijoitteluFixtures(appConfig.sijoitteluContext.database, singleConnectionValintarekisteriDb)

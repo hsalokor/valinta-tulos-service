@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
 import java.util.Date
+import java.util.concurrent.TimeUnit
 
 import fi.vm.sade.valintatulosservice.ITSetup
 import fi.vm.sade.valintatulosservice.domain._
@@ -12,6 +13,9 @@ import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterExample
 import slick.dbio.DBIOAction
 import slick.driver.PostgresDriver.api._
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 @RunWith(classOf[JUnitRunner])
 class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfterExample {
@@ -146,6 +150,13 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
         singleConnectionValintarekisteriDb.findEnsikertalaisuus(henkiloOid, Kevat(2015)) must beEqualTo(Ensikertalainen(henkiloOid))
         singleConnectionValintarekisteriDb.findEnsikertalaisuus(Set(henkiloOid), Kevat(2015)) must beEqualTo(Set(Ensikertalainen(henkiloOid)))
       }
+    }
+
+    "store hakukohde multiple times" in {
+      Await.result(Future.sequence((1 to 3).map(i => Future {
+        singleConnectionValintarekisteriDb.storeHakukohde(HakukohdeRecord("1.2.3", "2.3.4", true, true, Syksy(2016)))
+      })), Duration(60, TimeUnit.SECONDS))
+      1 mustEqual 1
     }
   }
 

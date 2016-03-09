@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
+import java.sql.SQLException
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
@@ -7,8 +8,10 @@ import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
 import org.flywaydb.core.Flyway
+import org.postgresql.util.PSQLException
 import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation, _}
-import slick.jdbc.GetResult
+import slick.jdbc.{TransactionIsolation, GetResult}
+import slick.jdbc.TransactionIsolation.Serializable
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -179,12 +182,17 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
          """.as[HakukohdeRecord]).headOption
   }
 
-  override def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit =
-    runBlocking(sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi)
-               select ${hakukohdeRecord.oid}, ${hakukohdeRecord.hakuOid}, ${hakukohdeRecord.yhdenPaikanSaantoVoimassa},
-                       ${hakukohdeRecord.kktutkintoonJohtava}, ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec}
-               where not exists(select 1 from hakukohteet where hakukohde_oid = ${hakukohdeRecord.oid})
+  override def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit = {
+    runBlocking(
+      sqlu"""BEGIN
+               insert into hakukohteet (hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi)
+                 values (${hakukohdeRecord.oid}, ${hakukohdeRecord.hakuOid}, ${hakukohdeRecord.yhdenPaikanSaantoVoimassa},
+                         ${hakukohdeRecord.kktutkintoonJohtava}, ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec});
+               EXCEPTION WHEN unique_violation THEN
+                 -- Do nothing
+             END;
         """)
+  }
 
   override def findHakukohteenVastaanotot(hakukohdeOid: String): Set[VastaanottoRecord] = {
     val vastaanottoRecords = runBlocking(
