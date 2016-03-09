@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice
 
 import java.util
+import java.util.Date
 
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.utils.Timer.timed
@@ -24,6 +25,8 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
                           hakuService: HakuService)(implicit appConfig: AppConfig) extends Logging {
   def this(vastaanotettavuusService: VastaanotettavuusService, sijoittelutulosService: SijoittelutulosService, hakuService: HakuService)(implicit appConfig: AppConfig) = this(vastaanotettavuusService, sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), hakuService)
 
+  val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
+
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
     fetchTulokset(hakuOid, () => hakemusRepository.findHakemus(hakemusOid).iterator, (haku, hakijaOidsByHakemusOids) => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids(hakemusOid)).toSeq).flatMap(_.toSeq.headOption)
   }
@@ -46,31 +49,48 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     )
   }
   def findValintaTulokset(hakuOid: String): util.List[Valintatulos] = {
-    val hakemustenTulokset = hakemustenTulosByHaku(hakuOid).getOrElse(List())
-    val valintatulokset = appConfig.sijoitteluContext.valintatulosDao.loadValintatulokset(hakuOid)
-    valintatulokset.asScala.foreach(valintaTulos => {
-      hakemustenTulokset.find(_.hakemusOid == valintaTulos.getHakemusOid).foreach(hakemuksenTulos => { // TODO is hakemus person + haku specific?
-        hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid).foreach(hakutoiveenTulos => {
-          val valintatuloksenTila = ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString)
-          valintaTulos.setTila(valintatuloksenTila, "")
-        })
-      })
-    })
+    val hakemustenTulokset = hakemustenTulosByHaku(hakuOid).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid ${hakuOid}"))
+    val valintatulokset = valintatulosDao.loadValintatulokset(hakuOid)
+
+    setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset))
     valintatulokset
   }
+
   def findValintaTulokset(hakuOid: String, hakukohdeOid: String): util.List[Valintatulos] = {
-    val hakemustenTulokset = hakemustenTulosByHakukohde(hakuOid, hakukohdeOid).getOrElse(List())
-    val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
-    val valintatulokset = valintatulosDao.loadValintatuloksetForHakukohde(hakukohdeOid)
-    valintatulokset.asScala.foreach(valintaTulos => {
-      hakemustenTulokset.find(_.hakemusOid == valintaTulos.getHakemusOid).foreach(hakemuksenTulos => {
-        hakemuksenTulos.findHakutoive(hakukohdeOid).foreach(hakutoiveenTulos => {
+    val hakemustenTulokset = hakemustenTulosByHakukohde(hakuOid, hakukohdeOid).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid ${hakuOid}"))
+    val valintatulokset: util.List[Valintatulos] = valintatulosDao.loadValintatuloksetForHakukohde(hakukohdeOid)
+
+    setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset))
+    valintatulokset
+  }
+
+  private def mapHakemustenTuloksetByHakemusOid(hakemustenTulokset:Iterator[Hakemuksentulos]):Map[String,Hakemuksentulos] = {
+    hakemustenTulokset.toList.groupBy(_.hakemusOid).mapValues(_.head)
+  }
+
+  private def getVirkailijanVastaanottoBuffer(hakuOid:String) = {
+    ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu).flatMap(_.virkailijanVastaanottoBufferDays)
+  }
+
+  private def virkailijanVastaanottoaikaaJäljellä(hakijanVastaanottoDeadline:Option[Date], virkailijanVastaanottoBuffer:Option[Int]) = {
+    hakijanVastaanottoDeadline.isDefined && new DateTime(hakijanVastaanottoDeadline.get).plusDays(virkailijanVastaanottoBuffer.getOrElse(0)).isAfterNow
+  }
+
+  private def setValintatuloksetTilat(hakuOid:String, valintatulokset: Seq[Valintatulos], hakemustenTulokset: Map[String,Hakemuksentulos] ): Unit = {
+    val virkailijanVastaanottoBuffer = getVirkailijanVastaanottoBuffer(hakuOid)
+    valintatulokset.foreach(valintaTulos => {
+      hakemustenTulokset.get(valintaTulos.getHakemusOid).foreach(hakemuksenTulos => { // TODO is hakemus person + haku specific?
+        hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid).foreach(hakutoiveenTulos => {
           val valintatuloksenTila = ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString)
-          valintaTulos.setTila(valintatuloksenTila, "")
+          if(ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA == valintatuloksenTila &&
+            virkailijanVastaanottoaikaaJäljellä(hakutoiveenTulos.vastaanottoDeadline, virkailijanVastaanottoBuffer)){
+            valintaTulos.setTila(ValintatuloksenTila.KESKEN, "")
+          } else {
+            valintaTulos.setTila(valintatuloksenTila, "")
+          }
         })
       })
     })
-    valintatulokset
   }
 
   private def fetchTulokset(hakuOid: String, getHakemukset: () => Iterator[Hakemus], getSijoittelunTulos: (Haku, Map[String, String]) => Seq[HakemuksenSijoitteluntulos]): Option[Iterator[Hakemuksentulos]] = {

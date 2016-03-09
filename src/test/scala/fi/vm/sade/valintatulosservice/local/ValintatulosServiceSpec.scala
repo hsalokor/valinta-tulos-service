@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice.local
 
+import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
@@ -8,7 +9,7 @@ import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
-import fi.vm.sade.valintatulosservice.{VastaanotettavuusService, ITSpecification, TimeWarp, ValintatulosService}
+import fi.vm.sade.valintatulosservice.{ITSpecification, TimeWarp, ValintatulosService, VastaanotettavuusService}
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
@@ -236,6 +237,24 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           }
         }
 
+        "ei vastaanottanut määräaikana mutta virkailijan vastaanottoaika ei ole umpeutunut" in {
+          useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture,
+            ohjausparametritFixture = "vastaanotto-loppunut-virkailijan-aikaa-jaljella")
+          getHakutoiveenValintatulos("1.2.246.562.5.16303028779").getTila must be(ValintatuloksenTila.KESKEN)
+        }
+
+        "ei vastaanottanut määräaikana ja virkailijan vastaanottoaika umpeutunut" in {
+          useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture,
+            ohjausparametritFixture = "vastaanotto-loppunut-virkailijan-aika-umpeutunut")
+          getHakutoiveenValintatulos("1.2.246.562.5.16303028779").getTila must be(ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA)
+        }
+
+        "ei vastaanottanut määräaikana mutta virkailijan vastaanottoaikaa ei asetettu" in {
+          useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture,
+            ohjausparametritFixture = "vastaanotto-loppunut")
+          getHakutoiveenValintatulos("1.2.246.562.5.16303028779").getTila must be(ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA)
+        }
+
         "vastaanottanut" in {
           useFixture("hyvaksytty-vastaanottanut.json", hakuFixture = hakuFixture)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.vastaanottanut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
@@ -349,6 +368,11 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
 
   def hakemuksenTulos = {
     valintatulosService.hakemuksentulos(hakuOid, hakemusOid).get
+  }
+
+  def getHakutoiveenValintatulos(hakukohdeOid: String): Valintatulos = {
+    import scala.collection.JavaConverters._
+    valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.find(_.getHakemusOid == hakemusOid).get
   }
 
   def checkHakutoiveState(hakuToive: Hakutoiveentulos, expectedTila: Valintatila, vastaanottoTila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean) = {

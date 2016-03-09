@@ -131,7 +131,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
 
   private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date]): Option[DateTime] = {
     (aikataulu) match {
-      case Some(Vastaanottoaikataulu(Some(deadlineFromHaku), buffer)) =>
+      case Some(Vastaanottoaikataulu(Some(deadlineFromHaku), buffer, _)) =>
         val deadlineFromHakemuksenTilanMuutos = getDeadlineWithBuffer(viimeisinHakemuksenTilanMuutos, buffer, deadlineFromHaku)
         val deadlines = Some(deadlineFromHaku) ++ deadlineFromHakemuksenTilanMuutos
         Some(deadlines.maxBy((a: DateTime) => a.getMillis))
