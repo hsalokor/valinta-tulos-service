@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.config
 import java.io.File
 import java.net.URL
 import fi.vm.sade.security.ldap.LdapUser
-import fi.vm.sade.security.mock.MockSecurityContext
+import fi.vm.sade.security.MockSecurityContext
 import fi.vm.sade.security.{ProductionSecurityContext, SecurityContext}
 import fi.vm.sade.utils.config.{ApplicationSettingsLoader, ConfigTemplateProcessor}
 import fi.vm.sade.utils.mongo.{EmbeddedMongo, MongoServer}
