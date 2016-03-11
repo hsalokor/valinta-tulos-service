@@ -1,7 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
 import java.util
-import java.util.Date
 
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.utils.Timer.timed
@@ -68,26 +67,12 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     hakemustenTulokset.toList.groupBy(_.hakemusOid).mapValues(_.head)
   }
 
-  private def getVirkailijanVastaanottoBuffer(hakuOid:String) = {
-    ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu).flatMap(_.virkailijanVastaanottoBufferDays)
-  }
-
-  private def virkailijanVastaanottoaikaaJäljellä(hakijanVastaanottoDeadline:Option[Date], virkailijanVastaanottoBuffer:Option[Int]) = {
-    hakijanVastaanottoDeadline.isDefined && new DateTime(hakijanVastaanottoDeadline.get).plusDays(virkailijanVastaanottoBuffer.getOrElse(0)).isAfterNow
-  }
-
   private def setValintatuloksetTilat(hakuOid:String, valintatulokset: Seq[Valintatulos], hakemustenTulokset: Map[String,Hakemuksentulos] ): Unit = {
-    val virkailijanVastaanottoBuffer = getVirkailijanVastaanottoBuffer(hakuOid)
     valintatulokset.foreach(valintaTulos => {
       hakemustenTulokset.get(valintaTulos.getHakemusOid).foreach(hakemuksenTulos => { // TODO is hakemus person + haku specific?
         hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid).foreach(hakutoiveenTulos => {
           val valintatuloksenTila = ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString)
-          if(ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA == valintatuloksenTila &&
-            virkailijanVastaanottoaikaaJäljellä(hakutoiveenTulos.vastaanottoDeadline, virkailijanVastaanottoBuffer)){
-            valintaTulos.setTila(ValintatuloksenTila.KESKEN, "")
-          } else {
-            valintaTulos.setTila(valintatuloksenTila, "")
-          }
+          valintaTulos.setTila(valintatuloksenTila, "")
         })
       })
     })

@@ -19,7 +19,7 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     "2.2.2.2",
     "4.3.2.1",
     "1.3.3.1",
-    Some(Vastaanottoaikataulu(Some(new DateTime()), Some(14), None)),
+    Some(Vastaanottoaikataulu(Some(new DateTime()), Some(14))),
     List(
       Hakutoiveentulos.julkaistavaVersioSijoittelunTuloksesta(
         HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"),

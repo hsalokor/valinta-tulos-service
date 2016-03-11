@@ -71,11 +71,7 @@ private object OhjausparametritParser extends JsonFormats {
       obj <- (json \ "PH_HPVOA").toOption
       end <- (obj \ "value").extractOpt[Int]
     } yield end
-    val virkailijanBufferDays = for {
-      obj <- (json \ "PH_VVOTA").toOption
-      end <- (obj \ "value").extractOpt[Int]
-    } yield end
-    Some(Vastaanottoaikataulu(vastaanottoEnd, vastaanottoBufferDays, virkailijanBufferDays))
+    Some(Vastaanottoaikataulu(vastaanottoEnd, vastaanottoBufferDays))
   }
 
   private def parseVarasijaSaannotAstuvatVoimaan(json: JValue) = parseDateTime(json, "PH_VSSAV")
