@@ -33,6 +33,7 @@ case object VastaanotaSitovasti extends VirkailijanVastaanottoAction with Hakija
 case object VastaanotaEhdollisesti extends VirkailijanVastaanottoAction with HakijanVastaanottoAction
 case object Peruuta extends VirkailijanVastaanottoAction
 case object Poista extends VirkailijanVastaanottoAction
+case object MerkitseMyöhästyneeksi extends VirkailijanVastaanottoAction
 
 object HakijanVastaanottoAction {
   private val valueMapping = Map(
@@ -57,6 +58,7 @@ object VirkailijanVastaanottoAction {
     "Peru" -> Peru,
     "VastaanotaSitovasti" -> VastaanotaSitovasti,
     "VastaanotaEhdollisesti" -> VastaanotaEhdollisesti,
+    "MerkitseMyöhästyneeksi" -> MerkitseMyöhästyneeksi,
     "Peruuta" -> Peruuta,
     "Poista" -> Poista)
   val values: List[String] = valueMapping.keysIterator.toList
@@ -70,6 +72,7 @@ object VirkailijanVastaanottoAction {
     case x if x == Vastaanottotila.peruutettu.toString => Peruuta
     case x if x == Vastaanottotila.perunut.toString => Peru
     case x if x == Vastaanottotila.kesken.toString => Poista
+    case x if x == Vastaanottotila.ei_vastaanotettu_määräaikana.toString => MerkitseMyöhästyneeksi
     case x  => throw new IllegalArgumentException(s"Tila ${x} ei ole sallittu")
   }
 }

@@ -1,5 +1,8 @@
 package fi.vm.sade.valintatulosservice
 
+import java.text.SimpleDateFormat
+import java.util.Date
+
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, LogEntry, Valintatulos}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain._
@@ -49,6 +52,10 @@ class VastaanottoService(hakuService: HakuService,
     case VastaanotaSitovasti | VastaanotaEhdollisesti => for {
       _ <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
       _ <- vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)
+    } yield ()
+    case MerkitseMyöhästyneeksi => for {
+      hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+      _ <- tarkistaHakijakohtainenDeadline(hakutoive)
     } yield ()
     case Peru => for {
       hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
@@ -129,6 +136,17 @@ class VastaanottoService(hakuService: HakuService,
       val hakuOid = hakuService.getHakukohde(hakukohdeOid).getOrElse(throw new IllegalArgumentException(s"Tuntematon hakukohde ${hakukohdeOid}")).hakuOid
       val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
       hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
+    }
+  }
+
+  private def tarkistaHakijakohtainenDeadline(hakutoive: Hakutoiveentulos): Try[Unit] = {
+    val vastaanottoDeadline = hakutoive.vastaanottoDeadline
+    Try {
+      if(vastaanottoDeadline.isDefined && vastaanottoDeadline.get.after(new Date())) {
+        throw new IllegalArgumentException(
+          s"""Hakijakohtaista määräaikaa ${new SimpleDateFormat("dd-MM-yyyy").format(vastaanottoDeadline)}
+             |kohteella ${hakutoive.hakukohdeOid} : ${hakutoive.vastaanotettavuustila.toString} ei ole vielä ohitettu.""".stripMargin)
+      }
     }
   }
 
