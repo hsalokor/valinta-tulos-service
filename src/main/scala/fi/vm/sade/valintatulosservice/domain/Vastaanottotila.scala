@@ -9,6 +9,7 @@ object Vastaanottotila extends Enumeration {
   val ei_vastaanotettu_määräaikana = Value("EI_VASTAANOTETTU_MAARA_AIKANA")
   val perunut = Value("PERUNUT")
   val peruutettu = Value("PERUUTETTU")
+  val ottanut_vastaan_toisen_paikan = Value("OTTANUT_VASTAAN_TOISEN_PAIKAN")
   val ehdollisesti_vastaanottanut = Value("EHDOLLISESTI_VASTAANOTTANUT")
 
   def matches(vastaanottotila: Vastaanottotila, valintatuloksenTila: ValintatuloksenTila): Boolean = {
