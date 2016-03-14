@@ -79,7 +79,7 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   private def isPaivitys(virkailijanVastaanotto: VastaanottoEventDto, valintatulos: Option[Valintatulos]): Boolean = valintatulos match {
-    case Some(valintatulos) => !Vastaanottotila.matches(virkailijanVastaanotto.tila, valintatulos.getTila)
+    case Some(v) => !Vastaanottotila.matches(virkailijanVastaanotto.tila, v.getTila)
     case None => !statesMatchingInexistentActions.contains(virkailijanVastaanotto.tila)
   }
 
