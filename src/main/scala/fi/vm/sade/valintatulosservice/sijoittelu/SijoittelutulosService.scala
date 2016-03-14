@@ -28,9 +28,12 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     ) yield hakemuksenYhteenveto(hakija, aikataulu, fetchVastaanotto(hakijaOid, haku.oid))
   }
 
-  def hakemustenTulos(hakuOid: String, hakukohdeOid: Option[String] = None, hakijaOidsByHakemusOids: Map[String, String]): List[HakemuksenSijoitteluntulos] = {
+  def hakemustenTulos(hakuOid: String,
+                      hakukohdeOid: Option[String] = None,
+                      hakijaOidsByHakemusOids: Map[String, String],
+                      hakukohteenVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None): List[HakemuksenSijoitteluntulos] = {
     def fetchVastaanottos(h: HakijaDTO): Set[VastaanottoRecord] = hakijaOidsByHakemusOids.get(h.getHakemusOid) match {
-      case Some(hakijaOid) => fetchVastaanotto(hakijaOid, hakuOid)
+      case Some(hakijaOid) => hakukohteenVastaanotot.flatMap(_.get(hakijaOid)).getOrElse(fetchVastaanotto(hakijaOid, hakuOid))
       case None => Set()
     }
 
@@ -117,6 +120,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
         case Some(VastaanotaSitovasti) => Vastaanottotila.vastaanottanut
         case Some(VastaanotaEhdollisesti) => Vastaanottotila.ehdollisesti_vastaanottanut
         case Some(Peruuta) => Vastaanottotila.peruutettu
+        case Some(MerkitseMyöhästyneeksi) => Vastaanottotila.ei_vastaanotettu_määräaikana
       }
 
     vastaanottotila match {

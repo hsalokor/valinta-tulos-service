@@ -84,7 +84,7 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   private def findValintatulokset(hakuOid: String, hakukohdeOid: String): Map[String, Valintatulos] = {
-    valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.toList.groupBy(_.getHakijaOid).mapValues(_.head)
+    valintatulosService.findValintaTuloksetForVirkailija(hakuOid, hakukohdeOid).asScala.toList.groupBy(_.getHakijaOid).mapValues(_.head)
   }
 
   private def tallenna(vastaanotto: VirkailijanVastaanotto): Try[VastaanottoResult] = {

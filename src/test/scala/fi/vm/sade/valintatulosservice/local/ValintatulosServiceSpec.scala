@@ -340,7 +340,7 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
   lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
   lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb)
   lazy val vastaanotettavuusService = new VastaanotettavuusService(new HakukohdeRecordService(hakuService, valintarekisteriDb), valintarekisteriDb)
-  lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, hakuService)
+  lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, valintarekisteriDb, hakuService)
 
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
   val sijoitteluAjoId: String = "latest"
@@ -354,7 +354,7 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
 
   def getHakutoiveenValintatulos(hakukohdeOid: String): Valintatulos = {
     import scala.collection.JavaConverters._
-    valintatulosService.findValintaTulokset(hakuOid, hakukohdeOid).asScala.find(_.getHakemusOid == hakemusOid).get
+    valintatulosService.findValintaTuloksetForVirkailija(hakuOid, hakukohdeOid).asScala.find(_.getHakemusOid == hakemusOid).get
   }
 
   def checkHakutoiveState(hakuToive: Hakutoiveentulos, expectedTila: Valintatila, vastaanottoTila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean) = {

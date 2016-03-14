@@ -12,6 +12,7 @@ import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{VastaanottoRecord, VirkailijaVastaanottoRepository}
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
@@ -22,8 +23,9 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
                           sijoittelutulosService: SijoittelutulosService,
                           ohjausparametritService: OhjausparametritService,
                           hakemusRepository: HakemusRepository,
+                          virkailijaVastaanottoRepository: VirkailijaVastaanottoRepository,
                           hakuService: HakuService)(implicit appConfig: AppConfig) extends Logging {
-  def this(vastaanotettavuusService: VastaanotettavuusService, sijoittelutulosService: SijoittelutulosService, hakuService: HakuService)(implicit appConfig: AppConfig) = this(vastaanotettavuusService, sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), hakuService)
+  def this(vastaanotettavuusService: VastaanotettavuusService, sijoittelutulosService: SijoittelutulosService, virkailijaVastaanottoRepository: VirkailijaVastaanottoRepository, hakuService: HakuService)(implicit appConfig: AppConfig) = this(vastaanotettavuusService, sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), virkailijaVastaanottoRepository, hakuService)
 
   val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
 
@@ -43,25 +45,26 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     )
   }
 
-  def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String): Option[Iterator[Hakemuksentulos]] = {
+  def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String, hakukohteenVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
-      fetchTulokset(hakuOid, () => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid), (haku, hakijaOidsByHakemusOids) => sijoittelutulosService.hakemustenTulos(hakuOid, Some(hakukohdeOid), hakijaOidsByHakemusOids))
+      fetchTulokset(hakuOid, () => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid), (haku, hakijaOidsByHakemusOids) => sijoittelutulosService.hakemustenTulos(hakuOid, Some(hakukohdeOid), hakijaOidsByHakemusOids, hakukohteenVastaanotot))
     )
   }
 
-  def findValintaTulokset(hakuOid: String): util.List[Valintatulos] = {
+  def findValintaTuloksetForVirkailija(hakuOid: String): util.List[Valintatulos] = {
     val hakemustenTulokset = hakemustenTulosByHaku(hakuOid).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid ${hakuOid}"))
     val valintatulokset = valintatulosDao.loadValintatulokset(hakuOid)
 
-    setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset))
+    setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset), Map())
     valintatulokset
   }
 
-  def findValintaTulokset(hakuOid: String, hakukohdeOid: String): util.List[Valintatulos] = {
-    val hakemustenTulokset = hakemustenTulosByHakukohde(hakuOid, hakukohdeOid).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid ${hakuOid}"))
+  def findValintaTuloksetForVirkailija(hakuOid: String, hakukohdeOid: String): util.List[Valintatulos] = {
+    val hakukohteenVastaanotot = virkailijaVastaanottoRepository.findHakukohteenVastaanotot(hakukohdeOid).groupBy(_.henkiloOid)
+    val hakemustenTulokset = hakemustenTulosByHakukohde(hakuOid, hakukohdeOid, Some(hakukohteenVastaanotot)).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid ${hakuOid}"))
     val valintatulokset: util.List[Valintatulos] = valintatulosDao.loadValintatuloksetForHakukohde(hakukohdeOid)
 
-    setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset))
+    setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset), hakukohteenVastaanotot)
     valintatulokset
   }
 
@@ -69,15 +72,32 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     hakemustenTulokset.toList.groupBy(_.hakemusOid).mapValues(_.head)
   }
 
-  private def setValintatuloksetTilat(hakuOid:String, valintatulokset: Seq[Valintatulos], hakemustenTulokset: Map[String,Hakemuksentulos] ): Unit = {
+  private def setValintatuloksetTilat(hakuOid:String,
+                                      valintatulokset: Seq[Valintatulos],
+                                      hakemustenTulokset: Map[String,Hakemuksentulos],
+                                      hakukohteenVastaanotot: Map[String,Set[VastaanottoRecord]] ): Unit = {
     valintatulokset.foreach(valintaTulos => {
       hakemustenTulokset.get(valintaTulos.getHakemusOid).foreach(hakemuksenTulos => { // TODO is hakemus person + haku specific?
         hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid).foreach(hakutoiveenTulos => {
-          val valintatuloksenTila = ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString)
-          valintaTulos.setTila(valintatuloksenTila, "")
+          valintaTulos.setTila(getValintatuloksenTila(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString), hakemuksenTulos, hakukohteenVastaanotot, hakutoiveenTulos), "")
         })
       })
     })
+  }
+
+  private def getValintatuloksenTila(valintatuloksenTila: ValintatuloksenTila,
+                                     hakemuksenTulos: Hakemuksentulos,
+                                     hakukohteenVastaanotot:Map[String,Set[VastaanottoRecord]],
+                                     hakutoiveenTulos:Hakutoiveentulos): ValintatuloksenTila = {
+    if(valintatuloksenTila == ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA) {
+      if(hakukohteenVastaanotot.get(hakemuksenTulos.hakijaOid).exists(x => x.exists(r => r.hakukohdeOid == hakutoiveenTulos.hakukohdeOid && r.action == MerkitseMyöhästyneeksi ))) {
+        ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+      } else {
+        ValintatuloksenTila.KESKEN
+      }
+    } else {
+      valintatuloksenTila
+    }
   }
 
   private def fetchTulokset(hakuOid: String, getHakemukset: () => Iterator[Hakemus], getSijoittelunTulos: (Haku, Map[String, String]) => Seq[HakemuksenSijoitteluntulos]): Option[Iterator[Hakemuksentulos]] = {
