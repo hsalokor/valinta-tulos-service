@@ -121,23 +121,24 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     })
   }
 
-  override def findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Option[VastaanottoRecord] = {
-    val vastaanottoRecords = runBlocking(
-      sql"""select distinct on (vo.henkilo, vo.hakukohde) vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
-                                            vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
-            from vastaanotot vo
-            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
-            where vo.henkilo = $henkiloOid
-                and hk.yhden_paikan_saanto_voimassa
-                and vo.deleted is null
-                and hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}
-            order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord]).filter(vastaanottoRecord => {
+  override def findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): DBIOAction[Option[VastaanottoRecord], NoStream, Effect] = {
+    sql"""SELECT DISTINCT ON (vo.henkilo, vo.hakukohde) vo.henkilo AS henkiloOid,  hk.haku_oid AS hakuOid, hk.hakukohde_oid AS hakukohdeOid,
+                                            vo.action AS action, vo.ilmoittaja AS ilmoittaja, vo.timestamp AS "timestamp"
+            FROM vastaanotot vo
+            JOIN hakukohteet hk ON hk.hakukohde_oid = vo.hakukohde
+            WHERE vo.henkilo = $henkiloOid
+                AND hk.yhden_paikan_saanto_voimassa
+                AND vo.deleted IS NULL
+                AND hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}
+            ORDER BY vo.henkilo, vo.hakukohde, vo.id DESC""".as[VastaanottoRecord].map(_.filter(vastaanottoRecord => {
       Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
+    })).map(vastaanottoRecords => {
+      if (vastaanottoRecords.size > 1) {
+        throw new RuntimeException(s"Hakijalla $henkiloOid useita vastaanottoja yhden paikan säännön piirissä: $vastaanottoRecords")
+      } else {
+        vastaanottoRecords.headOption
+      }
     })
-    if (vastaanottoRecords.size > 1) {
-      throw new RuntimeException(s"Hakijalla ${henkiloOid} useita vastaanottoja yhden paikan säännön piirissä: $vastaanottoRecords")
-    }
-    vastaanottoRecords.headOption
   }
 
   override def store(vastaanottoEvents: List[VastaanottoEvent]): Unit = {

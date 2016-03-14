@@ -16,10 +16,11 @@ class VastaanotettavuusService(hakukohdeRecordService: HakukohdeRecordService,
 
   private def haeAiemmatVastaanotot(hakukohdeRecord: HakukohdeRecord, hakijaOid: String): Option[VastaanottoRecord] = {
     val HakukohdeRecord(hakukohdeOid, _, yhdenPaikanSaantoVoimassa, _, koulutuksenAlkamiskausi) = hakukohdeRecord
-    if (yhdenPaikanSaantoVoimassa) {
+    val checkAction = if (yhdenPaikanSaantoVoimassa) {
       hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(hakijaOid, koulutuksenAlkamiskausi)
     } else {
-      hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(hakijaOid, hakukohdeOid))
+      hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(hakijaOid, hakukohdeOid)
     }
+    hakijaVastaanottoRepository.runBlocking(checkAction)
   }
 }
