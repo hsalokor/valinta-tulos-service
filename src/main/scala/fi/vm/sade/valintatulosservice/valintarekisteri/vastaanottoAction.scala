@@ -27,7 +27,8 @@ object VastaanottoAction {
     "VastaanotaSitovasti" -> VastaanotaSitovasti,
     "VastaanotaEhdollisesti" -> VastaanotaEhdollisesti,
     "Peruuta" -> Peruuta,
-    "Poista" -> Poista)
+    "Poista" -> Poista,
+    "MerkitseMyohastyneeksi" -> MerkitseMyohastyneeksi)
   val values: List[String] = valueMapping.keysIterator.toList
   def apply(value: String): VastaanottoAction = valueMapping.getOrElse(value, {
     throw new IllegalArgumentException(s"Unknown action '$value', expected one of $values")

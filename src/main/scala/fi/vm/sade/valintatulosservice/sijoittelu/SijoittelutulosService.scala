@@ -120,7 +120,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
         case Some(VastaanotaSitovasti) => Vastaanottotila.vastaanottanut
         case Some(VastaanotaEhdollisesti) => Vastaanottotila.ehdollisesti_vastaanottanut
         case Some(Peruuta) => Vastaanottotila.peruutettu
-        case Some(MerkitseMyöhästyneeksi) => Vastaanottotila.ei_vastaanotettu_määräaikana
+        case Some(MerkitseMyohastyneeksi) => Vastaanottotila.ei_vastaanotettu_määräaikana
       }
 
     vastaanottotila match {

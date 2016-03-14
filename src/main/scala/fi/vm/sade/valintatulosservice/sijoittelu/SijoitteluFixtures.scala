@@ -72,7 +72,7 @@ case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
 
   private def getVastaanottoAction(vastaanotto:String) = vastaanotto match {
     case "KESKEN" => None
-    case "EI_VASTAANOTETTU_MAARA_AIKANA" => None
+    case "EI_VASTAANOTETTU_MAARA_AIKANA" => Some(MerkitseMyohastyneeksi)
     case "PERUNUT" => Some(Peru)
     case "PERUUTETTU" => Some(Peruuta)
     case "EHDOLLISESTI_VASTAANOTTANUT" => Some(VastaanotaEhdollisesti)

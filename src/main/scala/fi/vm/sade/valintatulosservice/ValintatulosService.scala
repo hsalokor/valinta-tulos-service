@@ -90,7 +90,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
                                      hakukohteenVastaanotot:Map[String,Set[VastaanottoRecord]],
                                      hakutoiveenTulos:Hakutoiveentulos): ValintatuloksenTila = {
     if(valintatuloksenTila == ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA) {
-      if(hakukohteenVastaanotot.get(hakemuksenTulos.hakijaOid).exists(x => x.exists(r => r.hakukohdeOid == hakutoiveenTulos.hakukohdeOid && r.action == MerkitseMyöhästyneeksi ))) {
+      if(hakukohteenVastaanotot.get(hakemuksenTulos.hakijaOid).exists(x => x.exists(r => r.hakukohdeOid == hakutoiveenTulos.hakukohdeOid && r.action == MerkitseMyohastyneeksi ))) {
         ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
       } else {
         ValintatuloksenTila.KESKEN

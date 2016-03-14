@@ -53,7 +53,7 @@ class VastaanottoService(hakuService: HakuService,
       _ <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
       _ <- vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)
     } yield ()
-    case MerkitseMyöhästyneeksi => for {
+    case MerkitseMyohastyneeksi => for {
       hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
       _ <- tarkistaHakijakohtainenDeadline(hakutoive)
     } yield ()
