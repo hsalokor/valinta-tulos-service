@@ -4,18 +4,22 @@ import java.util.Date
 
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakukohde, YhdenPaikanSaanto}
-import fi.vm.sade.valintatulosservice.valintarekisteri.{VastaanottoRecord, HakijaVastaanottoRepository, HakukohdeRecordService}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, HakukohdeRecordService, VastaanottoRecord}
 import fi.vm.sade.valintatulosservice.{PriorAcceptanceException, VastaanotettavuusService}
 import org.junit.runner.RunWith
 import org.mockito.Matchers
 import org.specs2.matcher.MustThrownExpectations
 import org.specs2.mock.Mockito
+import org.specs2.mock.mockito.{MockitoMatchers, MockitoStubs}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.Scope
+import slick.dbio.{DBIO, DBIOAction, FailureAction, SuccessAction}
+
+import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
-class VastaanotettavuusServiceSpec extends Specification {
+class VastaanotettavuusServiceSpec extends Specification with MockitoMatchers with MockitoStubs {
   "VastaanotettavuusService" in {
     "tarkistaAiemmatVastaanotot" in {
       "kun haussa yhden paikan sääntö voimassa" in {
@@ -33,18 +37,23 @@ class VastaanotettavuusServiceSpec extends Specification {
         }
       }
       "kun yhden paikan sääntö ei voimassa" in {
+
+
         "kun hakijalla useita aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
-          hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) throws (new RuntimeException("test msg"))
+          returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
+          hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns DBIOAction.failed(new RuntimeException("test msg"))
           v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must throwA("test msg")
           there was no(hakijaVastaanottoRepository).findYhdenPaikanSaannonPiirissaOlevatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
         "kun hakijalla yksi aiempi vastaanotto" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
-          hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns Some(previousVastaanottoRecord)
+          returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
+          hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns DBIOAction.successful(Some(previousVastaanottoRecord))
           v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beFailedTry.withThrowable[PriorAcceptanceException]
           there was no(hakijaVastaanottoRepository).findYhdenPaikanSaannonPiirissaOlevatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
         "kun hakijalla ei aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
-          hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns None
+          returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
+          hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns DBIOAction.successful(None)
           v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beSuccessfulTry
           there was no(hakijaVastaanottoRepository).findYhdenPaikanSaannonPiirissaOlevatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
@@ -95,4 +104,15 @@ class VastaanotettavuusServiceSpec extends Specification {
     val v = new VastaanotettavuusService(hakukohdeRecordService, hakijaVastaanottoRepository)
   }
 
+  private def returnRunBlockingResult[T](hakijaVastaanottoRepository: HakijaVastaanottoRepository): T = {
+    hakijaVastaanottoRepository.runBlocking[T](any[DBIO[T]], any[Duration]).answers { (params, mock) =>
+      params match {
+        case Array(action, _) => action match {
+          case SuccessAction(v) => v.asInstanceOf[T]
+          case FailureAction(t) => throw t
+        }
+        case x => throw new IllegalArgumentException(s"Broken arguments: $x")
+      }
+    }
+  }
 }

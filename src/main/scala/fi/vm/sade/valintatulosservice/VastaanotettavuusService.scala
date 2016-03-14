@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.valintarekisteri.{VastaanottoRecord, HakijaVastaanottoRepository, HakukohdeRecordService}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, HakukohdeRecordService, VastaanottoRecord}
 
 import scala.util.{Failure, Success, Try}
 
@@ -19,7 +19,7 @@ class VastaanotettavuusService(hakukohdeRecordService: HakukohdeRecordService,
     if (yhdenPaikanSaantoVoimassa) {
       hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(hakijaOid, koulutuksenAlkamiskausi)
     } else {
-      hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(hakijaOid, hakukohdeOid)
+      hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(hakijaOid, hakukohdeOid))
     }
   }
 }

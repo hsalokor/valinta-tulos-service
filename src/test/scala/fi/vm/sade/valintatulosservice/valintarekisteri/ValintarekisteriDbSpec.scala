@@ -76,7 +76,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
-      val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid)
+      val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid))
       vastaanottoRowsFromDb must beSome
       val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
         ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.get
@@ -112,14 +112,14 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid, "testiselite"))
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, Poista, henkiloOid, "testiselite"))
-      singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid) must beNone
+      singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid)) must beNone
     }
 
     "rollback failing transaction" in {
       singleConnectionValintarekisteriDb.store( List(
         VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"),
         VirkailijanVastaanotto("123!", "2222323", "134134134.123", VastaanotaSitovasti, "123!", "testiselite"))) must throwA[Exception]
-      singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid) must beNone
+      singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid)) must beNone
     }
 
     "store vastaanotot in transaction" in {

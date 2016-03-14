@@ -11,7 +11,7 @@ import org.postgresql.util.PSQLException
 import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation, _}
 import slick.jdbc.GetResult
 
-import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
 
@@ -23,7 +23,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   val flyway = new Flyway()
   flyway.setDataSource(dbConfig.getString("url"), user, password)
   flyway.migrate()
-  val db = Database.forConfig("", dbConfig)
+  override val db = Database.forConfig("", dbConfig)
   private implicit val getVastaanottoResult = GetResult(r => VastaanottoRecord(r.nextString(), r.nextString(),
     r.nextString(), VastaanottoAction(r.nextString()), r.nextString(), r.nextTimestamp()))
 
@@ -102,22 +102,23 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     vastaanottoRecords.toSet
   }
 
-  override def findHenkilonVastaanottoHakukohteeseen(henkiloOid: String, hakukohdeOid: String): Option[VastaanottoRecord] = {
-    val vastaanottoRecords = runBlocking(
-      sql"""select distinct on (vo.henkilo) vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
-                                            vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
-            from vastaanotot vo
-            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
-            where vo.henkilo = $henkiloOid
-                and hk.hakukohde_oid = $hakukohdeOid
-                and vo.deleted is null
-            order by vo.henkilo, vo.id desc""".as[VastaanottoRecord]).filter(vastaanottoRecord => {
+  override def findHenkilonVastaanottoHakukohteeseen(henkiloOid: String, hakukohdeOid: String): DBIOAction[Option[VastaanottoRecord], NoStream, Effect] = {
+    sql"""SELECT DISTINCT ON (vo.henkilo) vo.henkilo AS henkiloOid,  hk.haku_oid AS hakuOid, hk.hakukohde_oid AS hakukohdeOid,
+                                                vo.action AS action, vo.ilmoittaja AS ilmoittaja, vo.timestamp AS "timestamp"
+                FROM vastaanotot vo
+                JOIN hakukohteet hk ON hk.hakukohde_oid = vo.hakukohde
+                WHERE vo.henkilo = $henkiloOid
+                    AND hk.hakukohde_oid = $hakukohdeOid
+                    AND vo.deleted IS NULL
+                ORDER BY vo.henkilo, vo.id DESC""".as[VastaanottoRecord].map(_.filter(vastaanottoRecord => {
       Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
+    })).map(records => {
+      if (records.size > 1) {
+        throw new RuntimeException(s"Hakijalla $henkiloOid useita vastaanottoja samaan hakukohteeseen: $records")
+      } else {
+        records.headOption
+      }
     })
-    if (vastaanottoRecords.size > 1) {
-      throw new RuntimeException(s"Hakijalla ${henkiloOid} useita vastaanottoja samaan hakukohteeseen: $vastaanottoRecords")
-    }
-    vastaanottoRecords.headOption
   }
 
   override def findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): Option[VastaanottoRecord] = {
@@ -168,8 +169,6 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
              where vastaanotot.henkilo = $henkiloOid
                  and vastaanotot.hakukohde = $hakukohdeOid""").transactionally
   }
-
-  def runBlocking[R](operations: DBIO[R], timeout: Duration = Duration(2, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
 
   override def findHakukohde(oid: String): Option[HakukohdeRecord] = {
     implicit val getHakukohdeResult = GetResult(r =>
