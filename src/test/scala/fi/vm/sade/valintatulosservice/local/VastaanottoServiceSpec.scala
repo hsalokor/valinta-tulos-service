@@ -179,8 +179,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
-      yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
-      yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
+      yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
+      yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.kesken
     }
 
     "vastaanota alempi kun kaksi hyväksyttyä -> muut peruuntuvat" in {
@@ -190,8 +190,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
-      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
-      yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
+      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.vastaanottanut
     }
 
@@ -345,8 +345,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
       hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
       hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
-      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
-      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
     }
 
     "vastaanota sitovasti kun varasijasäännöt voimassa" in {
@@ -358,7 +358,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
       yhteenveto.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
 
       yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
-      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
+      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
     }
 

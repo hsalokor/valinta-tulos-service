@@ -6,6 +6,7 @@ import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.utils.Timer.timed
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
@@ -123,16 +124,21 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, None, Nil)
 
   private def asetaVastaanotettavuusValintarekisterinPerusteella(henkiloOid: String)(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
-    tulokset.map(tulos => {
-      val vastaanotettu = Set(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(tulos.vastaanottotila)
-      if (!vastaanotettu && vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, tulos.hakukohdeOid).isFailure) {
-        tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa,
-          vastaanottotila = Vastaanottotila.ottanut_vastaan_toisen_paikan,
-          valintatila = Valintatila.peruuntunut)
+    def ottanutVastaanToisenPaikan(tulos: Hakutoiveentulos): Hakutoiveentulos = {
+      tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa,
+        vastaanottotila = Vastaanottotila.ottanut_vastaan_toisen_paikan,
+        valintatila = Valintatila.peruuntunut)
+    }
+    val vastaanottoTallaHakemuksella = tulokset.exists(x => Set(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(x.vastaanottotila))
+    if (vastaanottoTallaHakemuksella) {
+      tulokset
+    } else {
+      tulokset.map(tulos => if (vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, tulos.hakukohdeOid).isFailure) {
+        ottanutVastaanToisenPaikan(tulos)
       } else {
         tulos
-      }
-    })
+      })
+    }
   }
 
   private def sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
