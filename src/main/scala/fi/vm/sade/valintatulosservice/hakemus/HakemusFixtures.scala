@@ -21,7 +21,6 @@ import org.springframework.core.io.{ClassPathResource, Resource}
 
 class HakemusFixtures(config: MongoConfig) {
   lazy val db = MongoFactory.createDB(config)
-  private val templateObject: BasicDBObject = MongoMockData.readJson("fixtures/hakemus/hakemus-template.json").asInstanceOf[BasicDBObject]
 
   if (config.url.indexOf("localhost") < 0)
     throw new IllegalArgumentException("HakemusFixtureImporter can only be used with IT profile")
@@ -57,13 +56,20 @@ class HakemusFixtures(config: MongoConfig) {
     }
   }
 
+  private var builder:BulkWriteOperation = null
+
+  def startBulkOperationInsert() = {
+    builder = db.underlying.getCollection("application").initializeUnorderedBulkOperation
+  }
+
   def importTemplateFixture(hakemus: HakemusFixture) = {
-    templateObject.put("_id", new ObjectId())
-    templateObject.put("oid", hakemus.hakemusOid)
-    templateObject.put("applicationSystemId", hakemus.hakuOid)
-    templateObject.put("personOid", hakemus.hakemusOid)
-    val hakutoiveetDbObject = templateObject.get("answers").asInstanceOf[BasicDBObject].get("hakutoiveet").asInstanceOf[BasicDBObject]
-    val hakutoiveetMetaDbList = templateObject
+    val currentTemplateObject = MongoMockData.readJson("fixtures/hakemus/hakemus-template.json").asInstanceOf[BasicDBObject]
+    currentTemplateObject.put("_id", new ObjectId())
+    currentTemplateObject.put("oid", hakemus.hakemusOid)
+    currentTemplateObject.put("applicationSystemId", hakemus.hakuOid)
+    currentTemplateObject.put("personOid", hakemus.hakemusOid)
+    val hakutoiveetDbObject = currentTemplateObject.get("answers").asInstanceOf[BasicDBObject].get("hakutoiveet").asInstanceOf[BasicDBObject]
+    val hakutoiveetMetaDbList = currentTemplateObject
       .get("authorizationMeta").asInstanceOf[BasicDBObject]
       .get("applicationPreferences").asInstanceOf[BasicDBList]
 
@@ -78,9 +84,19 @@ class HakemusFixtures(config: MongoConfig) {
         .pop()
         .get())
     }
+    builder.insert(currentTemplateObject)
+  }
 
-    db.underlying.getCollection("application").insert(templateObject)
-    this
+  def commitBulkOperationInsert = {
+    import scala.collection.JavaConverters._
+    try {
+      builder.execute(WriteConcern.UNACKNOWLEDGED)
+    } catch {
+      case e:BulkWriteException => {
+        e.printStackTrace()
+        for(error <- e.getWriteErrors.asScala) println(error.getMessage)
+      }
+    }
   }
 }
 

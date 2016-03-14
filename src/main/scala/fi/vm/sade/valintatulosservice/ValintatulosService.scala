@@ -48,6 +48,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       fetchTulokset(hakuOid, () => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid), (haku, hakijaOidsByHakemusOids) => sijoittelutulosService.hakemustenTulos(hakuOid, Some(hakukohdeOid), hakijaOidsByHakemusOids))
     )
   }
+
   def findValintaTulokset(hakuOid: String): util.List[Valintatulos] = {
     val hakemustenTulokset = hakemustenTulosByHaku(hakuOid).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid ${hakuOid}"))
     val valintatulokset = valintatulosDao.loadValintatulokset(hakuOid)
