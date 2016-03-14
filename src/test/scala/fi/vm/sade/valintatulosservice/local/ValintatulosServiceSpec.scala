@@ -331,6 +331,19 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
         }
       }
+
+      "ei vastaanotettu määräaikana" in {
+        "virkailija ei merkinnyt myöhästyneeksi" in {
+          useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture, ohjausparametritFixture = "vastaanotto-loppunut")
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          getHakutoiveenValintatulos("1.2.246.562.5.72607738902").getTila must_== ValintatuloksenTila.KESKEN
+        }
+        "virkailija merkinnyt myöhästyneeksi" in {
+          useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture, ohjausparametritFixture = "vastaanotto-loppunut")
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          getHakutoiveenValintatulos("1.2.246.562.5.16303028779").getTila must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+        }
+      }
     }
   }
 
