@@ -6,7 +6,6 @@ import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.utils.Timer.timed
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
@@ -16,6 +15,7 @@ import fi.vm.sade.valintatulosservice.valintarekisteri.{VastaanottoRecord, Virka
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 private object HakemustenTulosHakuLock
 
@@ -154,7 +154,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     if (vastaanottoTallaHakemuksella) {
       tulokset
     } else {
-      tulokset.map(tulos => if (vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, tulos.hakukohdeOid).isFailure) {
+      tulokset.map(tulos => if (Try { virkailijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, tulos.hakukohdeOid)) }.isFailure) {
         ottanutVastaanToisenPaikan(tulos)
       } else {
         tulos

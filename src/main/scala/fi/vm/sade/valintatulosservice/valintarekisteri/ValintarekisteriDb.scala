@@ -4,15 +4,17 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
 import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.ConflictingAcceptancesException
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
+import slick.dbio.Effect.All
 import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation, _}
 import slick.jdbc.GetResult
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 
 
 class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with HakijaVastaanottoRepository
@@ -112,11 +114,11 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                     AND vo.deleted IS NULL
                 ORDER BY vo.henkilo, vo.id DESC""".as[VastaanottoRecord].map(_.filter(vastaanottoRecord => {
       Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
-    })).map(records => {
-      if (records.size > 1) {
-        throw new RuntimeException(s"Hakijalla $henkiloOid useita vastaanottoja samaan hakukohteeseen: $records")
+    })).map(vastaanottoRecords => {
+      if (vastaanottoRecords.size > 1) {
+        throw ConflictingAcceptancesException(henkiloOid, vastaanottoRecords, "samaan hakukohteeseen")
       } else {
-        records.headOption
+        vastaanottoRecords.headOption
       }
     })
   }
@@ -134,17 +136,17 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
       Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
     })).map(vastaanottoRecords => {
       if (vastaanottoRecords.size > 1) {
-        throw new RuntimeException(s"Hakijalla $henkiloOid useita vastaanottoja yhden paikan säännön piirissä: $vastaanottoRecords")
+        throw ConflictingAcceptancesException(henkiloOid, vastaanottoRecords, "yhden paikan säännön piirissä")
       } else {
         vastaanottoRecords.headOption
       }
     })
   }
 
-  override def store(vastaanottoEvents: List[VastaanottoEvent]): Unit = {
+  override def store(vastaanottoEvents: List[VastaanottoEvent], postCondition: DBIOAction[Any, NoStream, All]): Unit = {
     runBlocking(DBIO.sequence(
       vastaanottoEvents.map(storeAction)
-    ).transactionally)
+    ).andThen(postCondition).transactionally)
   }
 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {

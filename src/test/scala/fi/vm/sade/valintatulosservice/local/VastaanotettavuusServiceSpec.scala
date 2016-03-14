@@ -14,9 +14,10 @@ import org.specs2.mock.mockito.{MockitoMatchers, MockitoStubs}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.Scope
-import slick.dbio.{DBIO, DBIOAction, FailureAction, SuccessAction}
+import slick.dbio.{DBIO, DBIOAction, FailureAction, FlatMapAction, SuccessAction}
 
 import scala.concurrent.duration.Duration
+import scala.util.{Failure, Success, Try}
 
 @RunWith(classOf[JUnitRunner])
 class VastaanotettavuusServiceSpec extends Specification with MockitoMatchers with MockitoStubs {
@@ -24,40 +25,39 @@ class VastaanotettavuusServiceSpec extends Specification with MockitoMatchers wi
     "tarkistaAiemmatVastaanotot" in {
       "kun haussa yhden paikan sääntö voimassa" in {
         "kun hakijalla useita aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with YhdenPaikanSaantoVoimassa {
-          returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
           hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, kausi) returns DBIOAction.failed(new RuntimeException("test msg"))
-          v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must throwA("test msg")
+          dbioToTry(v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid)) must beFailedTry.withThrowable[RuntimeException]
         }
+
         "kun hakijalla yksi aiempi vastaanotto" in new VastaanotettavuusServiceWithMocks with YhdenPaikanSaantoVoimassa {
-          returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
           hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, kausi) returns DBIOAction.successful(Some(previousVastaanottoRecord))
-          v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beFailedTry.withThrowable[PriorAcceptanceException]
+          private val vastaanotot = v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid)
+          dbioToTry(vastaanotot) must beFailedTry.withThrowable[PriorAcceptanceException]
         }
         "kun hakijalla ei aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with YhdenPaikanSaantoVoimassa {
           returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
           hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, kausi) returns DBIOAction.successful(None)
-          v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beSuccessfulTry
+          dbioToTry(v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid)) must beSuccessfulTry
         }
       }
+
       "kun yhden paikan sääntö ei voimassa" in {
-
-
         "kun hakijalla useita aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
           returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
           hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns DBIOAction.failed(new RuntimeException("test msg"))
-          v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must throwA("test msg")
+          dbioToTry(v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid)) must beFailedTry.withThrowable[RuntimeException]
           there was no(hakijaVastaanottoRepository).findYhdenPaikanSaannonPiirissaOlevatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
         "kun hakijalla yksi aiempi vastaanotto" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
           returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
           hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns DBIOAction.successful(Some(previousVastaanottoRecord))
-          v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beFailedTry.withThrowable[PriorAcceptanceException]
+          dbioToTry(v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid)) must beFailedTry.withThrowable[PriorAcceptanceException]
           there was no(hakijaVastaanottoRepository).findYhdenPaikanSaannonPiirissaOlevatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
         "kun hakijalla ei aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
           returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
           hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns DBIOAction.successful(None)
-          v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid) must beSuccessfulTry
+          dbioToTry(v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid)) must beSuccessfulTry
           there was no(hakijaVastaanottoRepository).findYhdenPaikanSaannonPiirissaOlevatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
       }
@@ -117,5 +117,16 @@ class VastaanotettavuusServiceSpec extends Specification with MockitoMatchers wi
         case x => throw new IllegalArgumentException(s"Broken arguments: $x")
       }
     }
+  }
+
+  private def dbioToTry[T](dbio: DBIO[T]): Try[Any] = dbio match {
+    case SuccessAction(Some(v: VastaanottoRecord)) => dbioToTry(new VastaanotettavuusService(null, null).defaultPriorAcceptanceHandler(v))
+    case FailureAction(t) => Failure(t)
+    case FlatMapAction(a: SuccessAction[Option[VastaanottoRecord]], _, _) => a match {
+      case SuccessAction(None) => Success()
+      case SuccessAction(Some(v)) => dbioToTry(new VastaanotettavuusService(null, null).defaultPriorAcceptanceHandler(v))
+    }
+    case FlatMapAction(a: FailureAction, _, _) => dbioToTry(a)
+    case x => throw new IllegalArgumentException(s"Illegal argument $x")
   }
 }

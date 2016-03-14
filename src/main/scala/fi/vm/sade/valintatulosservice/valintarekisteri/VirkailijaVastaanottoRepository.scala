@@ -1,5 +1,5 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
-trait VirkailijaVastaanottoRepository {
+trait VirkailijaVastaanottoRepository extends VastaanottoRepository {
   def findHakukohteenVastaanotot(hakukohdeOid: String): Set[VastaanottoRecord]
 }

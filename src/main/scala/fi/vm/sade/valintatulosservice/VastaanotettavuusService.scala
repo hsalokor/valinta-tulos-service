@@ -2,25 +2,29 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, HakukohdeRecordService, VastaanottoRecord}
-
-import scala.util.{Failure, Success, Try}
+import slick.dbio.{DBIO, DBIOAction, Effect, NoStream}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class VastaanotettavuusService(hakukohdeRecordService: HakukohdeRecordService,
                                hakijaVastaanottoRepository: HakijaVastaanottoRepository) {
-  def tarkistaAiemmatVastaanotot(henkiloOid: String, hakukohdeOid: String): Try[Unit] = {
+  val defaultPriorAcceptanceHandler: VastaanottoRecord => DBIO[Unit] = aiempiVastaanotto => DBIOAction.failed(PriorAcceptanceException(aiempiVastaanotto))
+
+  def tarkistaAiemmatVastaanotot(henkiloOid: String, hakukohdeOid: String, priorAcceptanceHandler: VastaanottoRecord => DBIO[Unit]): DBIO[Unit] = {
     val hakukohdeRecord = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
-    haeAiemmatVastaanotot(hakukohdeRecord, henkiloOid).map(aiempiVastaanotto => {
-      Failure(PriorAcceptanceException(aiempiVastaanotto))
-    }).getOrElse(Success(()))
+    haeAiemmatVastaanotot(hakukohdeRecord, henkiloOid).flatMap {
+      case None => DBIOAction.successful()
+      case Some(aiempiVastaanotto) => priorAcceptanceHandler(aiempiVastaanotto)
+    }
   }
 
-  private def haeAiemmatVastaanotot(hakukohdeRecord: HakukohdeRecord, hakijaOid: String): Option[VastaanottoRecord] = {
+  def tarkistaAiemmatVastaanotot(henkiloOid: String, hakukohdeOid: String): DBIO[Unit] = tarkistaAiemmatVastaanotot(henkiloOid, hakukohdeOid, defaultPriorAcceptanceHandler)
+
+  private def haeAiemmatVastaanotot(hakukohdeRecord: HakukohdeRecord, hakijaOid: String): DBIOAction[Option[VastaanottoRecord], NoStream, Effect] = {
     val HakukohdeRecord(hakukohdeOid, _, yhdenPaikanSaantoVoimassa, _, koulutuksenAlkamiskausi) = hakukohdeRecord
-    val checkAction = if (yhdenPaikanSaantoVoimassa) {
+    if (yhdenPaikanSaantoVoimassa) {
       hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(hakijaOid, koulutuksenAlkamiskausi)
     } else {
       hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(hakijaOid, hakukohdeOid)
     }
-    hakijaVastaanottoRepository.runBlocking(checkAction)
   }
 }

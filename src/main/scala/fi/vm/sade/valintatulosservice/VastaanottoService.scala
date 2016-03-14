@@ -3,12 +3,13 @@ package fi.vm.sade.valintatulosservice
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, LogEntry, Valintatulos}
+import fi.vm.sade.sijoittelu.domain.Valintatulos
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoEvent, VastaanottoRecord, VirkailijaVastaanottoRepository}
+import slick.dbio.{DBIO, SuccessAction}
 
 import scala.collection.JavaConverters._
 import scala.util.{Success, Try}
@@ -32,9 +33,13 @@ class VastaanottoService(hakuService: HakuService,
 
   def vastaanotaVirkailijanaInTransaction(vastaanotot: List[VastaanottoEventDto]): Try[Unit] = {
     val tallennettavatVastaanotot = generateTallennettavatVastaanototList(vastaanotot)
-    tallennettavatVastaanotot.toStream.map(checkVastaanotettavuusVirkailijana).find(_.isFailure) match {
+    val vastaanottosToCheckInPostCondition = tallennettavatVastaanotot.filter(v => v.action == VastaanotaEhdollisesti || v.action == VastaanotaSitovasti)
+    val postCondition = DBIO.sequence(vastaanottosToCheckInPostCondition.
+      map(v => vastaanotettavuusService.tarkistaAiemmatVastaanotot(v.henkiloOid, v.hakukohdeOid, aiempiVastaanotto => SuccessAction())))
+
+    tallennettavatVastaanotot.toStream.map(checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = false)).find(_.isFailure) match {
       case Some(failure) => failure
-      case None => Try { hakijaVastaanottoRepository.store(tallennettavatVastaanotot) }
+      case None => Try { hakijaVastaanottoRepository.store(tallennettavatVastaanotot, postCondition) }
     }
   }
 
@@ -48,10 +53,10 @@ class VastaanottoService(hakuService: HakuService,
     }).toList
   }
 
-  private def checkVastaanotettavuusVirkailijana(vastaanotto: VirkailijanVastaanotto): Try[Unit] = vastaanotto.action match {
+  private def checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot: Boolean = true)(vastaanotto: VirkailijanVastaanotto): Try[Unit] = vastaanotto.action match {
     case VastaanotaSitovasti | VastaanotaEhdollisesti => for {
       _ <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
-      _ <- vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)
+      _ <- if (tarkistaAiemmatVastaanotot) Try { hakijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)) } else Success()
     } yield ()
     case MerkitseMyohastyneeksi => for {
       hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
@@ -89,7 +94,7 @@ class VastaanottoService(hakuService: HakuService,
 
   private def tallenna(vastaanotto: VirkailijanVastaanotto): Try[VastaanottoResult] = {
     (for {
-      _ <- checkVastaanotettavuusVirkailijana(vastaanotto)
+      _ <- checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = true)(vastaanotto)
       _ <- Try { hakijaVastaanottoRepository.store(vastaanotto) }
     } yield {
       createVastaanottoResult(200, None, vastaanotto)
@@ -164,3 +169,6 @@ class VastaanottoService(hakuService: HakuService,
 
 case class PriorAcceptanceException(aiempiVastaanotto: VastaanottoRecord)
   extends IllegalArgumentException(s"Löytyi aiempi vastaanotto $aiempiVastaanotto")
+
+case class ConflictingAcceptancesException(personOid: String, conflictingVastaanottos: Seq[VastaanottoRecord], conflictDescription: String)
+  extends IllegalStateException(s"Hakijalla $personOid useita vastaanottoja $conflictDescription: $conflictingVastaanottos")

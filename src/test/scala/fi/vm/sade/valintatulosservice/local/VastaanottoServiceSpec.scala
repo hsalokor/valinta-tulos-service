@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice.local
 
-import fi.vm.sade.sijoittelu.domain.{LogEntry, ValintatuloksenTila, Valintatulos}
+import fi.vm.sade.sijoittelu.domain.{LogEntry, Valintatulos}
+import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila.{Ilmoittautumistila, läsnä_koko_lukuvuosi}
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, HakijanVastaanotto, HakijanVastaanottoAction, HakutoiveenIlmoittautumistila, Ilmoittautuminen, Ilmoittautumisaika, Ilmoittautumistila, Valintatila, Vastaanotettavuustila, Vastaanottotila}
@@ -8,16 +9,16 @@ import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
-import fi.vm.sade.valintatulosservice._
 import org.joda.time.{DateTime, LocalDate}
 import org.junit.runner.RunWith
 import org.specs2.execute.{FailureException, Result}
+import org.specs2.matcher.ThrownMessages
 import org.specs2.runner.JUnitRunner
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 @RunWith(classOf[JUnitRunner])
-class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
+class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMessages {
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
   val hakukohdeOid: String = "1.2.246.562.5.16303028779"
   val vastaanotettavissaHakuKohdeOid = "1.2.246.562.5.72607738902"
@@ -584,6 +585,43 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp {
         VastaanottoEventDto(personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.kesken, muokkaaja, "testiselite")
       )).isSuccess must beTrue
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+    }
+    "siirrä ehdollinen vastaanotto ylemmälle hakutoiveelle" in {
+      val alinHyvaksyttyHakutoiveOid = "1.2.246.562.5.16303028779"
+      val ylempiHakutoiveOid = "1.2.246.562.5.72607738902"
+
+      useFixture("hyvaksytty-ylempi-varalla.json", Nil, hakuFixture = "korkeakoulu-yhteishaku", yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+      vastaanota(hakuOid, hakemusOid, alinHyvaksyttyHakutoiveOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
+
+      val vastaanotonTulos = vastaanotaVirkailijanaTransaktiossa(List(
+        VastaanottoEventDto(personOid, hakemusOid, alinHyvaksyttyHakutoiveOid, hakuOid, Vastaanottotila.kesken, muokkaaja, "testiselite"),
+        VastaanottoEventDto(personOid, hakemusOid, ylempiHakutoiveOid, hakuOid, Vastaanottotila.vastaanottanut, muokkaaja, "testiselite")
+      ))
+      val hakemuksentulos = hakemuksenTulos(hakuOid, hakemusOid)
+      vastaanotonTulos must_== Success()
+      hakemuksentulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
+      hakemuksentulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksentulos.hakutoiveet(1).valintatila must_== domain.Valintatila.peruuntunut
+    }
+    "estä useampi vastaanotto kun yhden paikan sääntö on voimassa" in {
+      val alinHyvaksyttyHakutoiveOid = "1.2.246.562.5.16303028779"
+      val ylempiHakutoiveOid = "1.2.246.562.5.72607738902"
+
+      useFixture("hyvaksytty-ylempi-varalla.json", Nil, hakuFixture = "korkeakoulu-yhteishaku", yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+      vastaanota(hakuOid, hakemusOid, alinHyvaksyttyHakutoiveOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
+
+      val vastaanotonTulos = vastaanotaVirkailijanaTransaktiossa(List(
+        VastaanottoEventDto(personOid, hakemusOid, alinHyvaksyttyHakutoiveOid, hakuOid, Vastaanottotila.vastaanottanut, muokkaaja, "testiselite"),
+        VastaanottoEventDto(personOid, hakemusOid, ylempiHakutoiveOid, hakuOid, Vastaanottotila.vastaanottanut, muokkaaja, "testiselite")
+      ))
+      val hakemuksentulos = hakemuksenTulos(hakuOid, hakemusOid)
+      vastaanotonTulos match {
+        case Failure(cae: ConflictingAcceptancesException) => cae.conflictingVastaanottos.map(_.hakukohdeOid) must_== Vector(alinHyvaksyttyHakutoiveOid, ylempiHakutoiveOid)
+        case x => fail(s"Should have failed on several conflicting records but got $x")
+      }
+
+      hakemuksentulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksentulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
     }
   }
 
