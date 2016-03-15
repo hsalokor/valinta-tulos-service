@@ -7,7 +7,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class VastaanotettavuusService(hakukohdeRecordService: HakukohdeRecordService,
                                hakijaVastaanottoRepository: HakijaVastaanottoRepository) {
-  val defaultPriorAcceptanceHandler: VastaanottoRecord => DBIO[Unit] = aiempiVastaanotto => DBIOAction.failed(PriorAcceptanceException(aiempiVastaanotto))
+  private val defaultPriorAcceptanceHandler: VastaanottoRecord => DBIO[Unit] = aiempiVastaanotto => DBIOAction.failed(PriorAcceptanceException(aiempiVastaanotto))
 
   def tarkistaAiemmatVastaanotot(henkiloOid: String, hakukohdeOid: String, priorAcceptanceHandler: VastaanottoRecord => DBIO[Unit]): DBIO[Unit] = {
     val hakukohdeRecord = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)

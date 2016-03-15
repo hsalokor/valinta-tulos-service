@@ -120,13 +120,13 @@ class VastaanotettavuusServiceSpec extends Specification with MockitoMatchers wi
   }
 
   private def dbioToTry[T](dbio: DBIO[T]): Try[Any] = dbio match {
-    case SuccessAction(Some(v: VastaanottoRecord)) => dbioToTry(new VastaanotettavuusService(null, null).defaultPriorAcceptanceHandler(v))
     case FailureAction(t) => Failure(t)
-    case FlatMapAction(a: SuccessAction[Option[VastaanottoRecord]], _, _) => a match {
+    case FlatMapAction(a: SuccessAction[_], f, _) => a match {
       case SuccessAction(None) => Success()
-      case SuccessAction(Some(v)) => dbioToTry(new VastaanotettavuusService(null, null).defaultPriorAcceptanceHandler(v))
+      case SuccessAction(v: Some[_]) => dbioToTry(f(v))
+      case unknown => throw new IllegalArgumentException(s"Don't know how to handle $unknown")
     }
     case FlatMapAction(a: FailureAction, _, _) => dbioToTry(a)
-    case x => throw new IllegalArgumentException(s"Illegal argument $x")
+    case a => throw new IllegalArgumentException(s"Don't know how to handle $a")
   }
 }
