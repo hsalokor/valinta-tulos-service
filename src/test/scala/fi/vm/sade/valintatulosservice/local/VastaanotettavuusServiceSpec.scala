@@ -16,7 +16,6 @@ import org.specs2.runner.JUnitRunner
 import org.specs2.specification.Scope
 import slick.dbio.{DBIO, DBIOAction, FailureAction, FlatMapAction, SuccessAction}
 
-import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
 @RunWith(classOf[JUnitRunner])
@@ -31,11 +30,9 @@ class VastaanotettavuusServiceSpec extends Specification with MockitoMatchers wi
 
         "kun hakijalla yksi aiempi vastaanotto" in new VastaanotettavuusServiceWithMocks with YhdenPaikanSaantoVoimassa {
           hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, kausi) returns DBIOAction.successful(Some(previousVastaanottoRecord))
-          private val vastaanotot = v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid)
-          dbioToTry(vastaanotot) must beFailedTry.withThrowable[PriorAcceptanceException]
+          dbioToTry(v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid)) must beFailedTry.withThrowable[PriorAcceptanceException]
         }
         "kun hakijalla ei aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with YhdenPaikanSaantoVoimassa {
-          returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
           hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, kausi) returns DBIOAction.successful(None)
           dbioToTry(v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid)) must beSuccessfulTry
         }
@@ -43,19 +40,16 @@ class VastaanotettavuusServiceSpec extends Specification with MockitoMatchers wi
 
       "kun yhden paikan sääntö ei voimassa" in {
         "kun hakijalla useita aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
-          returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
           hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns DBIOAction.failed(new RuntimeException("test msg"))
           dbioToTry(v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid)) must beFailedTry.withThrowable[RuntimeException]
           there was no(hakijaVastaanottoRepository).findYhdenPaikanSaannonPiirissaOlevatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
         "kun hakijalla yksi aiempi vastaanotto" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
-          returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
           hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns DBIOAction.successful(Some(previousVastaanottoRecord))
           dbioToTry(v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid)) must beFailedTry.withThrowable[PriorAcceptanceException]
           there was no(hakijaVastaanottoRepository).findYhdenPaikanSaannonPiirissaOlevatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
         }
         "kun hakijalla ei aiempia vastaanottoja" in new VastaanotettavuusServiceWithMocks with IlmanYhdenPaikanSaantoa {
-          returnRunBlockingResult[Option[VastaanottoRecord]](hakijaVastaanottoRepository)
           hakijaVastaanottoRepository.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohde.oid) returns DBIOAction.successful(None)
           dbioToTry(v.tarkistaAiemmatVastaanotot(henkiloOid, hakukohde.oid)) must beSuccessfulTry
           there was no(hakijaVastaanottoRepository).findYhdenPaikanSaannonPiirissaOlevatVastaanotot(Matchers.any[String], Matchers.any[Kausi])
@@ -105,18 +99,6 @@ class VastaanotettavuusServiceSpec extends Specification with MockitoMatchers wi
     val hakukohdeRecordService = mock[HakukohdeRecordService]
     val hakijaVastaanottoRepository = mock[HakijaVastaanottoRepository]
     val v = new VastaanotettavuusService(hakukohdeRecordService, hakijaVastaanottoRepository)
-  }
-
-  private def returnRunBlockingResult[T](hakijaVastaanottoRepository: HakijaVastaanottoRepository): T = {
-    hakijaVastaanottoRepository.runBlocking[T](any[DBIO[T]], any[Duration]).answers { (params, mock) =>
-      params match {
-        case Array(action, _) => action match {
-          case SuccessAction(v) => v.asInstanceOf[T]
-          case FailureAction(t) => throw t
-        }
-        case x => throw new IllegalArgumentException(s"Broken arguments: $x")
-      }
-    }
   }
 
   private def dbioToTry[T](dbio: DBIO[T]): Try[Any] = dbio match {
