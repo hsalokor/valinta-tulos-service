@@ -213,6 +213,10 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
 
         HakuFixtures.useFixture("korkeakoulu-lisahaku1", List(HakuFixtures.korkeakouluLisahaku1))
         val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
+        lisaHaunTulos.hakutoiveet.foreach(t => {
+          t.vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
+          t.valintatila must_== Valintatila.peruuntunut
+        })
         lisaHaunTulos.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
         lisaHaunTulos.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
       }
