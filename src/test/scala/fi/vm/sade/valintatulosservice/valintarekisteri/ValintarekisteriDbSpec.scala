@@ -155,6 +155,61 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
         singleConnectionValintarekisteriDb.storeHakukohde(HakukohdeRecord("1.2.3", "2.3.4", true, true, Syksy(2016)))
       })), Duration(60, TimeUnit.SECONDS)) must not(throwAn[Exception])
     }
+
+    "find hakukohteen vastaanotot" in {
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOidForHakuOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid, "testiselite"))
+      val vastaanotot = singleConnectionValintarekisteriDb.findHakukohteenVastaanotot(hakukohdeOid)
+      vastaanotot must have size 2
+      val a = vastaanotot.find(_.henkiloOid == henkiloOid).get
+      a.henkiloOid mustEqual henkiloOid
+      a.hakuOid mustEqual hakuOid
+      a.hakukohdeOid mustEqual hakukohdeOid
+      a.action mustEqual VastaanotaSitovasti
+      a.ilmoittaja mustEqual henkiloOid
+      a.timestamp.before(new Date()) must beTrue
+      val b = vastaanotot.find(_.henkiloOid == henkiloOid + "2").get
+      b.henkiloOid mustEqual henkiloOid + "2"
+      b.hakuOid mustEqual hakuOid
+      b.hakukohdeOid mustEqual hakukohdeOid
+      b.action mustEqual VastaanotaEhdollisesti
+      b.ilmoittaja mustEqual henkiloOid
+      b.timestamp.before(new Date()) must beTrue
+    }
+
+    "find haun vastaanotot" in {
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOidForHakuOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid, "testiselite"))
+      val vastaanotot = singleConnectionValintarekisteriDb.findHaunVastaanotot(hakuOid)
+      vastaanotot must have size 3
+      val a = vastaanotot.find(v => v.henkiloOid == henkiloOid && v.hakukohdeOid == hakukohdeOid).get
+      a.henkiloOid mustEqual henkiloOid
+      a.hakuOid mustEqual hakuOid
+      a.hakukohdeOid mustEqual hakukohdeOid
+      a.action mustEqual VastaanotaSitovasti
+      a.ilmoittaja mustEqual henkiloOid
+      a.timestamp.before(new Date()) must beTrue
+      val b = vastaanotot.find(_.henkiloOid == henkiloOid + "2").get
+      b.henkiloOid mustEqual henkiloOid + "2"
+      b.hakuOid mustEqual hakuOid
+      b.hakukohdeOid mustEqual hakukohdeOid
+      b.action mustEqual VastaanotaEhdollisesti
+      b.ilmoittaja mustEqual henkiloOid
+      b.timestamp.before(new Date()) must beTrue
+      val c = vastaanotot.find(v => v.henkiloOid == henkiloOid && v.hakukohdeOid == otherHakukohdeOidForHakuOid).get
+      c.henkiloOid mustEqual henkiloOid
+      c.hakuOid mustEqual hakuOid
+      c.hakukohdeOid mustEqual otherHakukohdeOidForHakuOid
+      c.action mustEqual VastaanotaSitovasti
+      c.ilmoittaja mustEqual henkiloOid
+      c.timestamp.before(new Date()) must beTrue
+    }
   }
 
   override protected def before: Unit = ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)

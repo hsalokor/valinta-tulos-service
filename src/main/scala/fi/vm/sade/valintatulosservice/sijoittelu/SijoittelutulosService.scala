@@ -31,10 +31,11 @@ class SijoittelutulosService(raportointiService: RaportointiService,
   def hakemustenTulos(hakuOid: String,
                       hakukohdeOid: Option[String] = None,
                       hakijaOidsByHakemusOids: Map[String, String],
-                      hakukohteenVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None): List[HakemuksenSijoitteluntulos] = {
-    def fetchVastaanottos(h: HakijaDTO): Set[VastaanottoRecord] = hakijaOidsByHakemusOids.get(h.getHakemusOid) match {
-      case Some(hakijaOid) => hakukohteenVastaanotot.flatMap(_.get(hakijaOid)).getOrElse(fetchVastaanotto(hakijaOid, hakuOid))
-      case None => Set()
+                      haunVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None): List[HakemuksenSijoitteluntulos] = {
+    def fetchVastaanottos(h: HakijaDTO): Set[VastaanottoRecord] = ( hakijaOidsByHakemusOids.get(h.getHakemusOid), haunVastaanotot ) match {
+      case ( Some(hakijaOid), Some(vastaanotot) ) => vastaanotot.getOrElse(hakijaOid, Set())
+      case ( Some(hakijaOid), None ) => fetchVastaanotto(hakijaOid, hakuOid)
+      case ( None, _ ) => Set()
     }
 
     val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)

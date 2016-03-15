@@ -39,9 +39,9 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       .map(_.toList).getOrElse(List.empty)
   }
 
-  def hakemustenTulosByHaku(hakuOid: String): Option[Iterator[Hakemuksentulos]] = {
+  def hakemustenTulosByHaku(hakuOid: String, haunVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
-      fetchTulokset(hakuOid, () => hakemusRepository.findHakemukset(hakuOid), (haku,  hakijaOidsByHakemusOids) => sijoittelutulosService.hakemustenTulos(hakuOid, hakijaOidsByHakemusOids = hakijaOidsByHakemusOids))
+      fetchTulokset(hakuOid, () => hakemusRepository.findHakemukset(hakuOid), (haku,  hakijaOidsByHakemusOids) => sijoittelutulosService.hakemustenTulos(hakuOid, hakijaOidsByHakemusOids = hakijaOidsByHakemusOids, haunVastaanotot = haunVastaanotot))
     )
   }
 
@@ -52,19 +52,20 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   }
 
   def findValintaTuloksetForVirkailija(hakuOid: String): util.List[Valintatulos] = {
-    val hakemustenTulokset = hakemustenTulosByHaku(hakuOid).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid ${hakuOid}"))
+    val haunVastaanotot = virkailijaVastaanottoRepository.findHaunVastaanotot(hakuOid).groupBy(_.henkiloOid)
+    val hakemustenTulokset = hakemustenTulosByHaku(hakuOid, Some(haunVastaanotot)).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid ${hakuOid}"))
     val valintatulokset = valintatulosDao.loadValintatulokset(hakuOid)
 
-    setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset), Map())
+    setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset), haunVastaanotot)
     valintatulokset
   }
 
   def findValintaTuloksetForVirkailija(hakuOid: String, hakukohdeOid: String): util.List[Valintatulos] = {
-    val hakukohteenVastaanotot = virkailijaVastaanottoRepository.findHakukohteenVastaanotot(hakukohdeOid).groupBy(_.henkiloOid)
-    val hakemustenTulokset = hakemustenTulosByHakukohde(hakuOid, hakukohdeOid, Some(hakukohteenVastaanotot)).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid ${hakuOid}"))
+    val haunVastaanotot = virkailijaVastaanottoRepository.findHaunVastaanotot(hakuOid).groupBy(_.henkiloOid)
+    val hakemustenTulokset = hakemustenTulosByHakukohde(hakuOid, hakukohdeOid, Some(haunVastaanotot)).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid ${hakuOid}"))
     val valintatulokset: util.List[Valintatulos] = valintatulosDao.loadValintatuloksetForHakukohde(hakukohdeOid)
 
-    setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset), hakukohteenVastaanotot)
+    setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset), haunVastaanotot)
     valintatulokset
   }
 
@@ -75,11 +76,11 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   private def setValintatuloksetTilat(hakuOid:String,
                                       valintatulokset: Seq[Valintatulos],
                                       hakemustenTulokset: Map[String,Hakemuksentulos],
-                                      hakukohteenVastaanotot: Map[String,Set[VastaanottoRecord]] ): Unit = {
+                                      haunVastaanotot: Map[String,Set[VastaanottoRecord]] ): Unit = {
     valintatulokset.foreach(valintaTulos => {
-      hakemustenTulokset.get(valintaTulos.getHakemusOid).foreach(hakemuksenTulos => { // TODO is hakemus person + haku specific?
+      hakemustenTulokset.get(valintaTulos.getHakemusOid).foreach(hakemuksenTulos => {
         hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid).foreach(hakutoiveenTulos => {
-          valintaTulos.setTila(getValintatuloksenTila(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString), hakemuksenTulos, hakukohteenVastaanotot, hakutoiveenTulos), "")
+          valintaTulos.setTila(getValintatuloksenTila(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString), hakemuksenTulos, haunVastaanotot, hakutoiveenTulos), "")
         })
       })
     })
@@ -87,10 +88,10 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   private def getValintatuloksenTila(valintatuloksenTila: ValintatuloksenTila,
                                      hakemuksenTulos: Hakemuksentulos,
-                                     hakukohteenVastaanotot:Map[String,Set[VastaanottoRecord]],
+                                     haunVastaanotot:Map[String,Set[VastaanottoRecord]],
                                      hakutoiveenTulos:Hakutoiveentulos): ValintatuloksenTila = {
     if(valintatuloksenTila == ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA) {
-      if(hakukohteenVastaanotot.get(hakemuksenTulos.hakijaOid).exists(x => x.exists(r => r.hakukohdeOid == hakutoiveenTulos.hakukohdeOid && r.action == MerkitseMyohastyneeksi ))) {
+      if(haunVastaanotot.get(hakemuksenTulos.hakijaOid).exists(x => x.exists(r => r.hakukohdeOid == hakutoiveenTulos.hakukohdeOid && r.action == MerkitseMyohastyneeksi ))) {
         ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
       } else {
         ValintatuloksenTila.KESKEN

@@ -337,11 +337,13 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture, ohjausparametritFixture = "vastaanotto-loppunut")
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
           getHakutoiveenValintatulos("1.2.246.562.5.72607738902").getTila must_== ValintatuloksenTila.KESKEN
+          getHakutoiveenValintatulos("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.72607738902").getTila must_== ValintatuloksenTila.KESKEN
         }
         "virkailija merkinnyt myöhästyneeksi" in {
           useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture, ohjausparametritFixture = "vastaanotto-loppunut")
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
           getHakutoiveenValintatulos("1.2.246.562.5.16303028779").getTila must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          getHakutoiveenValintatulos("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.16303028779").getTila must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
         }
       }
     }
@@ -368,6 +370,11 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
   def getHakutoiveenValintatulos(hakukohdeOid: String): Valintatulos = {
     import scala.collection.JavaConverters._
     valintatulosService.findValintaTuloksetForVirkailija(hakuOid, hakukohdeOid).asScala.find(_.getHakemusOid == hakemusOid).get
+  }
+
+  def getHakutoiveenValintatulos(hakuOid: String, hakukohdeOid: String): Valintatulos = {
+    import scala.collection.JavaConverters._
+    valintatulosService.findValintaTuloksetForVirkailija(hakuOid).asScala.find(_.getHakukohdeOid == hakukohdeOid).get
   }
 
   def checkHakutoiveState(hakuToive: Hakutoiveentulos, expectedTila: Valintatila, vastaanottoTila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean) = {
