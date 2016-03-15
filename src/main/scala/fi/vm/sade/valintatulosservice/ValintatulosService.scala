@@ -81,11 +81,18 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       hakemustenTulokset.get(valintaTulos.getHakemusOid).foreach(hakemuksenTulos => {
         hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid).foreach(hakutoiveenTulos => {
           valintaTulos.setTila(getValintatuloksenTila(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString), hakemuksenTulos, haunVastaanotot, hakutoiveenTulos), "")
+          assertThatHakijaOidsDoNotConflict(valintaTulos, hakemuksenTulos)
           valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
           valintaTulos.setTilaHakijalle(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString))
         })
       })
     })
+  }
+
+  private def assertThatHakijaOidsDoNotConflict(valintaTulos: Valintatulos, hakemuksenTulos: Hakemuksentulos): Unit = {
+    if (valintaTulos.getHakijaOid != null && !valintaTulos.getHakijaOid.equals(hakemuksenTulos.hakijaOid)) {
+      throw new IllegalStateException(s"Conflicting hakija oids: valintaTulos: ${valintaTulos.getHakijaOid} vs hakemuksenTulos: ${hakemuksenTulos.hakijaOid} in $valintaTulos , $hakemuksenTulos")
+    }
   }
 
   private def getValintatuloksenTila(valintatuloksenTila: ValintatuloksenTila,
