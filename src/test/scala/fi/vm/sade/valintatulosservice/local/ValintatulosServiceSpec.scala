@@ -336,14 +336,22 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
         "virkailija ei merkinnyt myöhästyneeksi" in {
           useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture, ohjausparametritFixture = "vastaanotto-loppunut")
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-          getHakutoiveenValintatulos("1.2.246.562.5.72607738902").getTila must_== ValintatuloksenTila.KESKEN
-          getHakutoiveenValintatulos("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.72607738902").getTila must_== ValintatuloksenTila.KESKEN
+          val valintatulos1 = getHakutoiveenValintatulos("1.2.246.562.5.72607738902")
+          valintatulos1.getTila must_== ValintatuloksenTila.KESKEN
+          valintatulos1.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          val valintatulos2 = getHakutoiveenValintatulos("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.72607738902")
+          valintatulos2.getTila must_== ValintatuloksenTila.KESKEN
+          valintatulos2.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
         }
         "virkailija merkinnyt myöhästyneeksi" in {
           useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture, ohjausparametritFixture = "vastaanotto-loppunut")
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-          getHakutoiveenValintatulos("1.2.246.562.5.16303028779").getTila must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
-          getHakutoiveenValintatulos("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.16303028779").getTila must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          val valintatulos1 = getHakutoiveenValintatulos("1.2.246.562.5.16303028779")
+          valintatulos1.getTila must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          valintatulos1.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          val valintatulos2 = getHakutoiveenValintatulos("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.16303028779")
+          valintatulos2.getTila must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          valintatulos2.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
         }
       }
     }
