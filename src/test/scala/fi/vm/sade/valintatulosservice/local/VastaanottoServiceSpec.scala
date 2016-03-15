@@ -518,7 +518,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
     }
   }
-  "vastaanotaVirkailijanaInTrasaction" in {
+  "vastaanotaVirkailijanaInTransaction" in {
     "älä vastaanota sitovasti hakijaa, kun toinen vastaanotto ei onnistu" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
       vastaanotaVirkailijanaTransaktiossa(List(
