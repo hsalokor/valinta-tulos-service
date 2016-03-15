@@ -81,6 +81,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       hakemustenTulokset.get(valintaTulos.getHakemusOid).foreach(hakemuksenTulos => {
         hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid).foreach(hakutoiveenTulos => {
           valintaTulos.setTila(getValintatuloksenTila(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString), hakemuksenTulos, haunVastaanotot, hakutoiveenTulos), "")
+          valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
           valintaTulos.setTilaHakijalle(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString))
         })
       })
