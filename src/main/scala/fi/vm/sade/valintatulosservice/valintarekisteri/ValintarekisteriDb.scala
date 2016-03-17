@@ -1,5 +1,7 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
+import java.security.Timestamp
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
@@ -141,6 +143,12 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
         vastaanottoRecords.headOption
       }
     })
+  }
+
+  override def store(vastaanottoEvent: VastaanottoEvent, vastaanottoDate: Date) = {
+    val VastaanottoEvent(henkiloOid, _, hakukohdeOid, action, ilmoittaja, selite) = vastaanottoEvent
+    runBlocking(sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, selite, timestamp)
+              values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite, ${new java.sql.Timestamp(vastaanottoDate.getTime)})""")
   }
 
   override def store(vastaanottoEvents: List[VastaanottoEvent], postCondition: DBIOAction[Any, NoStream, All]): Unit = {

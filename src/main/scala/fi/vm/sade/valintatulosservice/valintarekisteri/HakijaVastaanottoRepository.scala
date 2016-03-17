@@ -4,6 +4,7 @@ import fi.vm.sade.valintatulosservice.domain.Kausi
 import slick.dbio.Effect.All
 import slick.dbio.{DBIOAction, Effect, NoStream}
 import slick.driver.PostgresDriver.backend.Database
+import java.util.Date
 
 trait HakijaVastaanottoRepository extends VastaanottoRepository {
   val db: Database
@@ -12,4 +13,5 @@ trait HakijaVastaanottoRepository extends VastaanottoRepository {
   def findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid: String, koulutuksenAlkamiskausi: Kausi): DBIOAction[Option[VastaanottoRecord], NoStream, Effect]
   def store(vastaanottoEvent: VastaanottoEvent): Unit
   def store(vastaanottoEvents: List[VastaanottoEvent], postCondition: DBIOAction[Any, NoStream, All]): Unit
+  def store(vastaanottoEvent: VastaanottoEvent, vastaanottoDate: Date): Unit
 }
