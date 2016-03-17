@@ -334,6 +334,25 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
         }
       }
 
+      "vastaanota varsinaisessa haussa, kun lisähaussa hylätty -> lisähaun paikka näkyy edelleen hylättynä" in {
+        useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-hylatty.json"), hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+
+        HakuFixtures.useFixture("korkeakoulu-lisahaku1", List(HakuFixtures.korkeakouluLisahaku1))
+        hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230").hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
+
+        HakuFixtures.useFixture("korkeakoulu-yhteishaku")
+        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
+
+        HakuFixtures.useFixture("korkeakoulu-lisahaku1", List(HakuFixtures.korkeakouluLisahaku1))
+        val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
+        lisaHaunTulos.hakutoiveet.foreach(t => {
+          t.vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
+          t.valintatila must_== Valintatila.hylätty
+        })
+        lisaHaunTulos.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
+        lisaHaunTulos.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
+      }
+
     }
 
     "vastaanota ehdollisesti kun varasijasäännöt eivät ole vielä voimassa" in {

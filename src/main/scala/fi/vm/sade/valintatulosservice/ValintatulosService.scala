@@ -6,6 +6,7 @@ import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.utils.Timer.timed
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.domain.Valintatila.isHyväksytty
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
@@ -15,7 +16,6 @@ import fi.vm.sade.valintatulosservice.valintarekisteri.{VastaanottoRecord, Virka
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
-import scala.util.Try
 
 private object HakemustenTulosHakuLock
 
@@ -158,7 +158,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     def ottanutVastaanToisenPaikan(tulos: Hakutoiveentulos): Hakutoiveentulos = {
       tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa,
         vastaanottotila = Vastaanottotila.ottanut_vastaan_toisen_paikan,
-        valintatila = if (tulos.julkaistavissa) Valintatila.peruuntunut else tulos.valintatila)
+        valintatila = if (tulos.julkaistavissa && (isHyväksytty(tulos.valintatila) || tulos.valintatila == Valintatila.varalla)) Valintatila.peruuntunut else tulos.valintatila)
     }
     def aiempiVastaanotto(hakukohdeOid: String): Boolean = try {
       virkailijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, hakukohdeOid))
@@ -185,7 +185,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
 
       tulokset.zipWithIndex.map {
-        case (tulos, index) if Valintatila.isHyväksytty(tulos.valintatila) && tulos.vastaanottotila == Vastaanottotila.kesken =>
+        case (tulos, index) if isHyväksytty(tulos.valintatila) && tulos.vastaanottotila == Vastaanottotila.kesken =>
           if (firstVastaanotettu >= 0 && index != firstVastaanotettu)
             // Peru vastaanotettua paikkaa alemmat hyväksytyt hakutoiveet
             tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
@@ -231,7 +231,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   private def peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     if (haku.käyttääSijoittelua) {
       val firstFinished = tulokset.indexWhere { t =>
-        Valintatila.isHyväksytty(t.valintatila) || List(Valintatila.perunut, Valintatila.peruutettu, Valintatila.peruuntunut).contains(t.valintatila)
+        isHyväksytty(t.valintatila) || List(Valintatila.perunut, Valintatila.peruutettu, Valintatila.peruuntunut).contains(t.valintatila)
       }
 
       tulokset.zipWithIndex.map {
