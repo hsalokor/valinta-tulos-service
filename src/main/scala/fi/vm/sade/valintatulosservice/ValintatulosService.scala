@@ -158,7 +158,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     def ottanutVastaanToisenPaikan(tulos: Hakutoiveentulos): Hakutoiveentulos = {
       tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa,
         vastaanottotila = Vastaanottotila.ottanut_vastaan_toisen_paikan,
-        valintatila = Valintatila.peruuntunut)
+        valintatila = if (tulos.julkaistavissa) Valintatila.peruuntunut else tulos.valintatila)
     }
     def aiempiVastaanotto(hakukohdeOid: String): Boolean = try {
       virkailijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, hakukohdeOid))
