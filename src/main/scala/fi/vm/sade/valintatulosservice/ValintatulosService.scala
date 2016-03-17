@@ -160,8 +160,11 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         vastaanottotila = Vastaanottotila.ottanut_vastaan_toisen_paikan,
         valintatila = Valintatila.peruuntunut)
     }
-    def aiempiVastaanotto(hakukohdeOid: String): Boolean = {
-      Try { virkailijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, hakukohdeOid)) }.isFailure
+    def aiempiVastaanotto(hakukohdeOid: String): Boolean = try {
+      virkailijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, hakukohdeOid))
+      false
+    } catch {
+      case t: PriorAcceptanceException => true
     }
     val vastaanottoTallaHakemuksella = tulokset.exists(x => Set(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(x.vastaanottotila))
     if (vastaanottoTallaHakemuksella) {
