@@ -24,6 +24,8 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
   override protected def applicationDescription: String = "Vanhojen vastaanottojen migraatio REST API"
 
   private val mongoConfig = appConfig.settings.valintatulosMongoConfig
+  private val morphia: Datastore = appConfig.sijoitteluContext.morphiaDs
+  private val valintatulosMongoCollection = MongoFactory.createDB(mongoConfig)("Valintatulos")
 
   private type HakuOid = String
   private type HakijaOid = String
@@ -39,7 +41,6 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
   }
 
   private def haeHakukohdeOidit: Iterable[String] = {
-    val morphia: Datastore = appConfig.sijoitteluContext.morphiaDs
     morphia.getCollection(classOf[Valintatulos]).distinct("hakukohdeOid").asScala collect { case s:String => s }
   }
 
@@ -108,14 +109,12 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
   }
 
   private def findValintatulokset: List[MigraatioValintatulos] = {
-    val valintatulos = MongoFactory.createDB(mongoConfig)("Valintatulos")
-
     val query = Map("$and" -> List(
       Map("tila" -> Map("$ne" -> ValintatuloksenTila.KESKEN.toString)),
       Map("tila" -> Map("$ne" -> "ILMOITETTU"))
     ))
 
-    valintatulos.find(query).toList.map(o => {
+    valintatulosMongoCollection.find(query).toList.map(o => {
       MigraatioValintatulos(
         o.get("hakuOid").asInstanceOf[String],
         o.get("hakijaOid").asInstanceOf[String],
