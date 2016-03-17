@@ -6,7 +6,7 @@ import com.mongodb.casbah.Imports._
 import fi.vm.sade.sijoittelu.domain.{Valintatulos, ValintatuloksenTila}
 import fi.vm.sade.valintatulosservice.VtsServletBase
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.{Vastaanottotila, VirkailijanVastaanotto, VirkailijanVastaanottoAction}
+import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, HakukohdeRecordService}
 import org.mongodb.morphia.Datastore
@@ -79,7 +79,7 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, hakijaVas
       resolveHakijaOid(valintatulos),
       valintatulos.hakemusOid,
       valintatulos.hakukohdeOid,
-      VirkailijanVastaanottoAction.getVirkailijanVastaanottoAction(Vastaanottotila.withName(valintatulos.tila)),
+      convertLegacyTilaToAction(valintatulos.tila),
       muokkaaja,
       selite), luotu)
   }
@@ -102,7 +102,10 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, hakijaVas
   private def findValintatulokset: List[MigraatioValintatulos] = {
     val valintatulos = MongoFactory.createDB(mongoConfig)("Valintatulos")
 
-    val query = Map("tila" -> Map("$ne" -> ValintatuloksenTila.KESKEN.toString))
+    val query = Map("$and" -> List(
+      Map("tila" -> Map("$ne" -> ValintatuloksenTila.KESKEN.toString)),
+      Map("tila" -> Map("$ne" -> "ILMOITETTU"))
+    ))
 
     valintatulos.find(query).toList.map(o => {
       MigraatioValintatulos(
@@ -123,17 +126,16 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, hakijaVas
   case class MigraatioValintatulos(hakijaOid:String, hakemusOid:String, hakukohdeOid:String, tila:String, logEntries:List[MigraatioLogEntry])
   case class MigraatioLogEntry(muutos:String, muokkaaja:String, selite:String, luotu:Date)
 
+  def convertLegacyTilaToAction(legacyTila: String):VirkailijanVastaanottoAction = legacyTila match {
+    case "VASTAANOTTANUT_SITOVASTI" => VastaanotaSitovasti
+    case "VASTAANOTTANUT" => VastaanotaSitovasti
+    case "VASTAANOTTANUT_LASNA" =>  VastaanotaSitovasti
+    case "VASTAANOTTANUT_POISSAOLEVA" => VastaanotaSitovasti
+    case "EHDOLLISESTI_VASTAANOTTANUT" => VastaanotaEhdollisesti
+    case "EI_VASTAANOTETTU_MAARA_AIKANA" => MerkitseMyohastyneeksi
+    case "PERUNUT" => Peru
+    case "PERUUTETTU" => Peruuta
+    case x => throw new UnsupportedOperationException(s"Tuntematon tila valintatulos-objektissa: ${x}")
+  }
 }
-/*
-public enum MigraatioValintatuloksenTila {
-  ILMOITETTU,                    // Hakijalle on ilmoitettu, sijoittelun tulos ei voi muuttaa paikkaa peruuntuneeksi
-  VASTAANOTTANUT,
-  VASTAANOTTANUT_LASNA,          // Hakija ottanut paikan vastaan ja on lasna
-  VASTAANOTTANUT_POISSAOLEVA,    // Hakija ottanut paikan vastaan ja ilmoittautunut poissaolevaksi
-  EI_VASTAANOTETTU_MAARA_AIKANA, // Hakija ei ole ilmoittanut paikkaa vastaanotetuksi maaraaikana ja on nain ollen hylatty
-  PERUNUT,                       // Hakija ei ota paikkaa vastaan
-  PERUUTETTU,                    // Hakijan tila on peruutettu
-  EHDOLLISESTI_VASTAANOTTANUT,    // Ehdollisesti vastaanottanut
-  VASTAANOTTANUT_SITOVASTI,       // Sitovasti vastaanottanut, kk-tila
-  KESKEN
-}*/
+
