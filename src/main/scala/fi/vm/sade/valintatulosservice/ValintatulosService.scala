@@ -156,9 +156,22 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   private def asetaVastaanotettavuusValintarekisterinPerusteella(henkiloOid: String)(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     def ottanutVastaanToisenPaikan(tulos: Hakutoiveentulos): Hakutoiveentulos = {
-      tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa,
-        vastaanottotila = Vastaanottotila.ottanut_vastaan_toisen_paikan,
-        valintatila = if (tulos.julkaistavissa && (isHyväksytty(tulos.valintatila) || tulos.valintatila == Valintatila.varalla)) Valintatila.peruuntunut else tulos.valintatila)
+      val t = tulos.copy(
+        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa,
+        vastaanottotila = Vastaanottotila.ottanut_vastaan_toisen_paikan
+      )
+      if (tulos.julkaistavissa && (isHyväksytty(tulos.valintatila) || tulos.valintatila == Valintatila.varalla)) {
+        t.copy(
+          valintatila = Valintatila.peruuntunut,
+          tilanKuvaukset = Map(
+            "FI" -> "Peruuntunut, ottanut vastaan toisen opiskelupaikan yhden paikan säännön piirissä",
+            "SV" -> "Annullerad, ottanut vastaan toisen opiskelupaikan yhden paikan säännön piirissä",
+            "EN" -> "Cancelled, ottanut vastaan toisen opiskelupaikan yhden paikan säännön piirissä"
+          )
+        )
+      } else {
+        t
+      }
     }
     def aiempiVastaanotto(hakukohdeOid: String): Boolean = try {
       virkailijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, hakukohdeOid))
