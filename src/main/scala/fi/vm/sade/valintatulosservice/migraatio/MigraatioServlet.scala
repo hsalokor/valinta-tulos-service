@@ -115,7 +115,7 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
       resolveHakijaOid(valintatulos),
       valintatulos.hakemusOid,
       valintatulos.hakukohdeOid,
-      convertLegacyTilaToAction(valintatulos.tila),
+      convertLegacyTilaToAction(valintatulos),
       muokkaaja,
       selite), luotu)
   }
@@ -163,7 +163,7 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
                                    valintatapajonoOid: String, logEntries: List[MigraatioLogEntry])
   case class MigraatioLogEntry(muutos:String, muokkaaja:String, selite:String, luotu:Date)
 
-  def convertLegacyTilaToAction(legacyTila: String):VirkailijanVastaanottoAction = legacyTila match {
+  def convertLegacyTilaToAction(valintatulos: MigraatioValintatulos): VirkailijanVastaanottoAction = valintatulos.tila match {
     case "VASTAANOTTANUT_SITOVASTI" => VastaanotaSitovasti
     case "VASTAANOTTANUT" => VastaanotaSitovasti
     case "VASTAANOTTANUT_LASNA" =>  VastaanotaSitovasti
@@ -172,7 +172,7 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     case "EI_VASTAANOTETTU_MAARA_AIKANA" => MerkitseMyohastyneeksi
     case "PERUNUT" => Peru
     case "PERUUTETTU" => Peruuta
-    case x => throw new UnsupportedOperationException(s"Tuntematon tila valintatulos-objektissa: ${x}")
+    case x => throw new UnsupportedOperationException(s"Tuntematon tila valintatulos-objektissa: $x , valintatulos: $valintatulos")
   }
 
   private def vastaanottoForHakijaAndHakukohdeExists(hakuOid: HakuOid, hakijaOid: HakijaOid, hakukohdeOid: HakukohdeOid): Boolean = {
