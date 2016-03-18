@@ -124,7 +124,6 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
 
       if (!vastaanottoForHakijaAndHakukohdeExists(valintatulos.hakuOid, valintatulos.hakijaOid, valintatulos.hakukohdeOid)) {
         val (vastaanotto, luotu) = createVirkailijanVastaanotto(valintatulos)
-        println(s"Saving $vastaanotto")
         try {
           valintarekisteriDb.store(vastaanotto, luotu)
         } catch {
@@ -133,7 +132,6 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
         addToExistingVastaanottosCache(valintatulos, vastaanotto)
         Some(vastaanotto)
       } else {
-        println(s"Skipped existing ${valintatulos.hakemusOid}")
         None
       }
 
