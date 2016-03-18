@@ -137,6 +137,7 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
 
   private def findValintatulokset: List[MigraatioValintatulos] = {
     val query = Map("$and" -> List(
+      Map("tila" -> Map("$exists" -> true)),
       Map("tila" -> Map("$ne" -> ValintatuloksenTila.KESKEN.toString)),
       Map("tila" -> Map("$ne" -> "ILMOITETTU"))
     ))
