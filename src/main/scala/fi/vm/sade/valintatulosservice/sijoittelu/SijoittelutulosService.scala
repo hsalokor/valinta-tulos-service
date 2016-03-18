@@ -56,7 +56,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
 
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val vastaanotto = vastaanottoRecord.find(v => v.hakukohdeOid == hakutoive.getHakukohdeOid).map(_.action)
-      val jono: HakutoiveenValintatapajonoDTO = merkitseväJono(hakutoive).get
+      val jono: HakutoiveenValintatapajonoDTO = JonoFinder.merkitseväJono(hakutoive).get
       var valintatila: Valintatila = jononValintatila(jono, hakutoive)
       val viimeisinHakemuksenTilanMuutos: Option[Date] = Option(jono.getHakemuksenTilanViimeisinMuutos)
       val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos)
@@ -175,26 +175,6 @@ class SijoittelutulosService(raportointiService: RaportointiService,
   private def ifNull[T](value: T, defaultValue: T): T = {
     if (value == null) defaultValue
     else value
-  }
-
-  private def merkitseväJono(hakutoive: HakutoiveDTO): Option[HakutoiveenValintatapajonoDTO] = {
-    val ordering = Ordering.fromLessThan{ (jono1: HakutoiveenValintatapajonoDTO, jono2: HakutoiveenValintatapajonoDTO) =>
-      val tila1 = fromHakemuksenTila(jono1.getTila)
-      val tila2 = fromHakemuksenTila(jono2.getTila)
-      if (tila1 == Valintatila.varalla && tila2 == Valintatila.varalla) {
-        jono1.getVarasijanNumero < jono2.getVarasijanNumero
-      } else {
-        tila1.compareTo(tila2) < 0
-      }
-    }
-
-    val orderedJonot: List[HakutoiveenValintatapajonoDTO] = hakutoive.getHakutoiveenValintatapajonot.toList.sorted(ordering)
-    val headOption: Option[HakutoiveenValintatapajonoDTO] = orderedJonot.headOption
-    headOption.map(jono => {
-      val tila: Valintatila = fromHakemuksenTila(jono.getTila)
-      if (tila.equals(Valintatila.hylätty)) jono.setTilanKuvaukset(orderedJonot.last.getTilanKuvaukset)
-      jono
-    })
   }
 
   def fromOptional[T](opt: Optional[T]) = {
