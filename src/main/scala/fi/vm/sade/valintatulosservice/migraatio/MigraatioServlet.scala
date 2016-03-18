@@ -109,7 +109,7 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
 
   def findMerkitsevaValintatulos(hakemusOid: String, hakukohdeOid: HakukohdeOid,
                                  kaikkiHakemuksenEiKeskenValintatulokset: List[MigraatioValintatulos]): MigraatioValintatulos = {
-    val tuloksetHakijaOidienKanssa: List[MigraatioValintatulos] = kaikkiHakemuksenEiKeskenValintatulokset.map(m => m.copy(hakijaOid = resolveHakijaOid(m)))
+    val tuloksetHakijaOidienKanssa: List[MigraatioValintatulos] = kaikkiHakemuksenEiKeskenValintatulokset.map(resolveHakijaOidIfMissing)
     val hakuOid = tuloksetHakijaOidienKanssa.head.hakuOid
     val hakijaOid = tuloksetHakijaOidienKanssa.head.hakijaOid
     migraatioSijoittelutulosService.hakemuksenKohteidenMerkitsevatJonot(hakuOid, hakemusOid, hakijaOid).flatMap(_.find(_._1 == hakukohdeOid)).map(_._2) match {
@@ -143,17 +143,12 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     val (muokkaaja, selite, luotu) = resolveIlmoittajaJaSeliteJaLuontipvm(valintatulos)
 
     ( VirkailijanVastaanotto(
-      resolveHakijaOid(valintatulos),
+      resolveHakijaOidIfMissing(valintatulos).hakijaOid,
       valintatulos.hakemusOid,
       valintatulos.hakukohdeOid,
       convertLegacyTilaToAction(valintatulos),
       muokkaaja,
       selite), luotu)
-  }
-
-  private def resolveHakijaOid(valintatulos: MigraatioValintatulos): String = valintatulos.hakijaOid match {
-    case x if null == x || "" == x => throw new UnsupportedOperationException(s"""Hakemuksen ${valintatulos.hakemusOid} valintatuloksella ei ollut hakijaoidia""")
-    case x => x
   }
 
   private def resolveIlmoittajaJaSeliteJaLuontipvm(valintatulos: MigraatioValintatulos): (String, String, Date) = {
