@@ -75,16 +75,31 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     //   -> jos hakijaoid puuttuu myös hakemukselta, skippaa valintatulos
     //4) tallenna vastaanottoAction
 
+    val stopWatch = new StopWatch("Valintatulosten migraatio")
+
+    stopWatch.start("haetaan valintatulokset sijoittelu-mongosta ja ryhmitellään hakemuksittain ja hakukohteittain")
+    logger.info("Aloitetaan valintatulosten migraatio: haetaan valintatulokset sijoittelusta")
     val valintatuloksetByHakemusJaHakukohde = findValintatulokset.groupBy(vt => (vt.hakemusOid, vt.hakukohdeOid))
+    stopWatch.stop()
+    logger.info(s"Löytyi ${valintatuloksetByHakemusJaHakukohde.size} hakemuksen valintatulosta")
     val (yksiValintatulosPerHakukohde, montaValintatulostaPerHakukohde) = valintatuloksetByHakemusJaHakukohde.partition(_._2.size == 1)
 
+    stopWatch.start("haetaan merkitsevat valintatulokset useamman jonon tapauksista")
+    logger.info(s"haetaan merkitsevat valintatulokset useamman jonon tapauksista, joita on ${montaValintatulostaPerHakukohde.size}")
     val merkitsevatValintatuloksetUseammanJononTapauksista = montaValintatulostaPerHakukohde.map(poimiMerkitseva)
+    stopWatch.stop()
 
     val tallennettavatValintatulokset = yksiValintatulosPerHakukohde ++ merkitsevatValintatuloksetUseammanJononTapauksista
 
-    Ok(tallennettavatValintatulokset.flatMap { case ((hakemusOid, hakukohdeOid), valintatulokset) =>
+    stopWatch.start("tallennetaan migroidut valintatulokset")
+    logger.info(s"Tallennetaan ${tallennettavatValintatulokset.size} valintatulosta")
+    val tallennetetutHakemusOidit = tallennettavatValintatulokset.flatMap { case ((hakemusOid, hakukohdeOid), valintatulokset) =>
       tallenna(valintatulokset.head)
-    }.map(_.hakemusOid))
+    }.map(_.hakemusOid)
+    stopWatch.stop()
+    logger.info("Valintatulosten migraatio on valmis. Vaiheiden kestot:")
+    stopWatch.prettyPrint()
+    Ok(tallennetetutHakemusOidit)
   }
 
   def poimiMerkitseva(tulokset: ((String, String), List[MigraatioValintatulos])): ((String, String), List[MigraatioValintatulos]) = {
