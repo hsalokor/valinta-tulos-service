@@ -129,7 +129,7 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     val descLogEntries = valintatulos.logEntries.sortWith((a, b) => a.luotu.after(b.luotu))
 
     descLogEntries.find(e => e.muutos.startsWith("tila:") && e.muutos.contains(valintatulos.tila))
-      .orElse(descLogEntries.find(_.muutos.contains(valintatulos.tila))) match {
+      .orElse(descLogEntries.find(e => StringUtils.contains(e.muutos, valintatulos.tila))) match {
         case None => ("järjestelmä", "migraatio", new Date())
         case Some(e) => (e.muokkaaja, e.selite, e.luotu)
     }
