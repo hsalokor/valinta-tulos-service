@@ -125,7 +125,11 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
       if (!vastaanottoForHakijaAndHakukohdeExists(valintatulos.hakuOid, valintatulos.hakijaOid, valintatulos.hakukohdeOid)) {
         val (vastaanotto, luotu) = createVirkailijanVastaanotto(valintatulos)
         println(s"Saving $vastaanotto")
-        valintarekisteriDb.store(vastaanotto, luotu)
+        try {
+          valintarekisteriDb.store(vastaanotto, luotu)
+        } catch {
+          case e: Exception => logger.error(s"Virhe tallennettaessa vastaanottoa $vastaanotto", e)
+        }
         addToExistingVastaanottosCache(valintatulos, vastaanotto)
         Some(vastaanotto)
       } else {
