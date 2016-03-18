@@ -10,7 +10,7 @@ import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeDetailsRetrievalException, HakukohdeRecordService, ValintarekisteriDb}
 import org.apache.commons.lang3.StringUtils
 import org.mongodb.morphia.Datastore
 import org.scalatra.Ok
@@ -40,7 +40,13 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     summary "Migraatio hakukohteille")
   get("/hakukohteet", operation(getMigraatioHakukohteetSwagger)) {
     val hakukohdeOids = haeHakukohdeOidit
-    hakukohdeOids.foreach(hakukohdeRecordService.getHakukohdeRecord)
+    hakukohdeOids.foreach(oid => {
+      try {
+        hakukohdeRecordService.getHakukohdeRecord(oid)
+      } catch {
+        case e: HakukohdeDetailsRetrievalException => logger.warn(s"Ongelma haettaessa hakukohdetta $oid: ${e.getMessage}")
+      }
+    })
     Ok(hakukohdeOids)
   }
 

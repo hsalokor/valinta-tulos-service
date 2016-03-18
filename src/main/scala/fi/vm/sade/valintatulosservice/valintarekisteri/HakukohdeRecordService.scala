@@ -14,7 +14,7 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
 
   private def fetchAndStoreHakukohdeDetails(oid: String): HakukohdeRecord = {
     def withError[T](o: Option[T], errorMessage: String): Try[T] = {
-      Try { o.getOrElse(throw new RuntimeException(errorMessage)) }
+      Try { o.getOrElse(throw new HakukohdeDetailsRetrievalException(errorMessage)) }
     }
     val h = for {
       hakukohde <- withError(hakuService.getHakukohde(oid), s"Could not find hakukohde $oid from tarjonta")
@@ -46,3 +46,5 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
     case Some(x)::rest => sequence(rest).map(x +: _)
   }
 }
+
+case class HakukohdeDetailsRetrievalException(message: String) extends RuntimeException(message)
