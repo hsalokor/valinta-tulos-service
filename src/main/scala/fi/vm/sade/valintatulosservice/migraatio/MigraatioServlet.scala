@@ -16,6 +16,7 @@ import org.mongodb.morphia.Datastore
 import org.scalatra.Ok
 import org.scalatra.swagger.Swagger
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
+import org.springframework.util.StopWatch
 
 import scala.collection.JavaConverters._
 
@@ -39,7 +40,13 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
   val getMigraatioHakukohteetSwagger: OperationBuilder = (apiOperation[List[String]]("tuoHakukohteet")
     summary "Migraatio hakukohteille")
   get("/hakukohteet", operation(getMigraatioHakukohteetSwagger)) {
+    val stopWatch = new StopWatch("Hakukohteiden migraatio")
+    stopWatch.start("uniikkien hakukohdeOidien haku")
+    logger.info("Aloitetaan hakukohteiden migraatio, haetaan uniikit hakukohdeoidit valintatuloksista:")
     val hakukohdeOids = haeHakukohdeOidit
+    logger.info(s"Löytyi ${hakukohdeOids.size} hakukohdeOidia")
+    stopWatch.stop()
+    stopWatch.start("hakukohteiden tarkistaminen kannasta ja hakeminen tarjonnasta tarvittaessa")
     hakukohdeOids.foreach(oid => {
       try {
         hakukohdeRecordService.getHakukohdeRecord(oid)
@@ -47,6 +54,9 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
         case e: HakukohdeDetailsRetrievalException => logger.warn(s"Ongelma haettaessa hakukohdetta $oid: ${e.getMessage}")
       }
     })
+    stopWatch.stop()
+    logger.info(s"${hakukohdeOids.size} hakukohdeOidia käsitelty, hakukohteiden migraatio on valmis.")
+    logger.info(s"Hakukohdemigraation vaiheiden kestot:\n${stopWatch.prettyPrint()}")
     Ok(hakukohdeOids)
   }
 
