@@ -181,14 +181,19 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
         o.get("hakukohdeOid").asInstanceOf[String],
         o.get("tila").asInstanceOf[String],
         o.get("valintatapajonoOid").asInstanceOf[String],
-        o.get("logEntries").asInstanceOf[BasicDBList].toList.map(e => MigraatioLogEntry(
-          e.asInstanceOf[DBObject].get("muutos").asInstanceOf[String],
-          e.asInstanceOf[DBObject].get("muokkaaja").asInstanceOf[String],
-          e.asInstanceOf[DBObject].get("selite").asInstanceOf[String],
-          e.asInstanceOf[DBObject].get("luotu").asInstanceOf[Date])
-        )
+        parseLogentries(o)
       )
     })
+  }
+
+  private def parseLogentries(valintatulosMongoObject: DBObject): List[MigraatioLogEntry] = valintatulosMongoObject.get("logEntries") match {
+    case null => Nil
+    case list => list.asInstanceOf[BasicDBList].toList.map(e => MigraatioLogEntry(
+      e.asInstanceOf[DBObject].get("muutos").asInstanceOf[String],
+      e.asInstanceOf[DBObject].get("muokkaaja").asInstanceOf[String],
+      e.asInstanceOf[DBObject].get("selite").asInstanceOf[String],
+      e.asInstanceOf[DBObject].get("luotu").asInstanceOf[Date])
+    )
   }
 
   case class MigraatioValintatulos(hakuOid: String, hakijaOid: String, hakemusOid: String, hakukohdeOid: String, tila: String,
