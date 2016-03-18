@@ -9,8 +9,8 @@ import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.migraatio.MigraatioServlet
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb, ValintarekisteriService}
-import fi.vm.sade.valintatulosservice.vastaanottomeili.{ValintatulosMongoCollection, MailDecorator, MailPoller}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
+import fi.vm.sade.valintatulosservice.vastaanottomeili.{MailDecorator, MailPoller, ValintatulosMongoCollection}
 import org.scalatra._
 
 class ScalatraBootstrap extends LifeCycle {
@@ -48,7 +48,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new EnsikertalaisuusServlet(valintarekisteriDb, appConfig.settings.valintaRekisteriEnsikertalaisuusMaxPersonOids), "/ensikertalaisuus")
     context.mount(new HakijanVastaanottoServlet(vastaanottoService), "/vastaanotto")
 
-    context.mount(new MigraatioServlet(hakukohdeRecordService, valintarekisteriDb, new HakemusRepository()), "/migraatio")
+    context.mount(new MigraatioServlet(hakukohdeRecordService, valintarekisteriDb, new HakemusRepository(), appConfig.sijoitteluContext.raportointiService), "/migraatio")
 
     val securityFilter = appConfig.securityContext.securityFilter
     context.addFilter("cas", securityFilter)

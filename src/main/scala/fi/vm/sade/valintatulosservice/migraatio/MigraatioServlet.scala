@@ -4,6 +4,7 @@ import java.util.Date
 
 import com.mongodb.casbah.Imports._
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
+import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.VtsServletBase
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
@@ -18,12 +19,14 @@ import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 
 import scala.collection.JavaConverters._
 
-class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintarekisteriDb: ValintarekisteriDb, hakemusRepository: HakemusRepository)
+class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintarekisteriDb: ValintarekisteriDb,
+                       hakemusRepository: HakemusRepository, raportointiService: RaportointiService)
                       (implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
   override val applicationName = Some("migraatio")
 
   override protected def applicationDescription: String = "Vanhojen vastaanottojen migraatio REST API"
 
+  private val migraatioSijoittelutulosService = new MerkitsevaValintatapaJonoResolver(raportointiService)
   private val mongoConfig = appConfig.settings.valintatulosMongoConfig
   private val morphia: Datastore = appConfig.sijoitteluContext.morphiaDs
   private val valintatulosMongoCollection = MongoFactory.createDB(mongoConfig)("Valintatulos")
@@ -57,16 +60,31 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     //4) tallenna vastaanottoAction
 
     val valintatuloksetByHakemusJaHakukohde = findValintatulokset.groupBy(vt => (vt.hakemusOid, vt.hakukohdeOid))
-
     val (yksiValintatulosPerHakukohde, montaValintatulostaPerHakukohde) = valintatuloksetByHakemusJaHakukohde.partition(_._2.size == 1)
 
-    if(0 < montaValintatulostaPerHakukohde.size) {
-      println(s"Löytyi ${montaValintatulostaPerHakukohde.size} kpl moniselitteisiä valintatuloksia")
-    }
+    val merkitsevatValintatuloksetUseammanJononTapauksista = montaValintatulostaPerHakukohde.map(poimiMerkitseva)
 
-    Ok(yksiValintatulosPerHakukohde.flatMap { case ((hakemusOid, hakukohdeOid), valintatulokset) =>
+    val tallennettavatValintatulokset = yksiValintatulosPerHakukohde ++ merkitsevatValintatuloksetUseammanJononTapauksista
+
+    Ok(tallennettavatValintatulokset.flatMap { case ((hakemusOid, hakukohdeOid), valintatulokset) =>
       tallenna(valintatulokset.head)
     }.map(_.hakemusOid))
+  }
+
+  def poimiMerkitseva(tulokset: ((String, String), List[MigraatioValintatulos])): ((String, String), List[MigraatioValintatulos]) = {
+    val ((hakemusOid, hakukohdeOid), valintatulokset) = tulokset
+    ((hakemusOid, hakukohdeOid), List(findMerkitsevaValintatulos(hakemusOid, hakukohdeOid, valintatulokset)))
+  }
+
+  def findMerkitsevaValintatulos(hakemusOid: String, hakukohdeOid: HakukohdeOid,
+                                 kaikkiHakemuksenEiKeskenValintatulokset: List[MigraatioValintatulos]): MigraatioValintatulos = {
+    val tuloksetHakijaOidienKanssa: List[MigraatioValintatulos] = kaikkiHakemuksenEiKeskenValintatulokset.map(m => m.copy(hakijaOid = resolveHakijaOid(m)))
+    val hakuOid = tuloksetHakijaOidienKanssa.head.hakuOid
+    val hakijaOid = tuloksetHakijaOidienKanssa.head.hakijaOid
+    migraatioSijoittelutulosService.hakemuksenKohteidenMerkitsevatJonot(hakuOid, hakemusOid, hakijaOid).flatMap(_.find(_._1 == hakukohdeOid)).map(_._2) match {
+      case Some(jonoOid) => tuloksetHakijaOidienKanssa.find(_.valintatapajonoOid == jonoOid).get
+      case None => throw new RuntimeException(s"Ei löydy merkitsevää valintatapajonoOidia hakemuksen $hakemusOid kohteelle $hakukohdeOid")
+    }
   }
 
   private def tallenna(valintatulosFromMongo: MigraatioValintatulos): Option[VirkailijanVastaanotto] = {
@@ -130,6 +148,7 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
         o.get("hakemusOid").asInstanceOf[String],
         o.get("hakukohdeOid").asInstanceOf[String],
         o.get("tila").asInstanceOf[String],
+        o.get("valintatapajonoOid").asInstanceOf[String],
         o.get("logEntries").asInstanceOf[BasicDBList].toList.map(e => MigraatioLogEntry(
           e.asInstanceOf[DBObject].get("muutos").asInstanceOf[String],
           e.asInstanceOf[DBObject].get("muokkaaja").asInstanceOf[String],
@@ -140,7 +159,8 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     })
   }
 
-  case class MigraatioValintatulos(hakuOid: String, hakijaOid: String, hakemusOid: String, hakukohdeOid: String, tila: String, logEntries: List[MigraatioLogEntry])
+  case class MigraatioValintatulos(hakuOid: String, hakijaOid: String, hakemusOid: String, hakukohdeOid: String, tila: String,
+                                   valintatapajonoOid: String, logEntries: List[MigraatioLogEntry])
   case class MigraatioLogEntry(muutos:String, muokkaaja:String, selite:String, luotu:Date)
 
   def convertLegacyTilaToAction(legacyTila: String):VirkailijanVastaanottoAction = legacyTila match {
