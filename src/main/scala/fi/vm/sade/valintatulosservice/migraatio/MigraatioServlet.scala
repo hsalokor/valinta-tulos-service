@@ -98,7 +98,7 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     }.map(_.hakemusOid)
     stopWatch.stop()
     logger.info("Valintatulosten migraatio on valmis. Vaiheiden kestot:")
-    stopWatch.prettyPrint()
+    logger.info(stopWatch.prettyPrint())
     Ok(tallennetetutHakemusOidit)
   }
 
