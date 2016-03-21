@@ -10,6 +10,7 @@ import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
+import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeDetailsRetrievalException, HakukohdeRecordService, ValintarekisteriDb}
 import org.apache.commons.lang3.StringUtils
 import org.mongodb.morphia.Datastore
@@ -21,7 +22,7 @@ import org.springframework.util.StopWatch
 import scala.collection.JavaConverters._
 
 class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintarekisteriDb: ValintarekisteriDb,
-                       hakemusRepository: HakemusRepository, raportointiService: RaportointiService)
+                       hakemusRepository: HakemusRepository, raportointiService: RaportointiService, hakuService: HakuService)
                       (implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
   override val applicationName = Some("migraatio")
 
@@ -41,12 +42,21 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     summary "Migraatio hakukohteille")
   get("/hakukohteet", operation(getMigraatioHakukohteetSwagger)) {
     val stopWatch = new StopWatch("Hakukohteiden migraatio")
-    stopWatch.start("uniikkien hakukohdeOidien haku")
-    logger.info("Aloitetaan hakukohteiden migraatio, haetaan uniikit hakukohdeoidit valintatuloksista:")
-    val hakukohdeOids = haeHakukohdeOidit
-    logger.info(s"Löytyi ${hakukohdeOids.size} hakukohdeOidia")
+
+    logger.info("Aloitetaan hakukohteiden migraatio, haetaan uniikit hakuoidit valintatuloksista:")
+    stopWatch.start("uniikkien hakuOidien haku")
+    val hakuOids = haeHakuOidit
     stopWatch.stop()
-    stopWatch.start("hakukohteiden tarkistaminen kannasta ja hakeminen tarjonnasta tarvittaessa")
+    logger.info(s"Löytyi ${hakuOids.size} hakuOidia")
+
+    logger.info("Haetaan uniikit hakukohdeoidit tarjonnasta:")
+    stopWatch.start("uniikkien hakukohdeOidien haku")
+    val hakukohdeOids = hakuOids.flatMap(hakuService.getHakukohdeOids)
+    stopWatch.stop()
+    logger.info(s"Löytyi ${hakukohdeOids.size} hakukohdeOidia")
+
+    logger.info("Hakukohteiden tarkistaminen kannasta ja hakeminen tarjonnasta tarvittaessa:")
+    stopWatch.start("hakukohteiden tarkistaminen ja tallentaminen")
     hakukohdeOids.foreach(oid => {
       try {
         hakukohdeRecordService.getHakukohdeRecord(oid)
@@ -55,13 +65,14 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
       }
     })
     stopWatch.stop()
+
     logger.info(s"${hakukohdeOids.size} hakukohdeOidia käsitelty, hakukohteiden migraatio on valmis.")
     logger.info(s"Hakukohdemigraation vaiheiden kestot:\n${stopWatch.prettyPrint()}")
     Ok(hakukohdeOids)
   }
 
-  private def haeHakukohdeOidit: Iterable[String] = {
-    morphia.getCollection(classOf[Valintatulos]).distinct("hakukohdeOid").asScala collect { case s:String => s }
+  private def haeHakuOidit: Iterable[HakuOid] = {
+    morphia.getCollection(classOf[Valintatulos]).distinct("hakuOid").asScala collect { case s:String if StringUtils.isNotBlank(s) => s }
   }
 
   val getMigraatioVastaanototSwagger: OperationBuilder = (apiOperation[List[String]]("tuoVastaanotot")

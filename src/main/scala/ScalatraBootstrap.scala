@@ -48,7 +48,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new EnsikertalaisuusServlet(valintarekisteriDb, appConfig.settings.valintaRekisteriEnsikertalaisuusMaxPersonOids), "/ensikertalaisuus")
     context.mount(new HakijanVastaanottoServlet(vastaanottoService), "/vastaanotto")
 
-    context.mount(new MigraatioServlet(hakukohdeRecordService, valintarekisteriDb, new HakemusRepository(), appConfig.sijoitteluContext.raportointiService), "/migraatio")
+    context.mount(new MigraatioServlet(hakukohdeRecordService, valintarekisteriDb, new HakemusRepository(), appConfig.sijoitteluContext.raportointiService, hakuService), "/migraatio")
 
     val securityFilter = appConfig.securityContext.securityFilter
     context.addFilter("cas", securityFilter)

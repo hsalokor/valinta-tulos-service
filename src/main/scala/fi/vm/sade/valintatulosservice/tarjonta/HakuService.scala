@@ -17,6 +17,7 @@ trait HakuService {
   def getHaku(oid: String): Option[Haku]
   def getHakukohde(oid: String): Option[Hakukohde]
   def getKoulutus(koulutusOid: String): Option[Koulutus]
+  def getHakukohdeOids(hakuOid:String): Seq[String]
   def findLiittyvatHaut(haku: Haku): Set[String] = {
     val parentHaut = haku.varsinaisenHaunOid.flatMap(getHaku(_).map(parentHaku => parentHaku.sisältyvätHaut + parentHaku.oid)).getOrElse(Nil)
     (haku.sisältyvätHaut ++ parentHaut).filterNot(_ == haku.oid)
@@ -80,6 +81,7 @@ class CachedHakuService(wrappedService: HakuService) extends HakuService {
 
   override def getHaku(oid: String) = byOid(oid)
   override def getHakukohde(oid: String): Option[Hakukohde] = wrappedService.getHakukohde(oid)
+  override def getHakukohdeOids(hakuOid:String): Seq[String] = wrappedService.getHakukohdeOids(hakuOid)
   def kaikkiJulkaistutHaut: List[Haku] = all("").toList.flatten
 
   override def getKoulutus(koulutusOid: String): Option[Koulutus] = wrappedService.getKoulutus(koulutusOid)
@@ -109,6 +111,13 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
       val hakuTarjonnassa = (parse(response) \ "result").extract[HakuTarjonnassa]
       toHaku(hakuTarjonnassa)
     }
+  }
+
+  def getHakukohdeOids(hakuOid:String): Seq[String] = {
+    val url = appConfig.settings.tarjontaUrl + "/rest/v1/haku/" + hakuOid
+    fetch(url) { response =>
+      (parse(response) \ "result" \ "hakukohdeOids" ).extract[List[String]]
+    }.getOrElse(Nil)
   }
 
   def getHakukohde(hakukohdeOid: String): Option[Hakukohde] = {
