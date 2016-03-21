@@ -21,7 +21,7 @@ object HakuFixtures extends HakuService with JsonHakuService {
     this.activeFixture = fixtureName
   }
 
-  override def getHaku(oid: String) = {
+  override def getHaku(oid: String): Option[Haku] = {
     getHakuFixture(oid).map(toHaku(_).copy(oid = oid))
   }
 
