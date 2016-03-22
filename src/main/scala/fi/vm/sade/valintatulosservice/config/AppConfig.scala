@@ -128,7 +128,7 @@ object AppConfig extends Logging {
     logger.info("Using template variables from " + templateAttributesURL)
     lazy val settings = loadSettings
     def loadSettings = ConfigTemplateProcessor.createSettings(
-      getClass.getResource("/oph-configuration/valinta-tulos-service.properties.template"),
+      getClass.getResource("/oph-configuration/valinta-tulos-service-devtest.properties.template"),
       templateAttributesURL
     )
     def templateAttributesURL: URL
