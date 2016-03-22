@@ -265,7 +265,7 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
 
   private def resolveHakijaOidIfMissing(valintatulos: MigraatioValintatulos): MigraatioValintatulos = valintatulos.hakijaOid match {
     case hakijaOid if StringUtils.isBlank(hakijaOid) => hakemusRepository.findHakemus(valintatulos.hakemusOid) match {
-      case None => throw new IllegalArgumentException(s"Hakemusta ${valintatulos.hakemusOid} ei löydy valintatulokselle $valintatulos!")
+      case None => throw new SkipValintatulosException(s"Hakemusta ${valintatulos.hakemusOid} ei löydy valintatulokselle $valintatulos!")
       case Some(hakemus) if StringUtils.isBlank(hakemus.henkiloOid) => throw new SkipValintatulosException(s"Valintatulokselle ei löydy hakijaOidia hakemukselta ${valintatulos.hakemusOid}")
       case Some(hakemus) => valintatulos.copy(hakijaOid = hakemus.henkiloOid)
     }
