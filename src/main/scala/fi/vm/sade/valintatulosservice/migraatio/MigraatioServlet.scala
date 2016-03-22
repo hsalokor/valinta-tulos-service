@@ -149,25 +149,30 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
   }
 
   private def tallenna(valintatulosFromMongo: MigraatioValintatulos): Option[VirkailijanVastaanotto] = {
-    try {
-      val valintatulos = resolveHakijaOidIfMissing(valintatulosFromMongo)
+    if (valintatulosFromMongo.tila == "KESKEN" || valintatulosFromMongo.tila == "ILMOITETTU") {
+      logger.warn(s"Paras arvaus vastaanottotilaksi on tila ${valintatulosFromMongo.tila}, jota ei tallenneta kantaan: $valintatulosFromMongo")
+      None
+    } else {
+      try {
+        val valintatulos = resolveHakijaOidIfMissing(valintatulosFromMongo)
 
-      if (!vastaanottoForHakijaAndHakukohdeExists(valintatulos.hakuOid, valintatulos.hakijaOid, valintatulos.hakukohdeOid)) {
-        val (vastaanotto, luotu) = createVirkailijanVastaanotto(valintatulos)
-        try {
-          valintarekisteriDb.store(vastaanotto, luotu)
-        } catch {
-          case e: Exception => logger.error(s"Virhe tallennettaessa vastaanottoa $vastaanotto", e)
+        if (!vastaanottoForHakijaAndHakukohdeExists(valintatulos.hakuOid, valintatulos.hakijaOid, valintatulos.hakukohdeOid)) {
+          val (vastaanotto, luotu) = createVirkailijanVastaanotto(valintatulos)
+          try {
+            valintarekisteriDb.store(vastaanotto, luotu)
+          } catch {
+            case e: Exception => logger.error(s"Virhe tallennettaessa vastaanottoa $vastaanotto", e)
+          }
+          addToExistingVastaanottosCache(valintatulos, vastaanotto)
+          Some(vastaanotto)
+        } else {
+          None
         }
-        addToExistingVastaanottosCache(valintatulos, vastaanotto)
-        Some(vastaanotto)
-      } else {
-        None
-      }
 
-    } catch {
-      case sve:SkipValintatulosException => logger.warn(sve.getMessage, sve)
-        None
+      } catch {
+        case sve:SkipValintatulosException => logger.warn(sve.getMessage, sve)
+          None
+      }
     }
   }
 
