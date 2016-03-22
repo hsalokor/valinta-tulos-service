@@ -129,14 +129,15 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     val hakijaOid = tuloksetHakijaOidienKanssa.head.hakijaOid
     migraatioSijoittelutulosService.hakemuksenKohteidenMerkitsevatJonot(hakuOid, hakemusOid, hakijaOid).flatMap(_.find(_._1 == hakukohdeOid)).map(_._2) match {
       case Some(jonoOid) => tuloksetHakijaOidienKanssa.find(_.valintatapajonoOid == jonoOid).get
-      case None => if (haveAllSameTila(tuloksetHakijaOidienKanssa)) {
-        val ensimmainenTulos = tuloksetHakijaOidienKanssa.head
+      case None => val ensimmainenTulos = tuloksetHakijaOidienKanssa.head
+        if (haveAllSameTila(tuloksetHakijaOidienKanssa)) {
         logger.warn(s"Ei löydy merkitsevää valintatapajonoOidia hakemuksen $hakemusOid kohteelle $hakukohdeOid " +
           s", mutta kaikkien valintatulosten tila on sama ${ensimmainenTulos.tila}, joten palautetaan ensimmäinen tulos $ensimmainenTulos")
-        ensimmainenTulos
       } else {
-        throw new RuntimeException(s"Ei löydy merkitsevää valintatapajonoOidia hakemuksen $hakemusOid kohteelle $hakukohdeOid")
+        logger.warn(s"Ei löydy merkitsevää valintatapajonoOidia hakemuksen $hakemusOid kohteelle $hakukohdeOid " +
+          s", ja valintatuloksilla on eri tiloja ${tuloksetHakijaOidienKanssa.map(_.tila)}, joten ei voida tehdä muuta kuin palautetaan ensimmäinen tulos $ensimmainenTulos näistä $tuloksetHakijaOidienKanssa")
       }
+      ensimmainenTulos
     }
   }
 
