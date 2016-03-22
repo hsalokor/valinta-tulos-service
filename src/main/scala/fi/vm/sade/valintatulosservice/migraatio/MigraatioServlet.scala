@@ -122,12 +122,21 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
 
   def findMerkitsevaValintatulos(hakemusOid: String, hakukohdeOid: HakukohdeOid,
                                  kaikkiHakemuksenEiKeskenValintatulokset: List[MigraatioValintatulos]): MigraatioValintatulos = {
+    def haveAllSameTila(ts: Seq[MigraatioValintatulos]): Boolean = ts.map(_.tila).toSet.size == 1
+
     val tuloksetHakijaOidienKanssa: List[MigraatioValintatulos] = kaikkiHakemuksenEiKeskenValintatulokset.map(resolveHakijaOidIfMissing)
     val hakuOid = tuloksetHakijaOidienKanssa.head.hakuOid
     val hakijaOid = tuloksetHakijaOidienKanssa.head.hakijaOid
     migraatioSijoittelutulosService.hakemuksenKohteidenMerkitsevatJonot(hakuOid, hakemusOid, hakijaOid).flatMap(_.find(_._1 == hakukohdeOid)).map(_._2) match {
       case Some(jonoOid) => tuloksetHakijaOidienKanssa.find(_.valintatapajonoOid == jonoOid).get
-      case None => throw new RuntimeException(s"Ei löydy merkitsevää valintatapajonoOidia hakemuksen $hakemusOid kohteelle $hakukohdeOid")
+      case None => if (haveAllSameTila(tuloksetHakijaOidienKanssa)) {
+        val ensimmainenTulos = tuloksetHakijaOidienKanssa.head
+        logger.warn(s"Ei löydy merkitsevää valintatapajonoOidia hakemuksen $hakemusOid kohteelle $hakukohdeOid " +
+          s", mutta kaikkien valintatulosten tila on sama ${ensimmainenTulos.tila}, joten palautetaan ensimmäinen tulos $ensimmainenTulos")
+        ensimmainenTulos
+      } else {
+        throw new RuntimeException(s"Ei löydy merkitsevää valintatapajonoOidia hakemuksen $hakemusOid kohteelle $hakukohdeOid")
+      }
     }
   }
 
