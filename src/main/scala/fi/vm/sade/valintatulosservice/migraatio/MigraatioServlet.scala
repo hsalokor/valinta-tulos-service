@@ -28,6 +28,8 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
 
   override protected def applicationDescription: String = "Vanhojen vastaanottojen migraatio REST API"
 
+  logger.warn("Mountataan Valintarekisterin migraatioservlet!")
+
   private val migraatioSijoittelutulosService = new MerkitsevaValintatapaJonoResolver(raportointiService)
   private val mongoConfig = appConfig.settings.valintatulosMongoConfig
   private val morphia: Datastore = appConfig.sijoitteluContext.morphiaDs
