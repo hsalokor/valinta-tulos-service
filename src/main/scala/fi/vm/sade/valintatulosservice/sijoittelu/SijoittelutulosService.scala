@@ -130,6 +130,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
           case Some(deadline) if new DateTime().isAfter(deadline) => ( Vastaanottotila.ei_vastaanotettu_määräaikana, Some(deadline) )
           case deadline => (vastaanottotila, deadline)
         }
+      case tila if Valintatila.isHyväksytty(valintatila) => (tila, laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos))
       case tila => (tila, None)
     }
   }
