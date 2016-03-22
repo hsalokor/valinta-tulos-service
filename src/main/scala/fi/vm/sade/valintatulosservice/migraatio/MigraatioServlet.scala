@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice.migraatio
 import java.util.Date
 
 import com.mongodb.casbah.Imports._
+import com.mongodb.casbah.commons.TypeImports.{BasicDBList => _, DBObject => _, _}
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.VtsServletBase
@@ -128,7 +129,13 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     val hakuOid = tuloksetHakijaOidienKanssa.head.hakuOid
     val hakijaOid = tuloksetHakijaOidienKanssa.head.hakijaOid
     migraatioSijoittelutulosService.hakemuksenKohteidenMerkitsevatJonot(hakuOid, hakemusOid, hakijaOid).flatMap(_.find(_._1 == hakukohdeOid)).map(_._2) match {
-      case Some(jonoOid) => tuloksetHakijaOidienKanssa.find(_.valintatapajonoOid == jonoOid).get
+      case Some(jonoOid) => tuloksetHakijaOidienKanssa.find(_.valintatapajonoOid == jonoOid).getOrElse {
+        val query = Map("$and" -> List(
+          Map("hakemusOid" -> hakemusOid),
+          Map("valintatapajonoOid" -> jonoOid)
+        ))
+        findValintatulokset(query).head
+      }
       case None => val ensimmainenTulos = tuloksetHakijaOidienKanssa.head
         if (haveAllSameTila(tuloksetHakijaOidienKanssa)) {
         logger.warn(s"Ei löydy merkitsevää valintatapajonoOidia hakemuksen $hakemusOid kohteelle $hakukohdeOid " +
@@ -193,7 +200,10 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
       Map("tila" -> Map("$ne" -> ValintatuloksenTila.KESKEN.toString)),
       Map("tila" -> Map("$ne" -> "ILMOITETTU"))
     ))
+    findValintatulokset(query)
+  }
 
+  private def findValintatulokset(query: DBObject): List[MigraatioValintatulos] = {
     valintatulosMongoCollection.find(query).toList.map(o => {
       MigraatioValintatulos(
         o.get("hakuOid").asInstanceOf[String],
