@@ -39,7 +39,14 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       .map(_.toList).getOrElse(List.empty)
   }
 
-  def hakemustenTulosByHaku(hakuOid: String, haunVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None): Option[Iterator[Hakemuksentulos]] = {
+  def hakemustenTulosByHaku(hakuOid: String): Option[Iterator[Hakemuksentulos]] = {
+    val haunVastaanotot = timed("Fetch haun vastaanotot for haku: " + hakuOid, 1000) {
+      virkailijaVastaanottoRepository.findHaunVastaanotot(hakuOid).groupBy(_.henkiloOid)
+    }
+    hakemustenTulosByHaku(hakuOid, Some(haunVastaanotot))
+  }
+
+  def hakemustenTulosByHaku(hakuOid: String, haunVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] ): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
       fetchTulokset(hakuOid, () => hakemusRepository.findHakemukset(hakuOid), (haku,  hakijaOidsByHakemusOids) => sijoittelutulosService.hakemustenTulos(hakuOid, hakijaOidsByHakemusOids = hakijaOidsByHakemusOids, haunVastaanotot = haunVastaanotot))
     )
