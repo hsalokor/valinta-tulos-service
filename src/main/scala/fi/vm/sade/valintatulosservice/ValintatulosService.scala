@@ -122,13 +122,13 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       haku <- hakuService.getHaku(hakuOid)
     ) yield {
       val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-      val hakemukset = timed("Fetch hakemukset", 1000) { getHakemukset() }.toSeq
-      val hakijaOidsByHakemusOids: Map[String, String] = hakemukset.groupBy(_.oid).map(t => (t._1, t._2.head.henkiloOid))
+      val hakemukset = timed("Fetch hakemukset", 1000) { getHakemukset() }
+      val hakijaOidsByHakemusOids: Map[String, String] = getHakemukset().map(h => (h.oid, h.henkiloOid)).toMap
       val sijoitteluTulokset = timed("Fetch sijoittelun tulos", 1000) {
         getSijoittelunTulos(haku, hakijaOidsByHakemusOids).groupBy(_.hakemusOid).mapValues(_.head)
       }
       for (
-        hakemus: Hakemus <- hakemukset.toIterator
+        hakemus: Hakemus <- hakemukset
       ) yield {
         val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
         julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
