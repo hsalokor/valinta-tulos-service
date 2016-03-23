@@ -1,11 +1,13 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
 import fi.vm.sade.valintatulosservice.domain.HakukohdeRecord
-import fi.vm.sade.valintatulosservice.tarjonta.{HakuService, Hakukohde}
+import fi.vm.sade.valintatulosservice.tarjonta.{HakuService, Hakukohde, Koulutus}
 
 import scala.util.Try
 
 class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: HakukohdeRepository) {
+  private val koulutusTilasToSkip = List("LUONNOS", "KOPIOITU") // See TarjontaTila in tarjonta-api
+
   def getHakukohdeRecord(oid: String): HakukohdeRecord = {
     // hakukohdeRecord is cached in DB to enable vastaanotto queries
     val record: Option[HakukohdeRecord] = hakukohdeRepository.findHakukohde(oid)
@@ -16,13 +18,15 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
     def withError[T](o: Option[T], errorMessage: String): Try[T] = {
       Try { o.getOrElse(throw new HakukohdeDetailsRetrievalException(errorMessage)) }
     }
+    def oikeanTilaiset(koulutukset: Seq[Koulutus]): Seq[Koulutus] = koulutukset.filter(k => !koulutusTilasToSkip.contains(k.tila))
+
     val h = for {
       hakukohde <- withError(hakuService.getHakukohde(oid), s"Could not find hakukohde $oid from tarjonta")
       haku <- withError(hakuService.getHaku(hakukohde.hakuOid), s"Could not find haku ${hakukohde.hakuOid} from tarjonta")
       koulutukset <- withError(sequence(hakukohde.hakukohdeKoulutusOids.map(hakuService.getKoulutus)),
         s"Could not resolve koulutukset ${hakukohde.hakukohdeKoulutusOids}")
-      alkamiskausi <- withError(unique(koulutukset.map(_.koulutuksenAlkamiskausi)),
-        s"No unique koulutuksen alkamiskausi in $koulutukset for $hakukohde")
+      alkamiskausi <- withError(unique(oikeanTilaiset(koulutukset).map(_.koulutuksenAlkamiskausi)),
+        s"No unique koulutuksen alkamiskausi in $koulutukset for $hakukohde (koulutukset in correct state: ${oikeanTilaiset(koulutukset)})")
     } yield HakukohdeRecord(hakukohde.oid, haku.oid, haku.yhdenPaikanSaanto.voimassa,
       hakukohdeJohtaaKkTutkintoon(hakukohde), alkamiskausi)
     h.foreach(hakukohdeRepository.storeHakukohde)
