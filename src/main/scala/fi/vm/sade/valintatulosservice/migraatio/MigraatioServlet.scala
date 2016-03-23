@@ -54,9 +54,21 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
 
     logger.info("Haetaan uniikit hakukohdeoidit tarjonnasta:")
     stopWatch.start("uniikkien hakukohdeOidien haku")
-    val hakukohdeOids = hakuOids.flatMap(hakuService.getHakukohdeOids)
+    val hakukohdeOidsFromTarjonta = hakuOids.flatMap(hakuService.getHakukohdeOids)
     stopWatch.stop()
-    logger.info(s"Löytyi ${hakukohdeOids.size} hakukohdeOidia")
+    logger.info(s"Löytyi ${hakukohdeOidsFromTarjonta.size} hakukohdeOidia tarjonnasta")
+
+    logger.info("Haetaan uniikit hakukohdeoidit Mongosta:")
+    stopWatch.start("uniikkien hakukohdeOidien haku")
+    val hakukohdeOidsFromMongo = haeHakukohdeOidit
+    stopWatch.stop()
+    logger.info(s"Löytyi ${hakukohdeOidsFromMongo.size} hakukohdeOidia Mongosta")
+
+    val hakukohdeOids = ( hakukohdeOidsFromTarjonta.toList ++ hakukohdeOidsFromMongo.toList ).toSet
+
+
+    logger.info(s"Löytyi yhteensä ${hakukohdeOids.size} uniikkia hakukohdeoidia")
+    logger.info(s"Mongosta löytyi hakukohteet: ${hakukohdeOidsFromMongo.toSet -- hakukohdeOidsFromTarjonta.toSet}, joita ei löytynyt tarjonnasta.")
 
     logger.info("Hakukohteiden tarkistaminen kannasta ja hakeminen tarjonnasta tarvittaessa:")
     stopWatch.start("hakukohteiden tarkistaminen ja tallentaminen")
@@ -76,6 +88,10 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
 
   private def haeHakuOidit: Iterable[HakuOid] = {
     morphia.getCollection(classOf[Valintatulos]).distinct("hakuOid").asScala collect { case s:String if StringUtils.isNotBlank(s) => s }
+  }
+
+  private def haeHakukohdeOidit: Iterable[HakukohdeOid] = {
+    morphia.getCollection(classOf[Valintatulos]).distinct("hakukohdeOid").asScala collect { case s:String if StringUtils.isNotBlank(s) => s }
   }
 
   val getMigraatioVastaanototSwagger: OperationBuilder = (apiOperation[List[String]]("tuoVastaanotot")
