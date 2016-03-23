@@ -233,8 +233,8 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
   }
 
   def formatMuokkaaja(muokkaaja:String): String = muokkaaja match {
-    case x if x.startsWith("henkilö:") => x.substring(8).trim
-    case x => x.trim
+    case x if x.startsWith("henkilö:") => x.substring(8)
+    case x => x
   }
 
   case class MigraatioValintatulos(hakuOid: String, hakijaOid: String, hakemusOid: String, hakukohdeOid: String, tila: String,
