@@ -125,7 +125,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       val hakemukset = timed("Fetch hakemukset", 1000) { getHakemukset() }
       val hakijaOidsByHakemusOids: Map[String, String] = getHakemukset().map(h => (h.oid, h.henkiloOid)).toMap
       val sijoitteluTulokset = timed("Fetch sijoittelun tulos", 1000) {
-        getSijoittelunTulos(haku, hakijaOidsByHakemusOids).groupBy(_.hakemusOid).mapValues(_.head)
+        getSijoittelunTulos(haku, hakijaOidsByHakemusOids).map(t => (t.hakemusOid, t)).toMap
       }
       for (
         hakemus: Hakemus <- hakemukset
