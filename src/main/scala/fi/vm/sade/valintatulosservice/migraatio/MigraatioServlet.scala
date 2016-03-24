@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.migraatio
 import java.util.Date
 
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.commons.TypeImports.{BasicDBList => _, DBObject => _, _}
+import com.mongodb.casbah.commons.TypeImports.{BasicDBList => _, DBObject => _}
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.VtsServletBase
@@ -32,6 +32,7 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
   logger.warn("Mountataan Valintarekisterin migraatioservlet!")
 
   private val migraatioSijoittelutulosService = new MerkitsevaValintatapaJonoResolver(raportointiService)
+  private val missingHakijaOidResolver = new MissingHakijaOidResolver(appConfig)
   private val mongoConfig = appConfig.settings.valintatulosMongoConfig
   private val morphia: Datastore = appConfig.sijoitteluContext.morphiaDs
   private val valintatulosMongoCollection = MongoFactory.createDB(mongoConfig)("Valintatulos")
@@ -186,7 +187,7 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
         }
 
       } catch {
-        case sve:SkipValintatulosException => logger.warn(sve.getMessage, sve)
+        case sve:SkipValintatulosException => logger.warn(sve.getMessage)
           None
       }
     }
@@ -291,11 +292,18 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
 
   private def resolveHakijaOidIfMissing(valintatulos: MigraatioValintatulos): MigraatioValintatulos = valintatulos.hakijaOid match {
     case hakijaOid if StringUtils.isBlank(hakijaOid) => hakemusRepository.findHakemus(valintatulos.hakemusOid) match {
-      case None => throw new SkipValintatulosException(s"Hakemusta ${valintatulos.hakemusOid} ei löydy valintatulokselle $valintatulos!")
-      case Some(hakemus) if StringUtils.isBlank(hakemus.henkiloOid) => throw new SkipValintatulosException(s"Valintatulokselle ei löydy hakijaOidia hakemukselta ${valintatulos.hakemusOid}")
+      case None =>
+        resolvePersonOidFromHakemusAndHenkiloPalvelu(hakijaOid, valintatulos, s"Hakemusta ${valintatulos.hakemusOid} ei löydy valintatulokselle $valintatulos!")
+      case Some(hakemus) if StringUtils.isBlank(hakemus.henkiloOid) => resolvePersonOidFromHakemusAndHenkiloPalvelu(hakijaOid, valintatulos, s"Valintatulokselle ei löydy hakijaOidia hakemukselta ${valintatulos.hakemusOid}")
       case Some(hakemus) => valintatulos.copy(hakijaOid = hakemus.henkiloOid)
     }
     case _ => valintatulos
+  }
+
+  private def resolvePersonOidFromHakemusAndHenkiloPalvelu(hakijaOid: String, valintatulos: MigraatioValintatulos, message: String): MigraatioValintatulos = {
+    logger.warn(message)
+    missingHakijaOidResolver.findPersonOidByHakemusOid(valintatulos.hakemusOid).map { personOid: String => valintatulos.copy(hakijaOid = personOid) }.getOrElse(
+      throw new SkipValintatulosException("Ei löytynyt henkilöOidia henkilötunnuksen perusteella: " + message))
   }
 
   class SkipValintatulosException(message:String) extends Exception(message)
