@@ -342,6 +342,9 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           val valintatulos2 = getHakutoiveenValintatulos("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.72607738902")
           valintatulos2.getTila must_== ValintatuloksenTila.KESKEN
           valintatulos2.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          val valintatulos3 = getHakutoiveenValintatulosByHakemus("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.72607738902", hakemusOid)
+          valintatulos3.getTila must_== ValintatuloksenTila.KESKEN
+          valintatulos3.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
         }
         "virkailija merkinnyt myöhästyneeksi" in {
           useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture, ohjausparametritFixture = "vastaanotto-loppunut")
@@ -352,6 +355,9 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           val valintatulos2 = getHakutoiveenValintatulos("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.16303028779")
           valintatulos2.getTila must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
           valintatulos2.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          val valintatulos3 = getHakutoiveenValintatulosByHakemus("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.16303028779", hakemusOid)
+          valintatulos3.getTila must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          valintatulos3.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
         }
       }
     }
@@ -383,6 +389,11 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
   def getHakutoiveenValintatulos(hakuOid: String, hakukohdeOid: String): Valintatulos = {
     import scala.collection.JavaConverters._
     valintatulosService.findValintaTuloksetForVirkailija(hakuOid).asScala.find(_.getHakukohdeOid == hakukohdeOid).get
+  }
+
+  def getHakutoiveenValintatulosByHakemus(hakuOid: String, hakukohdeOid: String, hakemusOid: String): Valintatulos = {
+    import scala.collection.JavaConverters._
+    valintatulosService.findValintaTuloksetForVirkailijaByHakemus(hakuOid, hakemusOid).asScala.find(_.getHakukohdeOid == hakukohdeOid).get
   }
 
   def checkHakutoiveState(hakuToive: Hakutoiveentulos, expectedTila: Valintatila, vastaanottoTila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean) = {

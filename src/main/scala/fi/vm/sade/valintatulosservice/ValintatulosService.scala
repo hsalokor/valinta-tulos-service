@@ -76,6 +76,17 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     valintatulokset
   }
 
+  def findValintaTuloksetForVirkailijaByHakemus(hakuOid: String, hakemusOid: String): util.List[Valintatulos] = {
+    val hakemuksenTulos = hakemuksentulos(hakuOid, hakemusOid)
+      .getOrElse(throw new IllegalArgumentException(s"Not hakemuksen tulos for hakemus $hakemusOid in haku $hakuOid"))
+    val henkiloOid = hakemuksenTulos.hakijaOid
+    val vastaanotot = virkailijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
+    val valintatulokset: util.List[Valintatulos] = valintatulosDao.loadValintatuloksetForHakemus(hakemusOid)
+
+    setValintatuloksetTilat(hakuOid, valintatulokset.asScala, Map(hakemusOid -> hakemuksenTulos), Map(henkiloOid -> vastaanotot))
+    valintatulokset
+  }
+
   private def mapHakemustenTuloksetByHakemusOid(hakemustenTulokset:Iterator[Hakemuksentulos]):Map[String,Hakemuksentulos] = {
     hakemustenTulokset.toList.groupBy(_.hakemusOid).mapValues(_.head)
   }

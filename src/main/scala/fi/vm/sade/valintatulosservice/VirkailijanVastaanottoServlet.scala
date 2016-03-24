@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
+import fi.vm.sade.sijoittelu.domain.Valintatulos
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
@@ -35,6 +36,16 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
     ).recover{
       case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
     }.get
+  }
+
+  val getValintatuloksetByHakemusSwagger: OperationBuilder = (apiOperation[Unit]("getValintatuloksetByHakemus")
+    summary "Hakee hakemuksen valintatulokset hakukohteeseen"
+    parameter pathParam[String]("hakuOid").description("Haku oid")
+    parameter pathParam[String]("hakemusOid").description("Hakemuksen oid"))
+  get("/valintatulos/haku/:hakuOid/hakemus/:hakemusOid", operation(getValintatuloksetByHakemusSwagger)) {
+    val hakuOid = params("hakuOid")
+    val hakemusOid = params("hakemusOid")
+    Ok(javaObjectToJsonString(valintatulosService.findValintaTuloksetForVirkailijaByHakemus(hakuOid, hakemusOid)))
   }
 
   val getValintatuloksetByHakukohdeSwagger: OperationBuilder = (apiOperation[Unit]("getValintatuloksetByHakukohde")
