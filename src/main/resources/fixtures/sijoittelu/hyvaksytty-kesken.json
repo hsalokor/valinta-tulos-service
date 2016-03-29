@@ -74,6 +74,7 @@
             "hakutoive": 1,
             "tila": "KESKEN",
             "ilmoittautumisTila": "EI_TEHTY",
+            "julkaistavissa": false,
             "logEntries": [
                 {
                     "luotu": {

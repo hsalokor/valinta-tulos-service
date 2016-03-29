@@ -53,7 +53,7 @@ class SijoittelutulosService(raportointiService: RaportointiService, ohjausparam
       val vastaanottotila: Vastaanottotila = laskeVastaanottotila(valintatila, jono.getVastaanottotieto, aikataulu, vastaanottoDeadline)
       valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
       val vastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, vastaanottotila)
-      val julkaistavissa = jono.getVastaanottotieto != ValintatuloksenTila.KESKEN || jono.isJulkaistavissa
+      val julkaistavissa = jono.isJulkaistavissa
       val pisteet: Option[BigDecimal] = Option(jono.getPisteet).map((p: java.math.BigDecimal) => new BigDecimal(p))
 
       HakutoiveenSijoitteluntulos(
