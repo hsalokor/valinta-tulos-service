@@ -26,7 +26,6 @@ object YhdenPaikanSaantoBatchAPITester extends App with Logging {
     dbConfig.withValue("connectionPool", ConfigValueFactory.fromAnyRef("disabled"))).db
   SharedJetty.start
   private val testDataSize = 50000
-  val oids = 1.to(testDataSize).map(i => s"1.2.246.562.5.2013080813081926341928.$i")
 
   println(s"***** Inserting $testDataSize rows of test data. This might take a while...")
 
