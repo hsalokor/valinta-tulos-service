@@ -56,7 +56,7 @@ class MissingHakijaOidResolver(appConfig: AppConfig) extends JsonFormats with Lo
   private def createPerson(henkilo: HakemusHenkilo): Option[String] = {
     val syntymaaika = new java.text.SimpleDateFormat("dd.MM.yyyy").parse(henkilo.syntymaaika)
 
-    val json: String = pretty(render(
+    val json: String = compact(render(
       ("etunimet" -> henkilo.etunimet) ~
       ("sukunimi" -> henkilo.sukunimi) ~
       ("kutsumanimi" -> henkilo.kutsumanimet) ~
