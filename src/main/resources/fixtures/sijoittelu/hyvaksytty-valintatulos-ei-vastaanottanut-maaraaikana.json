@@ -107,6 +107,7 @@
             "hakutoive": 1,
             "tila": "EI_VASTAANOTETTU_MAARA_AIKANA",
             "ilmoittautumisTila": "EI_TEHTY",
+            "julkaistavissa": true,
             "logEntries": [
                 {
                     "luotu": {

@@ -133,6 +133,7 @@
         "hakutoive": 2,
         "tila": "PERUNUT",
         "ilmoittautumisTila": "EI_TEHTY",
+        "julkaistavissa": true,
         "logEntries": [
           {
             "luotu": {

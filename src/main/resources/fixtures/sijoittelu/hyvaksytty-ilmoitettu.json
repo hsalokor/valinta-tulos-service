@@ -69,6 +69,7 @@
             "hakutoive": 1,
             "tila": "ILMOITETTU",
             "ilmoittautumisTila": "EI_TEHTY",
+            "julkaistavissa": true,
             "logEntries": [
                 {
                     "luotu": {
