@@ -7,10 +7,10 @@ import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import org.http4s.{Method, Request, Uri}
-import org.json4s.JsonAST.{JArray, JValue}
-import org.json4s.{Reader, _}
-import org.json4s.native.JsonMethods._
+import org.json4s.JsonAST.JValue
 import org.json4s.JsonDSL._
+import org.json4s.native.JsonMethods._
+import org.json4s.{Reader, _}
 
 import scala.util.{Failure, Success, Try}
 import scalaz.concurrent.Task
@@ -57,7 +57,7 @@ class MissingHakijaOidResolver(appConfig: AppConfig) extends JsonFormats with Lo
   private def createPerson(henkilo: HakemusHenkilo): Option[String] = {
     val syntymaaika = new java.text.SimpleDateFormat("dd.MM.yyyy").parse(henkilo.syntymaaika)
 
-    val json =
+    val json: JValue =
       ("etunimet" -> henkilo.etunimet) ~
       ("sukunimi" -> henkilo.sukunimi) ~
       ("kutsumanimi" -> henkilo.kutsumanimet) ~
@@ -68,10 +68,15 @@ class MissingHakijaOidResolver(appConfig: AppConfig) extends JsonFormats with Lo
       ("asiointiKieli" -> ("kielikoodi" -> "fi")) ~
       ("aidinkieli" -> ("kielikoodi" -> henkilo.aidinkieli.toLowerCase))
 
-    Try(henkiloClient.prepare(Request(method = Method.POST, uri = createUri(henkiloPalveluUrlBase + "/", "" )).withBody(json)).flatMap {
-      case r if 200 == r.status.code => r.as[String]
-      case r => Task.fail(new RuntimeException(r.toString))
-    }.run) match {
+    Try(
+      henkiloClient.prepare(
+        Request(method = Method.POST, uri = createUri(henkiloPalveluUrlBase + "/", ""))
+          .withBody(json)(org.http4s.json4s.native.jsonEncoder)
+      ).flatMap {
+        case r if 200 == r.status.code => r.as[String]
+        case r => Task.fail(new RuntimeException(r.toString))
+      }.run
+    ) match {
       case Success(response) => {
         logger.info(s"Luotiin henkilo oid=${response}")
         Some(response)
