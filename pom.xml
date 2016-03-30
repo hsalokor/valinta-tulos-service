@@ -431,7 +431,16 @@
                     <groupId>org.scalaz.stream</groupId>
                     <artifactId>scalaz-stream_2.11</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.json4s</groupId>
+                    <artifactId>json4s-native_2.11</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-native_2.11</artifactId>
+            <version>3.2.10</version>
         </dependency>
     </dependencies>
     <build>
