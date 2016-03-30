@@ -133,7 +133,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       haku <- hakuService.getHaku(hakuOid)
     ) yield {
       val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-      val hakemukset = timed("Fetch hakemukset", 1000) { getHakemukset() }
+      val hakemukset = getHakemukset()
       val hakijaOidsByHakemusOids: Map[String, String] = getHakemukset().map(h => (h.oid, h.henkiloOid)).toMap
       val sijoitteluTulokset = timed("Fetch sijoittelun tulos", 1000) {
         getSijoittelunTulos(haku, hakijaOidsByHakemusOids).map(t => (t.hakemusOid, t)).toMap
