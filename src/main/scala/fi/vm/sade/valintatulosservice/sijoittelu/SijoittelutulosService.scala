@@ -2,8 +2,9 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 
 import java.util.{Date, Optional}
 
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakijaPaginationObject, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, IlmoittautumisTila}
+import fi.vm.sade.sijoittelu.tulos.resource.SijoitteluResource
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.utils.Timer
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
@@ -48,6 +49,34 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     ) yield {
       hakijat.map(h => hakemuksenYhteenveto(h, aikataulu, fetchVastaanottos(h)))
     }).getOrElse(Nil)
+  }
+
+  def sijoittelunTulokset(hakuOid: String, sijoitteluajoId: String, hyvaksytyt: Option[Boolean], ilmanHyvaksyntaa: Option[Boolean], vastaanottaneet: Option[Boolean],
+                          hakukohdeOid: Option[List[String]], count: Option[Int], index: Option[Int]): HakijaPaginationObject = {
+    import scala.collection.JavaConverters._
+
+    val sijoitteluntulos = fromOptional(if (SijoitteluResource.LATEST == sijoitteluajoId) {
+      raportointiService.latestSijoitteluAjoForHaku(hakuOid)
+    } else raportointiService.getSijoitteluAjo(sijoitteluajoId.toLong))
+
+    sijoitteluntulos.map {
+      def toJavaBoolean(b: Option[Boolean]): java.lang.Boolean = b match {
+        case Some(scalaBoolean) => scalaBoolean
+        case None => null.asInstanceOf[java.lang.Boolean]
+      }
+      def toJavaInt(i: Option[Int]): java.lang.Integer = i match {
+        case Some(scalaInt) => scalaInt
+        case None => null
+      }
+
+      val hakukohdeOidsAsJava: java.util.List[String] = hakukohdeOid match {
+        case Some(oids) => oids.asJava
+        case None => null
+      }
+
+      raportointiService.hakemukset(_, toJavaBoolean(hyvaksytyt), toJavaBoolean(ilmanHyvaksyntaa), toJavaBoolean(vastaanottaneet),
+        hakukohdeOidsAsJava, toJavaInt(count), toJavaInt(index))
+    }.getOrElse(new HakijaPaginationObject)
   }
 
   private def fetchVastaanotto(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {

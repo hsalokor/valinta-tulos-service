@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice
 import java.util
 
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaPaginationObject
 import fi.vm.sade.utils.Timer.timed
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
@@ -101,6 +102,17 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
     setValintatuloksetTilat(hakuOid, valintatulokset.asScala, Map(hakemusOid -> hakemuksenTulos), Map(henkiloOid -> vastaanotot))
     valintatulokset
+  }
+
+  def sijoittelunTulokset(hakuOid: String, sijoitteluajoId: String, hyvaksytyt: Option[Boolean], ilmanHyvaksyntaa: Option[Boolean], vastaanottaneet: Option[Boolean],
+                          hakukohdeOid: Option[List[String]], count: Option[Int], index: Option[Int]): HakijaPaginationObject = {
+    try {
+      sijoittelutulosService.sijoittelunTulokset(hakuOid, sijoitteluajoId, hyvaksytyt, ilmanHyvaksyntaa, vastaanottaneet, hakukohdeOid, count, index)
+    } catch {
+      case e: Exception =>
+        logger.error(s"Sijoittelun hakemuksia ei saatu haulle $hakuOid", e)
+        new HakijaPaginationObject
+    }
   }
 
   private def mapHakemustenTuloksetByHakemusOid(hakemustenTulokset:Iterator[Hakemuksentulos]):Map[String,Hakemuksentulos] = {

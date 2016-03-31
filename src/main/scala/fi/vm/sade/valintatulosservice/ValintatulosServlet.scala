@@ -2,9 +2,9 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.json.JsonStreamWriter
+import fi.vm.sade.valintatulosservice.json.{JsonFormats, JsonStreamWriter}
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
-import fi.vm.sade.valintatulosservice.tarjonta.{YhdenPaikanSaanto, Haku, Hakuaika}
+import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakuaika, YhdenPaikanSaanto}
 import org.joda.time.DateTime
 import org.json4s.Extraction
 import org.scalatra._
@@ -108,6 +108,32 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     val ilmoittautuminen = parsedBody.extract[Ilmoittautuminen]
 
     ilmoittautumisService.ilmoittaudu(hakuOid, hakemusOid, ilmoittautuminen)
+  }
+
+  lazy val getHaunSijoitteluajonTuloksetSwagger: OperationBuilder = (apiOperation[Unit]("getHaunSijoitteluajonTuloksetSwagger")
+    summary """Sivutettu listaus hakemuksien/hakijoiden listaukseen. Yksityiskohtainen listaus kaikista hakutoiveista ja niiden valintatapajonoista"""
+    parameter pathParam[String]("hakuOid").description("Haun oid").required
+    parameter pathParam[String]("sijoitteluajoId").description("""Sijoitteluajon id tai "latest"""").required
+    parameter queryParam[Boolean]("hyvaksytyt").description("Listaa jossakin kohteessa hyvaksytyt").optional
+    parameter queryParam[Boolean]("ilmanHyvaksyntaa").description("Listaa henkilot jotka ovat taysin ilman hyvaksyntaa (missaan kohteessa)").optional
+    parameter queryParam[Boolean]("vastaanottaneet").description("Listaa henkilot jotka ovat ottaneet paikan vastaan").optional
+    parameter queryParam[List[String]]("hakukohdeOid").description("Rajoita hakua niin etta naytetaan hakijat jotka ovat jollain toiveella hakeneet naihin kohteisiin").optional
+    parameter queryParam[Int]("count").description("Nayta n kappaletta tuloksia. Kayta sivutuksessa").optional
+    parameter queryParam[Int]("index").description("Aloita nayttaminen kohdasta n. Kayta sivutuksessa.").optional)
+  get("/:hakuOid/sijoitteluajo/:sijoitteluajoId/hakemukset", operation(getHaunSijoitteluajonTuloksetSwagger)) {
+    def booleanParam(n: String): Option[Boolean] = params.get(n).map(_.toBoolean)
+    def intParam(n: String): Option[Int] = params.get(n).map(_.toInt)
+
+    val hakuOid = params("hakuOid")
+    val sijoitteluajoId = params("sijoitteluajoId")
+    val hyvaksytyt = booleanParam("hyvaksytyt")
+    val ilmanHyvaksyntaa = booleanParam("ilmanHyvaksyntaa")
+    val vastaanottaneet = booleanParam("vastaanottaneet")
+    val hakukohdeOid = multiParams.get("hakukohdeOid").map(_.toList)
+    val count = intParam("count")
+    val index = intParam("index")
+    val hakijaPaginationObject = valintatulosService.sijoittelunTulokset(hakuOid, sijoitteluajoId, hyvaksytyt, ilmanHyvaksyntaa, vastaanottaneet, hakukohdeOid, count, index)
+    Ok(JsonFormats.javaObjectToJsonString(hakijaPaginationObject))
   }
 
   private def serveStreamingResults(fetchData: => Option[Iterator[Hakemuksentulos]]): Any = {
