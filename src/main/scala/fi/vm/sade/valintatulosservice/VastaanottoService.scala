@@ -1,111 +1,174 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila._
-import fi.vm.sade.sijoittelu.domain._
+import java.text.SimpleDateFormat
+import java.util.Date
+
+import fi.vm.sade.sijoittelu.domain.Valintatulos
+import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
-import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
+import fi.vm.sade.valintatulosservice.tarjonta.HakuService
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoEvent, VastaanottoRecord, VirkailijaVastaanottoRepository}
+import slick.dbio.{DBIO, SuccessAction}
 
-class VastaanottoService(hakuService: HakuService, valintatulosService: ValintatulosService, tulokset: ValintatulosRepository) {
+import scala.collection.JavaConverters._
+import scala.util.{Success, Try}
 
-  val sallitutVastaanottotilat: Set[ValintatuloksenTila] = Set(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT, PERUNUT)
 
-  def vastaanota(hakuOid: String, vastaanotettavaHakemusOid: String, vastaanotto: Vastaanotto) {
-    vastaanota(hakuOid, vastaanotettavaHakemusOid, vastaanotto, tallennaValintatulosmuutos = true)
-  }
+class VastaanottoService(hakuService: HakuService,
+                         vastaanotettavuusService: VastaanotettavuusService,
+                         valintatulosService: ValintatulosService,
+                         hakijaVastaanottoRepository: HakijaVastaanottoRepository,
+                         virkailijaVastaanottoRepository: VirkailijaVastaanottoRepository,
+                         valintatulosRepository: ValintatulosRepository) extends Logging {
 
-  def tarkistaVastaanotettavuus(hakuOid: String, vastaanotettavaHakemusOid: String, hakukohdeOid: String) {
-    vastaanota(hakuOid, vastaanotettavaHakemusOid, Vastaanotto(hakukohdeOid, Vastaanottotila.vastaanottanut, "", ""), tallennaValintatulosmuutos = false)
-  }
+  private val statesMatchingInexistentActions = Set(Vastaanottotila.kesken, Vastaanottotila.ei_vastaanotettu_määräaikana)
 
-  private def vastaanota(hakuOid: String, vastaanotettavaHakemusOid: String, vastaanotto: Vastaanotto, tallennaValintatulosmuutos: Boolean) {
-    val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException("Hakua ei löydy"))
-    val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, vastaanotettavaHakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
-    val hakutoive = hakemuksenTulos.findHakutoive(vastaanotto.hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
-    val haluttuTila = ValintatuloksenTila.valueOf(vastaanotto.tila.toString)
-    val vastaanotettavaHakuKohdeOid = vastaanotto.hakukohdeOid
 
-    val tarkistettavatHakemukset = korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku, hakemuksenTulos.hakijaOid, haluttuTila)
-
-    tarkistaEttaEiVastaanottoja(tarkistettavatHakemukset, haluttuTila, hakutoive, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
-
-    if (tallennaValintatulosmuutos) {
-      tarkistaHakutoiveenJaValintatuloksenTila(hakutoive, haluttuTila)
-
-      val tallennettavaTila = vastaanotaSitovastiJosKorkeakouluYhteishaku(haku, haluttuTila)
-      tulokset.modifyValintatulos(
-        vastaanotto.hakukohdeOid,
-        hakutoive.valintatapajonoOid,
-        vastaanotettavaHakemusOid
-      ) { valintatulos => valintatulos.setTila(tallennettavaTila, vastaanotto.selite, vastaanotto.muokkaaja) }
-
-      peruMuutHyvaksytyt(tarkistettavatHakemukset, vastaanotto, haku, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
+  def vastaanotaVirkailijana(vastaanotot: List[VastaanottoEventDto]): Iterable[VastaanottoResult] = {
+    vastaanotot.groupBy(v => (v.hakukohdeOid, v.hakuOid)).flatMap {
+      case ((hakukohdeOid, hakuOid), vastaanottoEventDtos) => tallennaHakukohteenVastaanotot(hakukohdeOid, hakuOid, vastaanottoEventDtos)
     }
   }
 
-  def vastaanotaHakukohde(personOid:String, vastaanotto: Vastaanotto) {
-    val hakemuksenTulos = valintatulosService.hakemustenTulosByHakukohdeAndPerson(vastaanotto.hakukohdeOid, personOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
-    vastaanota(hakemuksenTulos.hakuOid, hakemuksenTulos.hakemusOid, vastaanotto)
-  }
+  def vastaanotaVirkailijanaInTransaction(vastaanotot: List[VastaanottoEventDto]): Try[Unit] = {
+    val tallennettavatVastaanotot = generateTallennettavatVastaanototList(vastaanotot)
+    val vastaanottosToCheckInPostCondition = tallennettavatVastaanotot.filter(v => v.action == VastaanotaEhdollisesti || v.action == VastaanotaSitovasti)
+    val postCondition = DBIO.sequence(vastaanottosToCheckInPostCondition.
+      map(v => vastaanotettavuusService.tarkistaAiemmatVastaanotot(v.henkiloOid, v.hakukohdeOid, aiempiVastaanotto => SuccessAction())))
 
-  private def tarkistaHakutoiveenJaValintatuloksenTila(hakutoive: Hakutoiveentulos, haluttuTila: ValintatuloksenTila) {
-    if (!sallitutVastaanottotilat.contains(haluttuTila)) {
-      throw new IllegalArgumentException("Ei-hyväksytty vastaanottotila: " + haluttuTila)
-    }
-    if (List(VASTAANOTTANUT, PERUNUT).contains(haluttuTila) && !List(Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, Vastaanotettavuustila.vastaanotettavissa_sitovasti).contains(hakutoive.vastaanotettavuustila)) {
-      throw new IllegalArgumentException("Väärä vastaanotettavuustila kohteella " + hakutoive.hakukohdeOid + ": " + hakutoive.vastaanotettavuustila.toString + " (yritetty muutos: " + haluttuTila + ")")
-    }
-    if (haluttuTila == EHDOLLISESTI_VASTAANOTTANUT && hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti) {
-      throw new IllegalArgumentException("Väärä vastaanotettavuustila kohteella " + hakutoive.hakukohdeOid + ": " + hakutoive.vastaanotettavuustila.toString + " (yritetty muutos: " + haluttuTila + ")")
+    tallennettavatVastaanotot.toStream.map(checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = false)).find(_.isFailure) match {
+      case Some(failure) => failure
+      case None => Try { hakijaVastaanottoRepository.store(tallennettavatVastaanotot, postCondition) }
     }
   }
 
-  private def korkeakouluYhteishaunVastaanottoonLiittyvienHakujenHakemukset(haku: Haku, personOid: String, tila: ValintatuloksenTila): Set[Hakemuksentulos] =
-    if (haku.korkeakoulu && haku.yhteishaku && (haku.varsinainenhaku || haku.lisähaku) && List(VASTAANOTTANUT, EHDOLLISESTI_VASTAANOTTANUT).contains(tila)) {
-      (Set(haku.oid) ++ hakuService.findLiittyvatHaut(haku)).flatMap(valintatulosService.hakemuksentuloksetByPerson(_, personOid))
-    } else {
-      Set()
-    }
-
-  private def muutKuinHakutoive(tulos: Hakemuksentulos, vastaanotettavaHakemusOid: String, vastaanotettavaHakuKohdeOid: String): List[Hakutoiveentulos] = {
-    tulos.hakutoiveet.filter(toive => !(tulos.hakemusOid == vastaanotettavaHakemusOid && toive.hakukohdeOid == vastaanotettavaHakuKohdeOid))
+  private def generateTallennettavatVastaanototList(vastaanotot: List[VastaanottoEventDto]): List[VirkailijanVastaanotto] = {
+    (for {
+      ((hakukohdeOid, hakuOid), vastaanottoEventDtos) <- vastaanotot.groupBy(v => (v.hakukohdeOid, v.hakuOid))
+      hakukohteenValintatulokset = findValintatulokset(hakuOid, hakukohdeOid)
+      vastaanottoEventDto <- vastaanottoEventDtos if isPaivitys(vastaanottoEventDto, hakukohteenValintatulokset.get(vastaanottoEventDto.henkiloOid))
+    } yield {
+      VirkailijanVastaanotto(vastaanottoEventDto)
+    }).toList
   }
 
-  private def tarkistaEttaEiVastaanottoja(muutHakemukset: Set[Hakemuksentulos], tila: ValintatuloksenTila, hakutoive: Hakutoiveentulos, vastaanotettavaHakemusOid: String, vastaanotettavaHakuKohdeOid: String) {
-    muutHakemukset.foreach(tulos => {
-      val hakemuksenMuutHakuToiveet: List[Hakutoiveentulos] = muutKuinHakutoive(tulos, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
-      val vastaanotettu = hakemuksenMuutHakuToiveet.find(toive => List(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(toive.vastaanottotila))
-      if (vastaanotettu.isDefined) {
-        throw PriorAcceptanceException(tulos.hakuOid,  vastaanotettu.get.hakukohdeOid,  vastaanotettu.get.vastaanottotila, tila, hakutoive.hakukohdeOid)
+  private def checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot: Boolean = true)(vastaanotto: VirkailijanVastaanotto): Try[Unit] = vastaanotto.action match {
+    case VastaanotaSitovasti | VastaanotaEhdollisesti => for {
+      _ <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+      _ <- if (tarkistaAiemmatVastaanotot) Try { hakijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)) } else Success()
+    } yield ()
+    case MerkitseMyohastyneeksi => for {
+      hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+      _ <- tarkistaHakijakohtainenDeadline(hakutoive)
+    } yield ()
+    case Peru => for {
+      hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+      _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
+    } yield ()
+    case Peruuta => for {
+      _ <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+    } yield ()
+    case Poista => Success(())
+  }
+
+  private def tallennaHakukohteenVastaanotot(hakukohdeOid: String, hakuOid: String, uudetVastaanotot: List[VastaanottoEventDto]): List[VastaanottoResult] = {
+    val hakukohteenValintatulokset = findValintatulokset(hakuOid, hakukohdeOid)
+    uudetVastaanotot.map(vastaanottoDto => {
+      if (isPaivitys(vastaanottoDto, hakukohteenValintatulokset.get(vastaanottoDto.henkiloOid))) {
+        tallenna(VirkailijanVastaanotto(vastaanottoDto)).get
+      } else {
+        VastaanottoResult(vastaanottoDto.henkiloOid, vastaanottoDto.hakemusOid, vastaanottoDto.hakukohdeOid, Result(200, None))
       }
     })
   }
 
-  private def peruMuutHyvaksytyt(muutHakemukset: Set[Hakemuksentulos], vastaanotto: Vastaanotto, vastaanotonHaku: Haku, vastaanotettavaHakemusOid: String, vastaanotettavaHakuKohdeOid: String) {
-    muutHakemukset.foreach(hakemus => {
-      val peruttavatHakutoiveenTulokset = muutKuinHakutoive(hakemus, vastaanotettavaHakemusOid, vastaanotettavaHakuKohdeOid)
-        .filter(toive => Valintatila.isHyväksytty(toive.valintatila) && toive.vastaanottotila == Vastaanottotila.kesken)
-      peruttavatHakutoiveenTulokset.foreach(kohde =>
-        tulokset.modifyValintatulos(
-          kohde.hakukohdeOid,
-          kohde.valintatapajonoOid,
-          hakemus.hakemusOid
-        ) { valintatulos => valintatulos.setTila(
-          ValintatuloksenTila.PERUNUT,
-          vastaanotto.tila + " paikan " + vastaanotto.hakukohdeOid + " toisesta hausta " + vastaanotonHaku.oid,
-          vastaanotto.muokkaaja)
-        }
-      )
-    })
+  private def isPaivitys(virkailijanVastaanotto: VastaanottoEventDto, valintatulos: Option[Valintatulos]): Boolean = valintatulos match {
+    case Some(v) => !Vastaanottotila.matches(virkailijanVastaanotto.tila, v.getTila)
+    case None => !statesMatchingInexistentActions.contains(virkailijanVastaanotto.tila)
   }
 
-  private def vastaanotaSitovastiJosKorkeakouluYhteishaku(haku: Haku, tila: ValintatuloksenTila): ValintatuloksenTila =
-    if (tila == VASTAANOTTANUT && haku.korkeakoulu) {
-      ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI
-    } else {
-      tila
+  private def findValintatulokset(hakuOid: String, hakukohdeOid: String): Map[String, Valintatulos] = {
+    valintatulosService.findValintaTuloksetForVirkailija(hakuOid, hakukohdeOid).asScala.toList.groupBy(_.getHakijaOid).mapValues(_.head)
+  }
+
+  private def tallenna(vastaanotto: VirkailijanVastaanotto): Try[VastaanottoResult] = {
+    (for {
+      _ <- checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = true)(vastaanotto)
+      _ <- Try { hakijaVastaanottoRepository.store(vastaanotto) }
+    } yield {
+      createVastaanottoResult(200, None, vastaanotto)
+    }).recover {
+      case e: PriorAcceptanceException => createVastaanottoResult(403, Some(e), vastaanotto)
+      case e @ (_: IllegalArgumentException | _: IllegalStateException) => createVastaanottoResult(400, Some(e), vastaanotto)
+      case e: Exception => createVastaanottoResult(500, Some(e), vastaanotto)
     }
+  }
+
+  private def createVastaanottoResult(statusCode: Int, exception: Option[Throwable], vastaanottoEvent: VastaanottoEvent) = {
+    VastaanottoResult(vastaanottoEvent.henkiloOid, vastaanottoEvent.hakemusOid, vastaanottoEvent.hakukohdeOid, Result(statusCode, exception.map(_.getMessage)))
+  }
+
+  @Deprecated
+  def tarkistaVastaanotettavuus(vastaanotettavaHakemusOid: String, hakukohdeOid: String): Unit = {
+    findHakutoive(vastaanotettavaHakemusOid, hakukohdeOid).get
+  }
+
+  @Deprecated
+  def vastaanota(hakemusOid: String, vastaanotto: Vastaanotto): Unit = {
+    vastaanotaHakijana(HakijanVastaanotto(
+      vastaanotto.muokkaaja,
+      hakemusOid,
+      vastaanotto.hakukohdeOid,
+      HakijanVastaanottoAction.getHakijanVastaanottoAction(vastaanotto.tila)
+    )).get
+  }
+
+  def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Try[Unit] = {
+    for {
+      hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+      _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
+    } yield {
+      hakijaVastaanottoRepository.store(vastaanotto)
+      valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid,hakutoive.valintatapajonoOid,vastaanotto.hakemusOid) { valintatulos =>
+        valintatulos.setTila(hakutoive.vastaanottotila.toString, vastaanotto.action.toString, vastaanotto.selite, vastaanotto.ilmoittaja)
+      }
+    }
+  }
+
+  private def findHakutoive(hakemusOid: String, hakukohdeOid: String): Try[Hakutoiveentulos] = {
+    Try {
+      val hakuOid = hakuService.getHakukohde(hakukohdeOid).getOrElse(throw new IllegalArgumentException(s"Tuntematon hakukohde $hakukohdeOid")).hakuOid
+      val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
+      hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
+    }
+  }
+
+  private def tarkistaHakijakohtainenDeadline(hakutoive: Hakutoiveentulos): Try[Unit] = {
+    val vastaanottoDeadline = hakutoive.vastaanottoDeadline
+    Try {
+      if(vastaanottoDeadline.isDefined && vastaanottoDeadline.get.after(new Date())) {
+        throw new IllegalArgumentException(
+          s"""Hakijakohtaista määräaikaa ${new SimpleDateFormat("dd-MM-yyyy").format(vastaanottoDeadline)}
+             |kohteella ${hakutoive.hakukohdeOid} : ${hakutoive.vastaanotettavuustila.toString} ei ole vielä ohitettu.""".stripMargin)
+      }
+    }
+  }
+
+  private def tarkistaHakutoiveenVastaanotettavuus(hakutoive: Hakutoiveentulos, haluttuTila: VastaanottoAction): Try[Unit] = {
+    Try {
+      if (List(Peru, VastaanotaSitovasti).contains(haluttuTila) && !List(Vastaanotettavuustila.vastaanotettavissa_ehdollisesti, Vastaanotettavuustila.vastaanotettavissa_sitovasti).contains(hakutoive.vastaanotettavuustila)) {
+        throw new IllegalArgumentException("Väärä vastaanotettavuustila kohteella " + hakutoive.hakukohdeOid + ": " + hakutoive.vastaanotettavuustila.toString + " (yritetty muutos: " + haluttuTila + ")")
+      }
+      if (haluttuTila == VastaanotaEhdollisesti && hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti) {
+        throw new IllegalArgumentException("Väärä vastaanotettavuustila kohteella " + hakutoive.hakukohdeOid + ": " + hakutoive.vastaanotettavuustila.toString + " (yritetty muutos: " + haluttuTila + ")")
+      }
+    }
+  }
 }
 
+case class PriorAcceptanceException(aiempiVastaanotto: VastaanottoRecord)
+  extends IllegalArgumentException(s"Löytyi aiempi vastaanotto $aiempiVastaanotto")
 
-case class PriorAcceptanceException(hakuOid:String, hakukohdeOid: String, estavaTila: Vastaanottotila.Vastaanottotila, yritettyTila: ValintatuloksenTila, yritettyKohde: String) extends IllegalArgumentException("Väärä vastaanottotila toisen haun " + hakuOid + " kohteella " + hakukohdeOid + ": " + estavaTila + " (yritetty muutos: " + yritettyTila + " " + yritettyKohde + ")")
+case class ConflictingAcceptancesException(personOid: String, conflictingVastaanottos: Seq[VastaanottoRecord], conflictDescription: String)
+  extends IllegalStateException(s"Hakijalla $personOid useita vastaanottoja $conflictDescription: $conflictingVastaanottos")

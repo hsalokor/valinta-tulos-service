@@ -1,10 +1,9 @@
 package fi.vm.sade.security.mock
 
 import fi.vm.sade.security.SecurityContext
-import fi.vm.sade.security.ldap.{DirectoryClient, LdapUser, MockDirectoryClient}
+import fi.vm.sade.security.ldap.{MockDirectoryClient, LdapUser}
 import fi.vm.sade.utils.cas.CasClient._
 import fi.vm.sade.utils.cas._
-import org.http4s.{ParseFailure, ParseException}
 
 import scalaz.concurrent.Task
 

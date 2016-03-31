@@ -58,7 +58,6 @@ object SijoitteluFixtureCreator {
       hakutoiveIndex
     )
     valintatulos.setJulkaistavissa(julkaistavissa, "testing", hakijaOid)
-    valintatulos.setTila(ValintatuloksenTila.KESKEN, "testing", hakijaOid)
     valintatulos
   }
 

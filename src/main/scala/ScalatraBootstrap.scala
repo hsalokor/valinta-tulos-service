@@ -4,9 +4,13 @@ import javax.servlet.{DispatcherType, ServletContext}
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig._
+import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
+import fi.vm.sade.valintatulosservice.migraatio.MigraatioServlet
+import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import fi.vm.sade.valintatulosservice.vastaanottomeili.{ValintatulosMongoCollection, MailDecorator, MailPoller}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
+import fi.vm.sade.valintatulosservice.vastaanottomeili.{MailDecorator, MailPoller, ValintatulosMongoCollection}
 import org.scalatra._
 
 class ScalatraBootstrap extends LifeCycle {
@@ -17,35 +21,51 @@ class ScalatraBootstrap extends LifeCycle {
 
   override def init(context: ServletContext) {
     implicit val appConfig: AppConfig = AppConfig.fromOptionalString(Option(context.getAttribute("valintatulos.profile").asInstanceOf[String]))
+    globalConfig = Some(appConfig)
+    appConfig.start
+    if (appConfig.isInstanceOf[IT] || appConfig.isInstanceOf[Dev]) {
+      context.mount(new FixtureServlet(valintarekisteriDb), "/util")
+      SijoitteluFixtures(appConfig.sijoitteluContext.database, valintarekisteriDb).importFixture("hyvaksytty-kesken-julkaistavissa.json")
+    }
     lazy val hakuService = HakuService(appConfig)
-    lazy val valintatulosService = new ValintatulosService(hakuService)(appConfig)
-    lazy val vastaanottoService = new VastaanottoService(hakuService, valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
-    lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService, appConfig.sijoitteluContext.valintatulosRepository)
+    lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
+    lazy val hakukohdeRecordService = new HakukohdeRecordService(hakuService, valintarekisteriDb)
+    lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb)
+    lazy val vastaanotettavuusService = new VastaanotettavuusService(hakukohdeRecordService, valintarekisteriDb)
+    lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, valintarekisteriDb, hakuService)(appConfig)
+    lazy val vastaanottoService = new VastaanottoService(hakuService, vastaanotettavuusService, valintatulosService, valintarekisteriDb, valintarekisteriDb,
+      appConfig.sijoitteluContext.valintatulosRepository)
+    lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService,
+      appConfig.sijoitteluContext.valintatulosRepository, valintarekisteriDb)
     lazy val valintatulosCollection = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
     lazy val mailPoller = new MailPoller(valintatulosCollection, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 100)
 
-    globalConfig = Some(appConfig)
-    appConfig.start
-    context.mount(new BuildInfoServlet, "/")
-
-    context.mount(new PrivateValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
-    context.mount(new EmailStatusServlet(mailPoller, valintatulosCollection, new MailDecorator(new HakemusRepository(), valintatulosCollection)), "/vastaanottoposti")
-    context.mount(new VastaanottoServlet(vastaanottoService), "/vastaanotto")
 
 
-    val securityFilter = appConfig.securityContext.securityFilter
-    context.addFilter("cas", securityFilter)
-      .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/cas/*")
-    context.mount(new PublicValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/cas/haku")
+    val migrationMode = System.getProperty("valinta-rekisteri-migration-mode")
+
+    if(null != migrationMode && "true".equalsIgnoreCase(migrationMode)) {
+      context.mount(new MigraatioServlet(hakukohdeRecordService, valintarekisteriDb, new HakemusRepository(), appConfig.sijoitteluContext.raportointiService, hakuService), "/migraatio")
+
+    } else {
+      context.mount(new BuildInfoServlet, "/")
+
+      context.mount(new VirkailijanVastaanottoServlet(valintatulosService, vastaanottoService), "/virkailija")
+      context.mount(new PrivateValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/haku")
+      context.mount(new EmailStatusServlet(mailPoller, valintatulosCollection, new MailDecorator(new HakemusRepository(), valintatulosCollection)), "/vastaanottoposti")
+      context.mount(new EnsikertalaisuusServlet(valintarekisteriDb, appConfig.settings.valintaRekisteriEnsikertalaisuusMaxPersonOids), "/ensikertalaisuus")
+      context.mount(new HakijanVastaanottoServlet(vastaanottoService), "/vastaanotto")
+
+      val securityFilter = appConfig.securityContext.securityFilter
+      context.addFilter("cas", securityFilter)
+        .addMappingForUrlPatterns(util.EnumSet.allOf(classOf[DispatcherType]), true, "/cas/*")
+      context.mount(new PublicValintatulosServlet(valintatulosService, vastaanottoService, ilmoittautumisService), "/cas/haku")
+    }
 
     context.mount(new SwaggerServlet, "/swagger/*")
-
-    if (appConfig.isInstanceOf[IT] || appConfig.isInstanceOf[Dev])
-      context.mount(new FixtureServlet, "/util")
   }
 
   override def destroy(context: ServletContext) = {
-    globalConfig.foreach(_.stop)
     super.destroy(context)
   }
 }

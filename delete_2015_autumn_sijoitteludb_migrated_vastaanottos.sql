@@ -1,0 +1,1 @@
+delete from vastaanotot where vanhakohde is null;

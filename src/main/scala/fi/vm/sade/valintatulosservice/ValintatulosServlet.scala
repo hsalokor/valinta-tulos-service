@@ -1,21 +1,19 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.json.{JsonFormats, JsonStreamWriter}
+import fi.vm.sade.valintatulosservice.json.JsonStreamWriter
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
-import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakuaika}
+import fi.vm.sade.valintatulosservice.tarjonta.{YhdenPaikanSaanto, Haku, Hakuaika}
 import org.joda.time.DateTime
-import org.json4s.{Extraction, MappingException}
+import org.json4s.Extraction
 import org.scalatra._
-import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 
 import scala.util.Try
 
-abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoService: VastaanottoService, ilmoittautumisService: IlmoittautumisService)(implicit val swagger: Swagger, appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
+abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vastaanottoService: VastaanottoService, ilmoittautumisService: IlmoittautumisService)(implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
 
   lazy val exampleHakemuksenTulos = Hakemuksentulos(
     "2.2.2.2",
@@ -26,7 +24,9 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
       Hakutoiveentulos.julkaistavaVersioSijoittelunTuloksesta(
         HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"),
         Hakutoive("1.2.3.4", "4.4.4.4", "Hakukohde1", "Tarjoaja1"),
-        Haku("5.5.5.5", true, true, true, false, true, None, Set(), List(Hakuaika("12345", Some(System.currentTimeMillis()), Some(System.currentTimeMillis())))),
+        Haku("5.5.5.5", true, true, true, false, true, None, Set(),
+          List(Hakuaika("12345", Some(System.currentTimeMillis()), Some(System.currentTimeMillis()))),
+          YhdenPaikanSaanto(false, "")),
         Some(Ohjausparametrit(None, Some(DateTime.now().plusDays(10)), Some(DateTime.now().plusDays(30)), Some(DateTime.now().plusDays(60)))))
     )
   )
@@ -40,7 +40,6 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka tulokset halutaan")
   )
   get("/:hakuOid/hakemus/:hakemusOid", operation(getHakemusSwagger)) {
-    contentType = formats("json")
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
     valintatulosService.hakemuksentulos(hakuOid, hakemusOid) match {
@@ -56,13 +55,11 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     parameter pathParam[String]("hakuOid").description("Haun oid")
   )
   get("/:hakuOid", operation(getHakemuksetSwagger)) {
-    contentType = formats("json")
     val hakuOid = params("hakuOid")
     serveStreamingResults({ valintatulosService.hakemustenTulosByHaku(hakuOid) })
   }
 
   get("/:hakuOid/hakukohde/:hakukohdeOid", operation(getHakukohteenHakemuksetSwagger)) {
-    contentType = formats("json")
     val hakuOid = params("hakuOid")
     val hakukohdeOid = params("hakukohdeOid")
     serveStreamingResults({ valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid) })
@@ -86,19 +83,17 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
             "henkilö: 5.5.5.5",
             "kuvaus mitä kautta muokkaus tehty"
         )
-      )) + ".\nMahdolliset vastaanottotilat: " + vastaanottoService.sallitutVastaanottotilat
+      )) + ".\nMahdolliset vastaanottotilat: " + List(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanottotila.perunut)
     parameter pathParam[String]("hakuOid").description("Haun oid")
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
   )
   post("/:hakuOid/hakemus/:hakemusOid/vastaanota", operation(postVastaanottoSwagger)) {
-    contentType = formats("json")
-    checkJsonContentType
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
     val vastaanotto = parsedBody.extract[Vastaanotto]
 
 
-    Try(vastaanottoService.vastaanota(hakuOid, hakemusOid, vastaanotto)).map((_) => Ok()).recover{
+    Try(vastaanottoService.vastaanota(hakemusOid, vastaanotto)).map((_) => Ok()).recover{
       case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
     }.get
   }
@@ -110,9 +105,7 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
     )
   get("/:hakuOid/hakemus/:hakemusOid/hakukohde/:hakukohdeOid/vastaanotettavuus", operation(getHakukohteenVastaanotettavuusSwagger)) {
-    contentType = formats("json")
-    checkJsonContentType
-    Try(vastaanottoService.tarkistaVastaanotettavuus( params("hakuOid"), params("hakemusOid"), params("hakukohdeOid")))
+    Try(vastaanottoService.tarkistaVastaanotettavuus(params("hakemusOid"), params("hakukohdeOid")))
       .map((_) => Ok())
       .recover({ case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage) })
       .get
@@ -135,41 +128,11 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
     )
   post("/:hakuOid/hakemus/:hakemusOid/ilmoittaudu", operation(postIlmoittautuminenSwagger)) {
-    contentType = formats("json")
-    checkJsonContentType
     val hakuOid = params("hakuOid")
     val hakemusOid = params("hakemusOid")
     val ilmoittautuminen = parsedBody.extract[Ilmoittautuminen]
 
     ilmoittautumisService.ilmoittaudu(hakuOid, hakemusOid, ilmoittautuminen)
-  }
-
-  notFound {
-    // remove content type in case it was set through an action
-    contentType = null
-    serveStaticResource() getOrElse resourceNotFound()
-  }
-
-  def checkJsonContentType = {
-    request.contentType match {
-      case Some(ct) if ct.startsWith("application/json") =>
-      case _ => halt(415, "error" -> "Only application/json accepted")
-    }
-  }
-
-  error {
-    case e => {
-      val desc = request.getMethod + " " + requestPath + (if (request.body.length > 0) {" (body: " + request.body + ")"} else {
-        ""
-      })
-      if (e.isInstanceOf[IllegalStateException] || e.isInstanceOf[IllegalArgumentException] || e.isInstanceOf[MappingException]) {
-        logger.warn(desc + ": " + e.toString);
-        BadRequest("error" -> e.getMessage)
-      } else {
-        logger.error(desc, e);
-        InternalServerError("error" -> "500 Internal Server Error")
-      }
-    }
   }
 
   private def serveStreamingResults(fetchData: => Option[Iterator[Hakemuksentulos]]): Any = {

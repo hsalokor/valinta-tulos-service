@@ -1,12 +1,15 @@
 package fi.vm.sade.valintatulosservice.local
 
+import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
+import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
-import fi.vm.sade.valintatulosservice.{ITSpecification, TimeWarp, ValintatulosService}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
+import fi.vm.sade.valintatulosservice.{ITSpecification, TimeWarp, ValintatulosService, VastaanotettavuusService}
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
@@ -204,13 +207,8 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
         }
 
-        "hyvaksytty Valintatulos peruutettu" in {
-          useFixture("hyvaksytty-valintatulos-peruutettu.json", hakuFixture = hakuFixture)
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.peruutettu, Vastaanottotila.peruutettu, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-        }
-
         "hyvaksytty Valintatulos perunut" in {
-          useFixture("hyvaksytty-valintatulos-perunut.json", hakuFixture = hakuFixture)
+          useFixture("hyvaksytty-valintatulos-perunut-2.json", hakuFixture = hakuFixture)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.perunut, Vastaanottotila.perunut, Vastaanotettavuustila.ei_vastaanotettavissa, true)
         }
 
@@ -221,18 +219,18 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
 
         "vastaanoton deadline näytetään" in {
           withFixedDateTime("26.11.2014 12:00") {
-            useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
-            getHakutoive("1.2.246.562.5.16303028779").vastaanottoDeadline must_== Some(parseDate("10.1.2100 12:00"))
+            useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
+            getHakutoive("1.2.246.562.5.72607738902").vastaanottoDeadline must_== Some(parseDate("10.1.2100 12:00"))
           }
         }
 
         "ei vastaanottanut määräaikana" in {
           "sijoittelu ei ole ehtinyt muuttamaan tulosta" in {
-            useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
+            useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture, ohjausparametritFixture = "vastaanotto-loppunut")
             checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
           }
           "sijoittelu on muuttanut tuloksen" in {
-            useFixture("perunut-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture)
+            useFixture("perunut-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture, ohjausparametritFixture = "vastaanotto-loppunut")
             val hakutoive = getHakutoive("1.2.246.562.5.72607738902")
             checkHakutoiveState(hakutoive, Valintatila.perunut, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
             hakutoive.tilanKuvaukset("FI") must_== "Peruuntunut, ei vastaanottanut määräaikana"
@@ -333,11 +331,45 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
         }
       }
+
+      "ei vastaanotettu määräaikana" in {
+        "virkailija ei merkinnyt myöhästyneeksi" in {
+          useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture, ohjausparametritFixture = "vastaanotto-loppunut")
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          val valintatulos1 = getHakutoiveenValintatulos("1.2.246.562.5.72607738902")
+          valintatulos1.getTila must_== ValintatuloksenTila.KESKEN
+          valintatulos1.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          val valintatulos2 = getHakutoiveenValintatulos("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.72607738902")
+          valintatulos2.getTila must_== ValintatuloksenTila.KESKEN
+          valintatulos2.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          val valintatulos3 = getHakutoiveenValintatulosByHakemus("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.72607738902", hakemusOid)
+          valintatulos3.getTila must_== ValintatuloksenTila.KESKEN
+          valintatulos3.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+        }
+        "virkailija merkinnyt myöhästyneeksi" in {
+          useFixture("hyvaksytty-valintatulos-ei-vastaanottanut-maaraaikana.json", hakuFixture = hakuFixture, ohjausparametritFixture = "vastaanotto-loppunut")
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.hyväksytty, Vastaanottotila.ei_vastaanotettu_määräaikana, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          val valintatulos1 = getHakutoiveenValintatulos("1.2.246.562.5.16303028779")
+          valintatulos1.getTila must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          valintatulos1.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          val valintatulos2 = getHakutoiveenValintatulos("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.16303028779")
+          valintatulos2.getTila must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          valintatulos2.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          val valintatulos3 = getHakutoiveenValintatulosByHakemus("1.2.246.562.5.2013080813081926341928", "1.2.246.562.5.16303028779", hakemusOid)
+          valintatulos3.getTila must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+          valintatulos3.getTilaHakijalle must_== ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+        }
+      }
     }
   }
 
+  step(valintarekisteriDb.db.shutdown)
+
   lazy val hakuService = HakuService(appConfig)
-  lazy val valintatulosService = new ValintatulosService(hakuService)
+  lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
+  lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb)
+  lazy val vastaanotettavuusService = new VastaanotettavuusService(new HakukohdeRecordService(hakuService, valintarekisteriDb), valintarekisteriDb)
+  lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, valintarekisteriDb, hakuService)
 
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
   val sijoitteluAjoId: String = "latest"
@@ -347,6 +379,21 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
 
   def hakemuksenTulos = {
     valintatulosService.hakemuksentulos(hakuOid, hakemusOid).get
+  }
+
+  def getHakutoiveenValintatulos(hakukohdeOid: String): Valintatulos = {
+    import scala.collection.JavaConverters._
+    valintatulosService.findValintaTuloksetForVirkailija(hakuOid, hakukohdeOid).asScala.find(_.getHakemusOid == hakemusOid).get
+  }
+
+  def getHakutoiveenValintatulos(hakuOid: String, hakukohdeOid: String): Valintatulos = {
+    import scala.collection.JavaConverters._
+    valintatulosService.findValintaTuloksetForVirkailija(hakuOid).asScala.find(_.getHakukohdeOid == hakukohdeOid).get
+  }
+
+  def getHakutoiveenValintatulosByHakemus(hakuOid: String, hakukohdeOid: String, hakemusOid: String): Valintatulos = {
+    import scala.collection.JavaConverters._
+    valintatulosService.findValintaTuloksetForVirkailijaByHakemus(hakuOid, hakemusOid).asScala.find(_.getHakukohdeOid == hakukohdeOid).get
   }
 
   def checkHakutoiveState(hakuToive: Hakutoiveentulos, expectedTila: Valintatila, vastaanottoTila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila, julkaistavissa: Boolean) = {

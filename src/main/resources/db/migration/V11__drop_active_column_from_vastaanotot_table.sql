@@ -1,0 +1,1 @@
+alter table vastaanotot drop column active;

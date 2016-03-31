@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice.tarjonta
 
 import java.io.InputStream
 
+import fi.vm.sade.valintatulosservice.domain.Kausi
 import org.json4s.jackson.JsonMethods._
 
 object HakuFixtures extends HakuService with JsonHakuService {
@@ -20,7 +21,7 @@ object HakuFixtures extends HakuService with JsonHakuService {
     this.activeFixture = fixtureName
   }
 
-  override def getHaku(oid: String) = {
+  override def getHaku(oid: String): Option[Haku] = {
     getHakuFixture(oid).map(toHaku(_).copy(oid = oid))
   }
 
@@ -51,4 +52,28 @@ object HakuFixtures extends HakuService with JsonHakuService {
       getHakuFixture(hakuOid).toList.filter {_.julkaistu}.map(toHaku(_).copy(oid = hakuOid))
     }
   }
+
+  override def getHakukohde(oid: String): Option[Hakukohde] ={
+    val hakuOid = hakuOids.head
+    // TODO: Saner / more working test data
+    if (activeFixture == toinenAsteYhteishaku || activeFixture == toinenAsteErillishakuEiSijoittelua) {
+      Some(Hakukohde(oid, hakuOid, List("koulu.tus.oid"), "AMMATILLINEN_PERUSKOULUTUS", "TUTKINTO_OHJELMA"))
+    } else {
+      Some(Hakukohde(oid, hakuOid, List("koulu.tus.oid"), "KORKEAKOULUTUS", "TUTKINTO"))
+    }
+  }
+
+  override def getKoulutus(koulutusOid: String): Option[Koulutus] = Some(Koulutus(koulutusOid, Kausi("2016K"), "JULKAISTU"))
+
+  override def getHakukohdeOids(hakuOid: String): Seq[String] = List(
+    "1.2.246.562.14.2013120515524070995659",
+    "1.2.246.562.14.2014022408541751568934",
+    "1.2.246.562.20.42476855715",
+    "1.2.246.562.20.93395603447",
+    "1.2.246.562.20.99933864235",
+    "1.2.246.562.5.16303028779",
+    "1.2.246.562.5.72607738902",
+    "1.2.246.562.5.72607738903",
+    "1.2.246.562.5.72607738904"
+  )
 }

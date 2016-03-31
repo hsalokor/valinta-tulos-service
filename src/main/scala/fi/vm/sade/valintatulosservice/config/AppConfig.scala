@@ -19,6 +19,7 @@ object AppConfig extends Logging {
   def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
   private implicit val settingsParser = ApplicationSettingsParser
   private val embeddedMongoPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.embeddedmongo.port")
+  private val itPostgresPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.it.postgres.port")
 
   def fromOptionalString(profile: Option[String]) = {
     fromString(profile.getOrElse(getProfileProperty))
@@ -64,15 +65,20 @@ object AppConfig extends Logging {
   }
 
   /**
-   *  IT (integration test) profiles. Uses embedded mongo database and stubbed external deps
+   *  IT (integration test) profiles. Uses embedded mongo and PostgreSQL databases, and stubbed external deps
    */
   class IT extends ExampleTemplatedProps with StubbedExternalDeps with MockSecurity {
-    private var mongo: Option[MongoServer] = None
+    private lazy val itPostgres = new ItPostgres(itPostgresPortChooser)
 
     override def start {
-      mongo = EmbeddedMongo.start(embeddedMongoPortChooser)
+      val mongo = EmbeddedMongo.start(embeddedMongoPortChooser)
+      Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
+        override def run() {
+          mongo.foreach(_.stop)
+        }
+      }))
+      itPostgres.start()
       try {
-        importFixturesToSijoitteluDatabase
         importFixturesToHakemusDatabase
       } catch {
         case e: Exception =>
@@ -80,23 +86,18 @@ object AppConfig extends Logging {
       }
     }
 
-    protected def importFixturesToSijoitteluDatabase {
-      SijoitteluFixtures(sijoitteluContext.database).importFixture("hyvaksytty-kesken-julkaistavissa.json")
-    }
-
     protected def importFixturesToHakemusDatabase {
       HakemusFixtures()(this).clear.importDefaultFixtures
-    }
-
-    override def stop {
-      mongo.foreach(_.stop)
-      mongo = None
     }
 
     override lazy val settings = loadSettings
       .withOverride(("hakemus.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
       .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
       .withOverride(("sijoittelu-service.mongodb.dbname", "sijoittelu"))
+      .withOverride(("valinta-tulos-service.valintarekisteri.ensikertalaisuus.max.henkilo.oids", "100"))
+      .withOverride("valinta-tulos-service.valintarekisteri.db.url", s"jdbc:postgresql://localhost:${itPostgresPortChooser.chosenPort}/valintarekisteri")
+      .withoutPath("valinta-tulos-service.valintarekisteri.db.user")
+      .withoutPath("valinta-tulos-service.valintarekisteri.db.password")
   }
 
   /**
@@ -107,7 +108,11 @@ object AppConfig extends Logging {
       .withOverride("hakemus.mongodb.uri", "mongodb://localhost:" + System.getProperty("hakemus.embeddedmongo.port", "28018"))
       .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
       .withOverride(("sijoittelu-service.mongodb.dbname", "sijoittelu"))
-    
+      .withOverride(("valinta-tulos-service.valintarekisteri.ensikertalaisuus.max.henkilo.oids", "100"))
+      .withOverride("valinta-tulos-service.valintarekisteri.db.url", s"jdbc:postgresql://localhost:${itPostgresPortChooser.chosenPort}/valintarekisteri")
+      .withoutPath("valinta-tulos-service.valintarekisteri.db.user")
+      .withoutPath("valinta-tulos-service.valintarekisteri.db.password")
+
     override def importFixturesToHakemusDatabase { /* Don't import initial fixtures, as database is considered external */ }
   }
 
@@ -135,19 +140,9 @@ object AppConfig extends Logging {
   }
 
   trait AppConfig {
-    lazy val sijoitteluContext = new SijoitteluSpringContext(this, SijoitteluSpringContext.createApplicationContext(this), HakuService(this))
+    lazy val sijoitteluContext = new SijoitteluSpringContext(this, SijoitteluSpringContext.createApplicationContext(this))
 
     def start {}
-    def stop {}
-
-    def withConfig[T](f: (AppConfig => T)): T = {
-      start
-      try {
-        f(this)
-      } finally {
-        stop
-      }
-    }
 
     lazy val ohjausparametritService = this match {
       case _ : StubbedExternalDeps => new StubbedOhjausparametritService()

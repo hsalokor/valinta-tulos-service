@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice.generatedfixtures
 
+import com.mongodb.casbah.WriteConcern
 import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
 import fi.vm.sade.utils.slf4j.Logging
@@ -8,6 +9,8 @@ import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixture, HakemusFixtures, 
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtureCreator
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
+import org.mongodb.morphia.{AdvancedDatastore, Datastore}
+import shapeless.ops.nat.Min
 
 import scala.collection.immutable.Iterable
 
@@ -32,20 +35,31 @@ class GeneratedFixture(haut: List[GeneratedHakuFixture] = List(new GeneratedHaku
     haut.foreach { haku =>
       logger.info("Generating for Haku " + haku.hakuOid)
       logger.info("Valintatulos...")
-      insertWithProgress(haku.valintatulokset)(valintatulos => appConfig.sijoitteluContext.morphiaDs.save[Valintatulos](valintatulos))
+      val morphia: AdvancedDatastore = appConfig.sijoitteluContext.morphiaDs.asInstanceOf[AdvancedDatastore]
+      insertWithProgress(haku.valintatulokset.grouped(100))(valintatulokset => morphia.insert(convert(valintatulokset.toIterable), WriteConcern.Acknowledged))
       logger.info("Sijoittelu...")
       appConfig.sijoitteluContext.sijoitteluDao.persistSijoittelu(haku.sijoittelu)
       logger.info("Hakukohde...")
-      insertWithProgress(haku.hakukohteet)(appConfig.sijoitteluContext.hakukohdeDao.persistHakukohde(_))
+      insertWithProgress(haku.hakukohteet.grouped(100))(hakukohteet => hakukohteet.foreach(appConfig.sijoitteluContext.hakukohdeDao.persistHakukohde(_)))
       logger.info("Hakemus-kantaan...")
       haku.hakemukset
-        .map { hakemus => HakemusFixture(hakemus.hakemusOid, hakemus.hakutoiveet.zipWithIndex.map{ case (hakutoive, index) => HakutoiveFixture(index+1, hakutoive.tarjoajaOid, hakutoive.hakukohdeOid) })}
-        .foreach(hakemusFixtures.importTemplateFixture(_))
+        .map { hakemus => HakemusFixture(haku.hakuOid, hakemus.hakemusOid, hakemus.hakutoiveet.zipWithIndex.map{ case (hakutoive, index) => HakutoiveFixture(index+1, hakutoive.tarjoajaOid, hakutoive.hakukohdeOid) })}
+        .grouped(500).foreach( x => {
+          hakemusFixtures.startBulkOperationInsert
+          x.foreach(hakemusFixtures.importTemplateFixture(_))
+          hakemusFixtures.commitBulkOperationInsert
+      })
     }
     logger.info("Done")
   }
 
-  private def insertWithProgress[X](items: Iterable[X])(block: (X => Any)) {
+
+  def convert(scalaIterable: scala.collection.Iterable[Valintatulos]): java.lang.Iterable[Valintatulos] = {
+    scala.collection.JavaConversions.asJavaIterable(scalaIterable)
+  }
+
+
+  private def insertWithProgress[X](items: Iterator[X])(block: (X => Any)) {
     var checked = System.currentTimeMillis()
     items.zipWithIndex.foreach { case (item, index) =>
       if (index % 10 == 0) {
@@ -60,7 +74,8 @@ class GeneratedFixture(haut: List[GeneratedHakuFixture] = List(new GeneratedHaku
   }
 }
 class GeneratedHakuFixture(val hakuOid: String = "1") {
-  val sijoitteluajoId: Long = hakuOid.toLong
+  val hakuOidAfterDot = hakuOid.split('.').last
+  val sijoitteluajoId: Long = hakuOidAfterDot.substring(0, Math.min(hakuOidAfterDot.length, 5)).toLong
 
   def hakemukset = List(HakemuksenTulosFixture("1", List(
     HakemuksenHakukohdeFixture("1", "1")
@@ -110,10 +125,10 @@ class GeneratedHakuFixture(val hakuOid: String = "1") {
 
   import scala.collection.JavaConversions._
 
-  lazy val valintatulokset: Stream[Valintatulos] = for {
-    hakukohde <- hakukohteet.toStream
-    jono: Valintatapajono <- hakukohde.getValintatapajonot.toStream
-    hakemus: Hakemus <- jono.getHakemukset.toStream
+  lazy val valintatulokset: List[Valintatulos] = for {
+    hakukohde <- hakukohteet
+    jono: Valintatapajono <- hakukohde.getValintatapajonot
+    hakemus: Hakemus <- jono.getHakemukset
   } yield {
     SijoitteluFixtureCreator.newValintatulos(jono.getOid, hakuOid, hakemus.getHakemusOid, hakukohde.getOid, hakemus.getHakijaOid, hakemus.getPrioriteetti, julkaistavissa(hakukohde, hakemus))
   }

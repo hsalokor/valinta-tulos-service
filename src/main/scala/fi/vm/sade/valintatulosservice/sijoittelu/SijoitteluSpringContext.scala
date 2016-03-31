@@ -1,20 +1,19 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
 import com.mongodb._
-import fi.vm.sade.sijoittelu.tulos.service.{RaportointiService}
-import fi.vm.sade.valintatulosservice.config.AppConfig
+import fi.vm.sade.sijoittelu.tulos.dao.{HakukohdeDao, SijoitteluDao, ValintatulosDao}
+import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import org.mongodb.morphia.{Datastore, Morphia}
-import org.springframework.beans.factory.annotation.{Value, Autowired}
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation._
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer
 import org.springframework.core.env.{MapPropertySource, MutablePropertySources}
-import scala.collection.JavaConversions._
-import fi.vm.sade.sijoittelu.tulos.dao.{SijoitteluDao, HakukohdeDao, ValintatulosDao}
 
-class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext, hakuService: HakuService) {
+import scala.collection.JavaConversions._
+
+class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext) {
   def database = context.getBean(classOf[DB])
 
   lazy val morphiaDs = context.getBean(classOf[Datastore])
@@ -22,12 +21,11 @@ class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext, ha
   lazy val hakukohdeDao = context.getBean(classOf[HakukohdeDao])
   lazy val sijoitteluDao = context.getBean(classOf[SijoitteluDao])
   lazy val raportointiService = context.getBean(classOf[RaportointiService])
-  lazy val sijoittelutulosService = new SijoittelutulosService(raportointiService, config.ohjausparametritService)
   lazy val valintatulosRepository = new ValintatulosRepository(valintatulosDao)
 }
 
 object SijoitteluSpringContext {
-  def check {}
+  def check() {}
 
   def createApplicationContext(configuration: AppConfig): AnnotationConfigApplicationContext = {
     val appContext: AnnotationConfigApplicationContext = new AnnotationConfigApplicationContext
@@ -36,8 +34,8 @@ object SijoitteluSpringContext {
     appContext.getEnvironment.setActiveProfiles(springConfiguration.profile)
     customPropertiesHack(appContext, configuration)
     appContext.register(springConfiguration.getClass)
-    appContext.refresh
-    return appContext
+    appContext.refresh()
+    appContext
   }
 
   private def customPropertiesHack(appContext: AnnotationConfigApplicationContext, configuration: AppConfig) {
