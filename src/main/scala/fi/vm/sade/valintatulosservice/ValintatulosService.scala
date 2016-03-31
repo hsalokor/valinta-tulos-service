@@ -129,29 +129,19 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       assertThatHakijaOidsDoNotConflict(valintaTulos, hakemuksenTulos)
       val hakutoiveenTulos = hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid)
         .getOrElse(throw new IllegalStateException(s"No hakutoive found for hakukohde ${valintaTulos.getHakukohdeOid} in hakemus ${valintaTulos.getHakemusOid}"))
-      val tila = getValintatuloksenTila(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString), hakemuksenTulos, haunVastaanotot, hakutoiveenTulos)
-      valintaTulos.setTila(tila, tila, "", "") // pass same old and new tila to avoid log entries
+      val tilaHakijalle = ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString)
+
+      val hakijaOid = hakemuksenTulos.hakijaOid
+      val tilaVirkailijalle = ValintatulosService.toVirkailijaTila(tilaHakijalle, haunVastaanotot.get(hakijaOid), hakutoiveenTulos.hakukohdeOid)
+      valintaTulos.setTila(tilaVirkailijalle, tilaVirkailijalle, "", "") // pass same old and new tila to avoid log entries
       valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
-      valintaTulos.setTilaHakijalle(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString))
+      valintaTulos.setTilaHakijalle(tilaHakijalle)
     })
   }
 
   private def assertThatHakijaOidsDoNotConflict(valintaTulos: Valintatulos, hakemuksenTulos: Hakemuksentulos): Unit = {
     if (valintaTulos.getHakijaOid != null && !valintaTulos.getHakijaOid.equals(hakemuksenTulos.hakijaOid)) {
       throw new IllegalStateException(s"Conflicting hakija oids: valintaTulos: ${valintaTulos.getHakijaOid} vs hakemuksenTulos: ${hakemuksenTulos.hakijaOid} in $valintaTulos , $hakemuksenTulos")
-    }
-  }
-
-  private def getValintatuloksenTila(valintatuloksenTila: ValintatuloksenTila,
-                                     hakemuksenTulos: Hakemuksentulos,
-                                     haunVastaanotot:Map[String,Set[VastaanottoRecord]],
-                                     hakutoiveenTulos:Hakutoiveentulos): ValintatuloksenTila = {
-    def merkittyMyohastyneeksi(v: VastaanottoRecord) = v.hakukohdeOid == hakutoiveenTulos.hakukohdeOid && v.action == MerkitseMyohastyneeksi
-    val hakijanVastaanotot = haunVastaanotot.get(hakemuksenTulos.hakijaOid)
-    if(valintatuloksenTila == ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA && !hakijanVastaanotot.exists(_.exists(merkittyMyohastyneeksi))) {
-      ValintatuloksenTila.KESKEN
-    } else {
-      valintatuloksenTila
     }
   }
 
@@ -352,5 +342,17 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   }
 }
 
+object ValintatulosService {
+  def toVirkailijaTila(valintatuloksenTilaForHakija: ValintatuloksenTila,
+                       hakijanVastaanototHaussa: Option[Set[VastaanottoRecord]],
+                       hakukohdeOid: String): ValintatuloksenTila = {
 
+    def merkittyMyohastyneeksi(v: VastaanottoRecord) = v.hakukohdeOid == hakukohdeOid && v.action == MerkitseMyohastyneeksi
+    if(valintatuloksenTilaForHakija == ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA && !hakijanVastaanototHaussa.exists(_.exists(merkittyMyohastyneeksi))) {
+      ValintatuloksenTila.KESKEN
+    } else {
+      valintatuloksenTilaForHakija
+    }
+  }
+}
 
