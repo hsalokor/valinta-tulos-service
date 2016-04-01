@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice
 import java.util
 
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
+import fi.vm.sade.sijoittelu.tulos.dto
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaPaginationObject
 import fi.vm.sade.utils.Timer.timed
 import fi.vm.sade.utils.slf4j.Logging
@@ -12,7 +13,7 @@ import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
-import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
+import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService, YhdenPaikanSaanto}
 import fi.vm.sade.valintatulosservice.valintarekisteri.{VastaanottoRecord, VirkailijaVastaanottoRepository}
 import org.joda.time.DateTime
 
@@ -106,8 +107,36 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   def sijoittelunTulokset(hakuOid: String, sijoitteluajoId: String, hyvaksytyt: Option[Boolean], ilmanHyvaksyntaa: Option[Boolean], vastaanottaneet: Option[Boolean],
                           hakukohdeOid: Option[List[String]], count: Option[Int], index: Option[Int]): HakijaPaginationObject = {
+    val haunVastaanototByHakijaOid = timed("Fetch haun vastaanotot for haku: " + hakuOid, 1000) {
+      virkailijaVastaanottoRepository.findHaunVastaanotot(hakuOid).groupBy(_.henkiloOid)
+    }
+    val personOidsByHakemusOids = hakemusRepository.findHakemukset(hakuOid).map(h => (h.oid, h.henkiloOid)).toMap
     try {
-      sijoittelutulosService.sijoittelunTulokset(hakuOid, sijoitteluajoId, hyvaksytyt, ilmanHyvaksyntaa, vastaanottaneet, hakukohdeOid, count, index)
+      val hakijaPaginationObject = sijoittelutulosService.sijoittelunTuloksetWithoutVastaanottoTieto(hakuOid, sijoitteluajoId, hyvaksytyt, ilmanHyvaksyntaa, vastaanottaneet,
+        hakukohdeOid, count, index, haunVastaanototByHakijaOid)
+
+      hakijaPaginationObject.getResults.asScala.foreach { hakijaDto =>
+        val hakijaOidFromHakemus = personOidsByHakemusOids(hakijaDto.getHakemusOid)
+        hakijaDto.setHakijaOid(hakijaOidFromHakemus)
+        val hakijanVastaanotot = haunVastaanototByHakijaOid.get(hakijaDto.getHakijaOid)
+        val hakemuksenTulos = hakemuksentulos(hakuOid, hakijaDto.getHakemusOid).getOrElse(throw new IllegalArgumentException(s"Hakemusta ${hakijaDto.getHakemusOid}ei löydy"))
+        val hakutoiveidenTulokset = hakemuksenTulos.hakutoiveet
+        val yhdenPaikanSannonHuomioiminen = asetaVastaanotettavuusValintarekisterinPerusteella(hakijaDto.getHakijaOid)(hakutoiveidenTulokset, haku = null, None)
+        hakijaDto.getHakutoiveet.asScala.foreach(palautettavaHakutoiveDto =>
+          hakijanVastaanotot match {
+            case Some(vastaanottos) =>
+              vastaanottos.find(_.hakukohdeOid == palautettavaHakutoiveDto.getHakukohdeOid).foreach(vastaanotto => {
+                val tilaIlmanYhdenPaikanSaantoa = sijoittelutulosService.vastaanottotilaVainViimeisimmanVastaanottoActioninPerusteella(Some(vastaanotto.action))
+                yhdenPaikanSannonHuomioiminen.find(_.hakukohdeOid == palautettavaHakutoiveDto.getHakukohdeOid).foreach(hakutoiveenOikeaTulos => {
+                  palautettavaHakutoiveDto.setVastaanottotieto(fi.vm.sade.sijoittelu.tulos.dto.ValintatuloksenTila.valueOf(hakutoiveenOikeaTulos.vastaanottotila.toString))
+                  palautettavaHakutoiveDto.getHakutoiveenValintatapajonot.asScala.foreach(_.setTilanKuvaukset(hakutoiveenOikeaTulos.tilanKuvaukset.asJava))
+                })
+              })
+            case None => palautettavaHakutoiveDto.setVastaanottotieto(dto.ValintatuloksenTila.KESKEN)
+          }
+        )
+      }
+      hakijaPaginationObject
     } catch {
       case e: Exception =>
         logger.error(s"Sijoittelun hakemuksia ei saatu haulle $hakuOid", e)
