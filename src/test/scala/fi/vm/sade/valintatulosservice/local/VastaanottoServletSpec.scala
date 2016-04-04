@@ -8,7 +8,6 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class VastaanottoServletSpec extends ServletSpecification {
-
   "POST /vastaanotto" should {
     "vastaanottaa opiskelupaikan" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json")
@@ -20,7 +19,7 @@ class VastaanottoServletSpec extends ServletSpecification {
           val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.head.vastaanottotila must_== Vastaanottotila.vastaanottanut
           tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.isDefined must beTrue
-          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.getTime() must be ~ (System.currentTimeMillis() +/- 2000)
+          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.getTime must be ~ (System.currentTimeMillis() +/- 2000)
         }
       }
     }
@@ -35,7 +34,7 @@ class VastaanottoServletSpec extends ServletSpecification {
           val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
           tulos.hakutoiveet.head.vastaanottotila.toString must_== "PERUNUT"
           tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.isDefined must beTrue
-          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.getTime() must be ~ (System.currentTimeMillis() +/- 2000)
+          tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.getTime must be ~ (System.currentTimeMillis() +/- 2000)
         }
       }
     }
@@ -53,7 +52,7 @@ class VastaanottoServletSpec extends ServletSpecification {
           tulos.hakutoiveet.last.vastaanottotila.toString must_== "EHDOLLISESTI_VASTAANOTTANUT"
           val muutosAika = tulos.hakutoiveet.last.viimeisinValintatuloksenMuutos.get
           tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.before(muutosAika) must beTrue
-          muutosAika.getTime() must be ~ (System.currentTimeMillis() +/- 2000)
+          muutosAika.getTime must be ~ (System.currentTimeMillis() +/- 2000)
         }
       }
     }
@@ -65,6 +64,4 @@ class VastaanottoServletSpec extends ServletSpecification {
       block
     }
   }
-
-
 }
