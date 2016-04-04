@@ -72,31 +72,6 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     parameter pathParam[String]("hakuOid").description("Haun oid")
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
   )
-  val postVastaanottoSwagger: OperationBuilder = (apiOperation[Unit]("getHakemus")
-    summary "Tallenna hakukohteelle uusi vastaanottotila"
-    // Real body param type cannot be used because of unsupported scala enumerations: https://github.com/scalatra/scalatra/issues/343
-    notes "Bodyssä tulee antaa tieto hakukohteen vastaanotttilan muutoksesta Vastaanotto tyyppinä. Esim:\n" +
-      pretty(Extraction.decompose(
-        Vastaanotto(
-            "1.2.3.4",
-            Vastaanottotila.vastaanottanut,
-            "henkilö: 5.5.5.5",
-            "kuvaus mitä kautta muokkaus tehty"
-        )
-      )) + ".\nMahdolliset vastaanottotilat: " + List(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut, Vastaanottotila.perunut)
-    parameter pathParam[String]("hakuOid").description("Haun oid")
-    parameter pathParam[String]("hakemusOid").description("Hakemuksen oid, jonka vastaanottotilaa ollaan muokkaamassa")
-  )
-  post("/:hakuOid/hakemus/:hakemusOid/vastaanota", operation(postVastaanottoSwagger)) {
-    val hakuOid = params("hakuOid")
-    val hakemusOid = params("hakemusOid")
-    val vastaanotto = parsedBody.extract[Vastaanotto]
-
-
-    Try(vastaanottoService.vastaanota(hakemusOid, vastaanotto)).map((_) => Ok()).recover{
-      case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
-    }.get
-  }
 
   lazy val getHakukohteenVastaanotettavuusSwagger: OperationBuilder = (apiOperation[Unit]("getHakukohteenHakemukset")
     summary "Palauttaa 200 jos hakutoive vastaanotettavissa, 403 ja virheviestin jos henkilöllä estävä aikaisempi vastaanotto"

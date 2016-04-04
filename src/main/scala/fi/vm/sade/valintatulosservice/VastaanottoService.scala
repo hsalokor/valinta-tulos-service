@@ -114,16 +114,6 @@ class VastaanottoService(hakuService: HakuService,
     findHakutoive(vastaanotettavaHakemusOid, hakukohdeOid).get
   }
 
-  @Deprecated
-  def vastaanota(hakemusOid: String, vastaanotto: Vastaanotto): Unit = {
-    vastaanotaHakijana(HakijanVastaanotto(
-      vastaanotto.muokkaaja,
-      hakemusOid,
-      vastaanotto.hakukohdeOid,
-      HakijanVastaanottoAction.getHakijanVastaanottoAction(vastaanotto.tila)
-    )).get
-  }
-
   def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Try[Unit] = {
     for {
       hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
