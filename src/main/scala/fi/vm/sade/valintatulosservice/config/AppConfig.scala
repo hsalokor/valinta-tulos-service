@@ -2,18 +2,18 @@ package fi.vm.sade.valintatulosservice.config
 
 import java.io.File
 import java.net.URL
+
 import fi.vm.sade.security.ldap.LdapUser
 import fi.vm.sade.security.mock.MockSecurityContext
 import fi.vm.sade.security.{ProductionSecurityContext, SecurityContext}
 import fi.vm.sade.utils.cas.CasClient
 import fi.vm.sade.utils.config.{ApplicationSettingsLoader, ConfigTemplateProcessor}
-import fi.vm.sade.utils.mongo.{EmbeddedMongo, MongoServer}
+import fi.vm.sade.utils.mongo.EmbeddedMongo
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.utils.tcp.PortFromSystemPropertyOrFindFree
 import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.ohjausparametrit._
-import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoitteluSpringContext}
-import fi.vm.sade.valintatulosservice.tarjonta.HakuService
+import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluSpringContext
 
 object AppConfig extends Logging {
   def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
@@ -165,7 +165,7 @@ object AppConfig extends Logging {
       new MockSecurityContext(
         settings.securitySettings.casServiceIdentifier,
         settings.securitySettings.requiredLdapRoles,
-        Map((settings.securitySettings.casUsername -> LdapUser(settings.securitySettings.requiredLdapRoles, "Mock", "User", "mockoid")))
+        Map("testuser" -> LdapUser(settings.securitySettings.requiredLdapRoles, "Mock", "User", "mockoid"))
       )
     }
   }
