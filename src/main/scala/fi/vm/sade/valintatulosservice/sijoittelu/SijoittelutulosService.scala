@@ -19,10 +19,11 @@ class SijoittelutulosService(raportointiService: RaportointiService,
                              hakijaVastaanottoRepository: HakijaVastaanottoRepository) {
   import scala.collection.JavaConversions._
 
-  def hakemuksenTulos(haku: Haku, hakemusOid: String, hakijaOid: String): Option[HakemuksenSijoitteluntulos] = {
-    val aikataulu = ohjausparametritService.ohjausparametrit(haku.oid).flatMap(_.vastaanottoaikataulu)
+  def hakemuksenTulos(haku: Haku, hakemusOid: String, hakijaOidIfFound: Option[String]): Option[HakemuksenSijoitteluntulos] = {
+    def aikataulu = ohjausparametritService.ohjausparametrit(haku.oid).flatMap(_.vastaanottoaikataulu)
 
     for (
+      hakijaOid <- hakijaOidIfFound;
       sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid));
       hakija: HakijaDTO <- Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid))
     ) yield hakemuksenYhteenveto(hakija, aikataulu, fetchVastaanotto(hakijaOid, haku.oid))
