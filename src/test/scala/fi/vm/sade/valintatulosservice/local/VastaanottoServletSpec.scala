@@ -1,16 +1,19 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.valintatulosservice.ServletSpecification
-import fi.vm.sade.valintatulosservice.domain.{Valintatila, Vastaanottotila, Hakemuksentulos}
+import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Valintatila, Vastaanottotila}
 import org.json4s.jackson.Serialization
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class VastaanottoServletSpec extends ServletSpecification {
 
   "POST /vastaanotto" should {
     "vastaanottaa opiskelupaikan" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json")
 
-      vastaanota("VASTAANOTTANUT") {
+      vastaanota("VastaanotaSitovasti") {
         status must_== 200
 
         get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
@@ -25,7 +28,7 @@ class VastaanottoServletSpec extends ServletSpecification {
     "peruu opiskelupaikan" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json")
 
-      vastaanota("PERUNUT") {
+      vastaanota("Peru") {
         status must_== 200
 
         get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
@@ -40,7 +43,7 @@ class VastaanottoServletSpec extends ServletSpecification {
     "vastaanottaa ehdollisesti" in {
       useFixture("hyvaksytty-ylempi-varalla.json")
 
-      vastaanota("EHDOLLISESTI_VASTAANOTTANUT", hakukohde = "1.2.246.562.5.16303028779") {
+      vastaanota("VastaanotaEhdollisesti", hakukohde = "1.2.246.562.5.16303028779") {
         status must_== 200
 
         get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
@@ -56,9 +59,9 @@ class VastaanottoServletSpec extends ServletSpecification {
     }
   }
 
-  def vastaanota[T](tila: String, hakukohde: String = "1.2.246.562.5.72607738902", personOid: String = "1.2.246.562.24.14229104472")(block: => T) = {
-    postJSON("vastaanotto",
-      """{"hakukohdeOid":""""+hakukohde+"""","tila":""""+tila+"""","muokkaaja":"Teppo Testi","selite":"Testimuokkaus","personOid":""""+personOid+""""}""") {
+  def vastaanota[T](action: String, hakukohde: String = "1.2.246.562.5.72607738902", personOid: String = "1.2.246.562.24.14229104472", hakemusOid: String = "1.2.246.562.11.00000441369")(block: => T) = {
+    postJSON(s"""vastaanotto/henkilo/$personOid/hakemus/$hakemusOid/hakukohde/$hakukohde""",
+      s"""{"action":"$action"}""") {
       block
     }
   }
