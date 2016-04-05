@@ -3,8 +3,11 @@ package fi.vm.sade.valintatulosservice.local
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{LahetysKuittaus, VastaanotettavuusIlmoitus}
 import fi.vm.sade.valintatulosservice.{ServletSpecification, TimeWarp}
 import org.json4s.jackson.Serialization
+import org.junit.runner.RunWith
 import org.specs2.matcher.MatchResult
+import org.specs2.runner.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class EmailStatusServletSpec extends ServletSpecification with TimeWarp {
   "GET /vastaanottoposti" should {
     "Lista lähetettävistä sähköposteista" in {
