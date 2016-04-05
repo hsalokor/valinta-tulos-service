@@ -119,7 +119,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         val hakijaOidFromHakemus = personOidsByHakemusOids(hakijaDto.getHakemusOid)
         hakijaDto.setHakijaOid(hakijaOidFromHakemus)
         val hakijanVastaanotot = haunVastaanototByHakijaOid.get(hakijaDto.getHakijaOid)
-        val hakemuksenTulos = hakemuksentulos(hakuOid, hakijaDto.getHakemusOid).getOrElse(throw new IllegalArgumentException(s"Hakemusta ${hakijaDto.getHakemusOid}ei löydy"))
+        val hakemuksenTulos = hakemuksentulos(hakuOid, hakijaDto.getHakemusOid).getOrElse(throw new IllegalArgumentException(s"Hakemusta ${hakijaDto.getHakemusOid} ei löydy"))
         val hakutoiveidenTulokset = hakemuksenTulos.hakutoiveet
         val yhdenPaikanSannonHuomioiminen = asetaVastaanotettavuusValintarekisterinPerusteella(hakijaDto.getHakijaOid)(hakutoiveidenTulokset, haku = null, None)
         hakijaDto.getHakutoiveet.asScala.foreach(palautettavaHakutoiveDto =>
