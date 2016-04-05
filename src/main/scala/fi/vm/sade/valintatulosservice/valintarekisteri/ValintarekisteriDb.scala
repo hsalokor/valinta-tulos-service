@@ -1,6 +1,5 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
-import java.security.Timestamp
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
@@ -12,11 +11,11 @@ import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
 import slick.dbio.Effect.All
-import slick.driver.PostgresDriver.api.{Database, actionBasedSQLInterpolation, _}
+import slick.driver.PostgresDriver.api.{Database, _}
 import slick.jdbc.GetResult
 
-import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
 
 
 class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with HakijaVastaanottoRepository
