@@ -98,8 +98,9 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     valintatulokset.foreach(valintaTulos => {
       hakemustenTulokset.get(valintaTulos.getHakemusOid).foreach(hakemuksenTulos => {
         hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid).foreach(hakutoiveenTulos => {
-          valintaTulos.setTila(getValintatuloksenTila(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString), hakemuksenTulos, haunVastaanotot, hakutoiveenTulos), "")
+          val tila = getValintatuloksenTila(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString), hakemuksenTulos, haunVastaanotot, hakutoiveenTulos)
           assertThatHakijaOidsDoNotConflict(valintaTulos, hakemuksenTulos)
+          valintaTulos.setTila(tila, tila, "", "") // pass same old and new tila to avoid log entries
           valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
           valintaTulos.setTilaHakijalle(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString))
         })

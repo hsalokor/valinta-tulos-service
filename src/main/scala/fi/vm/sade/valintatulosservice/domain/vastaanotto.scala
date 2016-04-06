@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice.domain
 
+import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila
 import fi.vm.sade.valintatulosservice.VastaanottoEventDto
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.{ehdollisesti_vastaanottanut, Vastaanottotila}
 import fi.vm.sade.valintatulosservice.valintarekisteri.VastaanottoEvent
@@ -22,18 +23,32 @@ object VirkailijanVastaanotto {
   }
 }
 
-sealed trait VastaanottoAction
+sealed trait VastaanottoAction {
+  def valintatuloksenTila: ValintatuloksenTila
+}
 
 sealed trait HakijanVastaanottoAction extends VastaanottoAction
 
 sealed trait VirkailijanVastaanottoAction extends VastaanottoAction
 
-case object Peru extends VirkailijanVastaanottoAction with HakijanVastaanottoAction
-case object VastaanotaSitovasti extends VirkailijanVastaanottoAction with HakijanVastaanottoAction
-case object VastaanotaEhdollisesti extends VirkailijanVastaanottoAction with HakijanVastaanottoAction
-case object Peruuta extends VirkailijanVastaanottoAction
-case object Poista extends VirkailijanVastaanottoAction
-case object MerkitseMyohastyneeksi extends VirkailijanVastaanottoAction
+case object Peru extends VirkailijanVastaanottoAction with HakijanVastaanottoAction {
+  val valintatuloksenTila = ValintatuloksenTila.PERUNUT
+}
+case object VastaanotaSitovasti extends VirkailijanVastaanottoAction with HakijanVastaanottoAction {
+  val valintatuloksenTila = ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI
+}
+case object VastaanotaEhdollisesti extends VirkailijanVastaanottoAction with HakijanVastaanottoAction {
+  val valintatuloksenTila = ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT
+}
+case object Peruuta extends VirkailijanVastaanottoAction {
+  val valintatuloksenTila = ValintatuloksenTila.PERUUTETTU
+}
+case object Poista extends VirkailijanVastaanottoAction {
+  val valintatuloksenTila = ValintatuloksenTila.KESKEN
+}
+case object MerkitseMyohastyneeksi extends VirkailijanVastaanottoAction {
+  val valintatuloksenTila = ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+}
 
 object HakijanVastaanottoAction {
   private val valueMapping = Map(
