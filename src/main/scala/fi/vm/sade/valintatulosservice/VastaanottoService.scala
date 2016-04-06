@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import fi.vm.sade.sijoittelu.domain.Valintatulos
+import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
@@ -38,7 +38,7 @@ class VastaanottoService(hakuService: HakuService,
       map(v => vastaanotettavuusService.tarkistaAiemmatVastaanotot(v.henkiloOid, v.hakukohdeOid, aiempiVastaanotto => SuccessAction())))
 
     tallennettavatVastaanotot.toStream.map(checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = false)).find(_.isFailure) match {
-      case Some(failure) => failure
+      case Some(failure) => failure.map(_ => ())
       case None => Try { hakijaVastaanottoRepository.store(tallennettavatVastaanotot, postCondition) }
     }
   }
@@ -53,23 +53,19 @@ class VastaanottoService(hakuService: HakuService,
     }).toList
   }
 
-  private def checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot: Boolean = true)(vastaanotto: VirkailijanVastaanotto): Try[Unit] = vastaanotto.action match {
-    case VastaanotaSitovasti | VastaanotaEhdollisesti => for {
-      _ <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
-      _ <- if (tarkistaAiemmatVastaanotot) Try { hakijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)) } else Success()
-    } yield ()
-    case MerkitseMyohastyneeksi => for {
+  private def checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot: Boolean = true)(vastaanotto: VirkailijanVastaanotto): Try[Hakutoiveentulos] = {
+    for {
       hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
-      _ <- tarkistaHakijakohtainenDeadline(hakutoive)
-    } yield ()
-    case Peru => for {
-      hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
-      _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
-    } yield ()
-    case Peruuta => for {
-      _ <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
-    } yield ()
-    case Poista => Success(())
+      _ <- vastaanotto.action match {
+        case VastaanotaSitovasti | VastaanotaEhdollisesti if tarkistaAiemmatVastaanotot =>
+          Try { hakijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)) }
+        case MerkitseMyohastyneeksi => tarkistaHakijakohtainenDeadline(hakutoive)
+        case Peru => tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
+        case VastaanotaSitovasti | VastaanotaEhdollisesti => Success(())
+        case Peruuta => Success(())
+        case Poista => Success(())
+      }
+    } yield hakutoive
   }
 
   private def tallennaHakukohteenVastaanotot(hakukohdeOid: String, hakuOid: String, uudetVastaanotot: List[VastaanottoEventDto]): List[VastaanottoResult] = {
@@ -94,8 +90,13 @@ class VastaanottoService(hakuService: HakuService,
 
   private def tallenna(vastaanotto: VirkailijanVastaanotto): Try[VastaanottoResult] = {
     (for {
-      _ <- checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = true)(vastaanotto)
+      hakutoive <- checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = true)(vastaanotto)
       _ <- Try { hakijaVastaanottoRepository.store(vastaanotto) }
+      _ <- Try {
+        valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, vastaanotto.hakemusOid) { valintatulos =>
+          valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
+        }
+      }
     } yield {
       createVastaanottoResult(200, None, vastaanotto)
     }).recover {
@@ -121,7 +122,7 @@ class VastaanottoService(hakuService: HakuService,
     } yield {
       hakijaVastaanottoRepository.store(vastaanotto)
       valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid,hakutoive.valintatapajonoOid,vastaanotto.hakemusOid) { valintatulos =>
-        valintatulos.setTila(hakutoive.vastaanottotila.toString, vastaanotto.action.toString, vastaanotto.selite, vastaanotto.ilmoittaja)
+        valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
       }
     }
   }

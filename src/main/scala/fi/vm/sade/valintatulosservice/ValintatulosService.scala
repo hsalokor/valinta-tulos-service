@@ -98,10 +98,11 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     valintatulokset.foreach(valintaTulos => {
       val hakemuksenTulos = hakemustenTulokset.getOrElse(valintaTulos.getHakemusOid,
         throw new IllegalStateException(s"No hakemuksen tulos found for hakemus ${valintaTulos.getHakemusOid}"))
+      assertThatHakijaOidsDoNotConflict(valintaTulos, hakemuksenTulos)
       val hakutoiveenTulos = hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid)
         .getOrElse(throw new IllegalStateException(s"No hakutoive found for hakukohde ${valintaTulos.getHakukohdeOid} in hakemus ${valintaTulos.getHakemusOid}"))
-      valintaTulos.setTila(getValintatuloksenTila(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString), hakemuksenTulos, haunVastaanotot, hakutoiveenTulos), "")
-      assertThatHakijaOidsDoNotConflict(valintaTulos, hakemuksenTulos)
+      val tila = getValintatuloksenTila(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString), hakemuksenTulos, haunVastaanotot, hakutoiveenTulos)
+      valintaTulos.setTila(tila, tila, "", "") // pass same old and new tila to avoid log entries
       valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
       valintaTulos.setTilaHakijalle(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString))
     })
