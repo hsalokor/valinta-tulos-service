@@ -182,9 +182,9 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         t.copy(
           valintatila = Valintatila.peruuntunut,
           tilanKuvaukset = Map(
-            "FI" -> "Peruuntunut, ottanut vastaan toisen opiskelupaikan yhden paikan säännön piirissä",
-            "SV" -> "Annullerad, ottanut vastaan toisen opiskelupaikan yhden paikan säännön piirissä",
-            "EN" -> "Cancelled, ottanut vastaan toisen opiskelupaikan yhden paikan säännön piirissä"
+            "FI" -> "Peruuntunut, vastaanottanut toisen korkeakoulupaikan",
+            "SV" -> "Annullerad, tagit emot en annan högskoleplats",
+            "EN" -> "Cancelled, accepted another higher education study place"
           )
         )
       } else {
