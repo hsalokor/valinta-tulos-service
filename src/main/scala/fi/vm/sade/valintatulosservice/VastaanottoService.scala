@@ -90,8 +90,13 @@ class VastaanottoService(hakuService: HakuService,
 
   private def tallenna(vastaanotto: VirkailijanVastaanotto): Try[VastaanottoResult] = {
     (for {
-      _ <- checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = true)(vastaanotto)
+      hakutoive <- checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = true)(vastaanotto)
       _ <- Try { hakijaVastaanottoRepository.store(vastaanotto) }
+      _ <- Try {
+        valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, vastaanotto.hakemusOid) { valintatulos =>
+          valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
+        }
+      }
     } yield {
       createVastaanottoResult(200, None, vastaanotto)
     }).recover {
