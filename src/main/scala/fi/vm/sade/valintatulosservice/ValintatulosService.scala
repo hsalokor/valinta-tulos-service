@@ -117,12 +117,10 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
                                      hakemuksenTulos: Hakemuksentulos,
                                      haunVastaanotot:Map[String,Set[VastaanottoRecord]],
                                      hakutoiveenTulos:Hakutoiveentulos): ValintatuloksenTila = {
-    if(valintatuloksenTila == ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA) {
-      if(haunVastaanotot.get(hakemuksenTulos.hakijaOid).exists(x => x.exists(r => r.hakukohdeOid == hakutoiveenTulos.hakukohdeOid && r.action == MerkitseMyohastyneeksi ))) {
-        ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
-      } else {
-        ValintatuloksenTila.KESKEN
-      }
+    def merkittyMyohastyneeksi(v: VastaanottoRecord) = v.hakukohdeOid == hakutoiveenTulos.hakukohdeOid && v.action == MerkitseMyohastyneeksi
+    val hakijanVastaanotot = haunVastaanotot.get(hakemuksenTulos.hakijaOid)
+    if(valintatuloksenTila == ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA && !hakijanVastaanotot.exists(_.exists(merkittyMyohastyneeksi))) {
+      ValintatuloksenTila.KESKEN
     } else {
       valintatuloksenTila
     }
