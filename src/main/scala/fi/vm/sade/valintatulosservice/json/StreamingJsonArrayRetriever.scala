@@ -1,5 +1,7 @@
 package fi.vm.sade.valintatulosservice.json
 
+import java.util.concurrent.TimeUnit
+
 import com.fasterxml.jackson.core.{JsonFactory, JsonParser, JsonToken}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.net.HttpHeaders
@@ -8,6 +10,7 @@ import fi.vm.sade.utils.cas.CasParams
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 
+import scala.concurrent.duration.Duration
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 import scalaz.concurrent.Task
 import scalaz.stream._
@@ -17,12 +20,15 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
   private val jsonFactory = new JsonFactory()
   private val mapper = new ObjectMapper()
 
-  def requestStreaming[T](targetService: String, url: String, targetClass: Class[T]): Iterator[T] = {
+  def processStreaming[T,R](targetService: String, url: String, targetClass: Class[T], processSingleItem: T => R): Unit = {
+    logger.info(s"Making a request to $url")
     val casParams = createCasParams(appConfig, targetService)
     val jsessionId = authenticate(casParams)
 
-    val httpRequest: HttpRequest = Http(url).header(HttpHeaders.COOKIE, s"JSESSIONID=$jsessionId").compress(false)
-    val response: HttpResponse[Iterator[T]] = httpRequest.execute(inputStream => {
+    val request: HttpRequest = Http(url).header(HttpHeaders.COOKIE, s"JSESSIONID=$jsessionId").compress(false).
+      timeout(Duration(1, TimeUnit.MINUTES).toMillis.toInt, Duration(60, TimeUnit.MINUTES).toMillis.toInt)
+
+    val response: HttpResponse[Unit] = request.execute[Unit](inputStream => {
       val jsonParser = jsonFactory.createParser(inputStream)
       var currentToken: JsonToken = null
 
@@ -34,17 +40,13 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
 
       currentToken = jsonParser.nextToken() // advance to beginning of first object
 
-      new Iterator[T] {
-        override def hasNext = currentToken == JsonToken.START_OBJECT
-
-        override def next(): T = {
-          val parsed = parseObject(mapper, jsonParser, targetClass).getOrElse(throw new RuntimeException(s"Could not parse $targetClass object"))
-          currentToken = jsonParser.nextToken()
-          parsed
-        }
-      }.asInstanceOf[Iterator[T]]
+      while (currentToken == JsonToken.START_OBJECT) {
+        val parsed = parseObject(mapper, jsonParser, targetClass).getOrElse(throw new RuntimeException(s"Could not parse $targetClass object"))
+        currentToken = jsonParser.nextToken()
+        processSingleItem(parsed)
+      }
     })
-    response.body
+    logger.info(s"Returned response ${response.code} from $url")
   }
 
   private def parseObject[T](mapper: ObjectMapper, jsonParser: JsonParser, targetClass: Class[T]): Option[T] = try {
