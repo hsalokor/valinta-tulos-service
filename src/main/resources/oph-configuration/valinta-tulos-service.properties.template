@@ -15,6 +15,7 @@ valintalaskenta-laskenta-service.mongodb.uri=mongodb://{{mongodb_valintalaskenta
 #SIJOITTELU-SERVICE
 sijoittelu-service.mongodb.dbname=sijoitteludb
 sijoittelu-service.mongodb.uri=mongodb://{{mongodb_sijoitteludb_auth | default(mongodb_virkailija_auth) }}@{{mongodb_sijoitteludb_host | default(mongodb_virkailija_host)}}:{{mongodb_sijoitteludb_port | default(mongodb_virkailija_port)}}
+sijoittelu-service.rest.url=https://{{host_virkailija}}/sijoittelu-service
 
 # HAKEMUKSET
 hakemus.mongodb.dbname=hakulomake

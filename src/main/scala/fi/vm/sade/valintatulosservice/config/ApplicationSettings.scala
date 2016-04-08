@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.config
 
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.Config
 import fi.vm.sade.utils.config.MongoConfig
 import fi.vm.sade.valintatulosservice.SecuritySettings
 
@@ -9,6 +9,7 @@ case class ApplicationSettings(config: Config) extends fi.vm.sade.utils.config.A
   val valintatulosMongoConfig: MongoConfig = getMongoConfig(config.getConfig("sijoittelu-service.mongodb"))
   val ohjausparametritUrl = config.getString("valinta-tulos-service.ohjausparametrit.url")
   val tarjontaUrl = config.getString("tarjonta-service.url")
+  val sijoitteluServiceRestUrl = config.getString("sijoittelu-service.rest.url")
   val securitySettings = new SecuritySettings(config)
   val valintaRekisteriDbConfig = config.getConfig("valinta-tulos-service.valintarekisteri.db")
   val valintaRekisteriEnsikertalaisuusMaxPersonOids = config.getInt("valinta-tulos-service.valintarekisteri.ensikertalaisuus.max.henkilo.oids")

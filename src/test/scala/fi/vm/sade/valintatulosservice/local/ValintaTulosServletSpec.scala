@@ -102,6 +102,14 @@ class ValintaTulosServletSpec extends ServletSpecification {
           stringInJson(bodyJson, "vastaanottotieto") must_== "VASTAANOTTANUT_SITOVASTI"
           status must_== 200
         }
+
+        get("haku/streaming/1.2.246.562.5.2013080813081926341928/sijoitteluajo/latest/hakemukset") {
+          val streamedJson = JsonMethods.parse(body)
+          stringInJson(streamedJson, "hakijaOid") must_== "1.2.246.562.24.14229104472"
+          stringInJson(streamedJson, "hakemusOid") must_== "1.2.246.562.11.00000441369"
+          stringInJson(streamedJson, "vastaanottotieto") must_== "VASTAANOTTANUT_SITOVASTI"
+          status must_== 200
+        }
       }
     }
 

@@ -1,7 +1,9 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
+import java.util
 import java.util.{Date, Optional}
 
+import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakijaPaginationObject, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, IlmoittautumisTila}
 import fi.vm.sade.sijoittelu.tulos.resource.SijoitteluResource
@@ -11,7 +13,7 @@ import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
-import fi.vm.sade.valintatulosservice.tarjonta.{Haku, YhdenPaikanSaanto}
+import fi.vm.sade.valintatulosservice.tarjonta.Haku
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoRecord}
 import org.apache.commons.lang.StringUtils
 import org.joda.time.DateTime
@@ -56,9 +58,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
                                                  haunVastaanototByHakijaOid: Map[String, Set[VastaanottoRecord]]): HakijaPaginationObject = {
     import scala.collection.JavaConverters._
 
-    val sijoitteluntulos = fromOptional(if (SijoitteluResource.LATEST == sijoitteluajoId) {
-      raportointiService.latestSijoitteluAjoForHaku(hakuOid)
-    } else raportointiService.getSijoitteluAjo(sijoitteluajoId.toLong))
+    val sijoitteluntulos: Option[SijoitteluAjo] = findSijoitteluAjo(hakuOid, sijoitteluajoId)
 
     sijoitteluntulos.map { ajo =>
       def toJavaBoolean(b: Option[Boolean]): java.lang.Boolean = b match {
@@ -78,6 +78,14 @@ class SijoittelutulosService(raportointiService: RaportointiService,
       raportointiService.hakemukset(ajo, toJavaBoolean(hyvaksytyt), toJavaBoolean(ilmanHyvaksyntaa), toJavaBoolean(vastaanottaneet),
         hakukohdeOidsAsJava, toJavaInt(count), toJavaInt(index))
     }.getOrElse(new HakijaPaginationObject)
+  }
+
+  def sijoittelunTulosForAjoWithoutVastaanottoTieto(sijoitteluAjo: SijoitteluAjo, hakemusOid: String): HakijaDTO = raportointiService.hakemus(sijoitteluAjo, hakemusOid)
+
+  def findSijoitteluAjo(hakuOid: String, sijoitteluajoId: String): Option[SijoitteluAjo] = {
+    fromOptional(if (SijoitteluResource.LATEST == sijoitteluajoId) {
+      raportointiService.latestSijoitteluAjoForHaku(hakuOid)
+    } else raportointiService.getSijoitteluAjo(sijoitteluajoId.toLong))
   }
 
   private def fetchVastaanotto(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {

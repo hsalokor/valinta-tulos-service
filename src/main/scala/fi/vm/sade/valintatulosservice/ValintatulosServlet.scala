@@ -1,8 +1,9 @@
 package fi.vm.sade.valintatulosservice
 
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.json.{JsonFormats, JsonStreamWriter}
+import fi.vm.sade.valintatulosservice.json.{JsonFormats, JsonStreamWriter, StreamingFailureException}
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakuaika, YhdenPaikanSaanto}
 import org.joda.time.DateTime
@@ -134,6 +135,34 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     val index = intParam("index")
     val hakijaPaginationObject = valintatulosService.sijoittelunTulokset(hakuOid, sijoitteluajoId, hyvaksytyt, ilmanHyvaksyntaa, vastaanottaneet, hakukohdeOid, count, index)
     Ok(JsonFormats.javaObjectToJsonString(hakijaPaginationObject))
+  }
+
+  lazy val getStreamingHaunSijoitteluajonTuloksetSwagger: OperationBuilder = (apiOperation[Unit]("getStreamingHaunSijoitteluajonTuloksetSwagger")
+    summary """Streamaava listaus hakemuksien/hakijoiden listaukseen. Yksityiskohtainen listaus kaikista hakutoiveista ja niiden valintatapajonoista"""
+    parameter pathParam[String]("hakuOid").description("Haun oid").required
+    parameter pathParam[String]("sijoitteluajoId").description("""Sijoitteluajon id tai "latest"""").required)
+  get("/streaming/:hakuOid/sijoitteluajo/:sijoitteluajoId/hakemukset", operation(getHaunSijoitteluajonTuloksetSwagger)) {
+    val hakuOid = params("hakuOid")
+    val sijoitteluajoId = params("sijoitteluajoId")
+
+    val writer = response.writer
+
+    writer.print("[")
+    var index = 0
+    try {
+      val writeResult: HakijaDTO => Unit = { hakijaDto =>
+        if (index > 0) {
+          writer.print(",")
+        }
+        writer.print(JsonFormats.javaObjectToJsonString(hakijaDto))
+        index = index + 1
+      }
+      valintatulosService.streamSijoittelunTulokset(hakuOid, sijoitteluajoId, writeResult)
+    } catch {
+      case t: Throwable => throw new StreamingFailureException(t, s""", {"error": "${t.getMessage}"}] """)
+    }
+    logger.info(s"Returned $index ${classOf[HakijaDTO].getSimpleName} objects for haku $hakuOid")
+    writer.print("]")
   }
 
   private def serveStreamingResults(fetchData: => Option[Iterator[Hakemuksentulos]]): Any = {
