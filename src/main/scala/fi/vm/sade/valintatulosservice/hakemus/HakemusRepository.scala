@@ -88,27 +88,20 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
     Henkilotiedot(emptyStringToNone(data.getAs[String]("Kutsumanimi")), emptyStringToNone(data.getAs[String]("Sähköposti")), data.getAs[String]("Henkilotunnus").isDefined)
   }
 
-  private def parseHakutoiveet(data: Imports.MongoDBObject): List[Hakutoive] = {
-    data.filter { case (key, value) =>
-      key.endsWith(DatabaseKeys.hakutoiveIdKeyPostfix) && !value.asInstanceOf[String].isEmpty
-    }.toList.sortBy {
-      _._1
-    }.map {
-      case (hakukohdeKey, hakuKohdeOid) => {
-       Hakutoive(hakuKohdeOid.asInstanceOf[String],
-         parseHakukohdeField(data, hakukohdeKey, tarjoajaIdKeyPostfix),
-         parseHakukohdeField(data, hakukohdeKey, DatabaseKeys.hakutoiveKeyPostfix),
-         parseHakukohdeField(data, hakukohdeKey, DatabaseKeys.tarjoajaKeyPostfix))
-      }
-    }
-  }
+  private val HakutoiveKey = s"preference([0-9]+)-${DatabaseKeys.hakutoiveIdKeyPostfix}".r
 
-  def parseHakukohdeField(data: MongoDBObject, hakukohdeKey: String, postfix: String): String = {
-    data.find {
-      case (key, value) =>  hakukohdeKey.regionMatches(0, key, 0, 11) && key.endsWith(postfix)
-    }.map {
-      case (key, value) => value.asInstanceOf[String]
-    }.getOrElse("")
+  private def parseHakutoiveet(hakutoiveet: Imports.MongoDBObject): List[Hakutoive] = {
+    hakutoiveet.toList.collect {
+      case (key@HakutoiveKey(index), value: String) if value != "" => (index.toInt, key, value)
+    }.sortBy(_._1).map {
+      case (index, _, hakukohdeOid) =>
+        Hakutoive(
+          hakukohdeOid,
+          hakutoiveet.get(s"preference$index-$tarjoajaIdKeyPostfix").map(_.asInstanceOf[String]).getOrElse(""),
+          hakutoiveet.get(s"preference$index-${DatabaseKeys.hakutoiveKeyPostfix}").map(_.asInstanceOf[String]).getOrElse(""),
+          hakutoiveet.get(s"preference$index-${DatabaseKeys.tarjoajaKeyPostfix}").map(_.asInstanceOf[String]).getOrElse("")
+        )
+    }
   }
 
   private def emptyStringToNone(o: Option[String]): Option[String] = o.flatMap {
