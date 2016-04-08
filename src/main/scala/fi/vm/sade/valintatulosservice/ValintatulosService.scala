@@ -96,14 +96,14 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
                                       hakemustenTulokset: Map[String,Hakemuksentulos],
                                       haunVastaanotot: Map[String,Set[VastaanottoRecord]] ): Unit = {
     valintatulokset.foreach(valintaTulos => {
-      hakemustenTulokset.get(valintaTulos.getHakemusOid).foreach(hakemuksenTulos => {
-        hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid).foreach(hakutoiveenTulos => {
-          valintaTulos.setTila(getValintatuloksenTila(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString), hakemuksenTulos, haunVastaanotot, hakutoiveenTulos), "")
-          assertThatHakijaOidsDoNotConflict(valintaTulos, hakemuksenTulos)
-          valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
-          valintaTulos.setTilaHakijalle(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString))
-        })
-      })
+      val hakemuksenTulos = hakemustenTulokset.getOrElse(valintaTulos.getHakemusOid,
+        throw new IllegalStateException(s"No hakemuksen tulos found for hakemus ${valintaTulos.getHakemusOid}"))
+      val hakutoiveenTulos = hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid)
+        .getOrElse(throw new IllegalStateException(s"No hakutoive found for hakukohde ${valintaTulos.getHakukohdeOid} in hakemus ${valintaTulos.getHakemusOid}"))
+      valintaTulos.setTila(getValintatuloksenTila(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString), hakemuksenTulos, haunVastaanotot, hakutoiveenTulos), "")
+      assertThatHakijaOidsDoNotConflict(valintaTulos, hakemuksenTulos)
+      valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
+      valintaTulos.setTilaHakijalle(ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString))
     })
   }
 
