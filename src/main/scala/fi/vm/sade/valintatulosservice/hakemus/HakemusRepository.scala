@@ -27,6 +27,7 @@ object DatabaseKeys {
 
 @deprecated("Should be removed ASAP. Has no idea of indexes. Also has no idea of search structures")
 class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
+
   val application = MongoFactory.createCollection(appConfig.settings.hakemusMongoConfig, "application")
   val fields = MongoDBObject(
     DatabaseKeys.hakutoiveetPath -> 1,
@@ -38,6 +39,13 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
   )
 
   val kieliKoodit = Map(("suomi", "FI"), ("ruotsi", "SV"), ("englanti", "EN"))
+
+  def findPersonOids(hakuOid: String): Map[String, String] = {
+    application.find(
+      MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid),
+      MongoDBObject(DatabaseKeys.oidKey -> 1, DatabaseKeys.personOidKey -> 1)
+    ).map(o => o.as[String](DatabaseKeys.oidKey) -> o.as[String](DatabaseKeys.personOidKey)).toMap
+  }
 
   def findHakemukset(hakuOid: String): Iterator[Hakemus] = {
     findHakemuksetByQuery(MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid))

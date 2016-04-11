@@ -5,6 +5,7 @@ import java.util.{Date, Optional}
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, IlmoittautumisTila}
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
+import fi.vm.sade.utils.Timer
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 import fi.vm.sade.valintatulosservice.domain._
@@ -42,8 +43,8 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
     val hakukohde: java.util.List[String] = if (hakukohdeOid.isEmpty) null else hakukohdeOid.map(List(_)).get
     (for (
-      sijoittelu <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid));
-      hakijat <- Option(raportointiService.hakemukset(sijoittelu, null, null, null, hakukohde, null, null)).map(_.getResults.toList)
+      sijoittelu <- Timer.timed("latest sijoittelu", 1000)(fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)));
+      hakijat <- Option(Timer.timed("hakemukset", 1000)(raportointiService.hakemukset(sijoittelu, null, null, null, hakukohde, null, null))).map(_.getResults.toList)
     ) yield {
       hakijat.map(h => hakemuksenYhteenveto(h, aikataulu, fetchVastaanottos(h)))
     }).getOrElse(Nil)

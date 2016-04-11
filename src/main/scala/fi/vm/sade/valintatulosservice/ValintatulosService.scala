@@ -30,13 +30,20 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
-    fetchTulokset(hakuOid, () => hakemusRepository.findHakemus(hakemusOid).iterator, (haku, hakijaOidsByHakemusOids) => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids.get(hakemusOid)).toSeq).flatMap(_.toSeq.headOption)
+    fetchTulokset(
+      hakuOid,
+      () => hakemusRepository.findHakemus(hakemusOid).iterator,
+      (haku, hakijaOidsByHakemusOids) => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids.get(hakemusOid)).toSeq
+    ).flatMap(_.toSeq.headOption)
   }
 
   def hakemuksentuloksetByPerson(hakuOid: String, personOid: String): List[Hakemuksentulos] = {
     val hakemukset = hakemusRepository.findHakemukset(hakuOid, personOid).toSeq
-    fetchTulokset(hakuOid, () => hakemukset.toIterator, (haku, hakijaOidsByHakemusOids) => hakemukset.flatMap(hakemus => sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid, hakijaOidsByHakemusOids.get(hakemus.oid))))
-      .map(_.toList).getOrElse(List.empty)
+    fetchTulokset(
+      hakuOid,
+      () => hakemukset.toIterator,
+      (haku, hakijaOidsByHakemusOids) => hakemukset.flatMap(hakemus => sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid, hakijaOidsByHakemusOids.get(hakemus.oid)))
+    ).map(_.toList).getOrElse(List.empty)
   }
 
   def hakemustenTulosByHaku(hakuOid: String): Option[Iterator[Hakemuksentulos]] = {
@@ -46,21 +53,30 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     hakemustenTulosByHaku(hakuOid, Some(haunVastaanotot))
   }
 
-  def hakemustenTulosByHaku(hakuOid: String, haunVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] ): Option[Iterator[Hakemuksentulos]] = {
+  private def hakemustenTulosByHaku(hakuOid: String, haunVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] ): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
-      fetchTulokset(hakuOid, () => hakemusRepository.findHakemukset(hakuOid), (haku,  hakijaOidsByHakemusOids) => sijoittelutulosService.hakemustenTulos(hakuOid, hakijaOidsByHakemusOids = hakijaOidsByHakemusOids, haunVastaanotot = haunVastaanotot))
+      fetchTulokset(
+        hakuOid,
+        () => hakemusRepository.findHakemukset(hakuOid),
+        (haku,  hakijaOidsByHakemusOids) => sijoittelutulosService.hakemustenTulos(hakuOid, hakijaOidsByHakemusOids = hakijaOidsByHakemusOids, haunVastaanotot = haunVastaanotot),
+        Some(timed("personOids from hakemus", 1000)(hakemusRepository.findPersonOids(hakuOid)))
+      )
     )
   }
 
   def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String, hakukohteenVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
-      fetchTulokset(hakuOid, () => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid), (haku, hakijaOidsByHakemusOids) => sijoittelutulosService.hakemustenTulos(hakuOid, Some(hakukohdeOid), hakijaOidsByHakemusOids, hakukohteenVastaanotot))
+      fetchTulokset(
+        hakuOid,
+        () => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid),
+        (haku, hakijaOidsByHakemusOids) => sijoittelutulosService.hakemustenTulos(hakuOid, Some(hakukohdeOid), hakijaOidsByHakemusOids, hakukohteenVastaanotot)
+      )
     )
   }
 
   def findValintaTuloksetForVirkailija(hakuOid: String): util.List[Valintatulos] = {
     val haunVastaanotot = virkailijaVastaanottoRepository.findHaunVastaanotot(hakuOid).groupBy(_.henkiloOid)
-    val hakemustenTulokset = hakemustenTulosByHaku(hakuOid, Some(haunVastaanotot)).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid ${hakuOid}"))
+    val hakemustenTulokset = hakemustenTulosByHaku(hakuOid, Some(haunVastaanotot)).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid $hakuOid"))
     val valintatulokset = valintatulosDao.loadValintatulokset(hakuOid)
 
     setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset), haunVastaanotot)
@@ -69,7 +85,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   def findValintaTuloksetForVirkailija(hakuOid: String, hakukohdeOid: String): util.List[Valintatulos] = {
     val haunVastaanotot = virkailijaVastaanottoRepository.findHaunVastaanotot(hakuOid).groupBy(_.henkiloOid)
-    val hakemustenTulokset = hakemustenTulosByHakukohde(hakuOid, hakukohdeOid, Some(haunVastaanotot)).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid ${hakuOid}"))
+    val hakemustenTulokset = hakemustenTulosByHakukohde(hakuOid, hakukohdeOid, Some(haunVastaanotot)).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid $hakuOid"))
     val valintatulokset: util.List[Valintatulos] = valintatulosDao.loadValintatuloksetForHakukohde(hakukohdeOid)
 
     setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset), haunVastaanotot)
@@ -127,15 +143,20 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     }
   }
 
-  private def fetchTulokset(hakuOid: String, getHakemukset: () => Iterator[Hakemus], getSijoittelunTulos: (Haku, Map[String, String]) => Seq[HakemuksenSijoitteluntulos]): Option[Iterator[Hakemuksentulos]] = {
+  private def fetchTulokset(hakuOid: String,
+                            getHakemukset: () => Iterator[Hakemus],
+                            getSijoittelunTulos: (Haku, Map[String, String]) => Seq[HakemuksenSijoitteluntulos],
+                            hakijaOidsByHakemusOids: Option[Map[String, String]] = None): Option[Iterator[Hakemuksentulos]] = {
     for (
       haku <- hakuService.getHaku(hakuOid)
     ) yield {
       val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
       val hakemukset = getHakemukset()
-      val hakijaOidsByHakemusOids: Map[String, String] = getHakemukset().map(h => (h.oid, h.henkiloOid)).toMap
       val sijoitteluTulokset = timed("Fetch sijoittelun tulos", 1000) {
-        getSijoittelunTulos(haku, hakijaOidsByHakemusOids).map(t => (t.hakemusOid, t)).toMap
+        getSijoittelunTulos(
+          haku,
+          hakijaOidsByHakemusOids.getOrElse(getHakemukset().map(h => (h.oid, h.henkiloOid)).toMap)
+        ).map(t => (t.hakemusOid, t)).toMap
       }
       for (
         hakemus: Hakemus <- hakemukset
@@ -163,7 +184,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       .map(sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä)
       .map(sovellaKorkeakoulujenLisähaunSääntöjä)
       .map(piilotaKuvauksetKeskeneräisiltä)
-      .map(asetaVastaanotettavuusValintarekisterinPerusteella(h.henkiloOid))
+      .map{ case (a, b, c) => timed("vastaanotettavuus", 1)(asetaVastaanotettavuusValintarekisterinPerusteella(h.henkiloOid)(a, b, c)) }
       .tulokset
 
     Hakemuksentulos(haku.oid, h.oid, sijoitteluTulos.hakijaOid.getOrElse(h.henkiloOid), ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullisetTulokset)
