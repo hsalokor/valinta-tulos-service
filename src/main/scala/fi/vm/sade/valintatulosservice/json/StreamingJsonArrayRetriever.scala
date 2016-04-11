@@ -39,11 +39,14 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
       }
 
       currentToken = jsonParser.nextToken() // advance to beginning of first object
-
-      while (currentToken == JsonToken.START_OBJECT) {
-        val parsed = parseObject(mapper, jsonParser, targetClass).getOrElse(throw new RuntimeException(s"Could not parse $targetClass object"))
-        currentToken = jsonParser.nextToken()
-        processSingleItem(parsed)
+      if (currentToken != JsonToken.START_OBJECT) {
+        logger.info(s"No objects found in response")
+      } else {
+        while (currentToken == JsonToken.START_OBJECT) {
+          val parsed = parseObject(mapper, jsonParser, targetClass).getOrElse(throw new RuntimeException(s"Could not parse $targetClass object"))
+          currentToken = jsonParser.nextToken()
+          processSingleItem(parsed)
+        }
       }
     })
     logger.info(s"Returned response ${response.code} from $url")
