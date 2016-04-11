@@ -184,7 +184,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       .map(sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä)
       .map(sovellaKorkeakoulujenLisähaunSääntöjä)
       .map(piilotaKuvauksetKeskeneräisiltä)
-      .map{ case (a, b, c) => timed("vastaanotettavuus", 1)(asetaVastaanotettavuusValintarekisterinPerusteella(h.henkiloOid)(a, b, c)) }
+      .map(asetaVastaanotettavuusValintarekisterinPerusteella(h.henkiloOid))
       .tulokset
 
     Hakemuksentulos(haku.oid, h.oid, sijoitteluTulos.hakijaOid.getOrElse(h.henkiloOid), ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullisetTulokset)
