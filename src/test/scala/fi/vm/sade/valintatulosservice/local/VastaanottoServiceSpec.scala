@@ -512,11 +512,11 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
       r.result.status must_== 403
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
     }
-    "peru yksi hakija jonka paikka ei vastaanotettavissa -> error" in {
+    "peru yksi hakija jonka paikka ei vastaanotettavissa -> success" in {
       useFixture("hylatty-ei-valintatulosta.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
       val r = vastaanotaVirkailijana(personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.perunut, muokkaaja).head
       r.result.status must_== 400
-      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
     }
     "poista yhden hakijan vastaanotto" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
@@ -595,12 +595,12 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
       )).isFailure must beTrue
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
     }
-    "peru yksi hakija jonka paikka ei vastaanotettavissa -> error" in {
+    "peru yksi hakija jonka paikka ei vastaanotettavissa -> success" in {
       useFixture("hylatty-ei-valintatulosta.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
       vastaanotaVirkailijanaTransaktiossa(List(
         VastaanottoEventDto(personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.perunut, muokkaaja, "testiselite")
-      )).isFailure must beTrue
-      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      )).isSuccess must beTrue
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.perunut
     }
     "poista yhden hakijan vastaanotto" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)

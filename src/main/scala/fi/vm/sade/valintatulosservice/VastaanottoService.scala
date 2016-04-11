@@ -60,7 +60,7 @@ class VastaanottoService(hakuService: HakuService,
         case VastaanotaSitovasti | VastaanotaEhdollisesti if tarkistaAiemmatVastaanotot =>
           Try { hakijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)) }
         case MerkitseMyohastyneeksi => tarkistaHakijakohtainenDeadline(hakutoive)
-        case Peru => tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
+        case Peru => Success(())
         case VastaanotaSitovasti | VastaanotaEhdollisesti => Success(())
         case Peruuta => Success(())
         case Poista => Success(())
