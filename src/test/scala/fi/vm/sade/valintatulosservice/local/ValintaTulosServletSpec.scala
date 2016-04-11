@@ -4,7 +4,9 @@ import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
 import org.joda.time.DateTime
+import org.json4s.JValue
 import org.json4s.jackson.Serialization
+import org.json4s.native.JsonMethods
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
@@ -80,6 +82,65 @@ class ValintaTulosServletSpec extends ServletSpecification {
     }
   }
 
+  "GET /haku/:hakuOid/sijoitteluAjo/:sijoitteluAjoId/hakemukset" should {
+    "palauttaa haun sijoitteluajon hakemusten tulokset vastaanottotiloineen" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
+
+      get("haku/1.2.246.562.5.2013080813081926341928/sijoitteluajo/latest/hakemukset") {
+        val bodyJson = JsonMethods.parse(body)
+        (bodyJson \ "totalCount").extract[Int] must_== 1
+        stringInJson(bodyJson, "vastaanottotieto") must_== "KESKEN"
+        status must_== 200
+      }
+
+      vastaanota("VastaanotaSitovasti") {
+        get("haku/1.2.246.562.5.2013080813081926341928/sijoitteluajo/latest/hakemukset") {
+          val bodyJson = JsonMethods.parse(body)
+          (bodyJson \ "totalCount").extract[Int] must_== 1
+          stringInJson(bodyJson, "hakijaOid") must_== "1.2.246.562.24.14229104472"
+          stringInJson(bodyJson, "hakemusOid") must_== "1.2.246.562.11.00000441369"
+          stringInJson(bodyJson, "vastaanottotieto") must_== "VASTAANOTTANUT_SITOVASTI"
+          status must_== 200
+        }
+      }
+    }
+
+    "kun haku ei löydy" in {
+      "200 tyhjien tulosten kanssa" in {
+        HakuFixtures.useFixture("notfound")
+        get("haku/1.2.246.562.5.foo/sijoitteluajo/latest/hakemukset") {
+          body must_== """{"totalCount":0,"results":[]}"""
+          status must_== 200
+        }
+      }
+    }
+  }
+
+  "GET /haku/streaming/:hakuOid/sijoitteluAjo/:sijoitteluAjoId/hakemukset" should {
+    "palauttaa haun sijoitteluajon hakemusten tulokset vastaanottotiloineen" in {
+      skipped  // TODO see if this can be tested
+
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
+
+      get("haku/1.2.246.562.5.2013080813081926341928/sijoitteluajo/latest/hakemukset") {
+        val bodyJson = JsonMethods.parse(body)
+        (bodyJson \ "totalCount").extract[Int] must_== 1
+        stringInJson(bodyJson, "vastaanottotieto") must_== "KESKEN"
+        status must_== 200
+      }
+
+      vastaanota("VastaanotaSitovasti") {
+        get("haku/streaming/1.2.246.562.5.2013080813081926341928/sijoitteluajo/latest/hakemukset") {
+          val streamedJson = JsonMethods.parse(body)
+          println("BO DY: " + body)
+          stringInJson(streamedJson, "hakijaOid") must_== "1.2.246.562.24.14229104472"
+          stringInJson(streamedJson, "hakemusOid") must_== "1.2.246.562.11.00000441369"
+          stringInJson(streamedJson, "vastaanottotieto") must_== "VASTAANOTTANUT_SITOVASTI"
+          status must_== 200
+        }
+      }
+    }
+  }
 
   "POST /haku/:hakuId/hakemus/:hakemusId/ilmoittaudu" should {
     "merkitsee ilmoittautuneeksi" in {
@@ -208,5 +269,13 @@ class ValintaTulosServletSpec extends ServletSpecification {
   def getTicket = {
     val ticket = appConfig.securityContext.casClient.ticketFor(appConfig.settings.securitySettings.casServiceIdentifier, "testuser")
     ticket
+  }
+
+  private def stringInJson(json: JValue, fieldName: String): String = try {
+    (json \\ fieldName).extract[String]
+  } catch {
+    case e: Exception =>
+      System.err.println(s"Could not parse $fieldName from $json")
+      throw e
   }
 }
