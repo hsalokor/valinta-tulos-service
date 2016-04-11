@@ -189,6 +189,16 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
          """.as[HakukohdeRecord]).headOption
   }
 
+  override def findHaunArbitraryHakukohde(oid: String): Option[HakukohdeRecord] = {
+    implicit val getHakukohdeResult = GetResult(r =>
+      HakukohdeRecord(r.nextString(), r.nextString(), r.nextBoolean(), r.nextBoolean(), Kausi(r.nextString())))
+    runBlocking(sql"""select hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi
+           from hakukohteet
+           where haku_oid = $oid
+           limit 1
+         """.as[HakukohdeRecord]).headOption
+  }
+
   override def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit = {
     val UNIQUE_VIOLATION = "23505"
     try {
@@ -224,5 +234,20 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                 and vo.deleted is null
             order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord])
     vastaanottoRecords.toSet
+  }
+
+  override def findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi: Kausi): Set[String] = {
+    runBlocking(
+      sql"""select distinct on (vo.henkilo, vo.hakukohde) vo.henkilo, vo.action
+            from vastaanotot vo
+            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
+            where hk.koulutuksen_alkamiskausi = ${kausi.toKausiSpec}
+                and hk.yhden_paikan_saanto_voimassa
+                and vo.deleted is null
+            order by vo.henkilo, vo.hakukohde, vo.id desc""".as[(String, String)]
+        .map(_.collect {
+          case (henkiloOid, action) if Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(VastaanottoAction(action)) => henkiloOid
+        })
+    ).toSet
   }
 }

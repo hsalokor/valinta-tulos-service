@@ -1,12 +1,17 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
-import fi.vm.sade.valintatulosservice.domain.HakukohdeRecord
+import fi.vm.sade.valintatulosservice.domain.{Kausi, HakukohdeRecord}
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuService, Hakukohde, Koulutus}
 
 import scala.util.Try
 
 class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: HakukohdeRepository) {
   private val koulutusTilasToSkip = List("LUONNOS", "KOPIOITU") // See TarjontaTila in tarjonta-api
+
+  def getHaunKoulutuksenAlkamiskausi(oid: String): Kausi = {
+    val record = hakukohdeRepository.findHaunArbitraryHakukohde(oid)
+    record.getOrElse(fetchAndStoreHakukohdeDetails(hakuService.getHakukohdeOids(oid).head)).koulutuksenAlkamiskausi
+  }
 
   def getHakukohdeRecord(oid: String): HakukohdeRecord = {
     // hakukohdeRecord is cached in DB to enable vastaanotto queries
