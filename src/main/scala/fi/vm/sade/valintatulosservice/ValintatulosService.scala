@@ -202,7 +202,13 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
               }
             )
             writeResult(hakijaDto)
-          case None => logger.warn(s"Hakemus ${hakijaDto.getHakemusOid} not found in hakemusten tulokset for haku $hakuOid")
+          case None =>
+            val msg = s"Hakemus ${hakijaDto.getHakemusOid} not found in hakemusten tulokset for haku $hakuOid"
+            if (appConfig.settings.lenientSijoitteluntuloksetParsing) {
+              logger.warn(msg)
+            } else {
+              throw new IllegalStateException(msg)
+            }
         }
       })
     } catch {
