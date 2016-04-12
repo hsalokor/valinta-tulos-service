@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice.config
 import com.typesafe.config.Config
 import fi.vm.sade.utils.config.MongoConfig
 import fi.vm.sade.valintatulosservice.SecuritySettings
+import org.apache.commons.lang3.BooleanUtils
 
 case class ApplicationSettings(config: Config) extends fi.vm.sade.utils.config.ApplicationSettings(config) {
   val hakemusMongoConfig: MongoConfig = getMongoConfig(config.getConfig("hakemus.mongodb"))
@@ -13,6 +14,7 @@ case class ApplicationSettings(config: Config) extends fi.vm.sade.utils.config.A
   val securitySettings = new SecuritySettings(config)
   val valintaRekisteriDbConfig = config.getConfig("valinta-tulos-service.valintarekisteri.db")
   val valintaRekisteriEnsikertalaisuusMaxPersonOids = config.getInt("valinta-tulos-service.valintarekisteri.ensikertalaisuus.max.henkilo.oids")
+  val lenientTarjontaDataparsing: Boolean = BooleanUtils.isTrue(config.getBoolean("valinta-tulos-service.parsetarjonta.leniently"))
 
   val ilmoittautuminenEnabled = {
     val value = config.getString("valinta-tulos-service.ilmoittautuminen.enabled")

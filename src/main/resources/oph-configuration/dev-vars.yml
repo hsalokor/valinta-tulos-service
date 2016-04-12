@@ -7,3 +7,4 @@ mongodb_hakemus_host: localhost
 mongodb_hakemus_port: 27017
 host_virkailija: "itest-virkailija.oph.ware.fi"
 valintatulosservice_ilmoittautuminen_enabled: true
+valintatulosservice_parsetarjonta_leniently: false

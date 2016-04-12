@@ -23,6 +23,7 @@ hakemus.mongodb.uri=mongodb://{{mongodb_hakemus_auth}}@{{mongodb_hakemus_host}}:
 
 # TARJONTA
 tarjonta-service.url=https://{{host_virkailija}}/tarjonta-service
+valinta-tulos-service.parsetarjonta.leniently={{valintatulosservice_parsetarjonta_leniently}}
 
 # CAS
 cas.url={{cas_url}}
