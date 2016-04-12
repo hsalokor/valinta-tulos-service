@@ -75,7 +75,7 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
   }
 
   private def authenticate(casParams: CasParams): String = {
-    val sessions: Process[Task, JSessionId] = Process(casParams).toSource through appConfig.securityContext.casClient.casSessionChannel
+    val sessions: Process[Task, JSessionId] = Process(casParams).toSource through appConfig.securityContext.casClient.sessionRefreshChannel
 
     var jSessionId = "<not fetched>"
     sessions.map(sessionIdFromCas => jSessionId = sessionIdFromCas).run.run
