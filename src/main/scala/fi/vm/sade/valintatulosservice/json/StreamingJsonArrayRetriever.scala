@@ -9,6 +9,7 @@ import fi.vm.sade.utils.cas.CasClient.JSessionId
 import fi.vm.sade.utils.cas.CasParams
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import org.http4s.Status
 
 import scala.concurrent.duration.Duration
 import scalaj.http.{Http, HttpRequest, HttpResponse}
@@ -55,7 +56,14 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
         }
       }
     })
-    logger.info(s"Processed $count items of response with status ${response.code} from $url")
+    if (response.code == Status.Ok.code) {
+      logger.info(s"Processed $count items of response with status ${response.code} from $url")
+    } else {
+      logger.warn(s"Got non-OK response code ${response.code} from $url")
+      response.headers.foreach { case (header: String, value: String) =>
+        logger.warn(s"$header: $value")
+      }
+    }
   }
 
   private def parseObject[T](mapper: ObjectMapper, jsonParser: JsonParser, targetClass: Class[T]): Option[T] = try {
