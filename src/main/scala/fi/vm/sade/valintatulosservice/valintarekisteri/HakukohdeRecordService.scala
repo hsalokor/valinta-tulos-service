@@ -28,7 +28,7 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
         s"Could not resolve koulutukset ${hakukohde.hakukohdeKoulutusOids}")
       alkamiskausi <- resolveKoulutuksenAlkamiskausi(hakukohde, koulutukset, haku)
     } yield HakukohdeRecord(hakukohde.oid, haku.oid, haku.yhdenPaikanSaanto.voimassa,
-      hakukohdeJohtaaKkTutkintoon(hakukohde), alkamiskausi)
+      hakukohdeJohtaaKkTutkintoon(hakukohde, koulutukset), alkamiskausi)
     h.foreach(hakukohdeRepository.storeHakukohde)
     h.get
   }
@@ -47,8 +47,8 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
     }
   }
 
-  private def hakukohdeJohtaaKkTutkintoon(hakukohde: Hakukohde): Boolean = {
-    hakukohde.koulutusAsteTyyppi == "KORKEAKOULUTUS" && hakukohde.koulutusmoduuliTyyppi == "TUTKINTO"
+  private def hakukohdeJohtaaKkTutkintoon(hakukohde: Hakukohde, koulutukset: Seq[Koulutus]): Boolean = {
+    hakukohde.koulutusAsteTyyppi == "KORKEAKOULUTUS" && koulutukset.exists(_.tutkinto != HakuService.EiJohdaTutkintoon)
   }
 
   def withError[T](o: Option[T], errorMessage: String): Try[T] = {

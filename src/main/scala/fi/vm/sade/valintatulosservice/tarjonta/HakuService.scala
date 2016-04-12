@@ -5,6 +5,7 @@ import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
 import fi.vm.sade.valintatulosservice.domain.{Kausi, Kevat, Syksy}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
+import fi.vm.sade.valintatulosservice.tarjonta.HakuService.KoodiUri
 import org.joda.time.DateTime
 import org.json4s.JsonAST.{JInt, JObject, JString}
 import org.json4s.jackson.JsonMethods._
@@ -26,6 +27,8 @@ trait HakuService {
 }
 
 object HakuService {
+  type KoodiUri = String
+  val EiJohdaTutkintoon = "tutkinto_xx"
   def apply(appConfig: AppConfig): HakuService = appConfig match {
     case _:StubbedExternalDeps => HakuFixtures
     case _ => new CachedHakuService(new TarjontaHakuService(appConfig))
@@ -45,21 +48,21 @@ case class Hakuaika(hakuaikaId: String, alkuPvm: Option[Long], loppuPvm: Option[
 case class Hakukohde(oid: String, hakuOid: String, hakukohdeKoulutusOids: List[String],
                      koulutusAsteTyyppi: String, koulutusmoduuliTyyppi: String)
 
-case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String)
+case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, tutkinto: KoodiUri)
 
 class KoulutusSerializer extends CustomSerializer[Koulutus]((formats: Formats) => {
   ( {
-    case o: JObject => {
-      val JString(oid) = (o \ "oid")
-      val JString(tila) = (o \ "tila")
-      val JInt(vuosi) = (o \ "koulutuksenAlkamisvuosi")
-      val kausi = (o \ "koulutuksenAlkamiskausi" \ "uri") match {
+    case o: JObject =>
+      val JString(oid) = o \ "oid"
+      val JString(tila) = o \ "tila"
+      val JInt(vuosi) = o \ "koulutuksenAlkamisvuosi"
+      val kausi = o \ "koulutuksenAlkamiskausi" \ "uri" match {
         case JString("kausi_k") => Kevat(vuosi.toInt)
         case JString("kausi_s") => Syksy(vuosi.toInt)
         case x => throw new MappingException(s"Unrecognized kausi URI $x")
       }
-      Koulutus(oid, kausi, tila)
-    }
+      val JString(tutkinto) = o \ "tutkinto" \ "uri"
+      Koulutus(oid, kausi, tila, tutkinto)
   }, { case o => ??? })
 })
 
