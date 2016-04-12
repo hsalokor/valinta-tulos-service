@@ -186,7 +186,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         case None => Map()
       }
     }
-    logger.info(s"Found ${personOidsByHakemusOids.keySet.size} hakemus objects for sijoitteluajo $sijoitteluajoId of haku $hakuOid")
+    logger.info(s"Found ${hakutoiveidenTuloksetByHakemusOid.keySet.size} hakemus objects for sijoitteluajo $sijoitteluajoId of haku $hakuOid")
 
     try {
       streamingHakijaDtoClient.processSijoittelunTulokset(hakuOid, sijoitteluajoId, { hakijaDto: HakijaDTO =>
