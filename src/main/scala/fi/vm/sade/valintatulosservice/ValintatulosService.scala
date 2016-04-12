@@ -189,6 +189,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     val personOidsByHakemusOids = timed(s"Fetch hakemus to person oid mapping for haku $hakuOid", 1000) {
       hakemusRepository.findPersonOids(hakuOid)
     }
+    logger.info(s"Found ${personOidsByHakemusOids.keySet.size} hakemus objects for sijoitteluajo $sijoitteluajoId of haku $hakuOid")
 
     try {
       streamingHakijaDtoClient.processSijoittelunTulokset(hakuOid, sijoitteluajoId, { hakijaDto: HakijaDTO =>
