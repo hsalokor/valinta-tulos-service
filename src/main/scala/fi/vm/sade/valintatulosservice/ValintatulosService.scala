@@ -74,16 +74,19 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       for {
         haku <- hakuService.getHaku(hakuOid)
       } yield {
-        fetchTulokset(
-          haku,
-          () => hakemusRepository.findHakemukset(hakuOid),
-          hakijaOidsByHakemusOids => sijoittelutulosService.hakemustenTulos(hakuOid, hakijaOidsByHakemusOids = hakijaOidsByHakemusOids, haunVastaanotot = haunVastaanotot),
-          Some(timed("personOids from hakemus", 1000)(hakemusRepository.findPersonOids(hakuOid))),
-          Some(timed("kaudenVastaanotot", 1000)({
-            val kausi = hakukohdeRecordService.getHaunKoulutuksenAlkamiskausi(hakuOid)
-            virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi)
-          }))
-        )
+        hakukohdeRecordService.getHaunKoulutuksenAlkamiskausi(hakuOid) match {
+          case Some(koulutuksenAlkamiskausi) =>
+            fetchTulokset(
+              haku,
+              () => hakemusRepository.findHakemukset(hakuOid),
+              hakijaOidsByHakemusOids => sijoittelutulosService.hakemustenTulos(hakuOid, hakijaOidsByHakemusOids = hakijaOidsByHakemusOids, haunVastaanotot = haunVastaanotot),
+              Some(timed("personOids from hakemus", 1000)(hakemusRepository.findPersonOids(hakuOid))),
+              Some(timed("kaudenVastaanotot", 1000)({
+                virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(koulutuksenAlkamiskausi)
+              }))
+            )
+          case None => Iterator.empty
+        }
       }
     )
   }

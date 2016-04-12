@@ -9,9 +9,9 @@ import scala.util.{Success, Try}
 class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: HakukohdeRepository, parseLeniently: Boolean) extends Logging {
   private val koulutusTilasToSkipInStrictParsing = List("LUONNOS", "KOPIOITU") // See TarjontaTila in tarjonta-api
 
-  def getHaunKoulutuksenAlkamiskausi(oid: String): Kausi = {
+  def getHaunKoulutuksenAlkamiskausi(oid: String): Option[Kausi] = {
     val record = hakukohdeRepository.findHaunArbitraryHakukohde(oid)
-    record.getOrElse(fetchAndStoreHakukohdeDetails(hakuService.getHakukohdeOids(oid).head)).koulutuksenAlkamiskausi
+    record.orElse(hakuService.getHakukohdeOids(oid).headOption.map(fetchAndStoreHakukohdeDetails)).map(_.koulutuksenAlkamiskausi)
   }
 
   def getHakukohdeRecord(oid: String): HakukohdeRecord = {
