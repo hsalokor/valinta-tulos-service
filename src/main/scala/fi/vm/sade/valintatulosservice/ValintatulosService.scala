@@ -180,9 +180,11 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       virkailijaVastaanottoRepository.findHaunVastaanotot(hakuOid).groupBy(_.henkiloOid)
     }
     val hakemustenTulokset = hakemustenTulosByHaku(hakuOid, Some(haunVastaanototByHakijaOid))
-    val hakutoiveidenTuloksetByHakemusOid: Map[String, List[Hakutoiveentulos]] = hakemustenTulokset match {
-      case Some(hakemustenTulosIterator) => hakemustenTulosIterator.map(h => (h.hakemusOid, h.hakutoiveet)).toMap
-      case None => Map()
+    val hakutoiveidenTuloksetByHakemusOid: Map[String, List[Hakutoiveentulos]] = timed(s"Find hakutoiveiden tulokset for haku $hakuOid", 1000) {
+      hakemustenTulokset match {
+        case Some(hakemustenTulosIterator) => hakemustenTulosIterator.map(h => (h.hakemusOid, h.hakutoiveet)).toMap
+        case None => Map()
+      }
     }
     val personOidsByHakemusOids = timed(s"Fetch hakemus to person oid mapping for haku $hakuOid", 1000) {
       hakemusRepository.findPersonOids(hakuOid)

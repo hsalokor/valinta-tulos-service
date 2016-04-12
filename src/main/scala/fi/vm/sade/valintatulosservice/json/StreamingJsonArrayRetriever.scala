@@ -28,7 +28,9 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
     val request: HttpRequest = Http(url).header(HttpHeaders.COOKIE, s"JSESSIONID=$jsessionId").compress(false).
       timeout(Duration(1, TimeUnit.MINUTES).toMillis.toInt, Duration(60, TimeUnit.MINUTES).toMillis.toInt)
 
+    var count = 0
     val response: HttpResponse[Unit] = request.execute[Unit](inputStream => {
+      logger.info(s"Starting to process inputstream of response from $url")
       val jsonParser = jsonFactory.createParser(inputStream)
       var currentToken: JsonToken = null
 
@@ -46,10 +48,14 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
           val parsed = parseObject(mapper, jsonParser, targetClass).getOrElse(throw new RuntimeException(s"Could not parse $targetClass object"))
           currentToken = jsonParser.nextToken()
           processSingleItem(parsed)
+          count = count + 1
+          if (count % 1000 == 0) {
+            logger.info(s"...processed $count items so far...")
+          }
         }
       }
     })
-    logger.info(s"Returned response ${response.code} from $url")
+    logger.info(s"Processed $count items of response with status ${response.code} from $url")
   }
 
   private def parseObject[T](mapper: ObjectMapper, jsonParser: JsonParser, targetClass: Class[T]): Option[T] = try {
