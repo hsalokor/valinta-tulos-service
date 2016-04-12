@@ -180,31 +180,30 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       virkailijaVastaanottoRepository.findHaunVastaanotot(hakuOid).groupBy(_.henkiloOid)
     }
     val hakemustenTulokset = hakemustenTulosByHaku(hakuOid, Some(haunVastaanototByHakijaOid))
-    val hakutoiveidenTuloksetByHakemusOid: Map[String, List[Hakutoiveentulos]] = timed(s"Find hakutoiveiden tulokset for haku $hakuOid", 1000) {
+    val hakutoiveidenTuloksetByHakemusOid: Map[String, (String, List[Hakutoiveentulos])] = timed(s"Find hakutoiveiden tulokset for haku $hakuOid", 1000) {
       hakemustenTulokset match {
-        case Some(hakemustenTulosIterator) => hakemustenTulosIterator.map(h => (h.hakemusOid, h.hakutoiveet)).toMap
+        case Some(hakemustenTulosIterator) => hakemustenTulosIterator.map(h => (h.hakemusOid, (h.hakijaOid, h.hakutoiveet))).toMap
         case None => Map()
       }
-    }
-    val personOidsByHakemusOids = timed(s"Fetch hakemus to person oid mapping for haku $hakuOid", 1000) {
-      hakemusRepository.findPersonOids(hakuOid)
     }
     logger.info(s"Found ${personOidsByHakemusOids.keySet.size} hakemus objects for sijoitteluajo $sijoitteluajoId of haku $hakuOid")
 
     try {
       streamingHakijaDtoClient.processSijoittelunTulokset(hakuOid, sijoitteluajoId, { hakijaDto: HakijaDTO =>
-        val hakijaOidFromHakemus = personOidsByHakemusOids(hakijaDto.getHakemusOid)
-        val hakutoiveidenTulokset = hakutoiveidenTuloksetByHakemusOid.getOrElse(hakijaDto.getHakemusOid, throw new IllegalArgumentException(s"Hakemusta ${hakijaDto.getHakemusOid} ei löydy"))
-        hakijaDto.setHakijaOid(hakijaOidFromHakemus)
-        hakijaDto.getHakutoiveet.asScala.foreach(palautettavaHakutoiveDto =>
-          hakutoiveidenTulokset.find(_.hakukohdeOid == palautettavaHakutoiveDto.getHakukohdeOid) match {
-            case Some(hakutoiveenOikeaTulos) =>
-              palautettavaHakutoiveDto.setVastaanottotieto(fi.vm.sade.sijoittelu.tulos.dto.ValintatuloksenTila.valueOf(hakutoiveenOikeaTulos.vastaanottotila.toString))
-              palautettavaHakutoiveDto.getHakutoiveenValintatapajonot.asScala.foreach(_.setTilanKuvaukset(hakutoiveenOikeaTulos.tilanKuvaukset.asJava))
-            case None => palautettavaHakutoiveDto.setVastaanottotieto(dto.ValintatuloksenTila.KESKEN)
-          }
-        )
-        writeResult(hakijaDto)
+        hakutoiveidenTuloksetByHakemusOid.get(hakijaDto.getHakemusOid) match {
+          case Some((hakijaOid, hakutoiveidenTulokset)) =>
+            hakijaDto.setHakijaOid(hakijaOid)
+            hakijaDto.getHakutoiveet.asScala.foreach(palautettavaHakutoiveDto =>
+              hakutoiveidenTulokset.find(_.hakukohdeOid == palautettavaHakutoiveDto.getHakukohdeOid) match {
+                case Some(hakutoiveenOikeaTulos) =>
+                  palautettavaHakutoiveDto.setVastaanottotieto(fi.vm.sade.sijoittelu.tulos.dto.ValintatuloksenTila.valueOf(hakutoiveenOikeaTulos.vastaanottotila.toString))
+                  palautettavaHakutoiveDto.getHakutoiveenValintatapajonot.asScala.foreach(_.setTilanKuvaukset(hakutoiveenOikeaTulos.tilanKuvaukset.asJava))
+                case None => palautettavaHakutoiveDto.setVastaanottotieto(dto.ValintatuloksenTila.KESKEN)
+              }
+            )
+            writeResult(hakijaDto)
+          case None => logger.warn(s"Hakemus ${hakijaDto.getHakemusOid} not found in hakemusten tulokset for haku $hakuOid")
+        }
       })
     } catch {
       case e: Exception =>
