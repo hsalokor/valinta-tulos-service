@@ -29,6 +29,17 @@ class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with
     }
   }
 
+  "Strict HakukohdeRecordService" in {
+    "throws an exception for hakukohde with conflicting koulutuksen alkamiskausi" in new HakukohdeRecordServiceWithMocks {
+      hakukohdeRepository.findHakukohde(hakukohdeOid) returns None
+      hakuService.getHakukohde(hakukohdeOid) returns Some(hakukohdeFromTarjonta.copy(hakukohdeKoulutusOids = List(luonnosKoulutus.oid)))
+      hakuService.getHaku(hakuOid) returns Some(hakuFromTarjonta)
+      hakuService.getKoulutus(luonnosKoulutus.oid) returns Some(luonnosKoulutus)
+      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must throwA[HakukohdeDetailsRetrievalException]
+      there was no(hakukohdeRepository).storeHakukohde(hakukohdeRecord)
+    }
+  }
+
   trait HakukohdeRecordServiceWithMocks extends Mockito with Scope with MustThrownExpectations {
     val hakuService = mock[HakuService]
     val hakukohdeRepository = mock[HakukohdeRepository]
