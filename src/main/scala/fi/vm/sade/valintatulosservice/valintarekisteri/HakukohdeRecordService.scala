@@ -42,7 +42,7 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
       case Some(found) => Success(found)
       case None if parseLeniently =>
         logger.warn(s"$errorMessage. Falling back to koulutuksen alkamiskausi from haku: ${haku.koulutuksenAlkamiskausi}")
-        Success(haku.koulutuksenAlkamiskausi)
+        withError(haku.koulutuksenAlkamiskausi, s"$errorMessage , and no koulutuksen alkamiskausi on haku $haku")
       case None => withError(None, errorMessage)
     }
   }

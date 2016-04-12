@@ -34,7 +34,7 @@ object HakuService {
 
 case class Haku(oid: String, korkeakoulu: Boolean, yhteishaku: Boolean, varsinainenhaku: Boolean, lisähaku: Boolean,
                 käyttääSijoittelua: Boolean, varsinaisenHaunOid: Option[String], sisältyvätHaut: Set[String],
-                hakuAjat: List[Hakuaika], koulutuksenAlkamiskausi: Kausi, yhdenPaikanSaanto: YhdenPaikanSaanto)
+                hakuAjat: List[Hakuaika], koulutuksenAlkamiskausi: Option[Kausi], yhdenPaikanSaanto: YhdenPaikanSaanto)
 case class Hakuaika(hakuaikaId: String, alkuPvm: Option[Long], loppuPvm: Option[Long]) {
   def hasStarted = alkuPvm match {
     case Some(alku) => new DateTime().isAfter(new DateTime(alku))
@@ -73,11 +73,14 @@ protected trait JsonHakuService {
     val varsinainenhaku: Boolean = haku.hakutyyppiUri.startsWith("hakutyyppi_01#1")
     val lisähaku: Boolean = haku.hakutyyppiUri.startsWith("hakutyyppi_03#1")
     val koulutuksenAlkamisvuosi = haku.koulutuksenAlkamisVuosi
-    val kausi = if (haku.koulutuksenAlkamiskausiUri.startsWith("kausi_k")) {
-      Kevat(koulutuksenAlkamisvuosi)
-    } else if (haku.koulutuksenAlkamiskausiUri.startsWith("kausi_s")) {
-      Syksy(koulutuksenAlkamisvuosi)
-    } else throw new MappingException(s"Unrecognized kausi URI ${haku.koulutuksenAlkamiskausiUri}")
+    val kausi = if (haku.koulutuksenAlkamiskausiUri.isDefined && haku.koulutuksenAlkamisVuosi.isDefined) {
+      if (haku.koulutuksenAlkamiskausiUri.get.startsWith("kausi_k")) {
+            Some(Kevat(koulutuksenAlkamisvuosi.get))
+          } else if (haku.koulutuksenAlkamiskausiUri.get.startsWith("kausi_s")) {
+            Some(Syksy(koulutuksenAlkamisvuosi.get))
+          } else throw new MappingException(s"Unrecognized kausi URI ${haku.koulutuksenAlkamiskausiUri}")
+    } else None
+
     Haku(haku.oid, korkeakoulu, yhteishaku, varsinainenhaku, lisähaku, haku.sijoittelu, haku.parentHakuOid,
       haku.sisaltyvatHaut, haku.hakuaikas, kausi, haku.yhdenPaikanSaanto)
   }
@@ -96,7 +99,7 @@ class CachedHakuService(wrappedService: HakuService) extends HakuService {
 }
 
 private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String,
-                                   koulutuksenAlkamisVuosi: Int, koulutuksenAlkamiskausiUri: String,
+                                   koulutuksenAlkamisVuosi: Option[Int], koulutuksenAlkamiskausiUri: Option[String],
                                    sijoittelu: Boolean,
                                    parentHakuOid: Option[String], sisaltyvatHaut: Set[String], tila: String,
                                    hakuaikas: List[Hakuaika], yhdenPaikanSaanto: YhdenPaikanSaanto) {

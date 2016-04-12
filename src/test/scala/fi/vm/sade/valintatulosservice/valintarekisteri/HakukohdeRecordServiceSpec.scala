@@ -47,7 +47,7 @@ class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with
   "Lenient HakukohdeRecordService" in {
     "falls back to koulutuksen alkamiskausi of haku for hakukohde with conflicting koulutuksen alkamiskausi" in new HakukohdeRecordServiceWithMocks {
       val hakukohdeRecordService = new HakukohdeRecordService(hakuService, hakukohdeRepository, true)
-      val hakukohdeRecordWithKausiFromHaku: HakukohdeRecord = hakukohdeRecord.copy(koulutuksenAlkamiskausi = hakuFromTarjonta.koulutuksenAlkamiskausi)
+      val hakukohdeRecordWithKausiFromHaku: HakukohdeRecord = hakukohdeRecord.copy(koulutuksenAlkamiskausi = hakuFromTarjonta.koulutuksenAlkamiskausi.get)
 
       hakukohdeRepository.findHakukohde(hakukohdeOid) returns None
       hakuService.getHakukohde(hakukohdeOid) returns Some(hakukohdeFromTarjonta.copy(hakukohdeKoulutusOids = List(luonnosKoulutus.oid)))
@@ -55,6 +55,17 @@ class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with
       hakuService.getKoulutus(luonnosKoulutus.oid) returns Some(luonnosKoulutus)
       hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must_== hakukohdeRecordWithKausiFromHaku
       one(hakukohdeRepository).storeHakukohde(hakukohdeRecordWithKausiFromHaku)
+    }
+
+    "crashes if haku has no koulutuksen alkamiskausi for hakukohde with conflicting koulutuksen alkamiskausi" in new HakukohdeRecordServiceWithMocks {
+      val hakukohdeRecordService = new HakukohdeRecordService(hakuService, hakukohdeRepository, true)
+
+      hakukohdeRepository.findHakukohde(hakukohdeOid) returns None
+      hakuService.getHakukohde(hakukohdeOid) returns Some(hakukohdeFromTarjonta.copy(hakukohdeKoulutusOids = List(luonnosKoulutus.oid)))
+      hakuService.getHaku(hakuOid) returns Some(hakuFromTarjonta.copy(koulutuksenAlkamiskausi = None))
+      hakuService.getKoulutus(luonnosKoulutus.oid) returns Some(luonnosKoulutus)
+      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must throwA[HakukohdeDetailsRetrievalException]
+      there was no(hakukohdeRepository).storeHakukohde(hakukohdeRecord)
     }
   }
 
@@ -72,6 +83,6 @@ class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with
     val hakukohdeFromTarjonta = Hakukohde(hakukohdeOid, hakuOid, List(julkaistuKoulutus.oid), "KORKEAKOULUTUS", "TUTKINTO")
     val hakuFromTarjonta: Haku = Haku(hakuOid, korkeakoulu = true, yhteishaku = true, varsinainenhaku = true,
       lisähaku = false, käyttääSijoittelua = true, varsinaisenHaunOid = None, sisältyvätHaut = Set(), hakuAjat = Nil,
-      Kausi("2016K"), YhdenPaikanSaanto(voimassa = true, "Korkeakoulutus ilman kohdejoukon tarkennetta"))
+      Some(Kausi("2016K")), YhdenPaikanSaanto(voimassa = true, "Korkeakoulutus ilman kohdejoukon tarkennetta"))
   }
 }
