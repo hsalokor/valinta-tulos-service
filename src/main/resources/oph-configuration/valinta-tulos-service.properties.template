@@ -16,6 +16,7 @@ valintalaskenta-laskenta-service.mongodb.uri=mongodb://{{mongodb_valintalaskenta
 sijoittelu-service.mongodb.dbname=sijoitteludb
 sijoittelu-service.mongodb.uri=mongodb://{{mongodb_sijoitteludb_auth | default(mongodb_virkailija_auth) }}@{{mongodb_sijoitteludb_host | default(mongodb_virkailija_host)}}:{{mongodb_sijoitteludb_port | default(mongodb_virkailija_port)}}
 sijoittelu-service.rest.url=https://{{host_virkailija}}/sijoittelu-service
+valinta-tulos-service.parseleniently.sijoitteluajontulos={{valintatulosservice_parseleniently_sijoitteluajontulos}}
 
 # HAKEMUKSET
 hakemus.mongodb.dbname=hakulomake
@@ -23,7 +24,7 @@ hakemus.mongodb.uri=mongodb://{{mongodb_hakemus_auth}}@{{mongodb_hakemus_host}}:
 
 # TARJONTA
 tarjonta-service.url=https://{{host_virkailija}}/tarjonta-service
-valinta-tulos-service.parsetarjonta.leniently={{valintatulosservice_parsetarjonta_leniently}}
+valinta-tulos-service.parseleniently.tarjonta={{valintatulosservice_parseleniently_tarjonta}}
 
 # CAS
 cas.url={{cas_url}}
