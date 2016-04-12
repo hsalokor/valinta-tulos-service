@@ -14,7 +14,7 @@ import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelutulosService, StreamingHakijaDtoClient}
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
-import fi.vm.sade.valintatulosservice.valintarekisteri.{VastaanottoRecord, VirkailijaVastaanottoRepository}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, VastaanottoRecord, VirkailijaVastaanottoRepository}
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
@@ -26,27 +26,40 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
                           ohjausparametritService: OhjausparametritService,
                           hakemusRepository: HakemusRepository,
                           virkailijaVastaanottoRepository: VirkailijaVastaanottoRepository,
-                          hakuService: HakuService)(implicit appConfig: AppConfig) extends Logging {
-  def this(vastaanotettavuusService: VastaanotettavuusService, sijoittelutulosService: SijoittelutulosService, virkailijaVastaanottoRepository: VirkailijaVastaanottoRepository, hakuService: HakuService)(implicit appConfig: AppConfig) = this(vastaanotettavuusService, sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), virkailijaVastaanottoRepository, hakuService)
+                          hakuService: HakuService,
+                          hakukohdeRecordService: HakukohdeRecordService)(implicit appConfig: AppConfig) extends Logging {
+  def this(vastaanotettavuusService: VastaanotettavuusService,
+           sijoittelutulosService: SijoittelutulosService,
+           virkailijaVastaanottoRepository: VirkailijaVastaanottoRepository,
+           hakuService: HakuService,
+           hakukohdeRecordService: HakukohdeRecordService)(implicit appConfig: AppConfig) =
+    this(vastaanotettavuusService, sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), virkailijaVastaanottoRepository, hakuService, hakukohdeRecordService)
 
   val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
   private val streamingHakijaDtoClient = new StreamingHakijaDtoClient(appConfig)
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
-    fetchTulokset(
-      hakuOid,
-      () => hakemusRepository.findHakemus(hakemusOid).iterator,
-      (haku, hakijaOidsByHakemusOids) => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids.get(hakemusOid)).toSeq
-    ).flatMap(_.toSeq.headOption)
+    for {
+      haku <- hakuService.getHaku(hakuOid)
+      hakemus <- fetchTulokset(
+        haku,
+        () => hakemusRepository.findHakemus(hakemusOid).iterator,
+        hakijaOidsByHakemusOids => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids.get(hakemusOid)).toSeq
+      ).toSeq.headOption
+    } yield hakemus
   }
 
   def hakemuksentuloksetByPerson(hakuOid: String, personOid: String): List[Hakemuksentulos] = {
     val hakemukset = hakemusRepository.findHakemukset(hakuOid, personOid).toSeq
-    fetchTulokset(
-      hakuOid,
-      () => hakemukset.toIterator,
-      (haku, hakijaOidsByHakemusOids) => hakemukset.flatMap(hakemus => sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid, hakijaOidsByHakemusOids.get(hakemus.oid)))
-    ).map(_.toList).getOrElse(List.empty)
+    (for {
+      haku <- hakuService.getHaku(hakuOid)
+    } yield {
+      fetchTulokset(
+        haku,
+        () => hakemukset.toIterator,
+        hakijaOidsByHakemusOids => hakemukset.flatMap(hakemus => sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid, hakijaOidsByHakemusOids.get(hakemus.oid)))
+      ).toList
+    }).getOrElse(List.empty)
   }
 
   def hakemustenTulosByHaku(hakuOid: String): Option[Iterator[Hakemuksentulos]] = {
@@ -58,22 +71,34 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   private def hakemustenTulosByHaku(hakuOid: String, haunVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] ): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
-      fetchTulokset(
-        hakuOid,
-        () => hakemusRepository.findHakemukset(hakuOid),
-        (haku,  hakijaOidsByHakemusOids) => sijoittelutulosService.hakemustenTulos(hakuOid, hakijaOidsByHakemusOids = hakijaOidsByHakemusOids, haunVastaanotot = haunVastaanotot),
-        Some(timed("personOids from hakemus", 1000)(hakemusRepository.findPersonOids(hakuOid)))
-      )
+      for {
+        haku <- hakuService.getHaku(hakuOid)
+      } yield {
+        fetchTulokset(
+          haku,
+          () => hakemusRepository.findHakemukset(hakuOid),
+          hakijaOidsByHakemusOids => sijoittelutulosService.hakemustenTulos(hakuOid, hakijaOidsByHakemusOids = hakijaOidsByHakemusOids, haunVastaanotot = haunVastaanotot),
+          Some(timed("personOids from hakemus", 1000)(hakemusRepository.findPersonOids(hakuOid))),
+          Some(timed("kaudenVastaanotot", 1000)({
+            val kausi = hakukohdeRecordService.getHaunKoulutuksenAlkamiskausi(hakuOid)
+            virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi)
+          }))
+        )
+      }
     )
   }
 
   def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String, hakukohteenVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
-      fetchTulokset(
-        hakuOid,
-        () => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid),
-        (haku, hakijaOidsByHakemusOids) => sijoittelutulosService.hakemustenTulos(hakuOid, Some(hakukohdeOid), hakijaOidsByHakemusOids, hakukohteenVastaanotot)
-      )
+      for {
+        haku <- hakuService.getHaku(hakuOid)
+      } yield {
+        fetchTulokset(
+          haku,
+          () => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid),
+          hakijaOidsByHakemusOids => sijoittelutulosService.hakemustenTulos(hakuOid, Some(hakukohdeOid), hakijaOidsByHakemusOids, hakukohteenVastaanotot)
+        )
+      }
     )
   }
 
@@ -229,31 +254,28 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     }
   }
 
-  private def fetchTulokset(hakuOid: String,
+  private def fetchTulokset(haku: Haku,
                             getHakemukset: () => Iterator[Hakemus],
-                            getSijoittelunTulos: (Haku, Map[String, String]) => Seq[HakemuksenSijoitteluntulos],
-                            hakijaOidsByHakemusOids: Option[Map[String, String]] = None): Option[Iterator[Hakemuksentulos]] = {
-    for (
-      haku <- hakuService.getHaku(hakuOid)
-    ) yield {
-      val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-      val hakemukset = getHakemukset()
-      val sijoitteluTulokset = timed("Fetch sijoittelun tulos", 1000) {
-        getSijoittelunTulos(
-          haku,
-          hakijaOidsByHakemusOids.getOrElse(getHakemukset().map(h => (h.oid, h.henkiloOid)).toMap)
-        ).map(t => (t.hakemusOid, t)).toMap
-      }
-      for (
-        hakemus: Hakemus <- hakemukset
-      ) yield {
-        val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
-        julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit)(hakemus)
-      }
+                            getSijoittelunTulos: Map[String, String] => Seq[HakemuksenSijoitteluntulos],
+                            hakijaOidsByHakemusOids: Option[Map[String, String]] = None,
+                            kaudenVastaanottaneet: Option[Set[String]] = None): Iterator[Hakemuksentulos] = {
+    val ohjausparametrit = ohjausparametritService.ohjausparametrit(haku.oid)
+    val hakemukset = getHakemukset()
+    val sijoitteluTulokset = timed("Fetch sijoittelun tulos", 1000) {
+      getSijoittelunTulos(
+        hakijaOidsByHakemusOids.getOrElse(getHakemukset().map(h => (h.oid, h.henkiloOid)).toMap)
+      ).map(t => (t.hakemusOid, t)).toMap
     }
+    hakemukset.map(hakemus => {
+      val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
+      julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit, kaudenVastaanottaneet)(hakemus)
+    })
   }
 
-  private def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(h:Hakemus)(implicit appConfig: AppConfig): Hakemuksentulos = {
+  private def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos,
+                               haku: Haku,
+                               ohjausparametrit: Option[Ohjausparametrit],
+                               kaudenVastaanottaneet: Option[Set[String]] = None)(h:Hakemus)(implicit appConfig: AppConfig): Hakemuksentulos = {
     val tulokset = h.toiveet.map { toive =>
       val hakutoiveenSijoittelunTulos: HakutoiveenSijoitteluntulos = sijoitteluTulos.hakutoiveet.find { t =>
         t.hakukohdeOid == toive.oid
@@ -270,7 +292,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       .map(sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä)
       .map(sovellaKorkeakoulujenLisähaunSääntöjä)
       .map(piilotaKuvauksetKeskeneräisiltä)
-      .map(asetaVastaanotettavuusValintarekisterinPerusteella(h.henkiloOid))
+      .map(asetaVastaanotettavuusValintarekisterinPerusteella(h.henkiloOid, kaudenVastaanottaneet))
       .tulokset
 
     Hakemuksentulos(haku.oid, h.oid, sijoitteluTulos.hakijaOid.getOrElse(h.henkiloOid), ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullisetTulokset)
@@ -278,7 +300,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, None, Nil)
 
-  private def asetaVastaanotettavuusValintarekisterinPerusteella(henkiloOid: String)(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+  private def asetaVastaanotettavuusValintarekisterinPerusteella(henkiloOid: String, kaudenVastaanottaneet: Option[Set[String]] = None)(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     def ottanutVastaanToisenPaikan(tulos: Hakutoiveentulos): Hakutoiveentulos = {
       val t = tulos.copy(
         vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa,
@@ -297,12 +319,13 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         t
       }
     }
-    def aiempiVastaanotto(hakukohdeOid: String): Boolean = try {
-      virkailijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, hakukohdeOid))
-      false
-    } catch {
-      case t: PriorAcceptanceException => true
-    }
+    def aiempiVastaanotto(hakukohdeOid: String): Boolean = kaudenVastaanottaneet.map(_.contains(henkiloOid))
+      .getOrElse(try {
+        virkailijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, hakukohdeOid))
+        false
+      } catch {
+        case t: PriorAcceptanceException => true
+      })
     val vastaanottoTallaHakemuksella = tulokset.exists(x => Set(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(x.vastaanottotila))
     if (vastaanottoTallaHakemuksella) {
       tulokset
