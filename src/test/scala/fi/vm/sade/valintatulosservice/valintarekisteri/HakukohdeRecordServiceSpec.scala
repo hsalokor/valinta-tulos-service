@@ -14,12 +14,12 @@ import org.specs2.specification.Scope
 class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with MockitoStubs with CalledMatchers {
 
   "HakukohdeRecordService" in {
-    "return hakukohde records directly from db when found" in new HakukohdeRecordServiceWithMocks {
+    "returns hakukohde records directly from db when found" in new HakukohdeRecordServiceWithMocks {
       hakukohdeRepository.findHakukohde(hakukohdeOid) returns Some(hakukohdeRecord)
       hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must_== hakukohdeRecord
       there was noMoreCallsTo(hakuService)
     }
-    "invoke tarjonta when hakukohde record is not found" in new HakukohdeRecordServiceWithMocks {
+    "invokes tarjonta when hakukohde record is not found" in new HakukohdeRecordServiceWithMocks {
       hakukohdeRepository.findHakukohde(hakukohdeOid) returns None
       hakuService.getHakukohde(hakukohdeOid) returns Some(hakukohdeFromTarjonta)
       hakuService.getHaku(hakuOid) returns Some(hakuFromTarjonta)
