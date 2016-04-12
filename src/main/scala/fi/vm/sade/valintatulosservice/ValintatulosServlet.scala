@@ -142,7 +142,7 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     summary """Streamaava listaus hakemuksien/hakijoiden listaukseen. Yksityiskohtainen listaus kaikista hakutoiveista ja niiden valintatapajonoista"""
     parameter pathParam[String]("hakuOid").description("Haun oid").required
     parameter pathParam[String]("sijoitteluajoId").description("""Sijoitteluajon id tai "latest"""").required)
-  get("/streaming/:hakuOid/sijoitteluajo/:sijoitteluajoId/hakemukset", operation(getHaunSijoitteluajonTuloksetSwagger)) {
+  get("/streaming/:hakuOid/sijoitteluajo/:sijoitteluajoId/hakemukset", operation(getStreamingHaunSijoitteluajonTuloksetSwagger)) {
     val hakuOid = params("hakuOid")
     val sijoitteluajoId = params("sijoitteluajoId")
 
