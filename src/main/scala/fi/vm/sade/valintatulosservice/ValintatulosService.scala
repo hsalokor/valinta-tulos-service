@@ -176,13 +176,6 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   }
 
   def streamSijoittelunTulokset(hakuOid: String, sijoitteluajoId: String, writeResult: HakijaDTO => Unit): Unit = {
-    sijoittelutulosService.findSijoitteluAjo(hakuOid, sijoitteluajoId) match {
-      case Some(sijoitteluAjo: SijoitteluAjo) => streamSijoittelunTulokset(hakuOid, sijoitteluajoId, sijoitteluAjo, writeResult)
-      case None => logger.info(s"No results found for haku=$hakuOid , sijoitteluajoId=$sijoitteluajoId")
-    }
-  }
-
-  private def streamSijoittelunTulokset(hakuOid: String, sijoitteluajoId: String, sijoitteluajo: SijoitteluAjo, writeResult: HakijaDTO => Unit): Unit = {
     val haunVastaanototByHakijaOid = timed("Fetch haun vastaanotot for haku: " + hakuOid, 1000) {
       virkailijaVastaanottoRepository.findHaunVastaanotot(hakuOid).groupBy(_.henkiloOid)
     }
@@ -192,26 +185,19 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       case None => Map()
     }
     val personOidsByHakemusOids = timed(s"Fetch hakemus to person oid mapping for haku $hakuOid", 1000) {
-      hakemusRepository.findHakemukset(hakuOid).map(h => (h.oid, h.henkiloOid)).toMap
+      hakemusRepository.findPersonOids(hakuOid)
     }
 
     try {
       streamingHakijaDtoClient.processSijoittelunTulokset(hakuOid, sijoitteluajoId, { hakijaDto: HakijaDTO =>
         val hakijaOidFromHakemus = personOidsByHakemusOids(hakijaDto.getHakemusOid)
-        hakijaDto.setHakijaOid(hakijaOidFromHakemus)
-        val hakijanVastaanotot = haunVastaanototByHakijaOid.get(hakijaDto.getHakijaOid)
         val hakutoiveidenTulokset = hakutoiveidenTuloksetByHakemusOid.getOrElse(hakijaDto.getHakemusOid, throw new IllegalArgumentException(s"Hakemusta ${hakijaDto.getHakemusOid} ei löydy"))
-        val yhdenPaikanSannonHuomioiminen = asetaVastaanotettavuusValintarekisterinPerusteella(hakijaDto.getHakijaOid)(hakutoiveidenTulokset, haku = null, None)
+        hakijaDto.setHakijaOid(hakijaOidFromHakemus)
         hakijaDto.getHakutoiveet.asScala.foreach(palautettavaHakutoiveDto =>
-          hakijanVastaanotot match {
-            case Some(vastaanottos) =>
-              vastaanottos.find(_.hakukohdeOid == palautettavaHakutoiveDto.getHakukohdeOid).foreach(vastaanotto => {
-                val tilaIlmanYhdenPaikanSaantoa = sijoittelutulosService.vastaanottotilaVainViimeisimmanVastaanottoActioninPerusteella(Some(vastaanotto.action))
-                yhdenPaikanSannonHuomioiminen.find(_.hakukohdeOid == palautettavaHakutoiveDto.getHakukohdeOid).foreach(hakutoiveenOikeaTulos => {
-                  palautettavaHakutoiveDto.setVastaanottotieto(fi.vm.sade.sijoittelu.tulos.dto.ValintatuloksenTila.valueOf(hakutoiveenOikeaTulos.vastaanottotila.toString))
-                  palautettavaHakutoiveDto.getHakutoiveenValintatapajonot.asScala.foreach(_.setTilanKuvaukset(hakutoiveenOikeaTulos.tilanKuvaukset.asJava))
-                })
-              })
+          hakutoiveidenTulokset.find(_.hakukohdeOid == palautettavaHakutoiveDto.getHakukohdeOid) match {
+            case Some(hakutoiveenOikeaTulos) =>
+              palautettavaHakutoiveDto.setVastaanottotieto(fi.vm.sade.sijoittelu.tulos.dto.ValintatuloksenTila.valueOf(hakutoiveenOikeaTulos.vastaanottotila.toString))
+              palautettavaHakutoiveDto.getHakutoiveenValintatapajonot.asScala.foreach(_.setTilanKuvaukset(hakutoiveenOikeaTulos.tilanKuvaukset.asJava))
             case None => palautettavaHakutoiveDto.setVastaanottotieto(dto.ValintatuloksenTila.KESKEN)
           }
         )
