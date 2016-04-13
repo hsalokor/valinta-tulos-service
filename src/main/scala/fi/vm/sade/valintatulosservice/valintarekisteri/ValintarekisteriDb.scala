@@ -225,7 +225,10 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
              = (${hakukohdeRecord.yhdenPaikanSaantoVoimassa},
                 ${hakukohdeRecord.kktutkintoonJohtava},
                 ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec})
-             where hakukohde_oid = ${hakukohdeRecord.oid}"""
+             where hakukohde_oid = ${hakukohdeRecord.oid}
+                 and (yhden_paikan_saanto_voimassa <> ${hakukohdeRecord.yhdenPaikanSaantoVoimassa}
+                   or kk_tutkintoon_johtava <> ${hakukohdeRecord.kktutkintoonJohtava}
+                   or koulutuksen_alkamiskausi <> ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec})"""
     ) == 1
   }
 
