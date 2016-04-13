@@ -4,7 +4,7 @@ import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain.{HakukohdeRecord, Kausi}
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService, Hakukohde, Koulutus}
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: HakukohdeRepository, parseLeniently: Boolean) extends Logging {
   private val koulutusTilasToSkipInStrictParsing = List("LUONNOS", "KOPIOITU") // See TarjontaTila in tarjonta-api
@@ -22,11 +22,16 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
 
   def refreshHakukohdeRecord(oid: String): (HakukohdeRecord, Option[HakukohdeRecord]) = {
     val old = hakukohdeRepository.findHakukohde(oid).get
-    val fresh = fetchHakukohdeDetails(oid)
-    if (hakukohdeRepository.updateHakukohde(fresh)) {
-      (old, Some(fresh))
-    } else {
-      (old, None)
+    Try(fetchHakukohdeDetails(oid)) match {
+      case Success(fresh) => if (hakukohdeRepository.updateHakukohde(fresh)) {
+        (old, Some(fresh))
+      } else {
+        (old, None)
+      }
+      case Failure(t: HakukohdeDetailsRetrievalException) if parseLeniently =>
+        logger.warn(s"Error fetching hakukohde ${old.oid} that exists in db", t)
+        (old, None)
+      case Failure(t) => throw t
     }
   }
 
