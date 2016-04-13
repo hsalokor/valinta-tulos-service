@@ -29,6 +29,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   override val db = Database.forConfig("", dbConfig)
   private implicit val getVastaanottoResult = GetResult(r => VastaanottoRecord(r.nextString(), r.nextString(),
     r.nextString(), VastaanottoAction(r.nextString()), r.nextString(), r.nextTimestamp()))
+  private implicit val getHakukohdeResult = GetResult(r =>
+    HakukohdeRecord(r.nextString(), r.nextString(), r.nextBoolean(), r.nextBoolean(), Kausi(r.nextString())))
+
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
     val d = runBlocking(
@@ -190,13 +193,17 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   override def findHaunArbitraryHakukohde(oid: String): Option[HakukohdeRecord] = {
-    implicit val getHakukohdeResult = GetResult(r =>
-      HakukohdeRecord(r.nextString(), r.nextString(), r.nextBoolean(), r.nextBoolean(), Kausi(r.nextString())))
     runBlocking(sql"""select hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi
            from hakukohteet
            where haku_oid = $oid
            limit 1
          """.as[HakukohdeRecord]).headOption
+  }
+
+  override def all: Set[HakukohdeRecord] = {
+    runBlocking(
+      sql"""select hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi
+            from hakukohteet""".as[HakukohdeRecord]).toSet
   }
 
   override def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit = {
@@ -210,6 +217,16 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
       case e: PSQLException if e.getSQLState == UNIQUE_VIOLATION =>
         logger.debug(s"Ignored unique violation when inserting hakukohde record $hakukohdeRecord")
     }
+  }
+
+  override def updateHakukohde(hakukohdeRecord: HakukohdeRecord): Boolean = {
+    runBlocking(
+      sqlu"""update hakukohteet set (yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi)
+             = (${hakukohdeRecord.yhdenPaikanSaantoVoimassa},
+                ${hakukohdeRecord.kktutkintoonJohtava},
+                ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec})
+             where hakukohde_oid = ${hakukohdeRecord.oid}"""
+    ) == 1
   }
 
   override def findHakukohteenVastaanotot(hakukohdeOid: String): Set[VastaanottoRecord] = {

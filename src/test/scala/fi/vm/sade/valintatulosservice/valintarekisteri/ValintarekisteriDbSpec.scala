@@ -24,6 +24,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
   private val hakukohdeOid = "1.2.246.561.20.00000000001"
   private val otherHakukohdeOid = "1.2.246.561.20.00000000002"
   private val otherHakukohdeOidForHakuOid = "1.2.246.561.20.00000000003"
+  private val refreshedHakukohdeOid = "1.2.246.561.20.00000000004"
   private val hakuOid = "1.2.246.561.29.00000000001"
   private val otherHakuOid = "1.2.246.561.29.00000000002"
 
@@ -38,6 +39,15 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
                values ($otherHakukohdeOidForHakuOid, $hakuOid, true, true, '2015K')""")))
 
   "ValintarekisteriDb" should {
+    "update hakukohde record" in {
+      val old = HakukohdeRecord(refreshedHakukohdeOid, hakuOid, true, true, Kevat(2015))
+      val fresh = HakukohdeRecord(refreshedHakukohdeOid, hakuOid, false, false, Syksy(2014))
+      singleConnectionValintarekisteriDb.storeHakukohde(old)
+      singleConnectionValintarekisteriDb.updateHakukohde(fresh) must beTrue
+      val stored = singleConnectionValintarekisteriDb.findHakukohde(refreshedHakukohdeOid)
+      stored must beSome[HakukohdeRecord](fresh)
+    }
+
     "store vastaanotto actions" in {
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
       val henkiloOidsAndActionsFromDb = singleConnectionValintarekisteriDb.runBlocking(

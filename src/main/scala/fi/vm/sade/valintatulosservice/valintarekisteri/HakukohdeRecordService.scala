@@ -20,17 +20,31 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
     record.getOrElse(fetchAndStoreHakukohdeDetails(oid))
   }
 
+  def refreshHakukohdeRecord(oid: String): (HakukohdeRecord, Option[HakukohdeRecord]) = {
+    val old = hakukohdeRepository.findHakukohde(oid).get
+    val fresh = fetchHakukohdeDetails(oid)
+    if (hakukohdeRepository.updateHakukohde(fresh)) {
+      (old, Some(fresh))
+    } else {
+      (old, None)
+    }
+  }
+
   private def fetchAndStoreHakukohdeDetails(oid: String): HakukohdeRecord = {
-    val h = for {
+    val fresh = fetchHakukohdeDetails(oid)
+    hakukohdeRepository.storeHakukohde(fresh)
+    fresh
+  }
+
+  private def fetchHakukohdeDetails(oid: String): HakukohdeRecord = {
+    (for {
       hakukohde <- withError(hakuService.getHakukohde(oid), s"Could not find hakukohde $oid from tarjonta")
       haku <- withError(hakuService.getHaku(hakukohde.hakuOid), s"Could not find haku ${hakukohde.hakuOid} from tarjonta")
       koulutukset <- withError(sequence(hakukohde.hakukohdeKoulutusOids.map(hakuService.getKoulutus)),
         s"Could not resolve koulutukset ${hakukohde.hakukohdeKoulutusOids}")
       alkamiskausi <- resolveKoulutuksenAlkamiskausi(hakukohde, koulutukset, haku)
     } yield HakukohdeRecord(hakukohde.oid, haku.oid, haku.yhdenPaikanSaanto.voimassa,
-      hakukohdeJohtaaKkTutkintoon(hakukohde, koulutukset), alkamiskausi)
-    h.foreach(hakukohdeRepository.storeHakukohde)
-    h.get
+      hakukohdeJohtaaKkTutkintoon(hakukohde, koulutukset), alkamiskausi)).get
   }
 
   private def resolveKoulutuksenAlkamiskausi(hakukohde: Hakukohde, koulutukset: Seq[Koulutus], haku: Haku): Try[Kausi] = {

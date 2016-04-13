@@ -28,7 +28,7 @@ trait HakuService {
 
 object HakuService {
   type KoodiUri = String
-  val EiJohdaTutkintoon = "tutkinto_xx"
+  val EiJohdaTutkintoon: KoodiUri = "tutkinto_xx"
   def apply(appConfig: AppConfig): HakuService = appConfig match {
     case _:StubbedExternalDeps => HakuFixtures
     case _ => new CachedHakuService(new TarjontaHakuService(appConfig))
