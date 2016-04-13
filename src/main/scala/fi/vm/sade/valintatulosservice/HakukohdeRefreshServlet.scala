@@ -2,7 +2,8 @@ package fi.vm.sade.valintatulosservice
 
 
 import java.util.Date
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.json.JsonFormats
@@ -11,7 +12,9 @@ import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.{SwaggerSupport, Swagger}
 import org.scalatra._
 
+import scala.collection.parallel.{ForkJoinTaskSupport, ThreadPoolTaskSupport}
 import scala.concurrent.Future
+import scala.concurrent.forkjoin.ForkJoinPool
 
 case class Status(started: Date)
 
@@ -41,16 +44,20 @@ class HakukohdeRefreshServlet(hakukohdeRepository: HakukohdeRepository,
       import scala.concurrent.ExecutionContext.Implicits.global
       Future {
         try {
-          val hakukohteet = hakukohdeRepository.all
+          val hakukohteet = hakukohdeRepository.all.par
+          val i = new AtomicInteger(0)
+          val pool = new ForkJoinPool(4)
+          hakukohteet.tasksupport = new ForkJoinTaskSupport(pool)
           logger.info(s"Refreshing ${hakukohteet.size} hakukohdetta")
-          var i = 0
-          for (hakukohdeOid <- hakukohteet.map(_.oid)) {
-            val (old, fresh) = hakukohdeRecordService.refreshHakukohdeRecord(hakukohdeOid)
+          hakukohteet.foreach(hakukohde => {
+            val (old, fresh) = hakukohdeRecordService.refreshHakukohdeRecord(hakukohde.oid)
             fresh.foreach(hakukohdeRecord => {
               logger.info(s"Updated hakukohde ${old.oid} from $old to $fresh")
-              i = i + 1
+              i.incrementAndGet()
             })
-          }
+          })
+          pool.shutdown()
+          pool.awaitTermination(30, TimeUnit.SECONDS)
           logger.info(s"Updated $i hakukohdetta")
         } catch {
           case e: Exception => logger.error("Refreshing hakukohteet failed", e)
