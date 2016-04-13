@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice
 
 import java.util
 
-import fi.vm.sade.sijoittelu.domain.{SijoitteluAjo, ValintatuloksenTila, Valintatulos}
+import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.sijoittelu.tulos.dto
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakijaPaginationObject}
 import fi.vm.sade.utils.Timer.timed
@@ -205,13 +205,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
               }
             )
             writeResult(hakijaDto)
-          case None =>
-            val msg = s"Hakemus ${hakijaDto.getHakemusOid} not found in hakemusten tulokset for haku $hakuOid"
-            if (appConfig.settings.lenientSijoitteluntuloksetParsing) {
-              logger.warn(msg)
-            } else {
-              throw new IllegalStateException(msg)
-            }
+          case None => crashOrLog(s"Hakemus ${hakijaDto.getHakemusOid} not found in hakemusten tulokset for haku $hakuOid")
         }
       })
     } catch {
@@ -230,24 +224,34 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
                                       hakemustenTulokset: Map[String,Hakemuksentulos],
                                       haunVastaanotot: Map[String,Set[VastaanottoRecord]] ): Unit = {
     valintatulokset.foreach(valintaTulos => {
-      val hakemuksenTulos = hakemustenTulokset.getOrElse(valintaTulos.getHakemusOid,
-        throw new IllegalStateException(s"No hakemuksen tulos found for hakemus ${valintaTulos.getHakemusOid}"))
-      assertThatHakijaOidsDoNotConflict(valintaTulos, hakemuksenTulos)
-      val hakutoiveenTulos = hakemuksenTulos.findHakutoive(valintaTulos.getHakukohdeOid)
-        .getOrElse(throw new IllegalStateException(s"No hakutoive found for hakukohde ${valintaTulos.getHakukohdeOid} in hakemus ${valintaTulos.getHakemusOid}"))
-      val tilaHakijalle = ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString)
+      val hakemuksenTulosOption: Option[Hakemuksentulos] = hakemustenTulokset.get(valintaTulos.getHakemusOid).orElse(
+        crashOrLog(s"No hakemuksen tulos found for hakemus ${valintaTulos.getHakemusOid}"))
+      val hakutoiveenTulosOption: Option[Hakutoiveentulos] = hakemuksenTulosOption.flatMap { _.findHakutoive(valintaTulos.getHakukohdeOid) }.orElse(
+        crashOrLog(s"No hakutoive found for hakukohde ${valintaTulos.getHakukohdeOid} in hakemus ${valintaTulos.getHakemusOid}"))
 
-      val hakijaOid = hakemuksenTulos.hakijaOid
-      val tilaVirkailijalle = ValintatulosService.toVirkailijaTila(tilaHakijalle, haunVastaanotot.get(hakijaOid), hakutoiveenTulos.hakukohdeOid)
-      valintaTulos.setTila(tilaVirkailijalle, tilaVirkailijalle, "", "") // pass same old and new tila to avoid log entries
-      valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
-      valintaTulos.setTilaHakijalle(tilaHakijalle)
+      val tulosPari: Option[(Hakemuksentulos, Hakutoiveentulos)] = hakemuksenTulosOption.flatMap { hakemuksenTulos => hakutoiveenTulosOption.map((hakemuksenTulos, _)) }
+
+      tulosPari match {
+        case Some((hakemuksenTulos, hakutoiveenTulos)) =>
+          assertThatHakijaOidsDoNotConflict(valintaTulos, hakemuksenTulos)
+          val tilaHakijalle = ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString)
+
+          val hakijaOid = hakemuksenTulos.hakijaOid
+          val tilaVirkailijalle = ValintatulosService.toVirkailijaTila(tilaHakijalle, haunVastaanotot.get(hakijaOid), hakutoiveenTulos.hakukohdeOid)
+          valintaTulos.setTila(tilaVirkailijalle, tilaVirkailijalle, "", "") // pass same old and new tila to avoid log entries
+          valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
+          valintaTulos.setTilaHakijalle(tilaHakijalle)
+        case None =>
+          crashOrLog(s"Problem when processing valintatulos for hakemus ${valintaTulos.getHakemusOid}")
+          valintaTulos.setTila(ValintatuloksenTila.KESKEN, ValintatuloksenTila.KESKEN, "Tilaa ei saatu luettua sijoittelun tuloksista", "")
+          valintaTulos.setTilaHakijalle(ValintatuloksenTila.KESKEN)
+      }
     })
   }
 
   private def assertThatHakijaOidsDoNotConflict(valintaTulos: Valintatulos, hakemuksenTulos: Hakemuksentulos): Unit = {
     if (valintaTulos.getHakijaOid != null && !valintaTulos.getHakijaOid.equals(hakemuksenTulos.hakijaOid)) {
-      throw new IllegalStateException(s"Conflicting hakija oids: valintaTulos: ${valintaTulos.getHakijaOid} vs hakemuksenTulos: ${hakemuksenTulos.hakijaOid} in $valintaTulos , $hakemuksenTulos")
+      crashOrLog(s"Conflicting hakija oids: valintaTulos: ${valintaTulos.getHakijaOid} vs hakemuksenTulos: ${hakemuksenTulos.hakijaOid} in $valintaTulos , $hakemuksenTulos")
     }
   }
 
@@ -442,6 +446,15 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   case class Välitulos(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) {
     def map(f: (List[Hakutoiveentulos], Haku, Option[Ohjausparametrit]) => List[Hakutoiveentulos]) = {
       Välitulos(f(tulokset, haku, ohjausparametrit), haku, ohjausparametrit)
+    }
+  }
+
+  private def crashOrLog[T](msg: String): Option[T] = {
+    if (appConfig.settings.lenientSijoitteluntuloksetParsing) {
+      logger.warn(msg)
+      None
+    } else {
+      throw new IllegalStateException(msg)
     }
   }
 }
