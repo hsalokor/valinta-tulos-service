@@ -48,9 +48,12 @@ case class Hakuaika(hakuaikaId: String, alkuPvm: Option[Long], loppuPvm: Option[
 case class Hakukohde(oid: String, hakuOid: String, hakukohdeKoulutusOids: List[String],
                      koulutusAsteTyyppi: String, koulutusmoduuliTyyppi: String)
 
-case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, tutkinto: KoodiUri)
+case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, tutkinto: Option[KoodiUri]) {
+  val johtaaTutkintoon: Boolean = tutkinto.exists(_ != HakuService.EiJohdaTutkintoon)
+}
 
 class KoulutusSerializer extends CustomSerializer[Koulutus]((formats: Formats) => {
+  implicit val f = formats
   ( {
     case o: JObject =>
       val JString(oid) = o \ "oid"
@@ -61,7 +64,7 @@ class KoulutusSerializer extends CustomSerializer[Koulutus]((formats: Formats) =
         case JString("kausi_s") => Syksy(vuosi.toInt)
         case x => throw new MappingException(s"Unrecognized kausi URI $x")
       }
-      val JString(tutkinto) = o \ "tutkinto" \ "uri"
+      val tutkinto = (o \ "tutkinto" \ "uri").extractOpt[String]
       Koulutus(oid, kausi, tila, tutkinto)
   }, { case o => ??? })
 })

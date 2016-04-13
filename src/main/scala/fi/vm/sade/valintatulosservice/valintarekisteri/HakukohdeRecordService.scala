@@ -48,7 +48,7 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
   }
 
   private def hakukohdeJohtaaKkTutkintoon(hakukohde: Hakukohde, koulutukset: Seq[Koulutus]): Boolean = {
-    hakukohde.koulutusAsteTyyppi == "KORKEAKOULUTUS" && koulutukset.exists(_.tutkinto != HakuService.EiJohdaTutkintoon)
+    hakukohde.koulutusAsteTyyppi == "KORKEAKOULUTUS" && koulutukset.exists(_.johtaaTutkintoon)
   }
 
   def withError[T](o: Option[T], errorMessage: String): Try[T] = {

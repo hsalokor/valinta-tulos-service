@@ -63,7 +63,7 @@ object HakuFixtures extends HakuService with JsonHakuService {
     }
   }
 
-  override def getKoulutus(koulutusOid: String): Option[Koulutus] = Some(Koulutus(koulutusOid, Kausi("2016K"), "JULKAISTU", "tutkinto_011"))
+  override def getKoulutus(koulutusOid: String): Option[Koulutus] = Some(Koulutus(koulutusOid, Kausi("2016K"), "JULKAISTU", Some("tutkinto_011")))
 
   override def getHakukohdeOids(hakuOid: String): Seq[String] = List(
     "1.2.246.562.14.2013120515524070995659",
