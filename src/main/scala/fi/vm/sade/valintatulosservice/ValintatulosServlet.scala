@@ -138,6 +138,19 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     Ok(JsonFormats.javaObjectToJsonString(hakijaPaginationObject))
   }
 
+  lazy val getHakemuksenSijoitteluajonTulosSwagger: OperationBuilder = (apiOperation[Unit]("getHakemuksenSijoitteluajonTulosSwagger")
+    summary """Näyttää yksittäisen hakemuksen kaikki hakutoiveet ja tiedot kaikista valintatapajonoista"""
+    parameter pathParam[String]("hakuOid").description("Haun oid").required
+    parameter pathParam[String]("sijoitteluajoId").description("""Sijoitteluajon id tai "latest"""").required
+    parameter pathParam[String]("hakemusOid").description("Hakemuksen oid").required)
+  get("/:hakuOid/sijoitteluajo/:sijoitteluajoId/hakemus/:hakemusOid", operation(getHakemuksenSijoitteluajonTulosSwagger)) {
+    val hakuOid = params("hakuOid")
+    val sijoitteluajoId = params("sijoitteluajoId")
+    val hakemusOid = params("hakemusOid")
+    val hakijaDto = valintatulosService.sijoittelunTulosHakemukselle(hakuOid, sijoitteluajoId, hakemusOid).getOrElse(new HakijaDTO)
+    Ok(JsonFormats.javaObjectToJsonString(hakijaDto))
+  }
+
   lazy val getStreamingHaunSijoitteluajonTuloksetSwagger: OperationBuilder = (apiOperation[Unit]("getStreamingHaunSijoitteluajonTuloksetSwagger")
     summary """Streamaava listaus hakemuksien/hakijoiden listaukseen. Yksityiskohtainen listaus kaikista hakutoiveista ja niiden valintatapajonoista"""
     parameter pathParam[String]("hakuOid").description("Haun oid").required
