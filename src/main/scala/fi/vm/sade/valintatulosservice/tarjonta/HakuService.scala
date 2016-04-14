@@ -84,7 +84,7 @@ protected trait JsonHakuService {
             Some(Kevat(koulutuksenAlkamisvuosi.get))
           } else if (haku.koulutuksenAlkamiskausiUri.get.startsWith("kausi_s")) {
             Some(Syksy(koulutuksenAlkamisvuosi.get))
-          } else throw new MappingException(s"Unrecognized kausi URI ${haku.koulutuksenAlkamiskausiUri}")
+          } else throw new MappingException(s"Haku ${haku.oid} has unrecognized kausi URI '${haku.koulutuksenAlkamiskausiUri.get}' . Full data of haku: $haku")
     } else None
 
     Haku(haku.oid, korkeakoulu, yhteishaku, varsinainenhaku, lisähaku, haku.sijoittelu, haku.parentHakuOid,
