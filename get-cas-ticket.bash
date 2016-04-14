@@ -15,7 +15,7 @@ PASSWORD=$2
 
 echo "Making the TGT request"
 TGT_LOCATION_LINE=`http --pretty none --form --print h POST https://testi.virkailija.opintopolku.fi/cas/v1/tickets username=$USERNAME password=$PASSWORD | grep Location | cut -f 2 -d ' '`
-TGT_LOCATION=${TGT_LOCATION_LINE::-1}
+TGT_LOCATION=`echo ${TGT_LOCATION_LINE} | awk '{gsub(/[[:cntrl:]]/,"")}1'`
 
 echo "Making the service ticket request to \"$TGT_LOCATION\" "
 
