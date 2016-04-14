@@ -18,6 +18,9 @@ sijoittelu-service.mongodb.uri=mongodb://{{mongodb_virkailija_auth}}@{{mongodb_v
 sijoittelu-service.rest.url=https://{{host_virkailija}}/sijoittelu-service
 valinta-tulos-service.parseleniently.sijoitteluajontulos={{valintatulosservice_parseleniently_sijoitteluajontulos}}
 
+# KOODISTO
+koodisto-service.rest.url=https://{{host_virkailija}}/koodisto-service
+
 # HAKEMUKSET
 hakemus.mongodb.dbname=hakulomake
 hakemus.mongodb.uri=mongodb://{{mongodb_hakemus_auth}}@{{mongodb_hakemus_host}}:{{mongodb_hakemus_port}}

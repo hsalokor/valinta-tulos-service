@@ -8,7 +8,7 @@ import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 
 object PerformanceTestFixtureCreator extends App with Logging {
   implicit val appConfig: AppConfig = new AppConfig.Dev
-  val hakuService = HakuService(appConfig)
+  val hakuService = HakuService(null, appConfig)
   appConfig.start
 
   private val randomData: RandomizedGeneratedHakuFixture = new RandomizedGeneratedHakuFixture(100, 100000, kohteitaPerHakemus = 5)

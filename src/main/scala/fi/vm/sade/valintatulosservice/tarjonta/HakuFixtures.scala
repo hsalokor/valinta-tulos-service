@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice.tarjonta
 import java.io.InputStream
 
 import fi.vm.sade.valintatulosservice.domain.Kausi
+import fi.vm.sade.valintatulosservice.koodisto.{Relaatiot, Koodi, KoodiUri}
 import org.json4s.jackson.JsonMethods._
 
 object HakuFixtures extends HakuService with JsonHakuService {
@@ -63,7 +64,11 @@ object HakuFixtures extends HakuService with JsonHakuService {
     }
   }
 
-  override def getKoulutus(koulutusOid: String): Option[Koulutus] = Some(Koulutus(koulutusOid, Kausi("2016K"), "JULKAISTU", Some("tutkinto_011")))
+  override def getKoulutus(koulutusOid: String): Option[Koulutus] = {
+    val tutkinto = Koodi(KoodiUri("tutkinto_001"), 1, None)
+    val koulutus = Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(tutkinto))))
+    Some(Koulutus(koulutusOid, Kausi("2016K"), "JULKAISTU", koulutus))
+  }
 
   override def getHakukohdeOids(hakuOid: String): Seq[String] = List(
     "1.2.246.562.14.2013120515524070995659",

@@ -13,7 +13,7 @@ object PollerTester extends App with Logging with TimeWarp {
   implicit val appConfig: AppConfig = AppConfig.fromSystemProperty
   appConfig.start
 
-  val hakuService = HakuService(appConfig)
+  val hakuService = HakuService(null, appConfig)
   lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, null)
   lazy val valintatulosService = new ValintatulosService(null, sijoittelutulosService, null, hakuService, null)
   lazy val valintatulokset = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)

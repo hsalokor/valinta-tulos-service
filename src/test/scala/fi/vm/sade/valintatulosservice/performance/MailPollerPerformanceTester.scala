@@ -10,7 +10,7 @@ import fi.vm.sade.valintatulosservice.ValintatulosService
 
 object MailPollerPerformanceTester extends App with Logging {
   implicit val appConfig: AppConfig = new AppConfig.Dev
-  val hakuService = HakuService(appConfig)
+  val hakuService = HakuService(null, appConfig)
   lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, null)
   lazy val valintatulosService = new ValintatulosService(null, sijoittelutulosService, null, hakuService, null)
   lazy val valintatulokset = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)

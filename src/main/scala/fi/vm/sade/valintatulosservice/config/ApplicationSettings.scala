@@ -16,6 +16,7 @@ case class ApplicationSettings(config: Config) extends fi.vm.sade.utils.config.A
   val valintaRekisteriEnsikertalaisuusMaxPersonOids = withConfig(_.getInt("valinta-tulos-service.valintarekisteri.ensikertalaisuus.max.henkilo.oids"))
   val lenientTarjontaDataParsing: Boolean = BooleanUtils.isTrue(withConfig(_.getBoolean("valinta-tulos-service.parseleniently.tarjonta")))
   val lenientSijoitteluntuloksetParsing: Boolean = BooleanUtils.isTrue(withConfig(_.getBoolean("valinta-tulos-service.parseleniently.sijoitteluajontulos")))
+  val koodistoUrl = withConfig(_.getString("koodisto-service.rest.url"))
 
   val ilmoittautuminenEnabled = {
     val value = config.getString("valinta-tulos-service.ilmoittautuminen.enabled")

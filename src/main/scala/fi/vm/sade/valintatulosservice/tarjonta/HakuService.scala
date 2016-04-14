@@ -4,8 +4,8 @@ import fi.vm.sade.utils.http.DefaultHttpClient
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
 import fi.vm.sade.valintatulosservice.domain.{Kausi, Kevat, Syksy}
+import fi.vm.sade.valintatulosservice.koodisto.{KoodiUri, KoodistoUri, Koodi, KoodistoService}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
-import fi.vm.sade.valintatulosservice.tarjonta.HakuService.KoodiUri
 import org.joda.time.DateTime
 import org.json4s.JsonAST.{JInt, JObject, JString}
 import org.json4s.jackson.JsonMethods._
@@ -27,11 +27,9 @@ trait HakuService {
 }
 
 object HakuService {
-  type KoodiUri = String
-  val EiJohdaTutkintoon: KoodiUri = "tutkinto_xx"
-  def apply(appConfig: AppConfig): HakuService = appConfig match {
+  def apply(koodistoService: KoodistoService, appConfig: AppConfig): HakuService = appConfig match {
     case _:StubbedExternalDeps => HakuFixtures
-    case _ => new CachedHakuService(new TarjontaHakuService(appConfig))
+    case _ => new CachedHakuService(new TarjontaHakuService(koodistoService, appConfig))
   }
 }
 
@@ -48,8 +46,10 @@ case class Hakuaika(hakuaikaId: String, alkuPvm: Option[Long], loppuPvm: Option[
 case class Hakukohde(oid: String, hakuOid: String, hakukohdeKoulutusOids: List[String],
                      koulutusAsteTyyppi: String, koulutusmoduuliTyyppi: String)
 
-case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, tutkinto: Option[KoodiUri]) {
-  val johtaaTutkintoon: Boolean = tutkinto.exists(_ != HakuService.EiJohdaTutkintoon)
+case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, koulutusKoodi: Koodi) {
+  val johtaaTutkintoon: Boolean = koulutusKoodi.relaatiot.exists(
+    _.includes.exists(k => k.uri.koodistoUri == KoodistoService.Tutkinto && k.uri != KoodistoService.EiTutkintoa)
+  )
 }
 
 class KoulutusSerializer extends CustomSerializer[Koulutus]((formats: Formats) => {
@@ -64,8 +64,9 @@ class KoulutusSerializer extends CustomSerializer[Koulutus]((formats: Formats) =
         case JString("kausi_s") => Syksy(vuosi.toInt)
         case x => throw new MappingException(s"Unrecognized kausi URI $x")
       }
-      val tutkinto = (o \ "tutkinto" \ "uri").extractOpt[String]
-      Koulutus(oid, kausi, tila, tutkinto)
+      val JString(koulutusUri) = o \ "koulutuskoodi" \ "uri"
+      val JInt(koulutusVersio) = o \ "koulutuskoodi" \ "versio"
+      Koulutus(oid, kausi, tila, Koodi(KoodiUri(koulutusUri), koulutusVersio.toInt, None))
   }, { case o => ??? })
 })
 
@@ -116,7 +117,7 @@ private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiU
 
 case class YhdenPaikanSaanto(voimassa: Boolean, syy: String)
 
-class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHakuService with Logging {
+class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig) extends HakuService with JsonHakuService with Logging {
 
   def parseStatus(json: String): Option[String] = {
     for {
@@ -154,7 +155,10 @@ class TarjontaHakuService(appConfig: AppConfig) extends HakuService with JsonHak
 
   def getKoulutus(koulutusOid: String): Option[Koulutus] = {
     val koulutusUrl = s"${appConfig.settings.tarjontaUrl}/rest/v1/koulutus/$koulutusOid"
-    fetch(koulutusUrl) { response => (parse(response) \ "result").extract[Koulutus] }
+    for {
+      koulutus <- fetch(koulutusUrl) { response => (parse(response) \ "result").extract[Koulutus] }
+      koulutusKoodi <- koodistoService.fetch(koulutus.koulutusKoodi.uri, koulutus.koulutusKoodi.versio)
+    } yield koulutus.copy(koulutusKoodi = koulutusKoodi)
   }
 
   private def fetch[T](url: String)(parse: (String => T)): Option[T] = {

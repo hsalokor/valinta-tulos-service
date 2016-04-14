@@ -653,7 +653,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
 
   private lazy val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
 
-  lazy val hakuService = HakuService(appConfig)
+  lazy val hakuService = HakuService(null, appConfig)
   lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
   lazy val hakukohdeRecordService = new HakukohdeRecordService(hakuService, valintarekisteriDb, true)
   lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb)
