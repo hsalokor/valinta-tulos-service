@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
+import fi.vm.sade.sijoittelu.domain.{HakemuksenTila, ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
@@ -93,7 +93,11 @@ class VastaanottoService(hakuService: HakuService,
       hakutoive <- checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = true)(vastaanotto)
       _ <- Try { hakijaVastaanottoRepository.store(vastaanotto) }
       _ <- Try {
-        valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, vastaanotto.hakemusOid) { valintatulos =>
+
+        val createMissingValintatulos: Unit => Valintatulos = Unit => new Valintatulos(vastaanotto.valintatapajonoOid,
+          vastaanotto.hakemusOid, vastaanotto.hakukohdeOid, vastaanotto.henkiloOid, vastaanotto.hakuOid,1)
+
+        valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, vastaanotto.hakemusOid, createMissingValintatulos) { valintatulos =>
           valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
         }
       }
@@ -121,7 +125,7 @@ class VastaanottoService(hakuService: HakuService,
       _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
     } yield {
       hakijaVastaanottoRepository.store(vastaanotto)
-      valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid,hakutoive.valintatapajonoOid,vastaanotto.hakemusOid) { valintatulos =>
+      valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid,hakutoive.valintatapajonoOid,vastaanotto.hakemusOid,(Unit) => throw new IllegalArgumentException("Valintatulosta ei löydy")) { valintatulos =>
         valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
       }
     }

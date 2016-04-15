@@ -101,5 +101,5 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
 
 case class Result(status: Int, message: Option[String])
 case class VastaanottoResult(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, result: Result)
-case class VastaanottoEventDto(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String,
+case class VastaanottoEventDto(valintatapajonoOid: String, henkiloOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String,
                                tila: Vastaanottotila, ilmoittaja: String, selite: String)

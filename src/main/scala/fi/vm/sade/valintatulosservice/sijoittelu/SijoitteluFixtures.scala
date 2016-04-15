@@ -57,6 +57,8 @@ case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
             ))
 
             valintarekisteriDb.store(VirkailijanVastaanotto(
+              (valintatulos \ "hakuOid").extract[String],
+              (valintatulos \ "valintatapajonoOid").extract[String],
               (valintatulos \ "hakijaOid").extract[String],
               (valintatulos \ "hakemusOid").extract[String],
               (valintatulos \ "hakukohdeOid").extract[String],

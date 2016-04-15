@@ -197,6 +197,8 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     val (muokkaaja, selite, luotu) = resolveIlmoittajaJaSeliteJaLuontipvm(valintatulos)
 
     ( VirkailijanVastaanotto(
+      valintatulos.hakuOid,
+      valintatulos.valintatapajonoOid,
       resolveHakijaOidIfMissing(valintatulos).hakijaOid,
       valintatulos.hakemusOid,
       valintatulos.hakukohdeOid,

@@ -13,12 +13,12 @@ case class HakijanVastaanotto(henkiloOid: String, hakemusOid: String, hakukohdeO
   val selite = "Hakijan oma vastaanotto"
 }
 
-case class VirkailijanVastaanotto(henkiloOid: String, hakemusOid: String, hakukohdeOid: String,
+case class VirkailijanVastaanotto(hakuOid: String, valintatapajonoOid: String, henkiloOid: String, hakemusOid: String, hakukohdeOid: String,
                                   action: VirkailijanVastaanottoAction, ilmoittaja: String, selite: String) extends VastaanottoEvent
 
 object VirkailijanVastaanotto {
   def apply(dto: VastaanottoEventDto): VirkailijanVastaanotto = {
-    VirkailijanVastaanotto(dto.henkiloOid, dto.hakemusOid, dto.hakukohdeOid,
+    VirkailijanVastaanotto(dto.hakuOid, dto.valintatapajonoOid, dto.henkiloOid, dto.hakemusOid, dto.hakukohdeOid,
       VirkailijanVastaanottoAction.getVirkailijanVastaanottoAction(dto.tila), dto.ilmoittaja, dto.selite)
   }
 }
