@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
 import fi.vm.sade.valintatulosservice.domain.{HakukohdeRecord, Kausi}
-import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, Relaatiot}
+import fi.vm.sade.valintatulosservice.koodisto.{KoodistoService, Koodi, KoodiUri, Relaatiot}
 import fi.vm.sade.valintatulosservice.tarjonta._
 import org.junit.runner.RunWith
 import org.specs2.matcher.MustThrownExpectations
@@ -78,7 +78,7 @@ class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with
     val hakukohdeRecord = HakukohdeRecord(hakukohdeOid, hakuOid = hakuOid,
       yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true, Kausi("2016S"))
 
-    val koulutus = Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(Koodi(KoodiUri("tutkinto_011"), 1, None)))))
+    val koulutus = Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(Koodi(KoodistoService.OnTukinto, 1, None)))))
     val luonnosKoulutus = Koulutus("1.2.246.562.17.53513994722", Kausi("2017S"), "LUONNOS", koulutus)
     val julkaistuKoulutus = Koulutus("1.2.246.562.17.42423443434", Kausi("2016S"), "JULKAISTU", koulutus)
 

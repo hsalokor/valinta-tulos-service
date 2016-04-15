@@ -2,9 +2,9 @@ package fi.vm.sade.valintatulosservice.koodisto
 
 import fi.vm.sade.utils.http.DefaultHttpClient.httpGet
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import org.json4s.JsonAST.{JNothing, JInt, JString, JObject}
-import org.json4s.{DefaultFormats, JValue, Formats, CustomSerializer}
+import org.json4s.JsonAST.JObject
 import org.json4s.jackson.JsonMethods._
+import org.json4s.{CustomSerializer, DefaultFormats, Formats}
 
 import scalaj.http.HttpOptions
 
@@ -48,6 +48,6 @@ class KoodistoService(appConfig: AppConfig) {
 }
 
 object KoodistoService {
-  val Tutkinto: KoodistoUri = KoodistoUri("tutkinto")
-  val EiTutkintoa: KoodiUri = KoodiUri("tutkinto_xx")
+  val TutkintooJohtavaKoulutus: KoodistoUri = KoodistoUri("tutkintoonjohtavakoulutus")
+  val OnTukinto: KoodiUri = KoodiUri("tutkintoonjohtavakoulutus_1")
 }

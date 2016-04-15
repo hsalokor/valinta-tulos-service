@@ -4,12 +4,12 @@ import fi.vm.sade.utils.http.DefaultHttpClient
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
 import fi.vm.sade.valintatulosservice.domain.{Kausi, Kevat, Syksy}
-import fi.vm.sade.valintatulosservice.koodisto.{KoodiUri, KoodistoUri, Koodi, KoodistoService}
+import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, KoodistoService}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
 import org.joda.time.DateTime
 import org.json4s.JsonAST.{JInt, JObject, JString}
 import org.json4s.jackson.JsonMethods._
-import org.json4s.{MappingException, CustomSerializer, Formats}
+import org.json4s.{CustomSerializer, Formats, MappingException}
 
 import scala.util.Try
 import scalaj.http.HttpOptions
@@ -47,9 +47,13 @@ case class Hakukohde(oid: String, hakuOid: String, hakukohdeKoulutusOids: List[S
                      koulutusAsteTyyppi: String, koulutusmoduuliTyyppi: String)
 
 case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, koulutusKoodi: Koodi) {
-  val johtaaTutkintoon: Boolean = koulutusKoodi.relaatiot.exists(
-    _.includes.exists(k => k.uri.koodistoUri == KoodistoService.Tutkinto && k.uri != KoodistoService.EiTutkintoa)
-  )
+  def johtaaTutkintoon: Boolean = {
+    val relaatiot = koulutusKoodi.relaatiot
+      .getOrElse(throw new IllegalStateException(s"Koulutus $this is missing koulutuskoodi relations"))
+    val tutkintoonjohtavuus = relaatiot.includes.find(_.uri.koodistoUri == KoodistoService.TutkintooJohtavaKoulutus)
+      .getOrElse(throw new IllegalStateException(s"Koulutuskoodi $koulutusKoodi is missing tutkintoonjohtavuus relation"))
+    tutkintoonjohtavuus.uri == KoodistoService.OnTukinto
+  }
 }
 
 class KoulutusSerializer extends CustomSerializer[Koulutus]((formats: Formats) => {
