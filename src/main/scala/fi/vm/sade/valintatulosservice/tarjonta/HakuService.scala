@@ -161,7 +161,7 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
     val koulutusUrl = s"${appConfig.settings.tarjontaUrl}/rest/v1/koulutus/$koulutusOid"
     for {
       koulutus <- fetch(koulutusUrl) { response => (parse(response) \ "result").extract[Koulutus] }
-      koulutusKoodi <- koodistoService.fetch(koulutus.koulutusKoodi.uri, koulutus.koulutusKoodi.versio)
+      koulutusKoodi <- koodistoService.fetchLatest(koulutus.koulutusKoodi.uri)
     } yield koulutus.copy(koulutusKoodi = koulutusKoodi)
   }
 

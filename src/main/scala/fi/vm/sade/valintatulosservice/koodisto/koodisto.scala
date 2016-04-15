@@ -36,8 +36,17 @@ class KoodiSerializer extends CustomSerializer[Koodi]((formats: Formats) => {
 class KoodistoService(appConfig: AppConfig) {
   implicit val formats = DefaultFormats ++ List(new KoodiSerializer)
 
+  def fetchLatest(uri: KoodiUri): Option[Koodi] = {
+    val url = appConfig.settings.koodistoUrl + s"/rest/codeelement/latest/$uri"
+    get(url).flatMap(k => fetch(k.uri, k.versio))
+  }
+
   def fetch(uri: KoodiUri, versio: Int): Option[Koodi] = {
     val url = appConfig.settings.koodistoUrl + s"/rest/codeelement/$uri/$versio"
+    get(url)
+  }
+
+  private def get(url: String): Option[Koodi] = {
     httpGet(url, HttpOptions.connTimeout(30000), HttpOptions.readTimeout(120000)).responseWithHeaders match {
       case (200, _, body) => Some(parse(body).extract[Koodi])
       case (404, _, _) => None
