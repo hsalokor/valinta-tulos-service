@@ -184,9 +184,13 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
     sijoittelutulosService.findSijoitteluAjo(hakuOid, sijoitteluajoId).map { sijoitteluAjo =>
       val hakijaDto: HakijaDTO = sijoittelutulosService.sijoittelunTulosForAjoWithoutVastaanottoTieto(sijoitteluAjo, hakemusOid)
-      hakijaOidFromHakemusOption.foreach(hakijaOidFromHakemus => hakijaDto.setHakijaOid(hakijaOidFromHakemus))
-      hakemuksenTulosOption.foreach(hakemuksenTulos => populateVastaanottotieto(hakijaDto, hakemuksenTulos.hakutoiveet))
-      hakijaDto
+      if (hakijaDto != null) {
+        hakijaOidFromHakemusOption.foreach(hakijaOidFromHakemus => hakijaDto.setHakijaOid(hakijaOidFromHakemus))
+        hakemuksenTulosOption.foreach(hakemuksenTulos => populateVastaanottotieto(hakijaDto, hakemuksenTulos.hakutoiveet))
+        hakijaDto
+      } else {
+        new HakijaDTO
+      }
     }
   }
 
