@@ -147,8 +147,10 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     val hakuOid = params("hakuOid")
     val sijoitteluajoId = params("sijoitteluajoId")
     val hakemusOid = params("hakemusOid")
-    val hakijaDto = valintatulosService.sijoittelunTulosHakemukselle(hakuOid, sijoitteluajoId, hakemusOid).getOrElse(new HakijaDTO)
-    Ok(JsonFormats.javaObjectToJsonString(hakijaDto))
+    valintatulosService.sijoittelunTulosHakemukselle(hakuOid, sijoitteluajoId, hakemusOid) match {
+      case Some(hakijaDto) => Ok(JsonFormats.javaObjectToJsonString(hakijaDto))
+      case None => NotFound(Map("error" -> s"Hakemuksen $hakemusOid sijoittelutulosta ei löydy haussa $hakuOid"))
+    }
   }
 
   lazy val getStreamingHaunSijoitteluajonTuloksetSwagger: OperationBuilder = (apiOperation[Unit]("getStreamingHaunSijoitteluajonTuloksetSwagger")
