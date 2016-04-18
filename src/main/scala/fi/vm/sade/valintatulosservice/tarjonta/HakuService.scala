@@ -46,13 +46,15 @@ case class Hakuaika(hakuaikaId: String, alkuPvm: Option[Long], loppuPvm: Option[
 case class Hakukohde(oid: String, hakuOid: String, hakukohdeKoulutusOids: List[String],
                      koulutusAsteTyyppi: String, koulutusmoduuliTyyppi: String)
 
-case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, koulutusKoodi: Koodi) {
+case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, koulutusKoodi: Option[Koodi]) {
   def johtaaTutkintoon: Boolean = {
-    val relaatiot = koulutusKoodi.relaatiot
-      .getOrElse(throw new IllegalStateException(s"Koulutus $this is missing koulutuskoodi relations"))
-    val tutkintoonjohtavuus = relaatiot.includes.find(_.uri.koodistoUri == KoodistoService.TutkintooJohtavaKoulutus)
-      .getOrElse(throw new IllegalStateException(s"Koulutuskoodi $koulutusKoodi is missing tutkintoonjohtavuus relation"))
-    tutkintoonjohtavuus.uri == KoodistoService.OnTutkinto
+    koulutusKoodi.exists { koodi =>
+      val relaatiot = koodi.relaatiot
+        .getOrElse(throw new IllegalStateException(s"Koulutus $this is missing koodi relations"))
+      val tutkintoonjohtavuus = relaatiot.includes.find(_.uri.koodistoUri == KoodistoService.TutkintooJohtavaKoulutus)
+        .getOrElse(throw new IllegalStateException(s"koodi $koodi is missing tutkintoonjohtavuus relation"))
+      tutkintoonjohtavuus.uri == KoodistoService.OnTutkinto
+    }
   }
 }
 
@@ -68,9 +70,14 @@ class KoulutusSerializer extends CustomSerializer[Koulutus]((formats: Formats) =
         case JString("kausi_s") => Syksy(vuosi.toInt)
         case x => throw new MappingException(s"Unrecognized kausi URI $x")
       }
-      val JString(koulutusUri) = o \ "koulutuskoodi" \ "uri"
-      val JInt(koulutusVersio) = o \ "koulutuskoodi" \ "versio"
-      Koulutus(oid, kausi, tila, Koodi(KoodiUri(koulutusUri), koulutusVersio.toInt, None))
+      val koulutusUriOpt = (o \ "koulutuskoodi" \ "uri").extractOpt[String]
+      val koulutusVersioOpt = (o \ "koulutuskoodi" \ "versio").extractOpt[Int]
+      val koodi: Option[Koodi] = for {
+        koulutusUri <- koulutusUriOpt
+        koulutusVersio <- koulutusVersioOpt
+      } yield Koodi(KoodiUri(koulutusUri), koulutusVersio, None)
+
+      Koulutus(oid, kausi, tila, koodi)
   }, { case o => ??? })
 })
 
@@ -159,10 +166,13 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
 
   def getKoulutus(koulutusOid: String): Option[Koulutus] = {
     val koulutusUrl = s"${appConfig.settings.tarjontaUrl}/rest/v1/koulutus/$koulutusOid"
-    for {
-      koulutus <- fetch(koulutusUrl) { response => (parse(response) \ "result").extract[Koulutus] }
-      koulutusKoodi <- koodistoService.fetchLatest(koulutus.koulutusKoodi.uri)
-    } yield koulutus.copy(koulutusKoodi = koulutusKoodi)
+    val koulutusOption = fetch(koulutusUrl) { response => (parse(response) \ "result").extract[Koulutus] }
+    koulutusOption.map { koulutus =>
+      koulutus.koulutusKoodi match {
+        case Some(koodi) => koulutus.copy(koulutusKoodi = koodistoService.fetchLatest(koodi.uri))
+        case None => koulutus
+      }
+    }
   }
 
   private def fetch[T](url: String)(parse: (String => T)): Option[T] = {

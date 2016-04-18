@@ -16,14 +16,15 @@ class KoulutusSpec extends Specification {
     Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(Koodi(KoodiUri("tutkintoonjohtavakoulutus_0"), 1, None)))))
   private val johtaaTutkintoonKoulutuskoodi =
     Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(Koodi(KoodistoService.OnTutkinto, 1, None)))))
-  private val k = Koulutus("1.2.3.4.", Kausi("2016S"), "Luonnos", koulutuskoodiIlmanRelaatioita)
+  private val k = Koulutus("1.2.3.4.", Kausi("2016S"), "Luonnos", Some(koulutuskoodiIlmanRelaatioita))
 
   "Koulutus" should {
     "päätellä tutkintotiedosta, johtaako se tutkintoon" in {
       k.johtaaTutkintoon must throwAn[IllegalStateException]
-      k.copy(koulutusKoodi = koulutuskoodiIlmanTutkintoonjohtavuusrelaatiota).johtaaTutkintoon must throwAn[IllegalStateException]
-      k.copy(koulutusKoodi = eiJohdaTutkintoonKoulutuskoodi).johtaaTutkintoon must beFalse
-      k.copy(koulutusKoodi = johtaaTutkintoonKoulutuskoodi).johtaaTutkintoon must beTrue
+      k.copy(koulutusKoodi = Some(koulutuskoodiIlmanTutkintoonjohtavuusrelaatiota)).johtaaTutkintoon must throwAn[IllegalStateException]
+      k.copy(koulutusKoodi = Some(eiJohdaTutkintoonKoulutuskoodi)).johtaaTutkintoon must beFalse
+      k.copy(koulutusKoodi = Some(johtaaTutkintoonKoulutuskoodi)).johtaaTutkintoon must beTrue
+      k.copy(koulutusKoodi = None).johtaaTutkintoon must beFalse
     }
   }
 }
