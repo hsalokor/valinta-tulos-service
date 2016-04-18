@@ -65,7 +65,7 @@ object HakuFixtures extends HakuService with JsonHakuService {
   }
 
   override def getKoulutus(koulutusOid: String): Option[Koulutus] = {
-    val koulutus = Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(Koodi(KoodistoService.OnTukinto, 1, None)))))
+    val koulutus = Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(Koodi(KoodistoService.OnTutkinto, 1, None)))))
     Some(Koulutus(koulutusOid, Kausi("2016K"), "JULKAISTU", koulutus))
   }
 

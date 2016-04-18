@@ -58,5 +58,5 @@ class KoodistoService(appConfig: AppConfig) {
 
 object KoodistoService {
   val TutkintooJohtavaKoulutus: KoodistoUri = KoodistoUri("tutkintoonjohtavakoulutus")
-  val OnTukinto: KoodiUri = KoodiUri("tutkintoonjohtavakoulutus_1")
+  val OnTutkinto: KoodiUri = KoodiUri("tutkintoonjohtavakoulutus_1")
 }

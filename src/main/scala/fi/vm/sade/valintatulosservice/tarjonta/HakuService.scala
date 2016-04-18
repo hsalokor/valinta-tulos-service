@@ -52,7 +52,7 @@ case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, k
       .getOrElse(throw new IllegalStateException(s"Koulutus $this is missing koulutuskoodi relations"))
     val tutkintoonjohtavuus = relaatiot.includes.find(_.uri.koodistoUri == KoodistoService.TutkintooJohtavaKoulutus)
       .getOrElse(throw new IllegalStateException(s"Koulutuskoodi $koulutusKoodi is missing tutkintoonjohtavuus relation"))
-    tutkintoonjohtavuus.uri == KoodistoService.OnTukinto
+    tutkintoonjohtavuus.uri == KoodistoService.OnTutkinto
   }
 }
 

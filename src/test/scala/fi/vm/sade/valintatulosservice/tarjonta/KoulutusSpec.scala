@@ -15,7 +15,7 @@ class KoulutusSpec extends Specification {
   private val eiJohdaTutkintoonKoulutuskoodi =
     Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(Koodi(KoodiUri("tutkintoonjohtavakoulutus_0"), 1, None)))))
   private val johtaaTutkintoonKoulutuskoodi =
-    Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(Koodi(KoodistoService.OnTukinto, 1, None)))))
+    Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(Koodi(KoodistoService.OnTutkinto, 1, None)))))
   private val k = Koulutus("1.2.3.4.", Kausi("2016S"), "Luonnos", koulutuskoodiIlmanRelaatioita)
 
   "Koulutus" should {
