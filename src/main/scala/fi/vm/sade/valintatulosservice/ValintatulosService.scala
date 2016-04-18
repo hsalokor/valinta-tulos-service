@@ -319,24 +319,25 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   private def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, None, Nil)
 
   private def asetaVastaanotettavuusValintarekisterinPerusteella(henkiloOid: String, kaudenVastaanottaneet: Option[Set[String]] = None)(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
-    def ottanutVastaanToisenPaikan(tulos: Hakutoiveentulos): Hakutoiveentulos = {
-      val t = tulos.copy(
-        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa,
-        vastaanottotila = Vastaanottotila.ottanut_vastaan_toisen_paikan
-      )
+    def peruHyvaksyttyTaiVarallaOleva(tulos: Hakutoiveentulos): Hakutoiveentulos = {
       if (tulos.julkaistavissa && (isHyväksytty(tulos.valintatila) || tulos.valintatila == Valintatila.varalla)) {
-        t.copy(
+        ottanutVastaanToisenPaikan(tulos.copy(
           valintatila = Valintatila.peruuntunut,
           tilanKuvaukset = Map(
             "FI" -> "Peruuntunut, vastaanottanut toisen korkeakoulupaikan",
             "SV" -> "Annullerad, tagit emot en annan högskoleplats",
             "EN" -> "Cancelled, accepted another higher education study place"
           )
-        )
+        ))
       } else {
-        t
+        tulos
       }
     }
+    def ottanutVastaanToisenPaikan(tulos: Hakutoiveentulos): Hakutoiveentulos = tulos.copy(
+        vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa,
+        vastaanottotila = Vastaanottotila.ottanut_vastaan_toisen_paikan
+      )
+
     def aiempiVastaanotto(hakukohdeOid: String): Boolean = kaudenVastaanottaneet.map(_.contains(henkiloOid))
       .getOrElse(try {
         virkailijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(henkiloOid, hakukohdeOid))
@@ -345,15 +346,15 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         case t: PriorAcceptanceException => true
       })
     val vastaanottoTallaHakemuksella = tulokset.exists(x => Set(Vastaanottotila.vastaanottanut, Vastaanottotila.ehdollisesti_vastaanottanut).contains(x.vastaanottotila))
-    if (vastaanottoTallaHakemuksella) {
-      tulokset
-    } else {
-      tulokset.map(tulos => if (Vastaanottotila.kesken == tulos.vastaanottotila && aiempiVastaanotto(tulos.hakukohdeOid)) {
-        ottanutVastaanToisenPaikan(tulos)
+    tulokset.map(tulos => if (Vastaanottotila.kesken == tulos.vastaanottotila && (vastaanottoTallaHakemuksella || aiempiVastaanotto(tulos.hakukohdeOid))) {
+      if(vastaanottoTallaHakemuksella) {
+        peruHyvaksyttyTaiVarallaOleva(tulos)
       } else {
-        tulos
-      })
-    }
+        peruHyvaksyttyTaiVarallaOleva(ottanutVastaanToisenPaikan(tulos))
+      }
+    } else {
+      tulos
+    })
   }
 
   private def sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
