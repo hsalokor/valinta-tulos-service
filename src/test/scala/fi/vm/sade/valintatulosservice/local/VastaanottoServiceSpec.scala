@@ -370,8 +370,8 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
       vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
       hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
       hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
-      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
-      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
+      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
     }
 
     "vastaanota sitovasti kun varasijasäännöt voimassa" in {
@@ -434,14 +434,14 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
 
     kaikkienHakutyyppienTestit(hakuFixture)
 
-    "vastaanota alempi kun kaksi hyvaksyttya -> muut eivät peruunnut" in {
+    "vastaanota alempi kun kaksi hyvaksyttya -> muut peruuntuvat" in {
       useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixtures = List("00000441369-3"))
       vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738904", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val yhteenveto = hakemuksenTulos
-      yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty
+      yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
-      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
       yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.vastaanottanut
     }
@@ -645,7 +645,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
         case x => fail(s"Should have failed on several conflicting records but got $x")
       }
 
-      hakemuksentulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksentulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
       hakemuksentulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
     }
   }
