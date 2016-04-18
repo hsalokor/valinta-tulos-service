@@ -49,6 +49,15 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       stored must beSome[HakukohdeRecord](fresh)
     }
 
+    "don't update hakukohde record if no changes" in {
+      val old = HakukohdeRecord(refreshedHakukohdeOid, hakuOid, true, true, Kevat(2015))
+      val fresh = HakukohdeRecord(refreshedHakukohdeOid, hakuOid, true, true, Kevat(2015))
+      singleConnectionValintarekisteriDb.storeHakukohde(old)
+      singleConnectionValintarekisteriDb.updateHakukohde(fresh) must beFalse
+      val stored = singleConnectionValintarekisteriDb.findHakukohde(refreshedHakukohdeOid)
+      stored must beSome[HakukohdeRecord](old)
+    }
+
     "store vastaanotto actions" in {
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
       val henkiloOidsAndActionsFromDb = singleConnectionValintarekisteriDb.runBlocking(
@@ -223,8 +232,14 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     }
   }
 
-  override protected def before: Unit = ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
-  override protected def after: Unit = ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
+  override protected def before: Unit = {
+    ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
+    singleConnectionValintarekisteriDb.runBlocking(sqlu"""delete from hakukohteet where hakukohde_oid = $refreshedHakukohdeOid""")
+  }
+  override protected def after: Unit = {
+    ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
+    singleConnectionValintarekisteriDb.runBlocking(sqlu"""delete from hakukohteet where hakukohde_oid = $refreshedHakukohdeOid""")
+  }
 
   step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
 }
