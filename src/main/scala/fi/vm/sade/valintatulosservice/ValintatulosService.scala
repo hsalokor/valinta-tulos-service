@@ -182,12 +182,17 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     val hakemuksenTulosOption = hakemuksentulos(hakuOid, hakemusOid)
     val hakijaOidFromHakemusOption = hakemusRepository.findHakemus(hakemusOid).map(_.henkiloOid)
 
-    sijoittelutulosService.findSijoitteluAjo(hakuOid, sijoitteluajoId).
-      map(sijoittelutulosService.sijoittelunTulosForAjoWithoutVastaanottoTieto(_, hakemusOid)).
-      map { case hakijaDto if hakijaDto != null =>
-        hakijaOidFromHakemusOption.foreach(hakijaOidFromHakemus => hakijaDto.setHakijaOid(hakijaOidFromHakemus))
-        hakemuksenTulosOption.foreach(hakemuksenTulos => populateVastaanottotieto(hakijaDto, hakemuksenTulos.hakutoiveet))
-        hakijaDto
+    sijoittelutulosService.findSijoitteluAjo(hakuOid, sijoitteluajoId) match {
+      case Some(sijoitteluAjo) =>
+        val hakijaDto = sijoittelutulosService.sijoittelunTulosForAjoWithoutVastaanottoTieto(sijoitteluAjo, hakemusOid)
+        if (hakijaDto != null) {
+          hakijaOidFromHakemusOption.foreach(hakijaOidFromHakemus => hakijaDto.setHakijaOid(hakijaOidFromHakemus))
+          hakemuksenTulosOption.foreach(hakemuksenTulos => populateVastaanottotieto(hakijaDto, hakemuksenTulos.hakutoiveet))
+          Some(hakijaDto)
+        } else {
+          None
+        }
+      case None => None
       }
   }
 
