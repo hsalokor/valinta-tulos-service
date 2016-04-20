@@ -14,6 +14,7 @@ Alla muutama esimerkki, joissa toimitaan QA-ympäristössä.
 Niissä käytetty "http" -komento on [httpie](http://httpie.org/) . curl, Postman tms käy yhtä hyvin POST-pyyntöjen tekemiseen.
 Ajettava esimerkki service ticketin hausta on [oheisessa skriptissä](./get-cas-ticket.bash)
 
+**HUOM:** Kukin service ticket on voimassa vain _yhden kerran_ ja vain _kymmenen sekuntia_ sen hakemisesta. [Ainakin tällä hetkellä eli 20.4.2016 CASin ticket expiration policy on konfiguroitu siten.](https://github.com/Opetushallitus/authentication/blob/e9d9204f0c876c1292a34b60d16e2af9bbf9a5db/cas/src/main/webapp/WEB-INF/spring-configuration/ticketExpirationPolicies.xml#L38-L41)
 ## Esimerkki 1: hakemuksen tila
 
 1. Haetaan ticket granting ticket
@@ -32,7 +33,7 @@ Ajettava esimerkki service ticketin hausta on [oheisessa skriptissä](./get-cas-
 
     HTTP-vastauksen bodyssä on service ticket
 
-3. Kutsutaan palvelua
+3. Kutsutaan palvelua *kymmenen sekunnin kuluessa* (ks. expiration policy yllä)
 
     https://testi.virkailija.opintopolku.fi/valinta-tulos-service/cas/haku/<haku-id>/hakemus/<hakemus-id>?ticket=<ticket>
 
@@ -42,7 +43,7 @@ Ajettava esimerkki service ticketin hausta on [oheisessa skriptissä](./get-cas-
 
 2. Haetaan service ticket
 
-3. Kutsutaan palvelua
+3. Kutsutaan palvelua *kymmenen sekunnin kuluessa*
 
 POST-pyynnön URL
 
