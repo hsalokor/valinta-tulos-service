@@ -363,11 +363,9 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
         HakuFixtures.useFixture("korkeakoulu-erillishaku-ei-yhden-paikan-saantoa", List("korkeakoulu-erillishaku-ei-yhden-paikan-saantoa"))
         hakemuksenTulos("korkeakoulu-erillishaku-ei-yhden-paikan-saantoa", "1.2.246.562.11.00000878231")
           .hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
-        /*
         hakemustenTulokset("korkeakoulu-erillishaku-ei-yhden-paikan-saantoa")
           .find(_.hakemusOid == "1.2.246.562.11.00000878231")
           .map(_.hakutoiveet(1).vastaanotettavuustila) must beSome(Vastaanotettavuustila.vastaanotettavissa_sitovasti)
-        */
       }
     }
 

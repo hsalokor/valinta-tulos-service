@@ -81,9 +81,13 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
               () => hakemusRepository.findHakemukset(hakuOid),
               hakijaOidsByHakemusOids => sijoittelutulosService.hakemustenTulos(hakuOid, hakijaOidsByHakemusOids = hakijaOidsByHakemusOids, haunVastaanotot = haunVastaanotot),
               Some(timed("personOids from hakemus", 1000)(hakemusRepository.findPersonOids(hakuOid))),
-              Some(timed("kaudenVastaanotot", 1000)({
-                virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(koulutuksenAlkamiskausi)
-              }))
+              if (haku.yhdenPaikanSaanto.voimassa) {
+                Some(timed("kaudenVastaanotot", 1000)({
+                  virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(koulutuksenAlkamiskausi)
+                }))
+              } else {
+                None
+              }
             )
           case None => Iterator.empty
         }
