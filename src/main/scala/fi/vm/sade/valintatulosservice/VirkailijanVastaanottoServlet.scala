@@ -1,12 +1,10 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.sijoittelu.domain.Valintatulos
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats.javaObjectToJsonString
-import fi.vm.sade.valintatulosservice.valintarekisteri.VastaanottoEvent
-import org.json4s.MappingException
+import fi.vm.sade.valintatulosservice.valintarekisteri.VastaanottoRecord
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 import org.scalatra.{Forbidden, Ok}
@@ -64,6 +62,15 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
   get("/valintatulos/haku/:hakuOid", operation(getValintatuloksetByHakuSwagger)) {
     val hakuOid = params("hakuOid")
     Ok(javaObjectToJsonString(valintatulosService.findValintaTuloksetForVirkailija(hakuOid)))
+  }
+
+  val getHaunKoulutuksenAlkamiskaudenVastaanototYhdenPaikanSaadoksenPiirissaSwagger: OperationBuilder =
+    (apiOperation[List[VastaanottoRecord]]("getHaunKoulutuksenAlkamiskaudenVastaanototYhdenPaikanSaadoksenPiirissa")
+      summary "Yhden paikan säädöksen piirissä olevat vastaanotot annetun haun koulutuksen alkamiskaudella"
+      parameter pathParam[String]("hakuOid").description("Haun oid"))
+  get("/vastaanotot/haku/:hakuOid", operation(getHaunKoulutuksenAlkamiskaudenVastaanototYhdenPaikanSaadoksenPiirissaSwagger)) {
+    val hakuOid = params("hakuOid")
+    Ok(valintatulosService.haunKoulutuksenAlkamiskaudenVastaanototYhdenPaikanSaadoksenPiirissa(hakuOid).toList)
   }
 
   val vastaanottoEventModel = Model(

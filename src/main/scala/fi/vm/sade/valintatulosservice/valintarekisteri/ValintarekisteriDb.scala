@@ -256,18 +256,17 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     vastaanottoRecords.toSet
   }
 
-  override def findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi: Kausi): Set[String] = {
+  override def findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi: Kausi): Set[VastaanottoRecord] = {
     runBlocking(
-      sql"""select distinct on (vo.henkilo, vo.hakukohde) vo.henkilo, vo.action
+      sql"""select distinct on (vo.henkilo, vo.hakukohde) vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
+                                                          vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
             from vastaanotot vo
             join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
             where hk.koulutuksen_alkamiskausi = ${kausi.toKausiSpec}
                 and hk.yhden_paikan_saanto_voimassa
                 and vo.deleted is null
-            order by vo.henkilo, vo.hakukohde, vo.id desc""".as[(String, String)]
-        .map(_.collect {
-          case (henkiloOid, action) if Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(VastaanottoAction(action)) => henkiloOid
-        })
+            order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord]
+        .map(_.filter(r => Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(r.action)))
     ).toSet
   }
 }
