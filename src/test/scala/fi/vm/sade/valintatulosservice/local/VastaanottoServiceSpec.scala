@@ -354,6 +354,21 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
         lisaHaunTulos.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
       }
 
+      "vastaanotto mahdollista haussa jossa YPS ei voimassa, vaikka vastaanotto yhteishaussa" in {
+        useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+        sijoitteluFixtures.importFixture("korkeakoulu-erillishaku-ei-yhden-paikan-saantoa-vastaanotettavissa.json", false, false, true)
+
+        vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
+
+        HakuFixtures.useFixture("korkeakoulu-erillishaku-ei-yhden-paikan-saantoa", List("korkeakoulu-erillishaku-ei-yhden-paikan-saantoa"))
+        hakemuksenTulos("korkeakoulu-erillishaku-ei-yhden-paikan-saantoa", "1.2.246.562.11.00000878231")
+          .hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.vastaanotettavissa_sitovasti
+        /*
+        hakemustenTulokset("korkeakoulu-erillishaku-ei-yhden-paikan-saantoa")
+          .find(_.hakemusOid == "1.2.246.562.11.00000878231")
+          .map(_.hakutoiveet(1).vastaanotettavuustila) must beSome(Vastaanotettavuustila.vastaanotettavissa_sitovasti)
+        */
+      }
     }
 
     "vastaanota ehdollisesti kun varasijasäännöt eivät ole vielä voimassa" in {
@@ -667,6 +682,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
 
   private def hakemuksenTulos: Hakemuksentulos = hakemuksenTulos(hakuOid, hakemusOid)
   private def hakemuksenTulos(hakuOid: String, hakemusOid: String) = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).get
+  private def hakemustenTulokset(hakuOid: String) = valintatulosService.hakemustenTulosByHaku(hakuOid).get.toList
 
   private def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: String, selite: String, personOid: String) = {
     vastaanottoService.vastaanotaHakijana(HakijanVastaanotto(personOid, hakemusOid, hakukohdeOid, HakijanVastaanottoAction.getHakijanVastaanottoAction(tila))).get
