@@ -109,4 +109,9 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
 case class Result(status: Int, message: Option[String])
 case class VastaanottoResult(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, result: Result)
 case class VastaanottoEventDto(valintatapajonoOid: String, henkiloOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String,
-                               tila: Vastaanottotila, ilmoittaja: String, selite: String)
+                               tila: Vastaanottotila, ilmoittaja: String, selite: String) {
+  val fieldsWithNames = List((valintatapajonoOid, "valintatapajonoOid"), (henkiloOid, "henkiloOid"), (hakemusOid, "hakemusOid"),
+    (hakukohdeOid, "hakukohdeOid"), (hakuOid, "hakuOid"), (tila, "tila"), (ilmoittaja, "ilmoittaja"), (selite, "selite"))
+  val errorMessages = fieldsWithNames.filter(_._1 == null).map(_._2 + " was null")
+  assert(errorMessages.isEmpty, errorMessages.mkString(", "))
+}
