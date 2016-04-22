@@ -97,7 +97,7 @@ class VastaanottoService(hakuService: HakuService,
         val createMissingValintatulos: Unit => Valintatulos = Unit => new Valintatulos(vastaanotto.valintatapajonoOid,
           vastaanotto.hakemusOid, vastaanotto.hakukohdeOid, vastaanotto.henkiloOid, vastaanotto.hakuOid,1)
 
-        valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid, hakutoive.valintatapajonoOid, vastaanotto.hakemusOid, createMissingValintatulos) { valintatulos =>
+        valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid, vastaanotto.valintatapajonoOid, vastaanotto.hakemusOid, createMissingValintatulos) { valintatulos =>
           valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
         }
       }
