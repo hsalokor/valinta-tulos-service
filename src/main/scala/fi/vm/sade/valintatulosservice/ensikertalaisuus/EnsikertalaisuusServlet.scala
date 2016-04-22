@@ -27,6 +27,10 @@ class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService, 
     valintarekisteriService.findEnsikertalaisuus(henkiloOid(params("henkilo")), parseKausi(params("koulutuksenAlkamiskausi")))
   }
 
+  get("/:henkilo/historia", operation(getVastaanottoHistoriaSwagger)) {
+    valintarekisteriService.findVastaanottoHistory(henkiloOid(params("henkilo")))
+  }
+
   post("/", operation(postEnsikertalaisuusSwagger)) {
     val henkilot = read[Set[String]](request.body).map(henkiloOid)
     if (henkilot.size > maxHenkiloOids) throw new IllegalArgumentException(s"Too many henkilo oids (limit is $maxHenkiloOids, got ${henkilot.size})")
@@ -64,6 +68,13 @@ trait EnsikertalaisuusSwagger extends VtsSwaggerBase { this: SwaggerSupport =>
     .parameter(pathParam[String]("henkiloOid").description("Henkilön oid").required)
     .parameter(queryParam[String]("koulutuksenAlkamiskausi")
       .description("Koulutuksen alkamiskausi, josta lähtien alkavat koulutukset kyselyssä otetaan huomioon (esim. 2016S").required)
+    .responseMessage(ModelResponseMessage(400, "Kuvaus virheellisestä pyynnöstä"))
+    .responseMessage(ModelResponseMessage(500, "Virhe palvelussa"))
+
+  val getVastaanottoHistoriaSwagger: OperationBuilder = apiOperation[VastaanottoHistoria]("getVastaanottoHistoria")
+    .summary("Hae henkilön vastaanotto historia")
+    .notes("Ei pidä käyttää sellaisenaan, vain ainoastaan suoritusrekisterin kautta.")
+    .parameter(pathParam[String]("henkiloOid").description("Henkilön oid").required)
     .responseMessage(ModelResponseMessage(400, "Kuvaus virheellisestä pyynnöstä"))
     .responseMessage(ModelResponseMessage(500, "Virhe palvelussa"))
 
