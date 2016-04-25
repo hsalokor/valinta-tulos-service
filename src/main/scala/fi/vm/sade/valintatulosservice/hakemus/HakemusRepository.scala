@@ -47,6 +47,13 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
     ).map(o => o.as[String](DatabaseKeys.oidKey) -> o.getAs[String](DatabaseKeys.personOidKey).getOrElse("")).toMap
   }
 
+  def findPersonOids(hakuOid: String, hakukohdeOid: String): Map[String, String] = {
+    application.find(
+      MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid, DatabaseKeys.hakutoiveetSearchPath -> hakukohdeOid),
+      MongoDBObject(DatabaseKeys.oidKey -> 1, DatabaseKeys.personOidKey -> 1)
+    ).map(o => o.as[String](DatabaseKeys.oidKey) -> o.getAs[String](DatabaseKeys.personOidKey).getOrElse("")).toMap
+  }
+
   def findHakemukset(hakuOid: String): Iterator[Hakemus] = {
     findHakemuksetByQuery(MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid))
   }

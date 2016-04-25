@@ -112,7 +112,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           haku,
           () => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid),
           hakijaOidsByHakemusOids => sijoittelutulosService.hakemustenTulos(hakuOid, Some(hakukohdeOid), hakijaOidsByHakemusOids, hakukohteenVastaanotot),
-          None,
+          Some(timed("personOids from hakemus", 1000)(hakemusRepository.findPersonOids(hakuOid, hakukohdeOid))),
           if (haku.yhdenPaikanSaanto.voimassa) {
             Some(timed("kaudenVastaanotot", 1000)({
               virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(koulutuksenAlkamiskausi)
