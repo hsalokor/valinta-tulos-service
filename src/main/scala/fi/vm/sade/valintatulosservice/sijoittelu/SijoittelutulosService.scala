@@ -40,7 +40,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     def fetchVastaanottos(h: HakijaDTO): Set[VastaanottoRecord] = ( hakijaOidsByHakemusOids.get(h.getHakemusOid), haunVastaanotot ) match {
       case ( Some(hakijaOid), Some(vastaanotot) ) => vastaanotot.getOrElse(hakijaOid, Set())
       case ( Some(hakijaOid), None ) => fetchVastaanotto(hakijaOid, hakuOid)
-      case ( None, _ ) => Set()
+      case ( None, _ ) => throw new IllegalStateException(s"No hakija oid for hakemus ${h.getHakemusOid}")
     }
 
     val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
