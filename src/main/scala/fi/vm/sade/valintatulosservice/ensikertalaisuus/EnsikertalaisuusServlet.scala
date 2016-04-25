@@ -72,8 +72,8 @@ trait EnsikertalaisuusSwagger extends VtsSwaggerBase { this: SwaggerSupport =>
     .responseMessage(ModelResponseMessage(500, "Virhe palvelussa"))
 
   val getVastaanottoHistoriaSwagger: OperationBuilder = apiOperation[VastaanottoHistoria]("getVastaanottoHistoria")
-    .summary("Hae henkilön vastaanotto historia")
-    .notes("Ei pidä käyttää sellaisenaan, vain ainoastaan suoritusrekisterin kautta.")
+    .summary("Hae henkilön kk vastaanotto historia")
+    .notes("Palauttaa vain korkeakoulupaikkojen vastaanotot.")
     .parameter(pathParam[String]("henkiloOid").description("Henkilön oid").required)
     .responseMessage(ModelResponseMessage(400, "Kuvaus virheellisestä pyynnöstä"))
     .responseMessage(ModelResponseMessage(500, "Virhe palvelussa"))

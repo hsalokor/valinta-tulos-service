@@ -69,18 +69,19 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                   select * from newest_vastaanotto_events
                   where "action" in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti')
                 )
-                select haku_oid, hakukohde, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, "action", "timestamp"
+                select haku_oid, hakukohde, "action", "timestamp"
                   from new_vastaanotot
                   join hakukohteet on hakukohteet.hakukohde_oid = new_vastaanotot.hakukohde
+                  where hakukohteet.kk_tutkintoon_johtava
                   order by "timestamp" desc
-      """.as[(String, String, String, Boolean, Boolean, String, java.sql.Timestamp)]
-    ).map(vastaanotto => UusiVastaanottotieto(personOid, vastaanotto._1, vastaanotto._2, vastaanotto._4, vastaanotto._5, vastaanotto._6, vastaanotto._7)).toList
+      """.as[(String, String, String, java.sql.Timestamp)]
+    ).map(vastaanotto => UusiVastaanottotieto(personOid, vastaanotto._1, vastaanotto._2, vastaanotto._3, vastaanotto._4)).toList
     val oldList = runBlocking(
-      sql"""select hakukohde, kk_tutkintoon_johtava, "timestamp" from vanhat_vastaanotot
-              where henkilo = $personOid
+      sql"""select hakukohde, "timestamp" from vanhat_vastaanotot
+              where henkilo = $personOid and kk_tutkintoon_johtava
               order by "timestamp" desc
-      """.as[(String, Boolean, java.sql.Timestamp)]
-    ).map(vastaanotto => VanhaVastaanottotieto(personOid, vastaanotto._1, vastaanotto._2, vastaanotto._3)).toList
+      """.as[(String, java.sql.Timestamp)]
+    ).map(vastaanotto => VanhaVastaanottotieto(personOid, vastaanotto._1, vastaanotto._2)).toList
     VastaanottoHistoria(newList, oldList)
   }
 
