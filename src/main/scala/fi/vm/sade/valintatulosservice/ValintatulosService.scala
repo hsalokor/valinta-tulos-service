@@ -106,11 +106,21 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
       for {
         haku <- hakuService.getHaku(hakuOid)
+        koulutuksenAlkamiskausi <- hakukohdeRecordService.getHaunKoulutuksenAlkamiskausi(hakuOid)
       } yield {
         fetchTulokset(
           haku,
           () => hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid),
-          hakijaOidsByHakemusOids => sijoittelutulosService.hakemustenTulos(hakuOid, Some(hakukohdeOid), hakijaOidsByHakemusOids, hakukohteenVastaanotot)
+          hakijaOidsByHakemusOids => sijoittelutulosService.hakemustenTulos(hakuOid, Some(hakukohdeOid), hakijaOidsByHakemusOids, hakukohteenVastaanotot),
+          None,
+          if (haku.yhdenPaikanSaanto.voimassa) {
+            Some(timed("kaudenVastaanotot", 1000)({
+              virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(koulutuksenAlkamiskausi)
+                .map(_.henkiloOid)
+            }))
+          } else {
+            None
+          }
         )
       }
     )
