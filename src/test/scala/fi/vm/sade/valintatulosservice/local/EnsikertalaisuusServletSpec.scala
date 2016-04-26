@@ -24,8 +24,8 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
   val vanha_tarjoaja = "1.2.246.562.10.00000000001"
   val haku = "1.2.246.561.29.00000000001"
   val koulutus = "1.2.246.561.21.00000000001"
-  val timestamp = new DateTime(2014, 7, 1, 0, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
-  val vanha_timestamp = new DateTime(2014, 6, 19, 0, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
+  val timestamp = new DateTime(2014, 7, 1, 16, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
+  val vanha_timestamp = new DateTime(2014, 6, 19, 16, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
 
   step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
   step({
@@ -56,7 +56,7 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
 
     "return EiEnsikertalainen" in {
       get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamiskausi" -> "2015K"), Map("Content-Type" -> "application/json")) {
-        body mustEqual """{"personOid":"1.2.246.562.24.00000000001","paattyi":"2014-07-01T00:00:10.000+03"}"""
+        body mustEqual """{"personOid":"1.2.246.562.24.00000000001","paattyi":"2014-07-01T13:00:10Z"}"""
         read[EiEnsikertalainen](body) mustEqual EiEnsikertalainen(henkilo, timestamp.toDate)
       }
     }
@@ -102,8 +102,8 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
     "returns history of vastaanotot" in {
       get("ensikertalaisuus/1.2.246.562.24.00000000001/historia", Map(), Map("Content-Type" -> "application/json")) {
         body mustEqual (
-          """{"uudet":[{"personOid":"1.2.246.562.24.00000000001","hakuOid":"1.2.246.561.29.00000000001","hakukohdeOid":"1.2.246.561.20.00000000001","vastaanottotila":"VastaanotaSitovasti","vastaanottoaika":"2014-07-01T00:00:10.000+03"}],"""
-        + """"vanhat":[{"personOid":"1.2.246.562.24.00000000001","hakukohde":"Vanhan hakukohteen nimi:101","vastaanottoaika":"2014-06-19T00:00:10.000+03"}]}"""
+          """{"uudet":[{"personOid":"1.2.246.562.24.00000000001","hakuOid":"1.2.246.561.29.00000000001","hakukohdeOid":"1.2.246.561.20.00000000001","vastaanottotila":"VastaanotaSitovasti","vastaanottoaika":"2014-07-01T13:00:10Z"}],"""
+        + """"vanhat":[{"personOid":"1.2.246.562.24.00000000001","hakukohde":"Vanhan hakukohteen nimi:101","vastaanottoaika":"2014-06-19T13:00:10Z"}]}"""
         )
       }
     }

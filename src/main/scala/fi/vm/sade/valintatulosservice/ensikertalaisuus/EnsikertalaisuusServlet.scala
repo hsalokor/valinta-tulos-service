@@ -40,14 +40,7 @@ class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService, 
 }
 
 object EnsikertalaisuusServlet {
-  private val finnishDateFormats: Formats =  new DefaultFormats {
-    override def dateFormatter = {
-      val format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX")
-      format.setTimeZone(TimeZone.getTimeZone("Europe/Helsinki"))
-      format
-    }
-  }
-  val ensikertalaisuusJsonFormats: Formats = finnishDateFormats ++ JsonFormats.customSerializers
+  val ensikertalaisuusJsonFormats: Formats = JsonFormats.jsonFormats
 
   def parseKausi(d: String): Kausi = Kausi(d)
 }
