@@ -23,15 +23,15 @@ sealed trait Vastaanottotieto {
 }
 
 case class VastaanottoHistoria (
-  val uudet: List[UusiVastaanottotieto],
+  val opintopolku: List[OpintopolunVastaanottotieto],
   val vanhat: List[VanhaVastaanottotieto]
 )
 
-case class UusiVastaanottotieto (
+case class OpintopolunVastaanottotieto (
    personOid: String,
    hakuOid: String,
    hakukohdeOid: String,
-   vastaanottotila: String,
+   vastaanottoAction: String,
    vastaanottoaika: Date) extends Vastaanottotieto
 
 case class VanhaVastaanottotieto(

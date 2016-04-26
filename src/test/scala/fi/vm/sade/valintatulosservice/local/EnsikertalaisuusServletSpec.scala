@@ -102,8 +102,8 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
     "returns history of vastaanotot" in {
       get("ensikertalaisuus/1.2.246.562.24.00000000001/historia", Map(), Map("Content-Type" -> "application/json")) {
         body mustEqual (
-          """{"uudet":[{"personOid":"1.2.246.562.24.00000000001","hakuOid":"1.2.246.561.29.00000000001","hakukohdeOid":"1.2.246.561.20.00000000001","vastaanottotila":"VastaanotaSitovasti","vastaanottoaika":"2014-07-01T13:00:10Z"}],"""
-        + """"vanhat":[{"personOid":"1.2.246.562.24.00000000001","hakukohde":"Vanhan hakukohteen nimi:101","vastaanottoaika":"2014-06-19T13:00:10Z"}]}"""
+          """{"opintopolku":[{"personOid":"1.2.246.562.24.00000000001","hakuOid":"1.2.246.561.29.00000000001","hakukohdeOid":"1.2.246.561.20.00000000001","vastaanottoAction":"VastaanotaSitovasti","vastaanottoaika":"2014-07-01T13:00:10Z"}],"""
+              + """"vanhat":[{"personOid":"1.2.246.562.24.00000000001","hakukohde":"Vanhan hakukohteen nimi:101","vastaanottoaika":"2014-06-19T13:00:10Z"}]}"""
         )
       }
     }

@@ -75,7 +75,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                   where hakukohteet.kk_tutkintoon_johtava
                   order by "timestamp" desc
       """.as[(String, String, String, java.sql.Timestamp)]
-    ).map(vastaanotto => UusiVastaanottotieto(personOid, vastaanotto._1, vastaanotto._2, vastaanotto._3, vastaanotto._4)).toList
+    ).map(vastaanotto => OpintopolunVastaanottotieto(personOid, vastaanotto._1, vastaanotto._2, vastaanotto._3, vastaanotto._4)).toList
     val oldList = runBlocking(
       sql"""select hakukohde, "timestamp" from vanhat_vastaanotot
               where henkilo = $personOid and kk_tutkintoon_johtava
