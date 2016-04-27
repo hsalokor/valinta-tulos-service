@@ -77,6 +77,7 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
     id = classOf[VastaanottoEventDto].getSimpleName,
     name = classOf[VastaanottoEventDto].getSimpleName,
     properties = List(
+      "valintatapajonoOid" -> ModelProperty(`type` = DataType.String, required = true),
       "henkiloOid" -> ModelProperty(`type` = DataType.String, required = true),
       "hakemusOid" -> ModelProperty(`type` = DataType.String, required = true),
       "hakukohdeOid" -> ModelProperty(`type` = DataType.String, required = true),
