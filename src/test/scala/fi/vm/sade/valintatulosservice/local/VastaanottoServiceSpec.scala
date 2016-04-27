@@ -347,7 +347,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
         HakuFixtures.useFixture("korkeakoulu-lisahaku1", List(HakuFixtures.korkeakouluLisahaku1))
         val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
         lisaHaunTulos.hakutoiveet.foreach(t => {
-          t.vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
+          t.vastaanottotila must_== Vastaanottotila.kesken
           t.valintatila must_== Valintatila.hylätty
         })
         lisaHaunTulos.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
@@ -381,10 +381,10 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
       hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
       hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
       vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
       hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
       hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
-      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
-      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
     }
 
     "vastaanota sitovasti kun varasijasäännöt voimassa" in {
@@ -447,14 +447,14 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
 
     kaikkienHakutyyppienTestit(hakuFixture)
 
-    "vastaanota alempi kun kaksi hyvaksyttya -> muut peruuntuvat" in {
+    "vastaanota alempi kun kaksi hyvaksyttya -> muut eivät peruunnut" in {
       useFixture("hyvaksytty-julkaisematon-hyvaksytty.json", hakuFixture = hakuFixture, hakemusFixtures = List("00000441369-3"))
       vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738904", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
       val yhteenveto = hakemuksenTulos
-      yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.peruuntunut
+      yhteenveto.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty
       yhteenveto.hakutoiveet(1).valintatila must_== Valintatila.peruuntunut
       yhteenveto.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
-      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
+      yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.vastaanottanut
     }
@@ -658,7 +658,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
         case x => fail(s"Should have failed on several conflicting records but got $x")
       }
 
-      hakemuksentulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
+      hakemuksentulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
       hakemuksentulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
     }
   }
@@ -673,7 +673,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
   lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb)
   lazy val vastaanotettavuusService = new VastaanotettavuusService(hakukohdeRecordService, valintarekisteriDb)
   lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, valintarekisteriDb, hakuService, hakukohdeRecordService)(appConfig)
-  lazy val vastaanottoService = new VastaanottoService(hakuService, vastaanotettavuusService, valintatulosService,
+  lazy val vastaanottoService = new VastaanottoService(hakuService, hakukohdeRecordService, vastaanotettavuusService, valintatulosService,
     valintarekisteriDb, valintarekisteriDb, appConfig.sijoitteluContext.valintatulosRepository)
   lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService,
     appConfig.sijoitteluContext.valintatulosRepository, valintarekisteriDb)

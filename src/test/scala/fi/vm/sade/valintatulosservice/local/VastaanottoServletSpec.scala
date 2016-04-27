@@ -47,8 +47,8 @@ class VastaanottoServletSpec extends ServletSpecification {
 
         get("haku/1.2.246.562.5.2013080813081926341928/hakemus/1.2.246.562.11.00000441369") {
           val tulos: Hakemuksentulos = Serialization.read[Hakemuksentulos](body)
-          tulos.hakutoiveet.head.valintatila must_== Valintatila.peruuntunut
-          tulos.hakutoiveet.head.vastaanottotila.toString must_== "OTTANUT_VASTAAN_TOISEN_PAIKAN"
+          tulos.hakutoiveet.head.valintatila must_== Valintatila.varalla
+          tulos.hakutoiveet.head.vastaanottotila.toString must_== "KESKEN"
           tulos.hakutoiveet.last.vastaanottotila.toString must_== "EHDOLLISESTI_VASTAANOTTANUT"
           val muutosAika = tulos.hakutoiveet.last.viimeisinValintatuloksenMuutos.get
           tulos.hakutoiveet.head.viimeisinValintatuloksenMuutos.get.before(muutosAika) must beTrue

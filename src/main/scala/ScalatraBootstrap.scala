@@ -35,7 +35,7 @@ class ScalatraBootstrap extends LifeCycle {
     lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb)
     lazy val vastaanotettavuusService = new VastaanotettavuusService(hakukohdeRecordService, valintarekisteriDb)
     lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, valintarekisteriDb, hakuService, hakukohdeRecordService)(appConfig)
-    lazy val vastaanottoService = new VastaanottoService(hakuService, vastaanotettavuusService, valintatulosService, valintarekisteriDb, valintarekisteriDb,
+    lazy val vastaanottoService = new VastaanottoService(hakuService, hakukohdeRecordService, vastaanotettavuusService, valintatulosService, valintarekisteriDb, valintarekisteriDb,
       appConfig.sijoitteluContext.valintatulosRepository)
     lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService,
       appConfig.sijoitteluContext.valintatulosRepository, valintarekisteriDb)

@@ -8,7 +8,7 @@ import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoEvent, VastaanottoRecord, VirkailijaVastaanottoRepository}
+import fi.vm.sade.valintatulosservice.valintarekisteri._
 import slick.dbio.{DBIO, SuccessAction}
 
 import scala.collection.JavaConverters._
@@ -16,6 +16,7 @@ import scala.util.{Success, Try}
 
 
 class VastaanottoService(hakuService: HakuService,
+                         hakukohdeRecordService: HakukohdeRecordService,
                          vastaanotettavuusService: VastaanotettavuusService,
                          valintatulosService: ValintatulosService,
                          hakijaVastaanottoRepository: HakijaVastaanottoRepository,
@@ -39,7 +40,10 @@ class VastaanottoService(hakuService: HakuService,
 
     tallennettavatVastaanotot.toStream.map(checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = false)).find(_.isFailure) match {
       case Some(failure) => failure.map(_ => ())
-      case None => Try { hakijaVastaanottoRepository.store(tallennettavatVastaanotot, postCondition) }
+      case None => Try {
+        tallennettavatVastaanotot.foreach(v => hakukohdeRecordService.getHakukohdeRecord(v.hakukohdeOid))
+        hakijaVastaanottoRepository.store(tallennettavatVastaanotot, postCondition)
+      }
     }
   }
 
@@ -91,7 +95,10 @@ class VastaanottoService(hakuService: HakuService,
   private def tallenna(vastaanotto: VirkailijanVastaanotto): Try[VastaanottoResult] = {
     (for {
       hakutoive <- checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = true)(vastaanotto)
-      _ <- Try { hakijaVastaanottoRepository.store(vastaanotto) }
+      _ <- Try {
+        hakukohdeRecordService.getHakukohdeRecord(vastaanotto.hakukohdeOid)
+        hakijaVastaanottoRepository.store(vastaanotto)
+      }
       _ <- Try {
 
         val createMissingValintatulos: Unit => Valintatulos = Unit => new Valintatulos(vastaanotto.valintatapajonoOid,
@@ -124,6 +131,7 @@ class VastaanottoService(hakuService: HakuService,
       hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
       _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
     } yield {
+      hakukohdeRecordService.getHakukohdeRecord(vastaanotto.hakukohdeOid)
       hakijaVastaanottoRepository.store(vastaanotto)
       valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid,hakutoive.valintatapajonoOid,vastaanotto.hakemusOid,(Unit) => throw new IllegalArgumentException("Valintatulosta ei löydy")) { valintatulos =>
         valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
