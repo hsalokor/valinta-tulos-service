@@ -39,9 +39,15 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   private val streamingHakijaDtoClient = new StreamingHakijaDtoClient(appConfig)
 
   def haunKoulutuksenAlkamiskaudenVastaanototYhdenPaikanSaadoksenPiirissa(hakuOid: String) : Set[VastaanottoRecord] = {
-    hakukohdeRecordService.getHaunKoulutuksenAlkamiskausi(hakuOid)
-      .map(virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa)
-      .getOrElse(throw new IllegalStateException(s"No koulutuksen alkamiskausi for haku $hakuOid"))
+    val haku = hakuService.getHaku(hakuOid)
+      .getOrElse(throw new IllegalArgumentException(s"Haku $hakuOid does not exist"))
+    if (haku.yhdenPaikanSaanto.voimassa) {
+      hakukohdeRecordService.getHaunKoulutuksenAlkamiskausi(hakuOid)
+        .map(virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa)
+        .getOrElse(throw new IllegalStateException(s"No koulutuksen alkamiskausi for haku $hakuOid"))
+    } else {
+      Set()
+    }
   }
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
