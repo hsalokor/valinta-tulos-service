@@ -130,6 +130,43 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     HakemuksenSijoitteluntulos(hakija.getHakemusOid, Option(StringUtils.trimToNull(hakija.getHakijaOid)), hakutoiveidenYhteenvedot)
   }
 
+  private def hakemuksenKevytYhteenveto(hakija: KevytHakijaDTO, aikataulu: Option[Vastaanottoaikataulu], vastaanottoRecord: Set[VastaanottoRecord]): HakemuksenSijoitteluntulos = {
+    val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: KevytHakutoiveDTO =>
+      val vastaanotto = vastaanottoRecord.find(v => v.hakukohdeOid == hakutoive.getHakukohdeOid).map(_.action)
+      val jono: KevytHakutoiveenValintatapajonoDTO = JonoFinder.merkitseväJono(hakutoive).get
+      var valintatila: Valintatila = jononValintatila(jono, hakutoive)
+      val viimeisinHakemuksenTilanMuutos: Option[Date] = Option(jono.getHakemuksenTilanViimeisinMuutos)
+      val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos)
+      val ( vastaanottotila, vastaanottoDeadline ) = laskeVastaanottotila(valintatila, vastaanotto, aikataulu, viimeisinHakemuksenTilanMuutos)
+      valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
+      val vastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, vastaanottotila)
+      val julkaistavissa = jono.isJulkaistavissa
+      val pisteet: Option[BigDecimal] = Option(jono.getPisteet).map((p: java.math.BigDecimal) => new BigDecimal(p))
+
+      HakutoiveenSijoitteluntulos(
+        hakutoive.getHakukohdeOid,
+        hakutoive.getTarjoajaOid,
+        jono.getValintatapajonoOid,
+        valintatila,
+        vastaanottotila,
+        vastaanottoDeadline.map(_.toDate),
+        Ilmoittautumistila.withName(Option(jono.getIlmoittautumisTila).getOrElse(IlmoittautumisTila.EI_TEHTY).name()),
+        vastaanotettavuustila,
+        viimeisinHakemuksenTilanMuutos,
+        viimeisinValintatuloksenMuutos,
+        Option(jono.getJonosija).map(_.toInt),
+        Option(jono.getVarasijojaKaytetaanAlkaen),
+        Option(jono.getVarasijojaTaytetaanAsti),
+        Option(jono.getVarasijanNumero).map(_.toInt),
+        julkaistavissa,
+        jono.getTilanKuvaukset.toMap,
+        pisteet
+      )
+    }
+
+    HakemuksenSijoitteluntulos(hakija.getHakemusOid, Option(StringUtils.trimToNull(hakija.getHakijaOid)), hakutoiveidenYhteenvedot)
+  }
+
   private def laskeVastaanotettavuustila(valintatila: Valintatila, vastaanottotila: Vastaanottotila): Vastaanotettavuustila.Value = {
     if (Valintatila.isHyväksytty(valintatila) && vastaanottotila == Vastaanottotila.kesken) {
       Vastaanotettavuustila.vastaanotettavissa_sitovasti
@@ -139,6 +176,21 @@ class SijoittelutulosService(raportointiService: RaportointiService,
   }
 
   private def jononValintatila(jono: HakutoiveenValintatapajonoDTO, hakutoive: HakutoiveDTO) = {
+    val valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila), Valintatila.kesken)
+    if (jono.getTila.isHyvaksytty && jono.isHyvaksyttyHarkinnanvaraisesti) {
+      Valintatila.harkinnanvaraisesti_hyväksytty
+    } else if (!jono.getTila.isHyvaksytty && !hakutoive.isKaikkiJonotSijoiteltu) {
+      Valintatila.kesken
+    } else if (valintatila == Valintatila.varalla && jono.isHyvaksyttyVarasijalta) {
+      Valintatila.hyväksytty
+    } else if (valintatila == Valintatila.varalla && jono.isEiVarasijatayttoa) {
+      Valintatila.kesken
+    } else {
+      valintatila
+    }
+  }
+
+  private def jononValintatila(jono: KevytHakutoiveenValintatapajonoDTO, hakutoive: KevytHakutoiveDTO) = {
     val valintatila: Valintatila = ifNull(fromHakemuksenTila(jono.getTila), Valintatila.kesken)
     if (jono.getTila.isHyvaksytty && jono.isHyvaksyttyHarkinnanvaraisesti) {
       Valintatila.harkinnanvaraisesti_hyväksytty
