@@ -1,9 +1,10 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
 import fi.vm.sade.sijoittelu.tulos.dto.HakemuksenTila
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakutoiveDTO, HakutoiveenValintatapajonoDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakutoiveDTO, HakutoiveenValintatapajonoDTO, KevytHakutoiveDTO, KevytHakutoiveenValintatapajonoDTO}
 import fi.vm.sade.valintatulosservice.domain.Valintatila
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
+
 import scala.collection.JavaConversions._
 
 object JonoFinder {

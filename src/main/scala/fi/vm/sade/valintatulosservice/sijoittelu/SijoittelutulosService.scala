@@ -1,10 +1,9 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
-import java.util
 import java.util.{Date, Optional}
 
 import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakijaPaginationObject, HakutoiveDTO, HakutoiveenValintatapajonoDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi._
 import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, IlmoittautumisTila}
 import fi.vm.sade.sijoittelu.tulos.resource.SijoitteluResource
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
@@ -37,19 +36,26 @@ class SijoittelutulosService(raportointiService: RaportointiService,
                       hakukohdeOid: Option[String] = None,
                       hakijaOidsByHakemusOids: Map[String, String],
                       haunVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None): List[HakemuksenSijoitteluntulos] = {
-    def fetchVastaanottos(h: HakijaDTO): Set[VastaanottoRecord] = ( hakijaOidsByHakemusOids.get(h.getHakemusOid), haunVastaanotot ) match {
+    def fetchVastaanottos(hakemusOid: String): Set[VastaanottoRecord] = ( hakijaOidsByHakemusOids.get(hakemusOid), haunVastaanotot ) match {
       case ( Some(hakijaOid), Some(vastaanotot) ) => vastaanotot.getOrElse(hakijaOid, Set())
       case ( Some(hakijaOid), None ) => fetchVastaanotto(hakijaOid, hakuOid)
-      case ( None, _ ) => throw new IllegalStateException(s"No hakija oid for hakemus ${h.getHakemusOid}")
+      case ( None, _ ) => throw new IllegalStateException(s"No hakija oid for hakemus $hakemusOid")
     }
 
     val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
     val hakukohde: java.util.List[String] = if (hakukohdeOid.isEmpty) null else hakukohdeOid.map(List(_)).get
+
     (for (
       sijoittelu <- Timer.timed("latest sijoittelu", 1000)(fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)));
-      hakijat <- Option(Timer.timed("hakemukset", 1000)(raportointiService.hakemukset(sijoittelu, null, null, null, hakukohde, null, null))).map(_.getResults.toList)
+      hakijat <- {
+        if (hakukohde == null) {
+          Option(Timer.timed("hakemukset", 1000)(raportointiService.hakemukset(sijoittelu, null, null, null, hakukohde, null, null))).map(_.getResults.toList.map(h => hakemuksenYhteenveto(h, aikataulu, fetchVastaanottos(h.getHakemusOid))))
+        } else {
+          Option(Timer.timed("hakukohteen hakemukset", 1000)(raportointiService.hakemukset(sijoittelu, hakukohde.head))).map(_.toList.map(h => hakemuksenKevytYhteenveto(h, aikataulu, fetchVastaanottos(h.getHakemusOid))))
+        }
+      }
     ) yield {
-      hakijat.map(h => hakemuksenYhteenveto(h, aikataulu, fetchVastaanottos(h)))
+      hakijat
     }).getOrElse(Nil)
   }
 
