@@ -78,12 +78,12 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                                   henkilo, "timestamp", koulutuksen_alkamiskausi, action from vastaanotot
                               join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
                                               and hakukohteet.kk_tutkintoon_johtava
-                              where vastaanotot.deleted is null
+                              where vastaanotot.deleted is null and vastaanotot.henkilo in (select oid from person_oids)
                               order by vastaanotot.henkilo, vastaanotot.hakukohde, vastaanotot.id desc) as vastaanotto_events
                         where vastaanotto_events.action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti'))
                        union
                        (select henkilo, "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
-                       where vanhat_vastaanotot.kk_tutkintoon_johtava)) as all_vastaanotot
+                       where vanhat_vastaanotot.kk_tutkintoon_johtava and vanhat_vastaanotot.henkilo in (select oid from person_oids))) as all_vastaanotot
                 on all_vastaanotot.henkilo = person_oids.oid
                    and all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
             group by person_oids.oid
