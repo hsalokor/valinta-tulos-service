@@ -18,22 +18,28 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
   val henkilo = "1.2.246.562.24.00000000001"
   val vastaanottamaton_henkilo = "1.2.246.562.24.00000000002"
   val vanha_henkilo = "1.2.246.562.24.00000000003"
-  val hakukohde = "1.2.246.561.20.00000000001"
+  val hakukohdekk = "1.2.246.561.20.00000000001"
+  val hakukohde2aste = "1.2.246.561.20.00000000002"
   val vanha_hakukohde = "Vanhan hakukohteen nimi:101"
   val vanha_tarjoaja = "1.2.246.562.10.00000000001"
   val haku = "1.2.246.561.29.00000000001"
   val koulutus = "1.2.246.561.21.00000000001"
-  val timestamp = new DateTime(2014, 7, 1, 0, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
-  val vanha_timestamp = new DateTime(2014, 6, 19, 0, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
+  val timestamp = new DateTime(2014, 7, 1, 16, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
+  val vanha_timestamp = new DateTime(2014, 6, 19, 16, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
 
   step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
   step({
     singleConnectionValintarekisteriDb.runBlocking(DBIOAction.seq(
           sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
-                 values ($hakukohde, $haku, true, true, '2015K')""",
+                 values ($hakukohdekk, $haku, true, true, '2015K')""",
+          sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
+                 values ($hakukohde2aste, $haku, false, false, '2015K')""",
           sqlu"""insert into vastaanotot
                  (henkilo, hakukohde, action, ilmoittaja, "timestamp", selite)
-                 values ($henkilo, $hakukohde, 'VastaanotaSitovasti'::vastaanotto_action, 'ilmoittaja', ${new java.sql.Timestamp(timestamp.getMillis)}, 'testiselite')""",
+                 values ($henkilo, $hakukohdekk, 'VastaanotaSitovasti'::vastaanotto_action, 'ilmoittaja', ${new java.sql.Timestamp(timestamp.getMillis)}, 'testiselite')""",
+          sqlu"""insert into vastaanotot
+                     (henkilo, hakukohde, action, ilmoittaja, "timestamp", selite)
+                     values ($henkilo, $hakukohde2aste, 'VastaanotaSitovasti'::vastaanotto_action, 'ilmoittaja', ${new java.sql.Timestamp(timestamp.minusYears(1).getMillis)}, 'testiselite')""",
           sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, "timestamp")
                  values ($henkilo, $vanha_hakukohde, $vanha_tarjoaja, '2014S', true, 'KAYTTAJA', ${new java.sql.Timestamp(vanha_timestamp.getMillis)})""",
           sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, "timestamp")
@@ -50,7 +56,7 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
 
     "return EiEnsikertalainen" in {
       get("ensikertalaisuus/1.2.246.562.24.00000000001", Map("koulutuksenAlkamiskausi" -> "2015K"), Map("Content-Type" -> "application/json")) {
-        body mustEqual """{"personOid":"1.2.246.562.24.00000000001","paattyi":"2014-07-01T00:00:10.000+03"}"""
+        body mustEqual """{"personOid":"1.2.246.562.24.00000000001","paattyi":"2014-07-01T13:00:10Z"}"""
         read[EiEnsikertalainen](body) mustEqual EiEnsikertalainen(henkilo, timestamp.toDate)
       }
     }
@@ -81,6 +87,29 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
 
     "return 400 Bad Request for missing koulutuksenAlkamiskausi" in {
       get("ensikertalaisuus/1.2.246.562.24.00000000001", Map(), Map("Content-Type" -> "application/json")) {
+        status mustEqual 400
+      }
+    }
+  }
+
+  "GET /ensikertalaisuus/:henkiloOid/historia" should {
+    "return 200 OK" in {
+      get("ensikertalaisuus/1.2.246.562.24.00000000001/historia", Map(), Map("Content-Type" -> "application/json")) {
+        status mustEqual 200
+      }
+    }
+
+    "returns history of vastaanotot" in {
+      get("ensikertalaisuus/1.2.246.562.24.00000000001/historia", Map(), Map("Content-Type" -> "application/json")) {
+        body mustEqual (
+          """{"opintopolku":[{"personOid":"1.2.246.562.24.00000000001","hakuOid":"1.2.246.561.29.00000000001","hakukohdeOid":"1.2.246.561.20.00000000001","vastaanottoAction":"VastaanotaSitovasti","vastaanottoaika":"2014-07-01T13:00:10Z"}],"""
+              + """"vanhat":[{"personOid":"1.2.246.562.24.00000000001","hakukohde":"Vanhan hakukohteen nimi:101","vastaanottoaika":"2014-06-19T13:00:10Z"}]}"""
+        )
+      }
+    }
+
+    "return 400 Bad Request for invalid henkilo oid" in {
+      get("ensikertalaisuus/foo/historia", Map(), Map("Content-Type" -> "application/json")) {
         status mustEqual 400
       }
     }

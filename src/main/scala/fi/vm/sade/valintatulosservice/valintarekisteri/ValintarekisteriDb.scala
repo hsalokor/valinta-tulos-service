@@ -7,7 +7,7 @@ import com.typesafe.config.{Config, ConfigValueFactory}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.ConflictingAcceptancesException
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.ensikertalaisuus.Ensikertalaisuus
+import fi.vm.sade.valintatulosservice.ensikertalaisuus._
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
 import slick.dbio.Effect.All
@@ -55,6 +55,34 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                       select "timestamp", koulutuksen_alkamiskausi from old_vastaanotot) as all_vastaanotot
                 where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}""".as[Option[java.sql.Timestamp]])
     Ensikertalaisuus(personOid, d.head)
+  }
+
+  override def findVastaanottoHistory(personOid: String): VastaanottoHistoria = {
+    val newList = runBlocking(
+      sql"""with newest_vastaanotto_events as (
+                  select distinct on (vastaanotot.hakukohde) * from vastaanotot
+                    where henkilo = $personOid
+                        and deleted is null
+                    order by hakukohde, vastaanotot.id desc
+                ),
+                new_vastaanotot as (
+                  select * from newest_vastaanotto_events
+                  where "action" in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti')
+                )
+                select haku_oid, hakukohde, "action", "timestamp"
+                  from new_vastaanotot
+                  join hakukohteet on hakukohteet.hakukohde_oid = new_vastaanotot.hakukohde
+                  where hakukohteet.kk_tutkintoon_johtava
+                  order by "timestamp" desc
+      """.as[(String, String, String, java.sql.Timestamp)]
+    ).map(vastaanotto => OpintopolunVastaanottotieto(personOid, vastaanotto._1, vastaanotto._2, vastaanotto._3, vastaanotto._4)).toList
+    val oldList = runBlocking(
+      sql"""select hakukohde, "timestamp" from vanhat_vastaanotot
+              where henkilo = $personOid and kk_tutkintoon_johtava
+              order by "timestamp" desc
+      """.as[(String, java.sql.Timestamp)]
+    ).map(vastaanotto => VanhaVastaanottotieto(personOid, vastaanotto._1, vastaanotto._2)).toList
+    VastaanottoHistoria(newList, oldList)
   }
 
   override def findEnsikertalaisuus(personOids: Set[String], koulutuksenAlkamisKausi: Kausi): Set[Ensikertalaisuus] = {

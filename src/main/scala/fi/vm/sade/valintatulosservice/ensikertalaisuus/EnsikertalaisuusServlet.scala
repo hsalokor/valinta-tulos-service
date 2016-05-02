@@ -27,6 +27,10 @@ class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService, 
     valintarekisteriService.findEnsikertalaisuus(henkiloOid(params("henkilo")), parseKausi(params("koulutuksenAlkamiskausi")))
   }
 
+  get("/:henkilo/historia", operation(getVastaanottoHistoriaSwagger)) {
+    valintarekisteriService.findVastaanottoHistory(henkiloOid(params("henkilo")))
+  }
+
   post("/", operation(postEnsikertalaisuusSwagger)) {
     val henkilot = read[Set[String]](request.body).map(henkiloOid)
     if (henkilot.size > maxHenkiloOids) throw new IllegalArgumentException(s"Too many henkilo oids (limit is $maxHenkiloOids, got ${henkilot.size})")
@@ -36,14 +40,7 @@ class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService, 
 }
 
 object EnsikertalaisuusServlet {
-  private val finnishDateFormats: Formats =  new DefaultFormats {
-    override def dateFormatter = {
-      val format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX")
-      format.setTimeZone(TimeZone.getTimeZone("Europe/Helsinki"))
-      format
-    }
-  }
-  val ensikertalaisuusJsonFormats: Formats = finnishDateFormats ++ JsonFormats.customSerializers
+  val ensikertalaisuusJsonFormats: Formats = JsonFormats.jsonFormats
 
   def parseKausi(d: String): Kausi = Kausi(d)
 }
@@ -64,6 +61,13 @@ trait EnsikertalaisuusSwagger extends VtsSwaggerBase { this: SwaggerSupport =>
     .parameter(pathParam[String]("henkiloOid").description("Henkilön oid").required)
     .parameter(queryParam[String]("koulutuksenAlkamiskausi")
       .description("Koulutuksen alkamiskausi, josta lähtien alkavat koulutukset kyselyssä otetaan huomioon (esim. 2016S").required)
+    .responseMessage(ModelResponseMessage(400, "Kuvaus virheellisestä pyynnöstä"))
+    .responseMessage(ModelResponseMessage(500, "Virhe palvelussa"))
+
+  val getVastaanottoHistoriaSwagger: OperationBuilder = apiOperation[VastaanottoHistoria]("getVastaanottoHistoria")
+    .summary("Hae henkilön kk vastaanotto historia")
+    .notes("Palauttaa vain korkeakoulupaikkojen vastaanotot.")
+    .parameter(pathParam[String]("henkiloOid").description("Henkilön oid").required)
     .responseMessage(ModelResponseMessage(400, "Kuvaus virheellisestä pyynnöstä"))
     .responseMessage(ModelResponseMessage(500, "Virhe palvelussa"))
 

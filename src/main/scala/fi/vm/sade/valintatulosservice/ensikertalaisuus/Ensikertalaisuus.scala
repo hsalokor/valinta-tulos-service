@@ -16,3 +16,25 @@ object Ensikertalaisuus {
 case class Ensikertalainen(personOid: String) extends Ensikertalaisuus
 
 case class EiEnsikertalainen(personOid: String, paattyi: Date) extends Ensikertalaisuus
+
+sealed trait Vastaanottotieto {
+  val personOid: String
+  val vastaanottoaika: Date
+}
+
+case class VastaanottoHistoria (
+  val opintopolku: List[OpintopolunVastaanottotieto],
+  val vanhat: List[VanhaVastaanottotieto]
+)
+
+case class OpintopolunVastaanottotieto (
+   personOid: String,
+   hakuOid: String,
+   hakukohdeOid: String,
+   vastaanottoAction: String,
+   vastaanottoaika: Date) extends Vastaanottotieto
+
+case class VanhaVastaanottotieto(
+    personOid: String,
+    hakukohde: String,
+    vastaanottoaika: Date) extends Vastaanottotieto
