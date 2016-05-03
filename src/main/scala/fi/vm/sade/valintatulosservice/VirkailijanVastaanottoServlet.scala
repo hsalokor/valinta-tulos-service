@@ -68,7 +68,7 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
   }
 
   val postLatenessFlagsForApplicationsSwagger: OperationBuilder = (apiOperation[Set[VastaanottoAikarajaMennyt]]("getLatenessFlagsForApplicationsSwagger")
-    summary "Hakee hakukohteen hyväksytyille hakijoille, jotka eivät ole ottaneet paikkaa vastaan, tiedon siitä onko vastaanotto myöhässä"
+    summary "Hakee annetuille hakijoille tiedon siitä onko vastaanotto myöhässä tähän hakukohteeseen"
     parameter pathParam[String]("hakuOid").description("Haun oid")
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
     parameter bodyParam[Set[String]]("hakemusOids").description("Kiinnostavien hakemusten oidit"))
