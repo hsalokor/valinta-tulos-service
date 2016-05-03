@@ -56,6 +56,16 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
     Ok(javaObjectToJsonString(valintatulosService.findValintaTuloksetForVirkailija(hakuOid, hakukohdeOid)))
   }
 
+  val getValintatuloksetWithoutTilaHakijalleByHakukohdeSwagger: OperationBuilder = (apiOperation[Unit]("getValintatuloksetWithoutTilaHakijalleByHakukohdeSwagger")
+    summary "Hakee valintatulokset hakukohteen hakijoille"
+    parameter pathParam[String]("hakuOid").description("Haun oid")
+    parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid"))
+  get("/valintatulos/ilmanhakijantilaa/haku/:hakuOid/hakukohde/:hakukohdeOid", operation(getValintatuloksetWithoutTilaHakijalleByHakukohdeSwagger)) {
+    val hakuOid = params("hakuOid")
+    val hakukohdeOid = params("hakukohdeOid")
+    Ok(javaObjectToJsonString(valintatulosService.findValintaTuloksetForVirkailijaWithoutTilaHakijalle(hakuOid, hakukohdeOid)))
+  }
+
   val getValintatuloksetByHakuSwagger: OperationBuilder = (apiOperation[Unit]("getValintatuloksetByHaku")
     summary "Hakee valintatulokset haun hakijoille"
     parameter pathParam[String]("hakuOid").description("Haun oid"))
