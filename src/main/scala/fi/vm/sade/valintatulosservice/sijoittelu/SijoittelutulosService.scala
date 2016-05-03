@@ -226,13 +226,23 @@ class SijoittelutulosService(raportointiService: RaportointiService,
 
     tilaVainActioninPerusteella match {
       case Vastaanottotila.kesken if ( Valintatila.isHyväksytty(valintatila) || valintatila == Valintatila.perunut ) =>
-        laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos) match {
-          case Some(deadline) if new DateTime().isAfter(deadline) => ( Vastaanottotila.ei_vastaanotettu_määräaikana, Some(deadline) )
-          case deadline => (tilaVainActioninPerusteella, deadline)
-        }
+        laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos, tilaVainActioninPerusteella)
       case tila if Valintatila.isHyväksytty(valintatila) => (tila, laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos))
       case tila => (tila, None)
     }
+  }
+
+  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], tilaVainActioninPerusteella: Vastaanottotila): (Vastaanottotila, Option[DateTime]) = {
+    laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos) match {
+      case Some(deadline) if new DateTime().isAfter(deadline) => (Vastaanottotila.ei_vastaanotettu_määräaikana, Some(deadline))
+      case deadline => (tilaVainActioninPerusteella, deadline)
+    }
+  }
+
+  def haeMyohastymisTieto(hakuOid: String, hakukohdeOid: String, hakemusOids: Set[String]): Set[(String, Boolean)] = {
+    val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
+    // TODO implement
+    Set()
   }
 
   private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date]): Option[DateTime] = {
