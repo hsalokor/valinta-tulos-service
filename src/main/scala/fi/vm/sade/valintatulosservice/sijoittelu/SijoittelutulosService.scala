@@ -36,11 +36,12 @@ class SijoittelutulosService(raportointiService: RaportointiService,
                       hakukohdeOid: Option[String] = None,
                       hakijaOidsByHakemusOids: Map[String, String],
                       haunVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None): List[HakemuksenSijoitteluntulos] = {
-    def fetchVastaanottos(hakemusOid: String): Set[VastaanottoRecord] = ( hakijaOidsByHakemusOids.get(hakemusOid), haunVastaanotot ) match {
-      case ( Some(hakijaOid), Some(vastaanotot) ) => vastaanotot.getOrElse(hakijaOid, Set())
-      case ( Some(hakijaOid), None ) => fetchVastaanotto(hakijaOid, hakuOid)
-      case ( None, _ ) => throw new IllegalStateException(s"No hakija oid for hakemus $hakemusOid")
-    }
+    def fetchVastaanottos(hakemusOid: String, hakijaOidFromSijoittelunTulos: Option[String]): Set[VastaanottoRecord] =
+      (hakijaOidsByHakemusOids.get(hakemusOid).orElse(hakijaOidFromSijoittelunTulos), haunVastaanotot) match {
+        case (Some(hakijaOid), Some(vastaanotot)) => vastaanotot.getOrElse(hakijaOid, Set())
+        case (Some(hakijaOid), None) => fetchVastaanotto(hakijaOid, hakuOid)
+        case (None, _) => throw new IllegalStateException(s"No hakija oid for hakemus $hakemusOid")
+      }
 
     val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
     val hakukohde: java.util.List[String] = if (hakukohdeOid.isEmpty) null else hakukohdeOid.map(List(_)).get
@@ -49,9 +50,11 @@ class SijoittelutulosService(raportointiService: RaportointiService,
       sijoittelu <- Timer.timed("latest sijoittelu", 1000)(fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)));
       hakijat <- {
         if (hakukohde == null) {
-          Option(Timer.timed("hakemukset", 1000)(raportointiService.hakemukset(sijoittelu, null, null, null, hakukohde, null, null))).map(_.getResults.toList.map(h => hakemuksenYhteenveto(h, aikataulu, fetchVastaanottos(h.getHakemusOid))))
+          Option(Timer.timed("hakemukset", 1000)(raportointiService.hakemukset(sijoittelu, null, null, null, hakukohde, null, null)))
+            .map(_.getResults.toList.map(h => hakemuksenYhteenveto(h, aikataulu, fetchVastaanottos(h.getHakemusOid, Option(h.getHakijaOid)))))
         } else {
-          Option(Timer.timed("hakukohteen hakemukset", 1000)(raportointiService.hakemukset(sijoittelu, hakukohde.head))).map(_.toList.map(h => hakemuksenKevytYhteenveto(h, aikataulu, fetchVastaanottos(h.getHakemusOid))))
+          Option(Timer.timed("hakukohteen hakemukset", 1000)(raportointiService.hakemukset(sijoittelu, hakukohde.head)))
+            .map(_.toList.map(h => hakemuksenKevytYhteenveto(h, aikataulu, fetchVastaanottos(h.getHakemusOid, Option(h.getHakijaOid)))))
         }
       }
     ) yield {
