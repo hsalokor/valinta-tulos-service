@@ -8,6 +8,7 @@ import fi.vm.sade.sijoittelu.tulos.dto.{HakemuksenTila, IlmoittautumisTila}
 import fi.vm.sade.sijoittelu.tulos.resource.SijoitteluResource
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.utils.Timer
+import fi.vm.sade.valintatulosservice.VastaanottoAikarajaMennyt
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 import fi.vm.sade.valintatulosservice.domain._
@@ -226,12 +227,40 @@ class SijoittelutulosService(raportointiService: RaportointiService,
 
     tilaVainActioninPerusteella match {
       case Vastaanottotila.kesken if ( Valintatila.isHyväksytty(valintatila) || valintatila == Valintatila.perunut ) =>
-        laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos) match {
-          case Some(deadline) if new DateTime().isAfter(deadline) => ( Vastaanottotila.ei_vastaanotettu_määräaikana, Some(deadline) )
-          case deadline => (tilaVainActioninPerusteella, deadline)
-        }
+        laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos, tilaVainActioninPerusteella)
       case tila if Valintatila.isHyväksytty(valintatila) => (tila, laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos))
       case tila => (tila, None)
+    }
+  }
+
+  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], tilaVainActioninPerusteella: Vastaanottotila): (Vastaanottotila, Option[DateTime]) = {
+    laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos) match {
+      case Some(deadline) if new DateTime().isAfter(deadline) => (Vastaanottotila.ei_vastaanotettu_määräaikana, Some(deadline))
+      case deadline => (tilaVainActioninPerusteella, deadline)
+    }
+  }
+
+  def haeVastaanotonAikarajaTiedot(hakuOid: String, hakukohdeOid: String, hakemusOids: Set[String]): Set[VastaanottoAikarajaMennyt] = {
+    def calculateLateness(aikataulu: Option[Vastaanottoaikataulu])(hakijaDto: KevytHakijaDTO): VastaanottoAikarajaMennyt = {
+      val hakutoiveDtoOfThisHakukohde: Option[KevytHakutoiveDTO] = hakijaDto.getHakutoiveet.toList.find(_.getHakukohdeOid == hakukohdeOid)
+      val isLate: Boolean = hakutoiveDtoOfThisHakukohde.flatMap { hakutoive: KevytHakutoiveDTO =>
+        val jono: KevytHakutoiveenValintatapajonoDTO = JonoFinder.merkitseväJono(hakutoive).get
+        val viimeisinHakemuksenTilanMuutos: Option[Date] = Option(jono.getHakemuksenTilanViimeisinMuutos)
+        laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos)
+      }.exists(new DateTime().isAfter)
+      VastaanottoAikarajaMennyt(hakijaDto.getHakemusOid, isLate)
+    }
+
+    import scala.collection.JavaConverters._
+    Timer.timed("latest sijoittelu", 1000) { fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)) } match {
+      case Some(sijoitteluAjo) =>
+        val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
+        val allHakijasForHakukohde = Timer.timed(s"Fetch hakemukset just for hakukohde $hakukohdeOid of haku $hakuOid", 1000) {
+          raportointiService.hakemuksetVainHakukohteenTietojenKanssa(sijoitteluAjo, hakukohdeOid).asScala
+        }
+        val queriedHakijasForHakukohde = allHakijasForHakukohde.filter(hakijaDto => hakemusOids.contains(hakijaDto.getHakemusOid))
+        queriedHakijasForHakukohde.map(calculateLateness(aikataulu)).toSet
+      case None => Set()
     }
   }
 

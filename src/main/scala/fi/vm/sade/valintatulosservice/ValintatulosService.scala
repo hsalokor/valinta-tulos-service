@@ -15,6 +15,7 @@ import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, Ohjaus
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelutulosService, StreamingHakijaDtoClient}
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, VastaanottoRecord, VirkailijaVastaanottoRepository}
+import org.apache.commons.lang3.StringUtils
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
@@ -39,14 +40,18 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   private val streamingHakijaDtoClient = new StreamingHakijaDtoClient(appConfig)
 
   def haunKoulutuksenAlkamiskaudenVastaanototYhdenPaikanSaadoksenPiirissa(hakuOid: String) : Set[VastaanottoRecord] = {
+    hakuJaSenAlkamiskaudenVastaanototYhdenPaikanSaadoksenPiirissa(hakuOid)._2
+  }
+
+  private def hakuJaSenAlkamiskaudenVastaanototYhdenPaikanSaadoksenPiirissa(hakuOid: String): (Haku, Set[VastaanottoRecord]) = {
     val haku = hakuService.getHaku(hakuOid)
       .getOrElse(throw new IllegalArgumentException(s"Haku $hakuOid does not exist"))
     if (haku.yhdenPaikanSaanto.voimassa) {
       hakukohdeRecordService.getHaunKoulutuksenAlkamiskausi(hakuOid)
-        .map(virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa)
+        .map(kausi => (haku, virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi)))
         .getOrElse(throw new IllegalStateException(s"No koulutuksen alkamiskausi for haku $hakuOid"))
     } else {
-      Set()
+      (haku, Set())
     }
   }
 
@@ -149,6 +154,41 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset), haunVastaanotot)
     valintatulokset
   }
+
+  def findValintaTuloksetForVirkailijaWithoutTilaHakijalle(hakuOid: String, hakukohdeOid: String): util.List[Valintatulos] = {
+    val haunVastaanotot: Map[String, Set[VastaanottoRecord]] = timed(s"Fetch vastaanotto records for haku $hakuOid", 1000) {
+      virkailijaVastaanottoRepository.findHaunVastaanotot(hakuOid).groupBy(_.henkiloOid)
+    }
+    lazy val hakemusOidsByHakijaOids = timed(s"Fetch hakija oids by hakemus oids for haku $hakuOid and hakukohde $hakukohdeOid", 1000) {
+      hakemusRepository.findPersonOids(hakuOid, hakukohdeOid)
+    }
+
+    val valintatulokset: util.List[Valintatulos] = timed(s"Fetch plain valintatulokset for haku $hakuOid", 1000) {
+      valintatulosDao.loadValintatuloksetForHakukohde(hakukohdeOid)
+    }
+
+    val (haku, kaudenVastaanotot) = timed(s"Fetch YPS related kauden vastaanotot for haku $hakuOid", 1000) {
+      hakuJaSenAlkamiskaudenVastaanototYhdenPaikanSaadoksenPiirissa(hakuOid)
+    }
+
+    val valintatulosIterator = valintatulokset.iterator()
+    while (valintatulosIterator.hasNext) {
+      val v = valintatulosIterator.next()
+      val hakijaOid = if (StringUtils.isNotBlank(v.getHakijaOid)) v.getHakijaOid else hakemusOidsByHakijaOids(v.getHakemusOid)
+      val henkilonVastaanotot = haunVastaanotot.get(hakijaOid)
+      val hakijanVastaanototHakukohteeseen: List[VastaanottoRecord] = henkilonVastaanotot.map(_.filter(_.hakukohdeOid == hakukohdeOid)).toList.flatten
+      val tilaVirkailijalle: ValintatuloksenTila = paatteleVastaanottotilaVirkailijaaVarten(hakijaOid, hakijanVastaanototHakukohteeseen, haku, kaudenVastaanotot)
+      v.setTila(tilaVirkailijalle, tilaVirkailijalle, "", "") // pass same old and new tila to avoid log entries
+      v.setHakijaOid(hakijaOid, "")
+      // v.setTilaHakijalle(tilaHakijalle) // TODO: Set "about to be late" flag here, and add separate API for tila hakijalle
+    }
+    valintatulokset
+  }
+
+  def haeVastaanotonAikarajaTiedot(hakuOid: String, hakukohdeOid: String, hakemusOids: Set[String]): Set[VastaanottoAikarajaMennyt] = {
+    sijoittelutulosService.haeVastaanotonAikarajaTiedot(hakuOid, hakukohdeOid, hakemusOids)
+  }
+
 
   def findValintaTuloksetForVirkailijaByHakemus(hakuOid: String, hakemusOid: String): util.List[Valintatulos] = {
     val hakemuksenTulos = hakemuksentulos(hakuOid, hakemusOid)
@@ -402,6 +442,48 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     } else {
       tulokset
     }
+  }
+
+  private def paatteleVastaanottotilaVirkailijaaVarten(hakijaOid: String, hakijanVastaanototHakukohteeseen: List[VastaanottoRecord],
+                                                       haku: Haku, kaudenVastaanototYpsnPiirissa: Set[VastaanottoRecord]): ValintatuloksenTila = {
+    def resolveValintatuloksenTilaVirkailijalleFrom(several: Iterable[VastaanottoRecord]): ValintatuloksenTila = {
+      if (several.groupBy(_.action).size == 1) {
+        several.head.action.valintatuloksenTila
+      } else {
+        throw new IllegalStateException(s"Don't know how to choose relevant vastaanotto record from $several")
+      }
+    }
+
+    val tilaSuoraanHakukohteenVastaanottojenPerusteella: ValintatuloksenTila = hakijanVastaanototHakukohteeseen match {
+      case Nil => ValintatuloksenTila.KESKEN
+      case only :: Nil => only.action.valintatuloksenTila
+      case several => resolveValintatuloksenTilaVirkailijalleFrom(several)
+    }
+
+    if (!haku.yhdenPaikanSaanto.voimassa) {
+      tilaSuoraanHakukohteenVastaanottojenPerusteella
+    } else if (tilaSuoraanHakukohteenVastaanottojenPerusteella == ValintatuloksenTila.VASTAANOTTANUT_SITOVASTI ||
+      tilaSuoraanHakukohteenVastaanottojenPerusteella == ValintatuloksenTila.EHDOLLISESTI_VASTAANOTTANUT ||
+      tilaSuoraanHakukohteenVastaanottojenPerusteella == ValintatuloksenTila.PERUNUT ||
+      tilaSuoraanHakukohteenVastaanottojenPerusteella == ValintatuloksenTila.PERUUTETTU ||
+      tilaSuoraanHakukohteenVastaanottojenPerusteella == ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA
+    ) {
+      tilaSuoraanHakukohteenVastaanottojenPerusteella
+    } else {
+      paatteleVastaanottotilaYhdenPaikanSaadoksenMukaanVirkailijaaVarten(hakijaOid, kaudenVastaanototYpsnPiirissa, haku)
+    }
+  }
+
+  private def paatteleVastaanottotilaYhdenPaikanSaadoksenMukaanVirkailijaaVarten(henkiloOid: String, kaudenVastaanototYpsnPiirissa: Set[VastaanottoRecord],
+                                                                                 haku: Haku): ValintatuloksenTila= {
+    val henkilonAiemmatVastaanototSamalleKaudelleYpsnPiirissa = kaudenVastaanototYpsnPiirissa.filter(_.henkiloOid == henkiloOid)
+    def vastaanottoEriHaussa: Boolean = henkilonAiemmatVastaanototSamalleKaudelleYpsnPiirissa.exists(_.hakuOid != haku.oid)
+
+    if (henkilonAiemmatVastaanototSamalleKaudelleYpsnPiirissa.isEmpty) {
+      ValintatuloksenTila.KESKEN
+    } else if (vastaanottoEriHaussa) {
+      ValintatuloksenTila.OTTANUT_VASTAAN_TOISEN_PAIKAN
+    } else ValintatuloksenTila.KESKEN
   }
 
   private def sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {

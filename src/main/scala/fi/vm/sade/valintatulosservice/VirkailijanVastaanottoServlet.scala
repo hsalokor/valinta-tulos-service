@@ -5,6 +5,7 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats.javaObjectToJsonString
 import fi.vm.sade.valintatulosservice.valintarekisteri.VastaanottoRecord
+import org.json4s.jackson.Serialization._
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 import org.scalatra.{Forbidden, Ok}
@@ -54,6 +55,28 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
     val hakuOid = params("hakuOid")
     val hakukohdeOid = params("hakukohdeOid")
     Ok(javaObjectToJsonString(valintatulosService.findValintaTuloksetForVirkailija(hakuOid, hakukohdeOid)))
+  }
+
+  val getValintatuloksetWithoutTilaHakijalleByHakukohdeSwagger: OperationBuilder = (apiOperation[Unit]("getValintatuloksetWithoutTilaHakijalleByHakukohdeSwagger")
+    summary "Hakee valintatulokset hakukohteen hakijoille"
+    parameter pathParam[String]("hakuOid").description("Haun oid")
+    parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid"))
+  get("/valintatulos/ilmanhakijantilaa/haku/:hakuOid/hakukohde/:hakukohdeOid", operation(getValintatuloksetWithoutTilaHakijalleByHakukohdeSwagger)) {
+    val hakuOid = params("hakuOid")
+    val hakukohdeOid = params("hakukohdeOid")
+    Ok(javaObjectToJsonString(valintatulosService.findValintaTuloksetForVirkailijaWithoutTilaHakijalle(hakuOid, hakukohdeOid)))
+  }
+
+  val postLatenessFlagsForApplicationsSwagger: OperationBuilder = (apiOperation[Set[VastaanottoAikarajaMennyt]]("getLatenessFlagsForApplicationsSwagger")
+    summary "Hakee annetuille hakijoille tiedon siitä onko vastaanotto myöhässä tähän hakukohteeseen"
+    parameter pathParam[String]("hakuOid").description("Haun oid")
+    parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
+    parameter bodyParam[Set[String]]("hakemusOids").description("Kiinnostavien hakemusten oidit"))
+  post("/myohastyneet/haku/:hakuOid/hakukohde/:hakukohdeOid", operation(postLatenessFlagsForApplicationsSwagger)) {
+    val hakuOid = params("hakuOid")
+    val hakukohdeOid = params("hakukohdeOid")
+    val hakemusOids = read[Set[String]](request.body)
+    Ok(valintatulosService.haeVastaanotonAikarajaTiedot(hakuOid, hakukohdeOid, hakemusOids))
   }
 
   val getValintatuloksetByHakuSwagger: OperationBuilder = (apiOperation[Unit]("getValintatuloksetByHaku")
@@ -116,3 +139,4 @@ case class VastaanottoEventDto(valintatapajonoOid: String, henkiloOid: String, h
   val errorMessages = fieldsWithNames.filter(_._1 == null).map(_._2 + " was null")
   assert(errorMessages.isEmpty, errorMessages.mkString(", "))
 }
+case class VastaanottoAikarajaMennyt(hakemusOid: String, mennyt: Boolean)
