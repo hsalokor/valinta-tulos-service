@@ -72,7 +72,7 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
     parameter pathParam[String]("hakuOid").description("Haun oid")
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
     parameter bodyParam[Set[String]]("hakemusOids").description("Kiinnostavien hakemusten oidit"))
-  post("/valintatulos/myohastyneet/haku/:hakuOid/hakukohde/:hakukohdeOid", operation(postLatenessFlagsForApplicationsSwagger)) {
+  post("/myohastyneet/haku/:hakuOid/hakukohde/:hakukohdeOid", operation(postLatenessFlagsForApplicationsSwagger)) {
     val hakuOid = params("hakuOid")
     val hakukohdeOid = params("hakukohdeOid")
     val hakemusOids = read[Set[String]](request.body)
