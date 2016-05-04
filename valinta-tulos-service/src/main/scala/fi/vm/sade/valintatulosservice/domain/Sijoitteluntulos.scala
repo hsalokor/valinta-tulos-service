@@ -28,6 +28,7 @@ case class HakutoiveenSijoitteluntulos(
   varasijojaTaytetaanAsti: Option[Date],
   varasijanumero: Option[Int],
   julkaistavissa: Boolean,
+  ehdollisestiHyvaksyttavissa: Boolean,
   tilanKuvaukset: Map[String, String],
   pisteet: Option[BigDecimal]
 )
@@ -50,6 +51,7 @@ object HakutoiveenSijoitteluntulos {
       None,
       None,
       true,
+      false,
       Map(),
       None
     )
