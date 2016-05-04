@@ -149,7 +149,7 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
     val hakemusOid = params("hakemusOid")
     valintatulosService.sijoittelunTulosHakemukselle(hakuOid, sijoitteluajoId, hakemusOid) match {
       case Some(hakijaDto) => Ok(JsonFormats.javaObjectToJsonString(hakijaDto))
-      case None => NotFound(Map("error" -> s"Hakemuksen $hakemusOid sijoittelutulosta ei löydy haussa $hakuOid"))
+      case None => Ok(JsonFormats.javaObjectToJsonString(new HakijaDTO()))
     }
   }
 
