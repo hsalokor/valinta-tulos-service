@@ -30,6 +30,7 @@ case class Hakutoiveentulos(hakukohdeOid: String,
                             varasijojaTaytetaanAsti: Option[Date],
                             varasijanumero: Option[Int],
                             julkaistavissa: Boolean,
+                            ehdollisestiHyvaksyttavissa: Boolean,
                             tilanKuvaukset: Map[String, String],
                             pisteet: Option[BigDecimal]
                             ) {
@@ -43,6 +44,7 @@ case class Hakutoiveentulos(hakukohdeOid: String,
         jonosija = None,
         varasijanumero = None,
         julkaistavissa = false,
+        ehdollisestiHyvaksyttavissa = false,
         tilanKuvaukset = Map(),
         pisteet = None
     )
@@ -77,6 +79,7 @@ object Hakutoiveentulos {
       tulos.varasijojaTaytetaanAsti,
       tulos.varasijanumero,
       tulos.julkaistavissa,
+      tulos.ehdollisestiHyvaksyttavissa,
       tulos.tilanKuvaukset,
       tulos.pisteet
     ).julkaistavaVersio
