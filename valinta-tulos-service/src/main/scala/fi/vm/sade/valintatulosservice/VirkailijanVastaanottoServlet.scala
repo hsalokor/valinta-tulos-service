@@ -79,6 +79,20 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
     Ok(valintatulosService.haeVastaanotonAikarajaTiedot(hakuOid, hakukohdeOid, hakemusOids))
   }
 
+  val postTilaHakijalleForApplicationsSwagger: OperationBuilder = (apiOperation[Set[TilaHakijalle]]("postTilaHakijalleForApplicationsSwagger")
+    summary "Hakee annetuille hakijoille tiedon siitä onko vastaanotto myöhässä tähän hakukohteeseen"
+    parameter pathParam[String]("hakuOid").description("Haun oid")
+    parameter pathParam[String]("hakukohdeOid").description("Hakukohteen oid")
+    parameter pathParam[String]("valintatapajonoOid").description("Valintatapajonon oid")
+    parameter bodyParam[Set[String]]("hakemusOids").description("Kiinnostavien hakemusten oidit"))
+  post("/tilahakijalle/haku/:hakuOid/hakukohde/:hakukohdeOid/valintatapajono/:valintatapajonoOid", operation(postTilaHakijalleForApplicationsSwagger)) {
+    val hakuOid = params("hakuOid")
+    val hakukohdeOid = params("hakukohdeOid")
+    val valintatapajonoOid = params("valintatapajonoOid")
+    val hakemusOids = read[Set[String]](request.body)
+    Ok(valintatulosService.haeTilatHakijoille(hakuOid, hakukohdeOid, valintatapajonoOid, hakemusOids))
+  }
+
   val getValintatuloksetByHakuSwagger: OperationBuilder = (apiOperation[Unit]("getValintatuloksetByHaku")
     summary "Hakee valintatulokset haun hakijoille"
     parameter pathParam[String]("hakuOid").description("Haun oid"))
@@ -140,3 +154,4 @@ case class VastaanottoEventDto(valintatapajonoOid: String, henkiloOid: String, h
   assert(errorMessages.isEmpty, errorMessages.mkString(", "))
 }
 case class VastaanottoAikarajaMennyt(hakemusOid: String, mennyt: Boolean)
+case class TilaHakijalle(hakemusOid: String, hakukohdeOid: String, valintatapajonoOid: String, tilaHakijalle: String)

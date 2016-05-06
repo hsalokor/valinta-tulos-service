@@ -86,6 +86,27 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     hakemustenTulosByHaku(hakuOid, Some(haunVastaanotot))
   }
 
+  def haeTilatHakijoille(hakuOid: String, hakukohdeOid: String, valintatapajonoOid: String, hakemusOids: Set[String]): Set[TilaHakijalle] = {
+    hakuService.getHaku(hakuOid) match {
+      case Some(haku) =>
+        val hakemustenTulokset = fetchTulokset(haku,
+          () => hakemusRepository.findHakemuksetByOids(hakemusOids),
+          hakijaOidsByHakemusOids => hakemusOids.flatMap(hakemusOid => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids.get(hakemusOid))).toSeq)
+        hakemustenTulokset.map { hakemuksenTulos =>
+          hakemuksenTulos.hakutoiveet.find(_.valintatapajonoOid == valintatapajonoOid).map { hakutoiveenTulos =>
+            val tilaHakijalle = ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString)
+            TilaHakijalle(hakemusOid = hakemuksenTulos.hakemusOid,
+              hakukohdeOid = hakutoiveenTulos.hakukohdeOid,
+              valintatapajonoOid = hakutoiveenTulos.valintatapajonoOid,
+              tilaHakijalle = tilaHakijalle.toString)
+          }
+        }.flatten.toSet
+      case None =>
+        logger.warn(s"Could not find haku $hakuOid")
+        Set()
+    }
+  }
+
   private def hakemustenTulosByHaku(hakuOid: String, haunVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] ): Option[Iterator[Hakemuksentulos]] = {
     timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
       for {

@@ -1,10 +1,10 @@
 package fi.vm.sade.valintatulosservice.hakemus
 
 import fi.vm.sade.utils.slf4j.Logging
-import com.mongodb.casbah.{commons, Imports}
+import com.mongodb.casbah.{Imports, commons}
 import com.mongodb.casbah.Imports._
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.{Henkilotiedot, Hakutoive, Hakemus}
+import fi.vm.sade.valintatulosservice.domain.{Hakemus, Hakutoive, Henkilotiedot}
 import fi.vm.sade.valintatulosservice.hakemus.DatabaseKeys.tarjoajaIdKeyPostfix
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 
@@ -60,6 +60,10 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
 
   def findHakemus(hakemusOid: String): Option[Hakemus] = {
     findHakemuksetByQuery(MongoDBObject(DatabaseKeys.oidKey -> hakemusOid)).toStream.headOption
+  }
+
+  def findHakemuksetByOids(hakemusOids: Iterable[String]): Iterator[Hakemus] = {
+    findHakemuksetByQuery(DatabaseKeys.oidKey $in hakemusOids)
   }
 
   def findHakemukset(hakuOid: String, personOid: String): Iterator[Hakemus] = {
