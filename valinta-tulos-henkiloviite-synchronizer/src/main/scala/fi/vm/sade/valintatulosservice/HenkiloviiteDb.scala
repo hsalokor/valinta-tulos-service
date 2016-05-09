@@ -16,11 +16,11 @@ class HenkiloviiteDb(dbConfig: Properties) {
 
   val logger = LoggerFactory.getLogger(classOf[HenkiloviiteDb])
 
-  logger.info(s"Using database configuration user=${user} and url=${url} with password")
+  logger.info(s"Using database configuration user=$user and url=$url with password")
 
   Class.forName("org.postgresql.Driver")
 
-  def refresh(henkiloviitteet: Set[Henkiloviite]): Try[Unit] = {
+  def refresh(henkiloviitteet: Set[HenkiloRelation]): Try[Unit] = {
     var connection:Connection = null
     var statement:PreparedStatement = null
 
@@ -36,14 +36,14 @@ class HenkiloviiteDb(dbConfig: Properties) {
 
       statement.close()
 
-      val insert = "insert into henkiloviitteet (master_oid, henkilo_oid) values (?, ?)"
+      val insert = "insert into henkiloviitteet (person_oid, linked_oid) values (?, ?)"
       statement = connection.prepareStatement(insert)
 
       logger.debug(s"Inserting ${henkiloviitteet.size} henkiloviite")
 
       for((henkiloviite, i) <- henkiloviitteet.zipWithIndex) {
-        statement.setString(1, henkiloviite.masterOid)
-        statement.setString(2, henkiloviite.henkiloOid)
+        statement.setString(1, henkiloviite.personOid)
+        statement.setString(2, henkiloviite.linkedOid)
         statement.addBatch()
 
         if(0 == i % 1000) {

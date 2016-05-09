@@ -4,7 +4,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import org.slf4j.LoggerFactory
 
-import scala.util.{Failure, Try, Success}
+import scala.util.{Failure, Success, Try}
+
+case class HenkiloRelation(personOid: String, linkedOid: String)
 
 class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: HenkiloviiteDb) extends Runnable {
 
@@ -38,8 +40,7 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
     def run(): Unit = {
       (for {
         henkiloviitteetList <- henkiloClient.fetchHenkiloviitteet()
-        henkiloviitteet = henkiloviitteetList.toSet
-        _ <- db.refresh(henkiloviitteet ++ henkiloviitteet.map(_.masterOid).map(oid => Henkiloviite(oid, oid)))
+        _ <- db.refresh(henkiloRelations(henkiloviitteetList))
       } yield ()) match {
         case Success(_) =>
           logger.info("Henkiloviite sync finished successfully.")
@@ -48,6 +49,21 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
           logger.error("Henkiloviite sync failed.", e)
           stopRunning(s"Not OK. ${e.getMessage}")
       }
+    }
+
+    private def relatedHenkilot(henkiloviitteet: Seq[Henkiloviite]): Seq[Seq[String]] = {
+      henkiloviitteet
+        .groupBy(_.masterOid)
+        .map({ case (masterOid, slaves) => (masterOid, masterOid :: slaves.map(_.henkiloOid)) })
+        .values
+    }
+
+    private def allOrderedPairs[A](xs: Seq[A]): Seq[(A, A)] = {
+      xs.permutations.map({ case x :: y :: _ => (x, y) }).toSeq
+    }
+
+    private def henkiloRelations(henkiloviitteet: Seq[Henkiloviite]): Set[HenkiloRelation] = {
+      relatedHenkilot(henkiloviitteet).flatMap(allOrderedPairs(_).map(t => HenkiloRelation(t._1, t._2))).toSet
     }
   }
 

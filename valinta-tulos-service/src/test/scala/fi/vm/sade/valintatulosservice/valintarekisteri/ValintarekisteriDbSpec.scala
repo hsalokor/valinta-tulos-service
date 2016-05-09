@@ -285,10 +285,18 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
 
   private def storeHenkiloviitteet() = {
     singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
-      sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidB)""",
-      sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidA)""",
-      sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, $henkiloOidC)""",
-      sqlu"""insert into henkiloviitteet (master_oid, henkilo_oid) values ($henkiloOidB, '1.2.246.562.24.0000000000d')"""
+      sqlu"""insert into henkiloviitteet (person_oid, linked_oid) values ($henkiloOidA, $henkiloOidB)""",
+      sqlu"""insert into henkiloviitteet (person_oid, linked_oid) values ($henkiloOidA, $henkiloOidC)""",
+      sqlu"""insert into henkiloviitteet (person_oid, linked_oid) values ($henkiloOidA, '1.2.246.562.24.0000000000d')""",
+      sqlu"""insert into henkiloviitteet (person_oid, linked_oid) values ($henkiloOidB, $henkiloOidA)""",
+      sqlu"""insert into henkiloviitteet (person_oid, linked_oid) values ($henkiloOidB, $henkiloOidC)""",
+      sqlu"""insert into henkiloviitteet (person_oid, linked_oid) values ($henkiloOidB, '1.2.246.562.24.0000000000d')""",
+      sqlu"""insert into henkiloviitteet (person_oid, linked_oid) values ($henkiloOidC, $henkiloOidA)""",
+      sqlu"""insert into henkiloviitteet (person_oid, linked_oid) values ($henkiloOidC, $henkiloOidB)""",
+      sqlu"""insert into henkiloviitteet (person_oid, linked_oid) values ($henkiloOidC, '1.2.246.562.24.0000000000d')""",
+      sqlu"""insert into henkiloviitteet (person_oid, linked_oid) values ('1.2.246.562.24.0000000000d', $henkiloOidA)""",
+      sqlu"""insert into henkiloviitteet (person_oid, linked_oid) values ('1.2.246.562.24.0000000000d', $henkiloOidB)""",
+      sqlu"""insert into henkiloviitteet (person_oid, linked_oid) values ('1.2.246.562.24.0000000000d', $henkiloOidC)"""
     ))
   }
 
@@ -304,7 +312,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     vastaanottoRowsFromDb must beSome
     val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
     ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.get
-    henkiloOidFromDb mustEqual expectedHenkiloOid
+    henkiloOidFromDb mustEqual findHenkiloOid
     hakuOidFromDb mustEqual hakuOid
     hakukohdeOidFromDb mustEqual hakukohdeOid
     actionFromDb mustEqual VastaanotaSitovasti
@@ -320,7 +328,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
   private def runYhdenPaikanSaantoTest(findHenkiloOid:String, expectedHenkiloOid:String) = {
     val r = singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(findHenkiloOid, Kausi("2015K")))
     r must beSome[VastaanottoRecord]
-    r.get.henkiloOid must beEqualTo(expectedHenkiloOid)
+    r.get.henkiloOid must beEqualTo(findHenkiloOid)
     r.get.hakukohdeOid must beEqualTo(otherHakukohdeOidForHakuOid)
     r.get.action must beEqualTo(VastaanotaSitovasti)
   }
