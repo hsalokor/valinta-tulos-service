@@ -9,7 +9,12 @@ case class VastaanotettavuusIlmoitus(
   etunimi: String,
   email: String,
   deadline: Option[Date],
-  hakukohteet: List[String]
+  hakukohteet: List[Hakukohde]
+)
+
+case class Hakukohde(
+  oid: String,
+  ehdollisestiHyvaksyttavissa: Boolean
 )
 
 case class LahetysKuittaus(
