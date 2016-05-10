@@ -110,7 +110,7 @@
         <dependency>
             <groupId>fi.vm.sade</groupId>
             <artifactId>scala-cas_2.11</artifactId>
-            <version>0.3.1-SNAPSHOT</version>
+            <version>0.3.2-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.http4s</groupId>
