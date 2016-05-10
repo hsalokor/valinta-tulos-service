@@ -39,7 +39,7 @@ object HenkiloviiteSynchronizerApp {
   }
 
   private def readConfig(): Properties = {
-    Option(System.getProperty("valintatuloshenkiloviitesynchronizer.properties")) match {
+    Option(System.getProperty("henkiloviite.properties")) match {
       case Some(configFile) =>
         val config = new Properties()
         config.load(new FileInputStream(configFile))
