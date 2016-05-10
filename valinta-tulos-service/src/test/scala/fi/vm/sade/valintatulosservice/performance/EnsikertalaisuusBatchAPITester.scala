@@ -90,15 +90,14 @@ object EnsikertalaisuusBatchAPITester extends App with Logging {
     }
     Await.ready(valintarekisteriDb.run(SimpleDBIO[Unit](jdbcActionContext => {
       val insert = jdbcActionContext.connection.prepareStatement(
-        "insert into henkiloviitteet (master_oid, henkilo_oid) values (?, ?)")
+        "insert into henkiloviitteet (person_oid, linked_oid) values (?, ?)")
       try {
         for {
           group <- groupHenkilot(vastaanottaneet.take(testDataSize / 50), eiVastaanottaneet, List())
-          master = group.head
-          henkilo <- group
+          personOid :: linkedOid :: Nil = group.permutations.flatMap(_.take(2)).toSeq
         } {
-          insert.setString(1, master)
-          insert.setString(2, henkilo)
+          insert.setString(1, personOid)
+          insert.setString(2, linkedOid)
           insert.addBatch()
         }
         insert.executeBatch()
