@@ -32,7 +32,7 @@ class HenkiloviiteClient(config: Properties) {
       uri = resourceUrl
     )).flatMap {
       case r if 200 == r.status.code => r.as[Array[Henkiloviite]].map(_.toList)
-      case r => Task.fail(new RuntimeException(r.toString))
+      case r => Task.fail(new RuntimeException(resourceUrl + " " + r.toString))
     }.run)
   }
 
