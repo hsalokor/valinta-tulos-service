@@ -53,27 +53,19 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def findVastaanottoHistory(personOid: String): VastaanottoHistoria = {
     val newList = runBlocking(
-      sql"""with newest_vastaanotto_events as (
-                  select distinct on (vastaanotot.hakukohde) * from vastaanotot
-                    where henkilo = $personOid
-                        and deleted is null
-                    order by hakukohde, vastaanotot.id desc
-                ),
-                new_vastaanotot as (
-                  select * from newest_vastaanotto_events
-                  where "action" in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti')
-                )
-                select haku_oid, hakukohde, "action", "timestamp"
-                  from new_vastaanotot
-                  join hakukohteet on hakukohteet.hakukohde_oid = new_vastaanotot.hakukohde
-                  where hakukohteet.kk_tutkintoon_johtava
-                  order by "timestamp" desc
+      sql"""select haku_oid, hakukohde, "action", "timestamp"
+            from newest_vastaanotot
+            where kk_tutkintoon_johtava
+                and henkilo = ${personOid}
+            order by "timestamp" desc
       """.as[(String, String, String, java.sql.Timestamp)]
     ).map(vastaanotto => OpintopolunVastaanottotieto(personOid, vastaanotto._1, vastaanotto._2, vastaanotto._3, vastaanotto._4)).toList
     val oldList = runBlocking(
       sql"""select hakukohde, "timestamp" from vanhat_vastaanotot
-              where henkilo = $personOid and kk_tutkintoon_johtava
-              order by "timestamp" desc
+            where kk_tutkintoon_johtava
+                and (henkilo in (select linked_oid from henkiloviitteet where person_oid = ${personOid})
+                     or henkilo = ${personOid})
+            order by "timestamp" desc
       """.as[(String, java.sql.Timestamp)]
     ).map(vastaanotto => VanhaVastaanottotieto(personOid, vastaanotto._1, vastaanotto._2)).toList
     VastaanottoHistoria(newList, oldList)
