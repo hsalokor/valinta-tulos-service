@@ -260,18 +260,6 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     ) == 1
   }
 
-  override def findHakukohteenVastaanotot(hakukohdeOid: String): Set[VastaanottoRecord] = {
-    val vastaanottoRecords = runBlocking(
-      sql"""select distinct on (vo.henkilo, vo.hakukohde) vo.henkilo as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
-                                            vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
-            from vastaanotot vo
-            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
-            where vo.hakukohde = $hakukohdeOid
-                and vo.deleted is null
-            order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord])
-    vastaanottoRecords.toSet
-  }
-
   override def findHaunVastaanotot(hakuOid: String): Set[VastaanottoRecord] = {
     val vastaanottoRecords = runBlocking(
       sql"""select distinct on (vo.henkilo, vo.hakukohde) vo.henkilo as henkiloOid, hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
