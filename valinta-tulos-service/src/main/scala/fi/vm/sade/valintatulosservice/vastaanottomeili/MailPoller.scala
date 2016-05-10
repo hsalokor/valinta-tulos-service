@@ -96,7 +96,8 @@ class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatul
       } else {
         (MailStatus.NOT_MAILED, "Ei vastaanotettavissa (" + hakutoive.valintatila + ")")
       }
-      HakukohdeMailStatus(hakutoive.hakukohdeOid, hakutoive.valintatapajonoOid, status, hakutoive.vastaanottoDeadline, message)
+      HakukohdeMailStatus(hakutoive.hakukohdeOid, hakutoive.valintatapajonoOid, status,
+        hakutoive.vastaanottoDeadline, message, hakutoive.ehdollisestiHyvaksyttavissa)
     }
     HakemusMailStatus(hakemuksenTulos.hakemusOid, mailables)
   }
