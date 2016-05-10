@@ -101,11 +101,16 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                 where newest_vastaanotot.kk_tutkintoon_johtava
             ),
             old_vastaanotot as (
+                select person_oids.oid as henkilo, "timestamp", koulutuksen_alkamiskausi
+                from vanhat_vastaanotot
+                    join henkiloviitteet on henkiloviitteet.linked_oid = vanhat_vastaanotot.henkilo
+                    join person_oids on person_oids.oid = henkiloviitteet.person_oid
+                where vanhat_vastaanotot.kk_tutkintoon_johtava
+                union
                 select henkilo, "timestamp", koulutuksen_alkamiskausi
                 from vanhat_vastaanotot
-                where vanhat_vastaanotot.kk_tutkintoon_johtava
-                    and (vanhat_vastaanotot.henkilo in (select linked_oid from henkiloviitteet join person_oids on person_oids.oid = henkiloviitteet.person_oid)
-                    or vanhat_vastaanotot.henkilo in (select oid from person_oids))
+                where henkilo in (select oid from person_oids)
+                    and vanhat_vastaanotot.kk_tutkintoon_johtava
             )
             select person_oids.oid, min(all_vastaanotot."timestamp") from person_oids
             left join ((select henkilo, "timestamp", koulutuksen_alkamiskausi from new_vastaanotot)

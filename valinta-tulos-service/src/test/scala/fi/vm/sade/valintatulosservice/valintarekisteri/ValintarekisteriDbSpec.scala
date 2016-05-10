@@ -234,6 +234,14 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
         r.head must beAnInstanceOf[EiEnsikertalainen]
         r.tail.head must beAnInstanceOf[EiEnsikertalainen]
       }
+      "ei ensikertalainen, jos linkitetyllä henkilöllä vanha vastaanotto" in {
+        storeHenkiloviitteet()
+        val now = new java.sql.Timestamp(1)
+        singleConnectionValintarekisteriDb.runBlocking(
+          sqlu"""insert into vanhat_vastaanotot (henkilo, hakukohde, tarjoaja, koulutuksen_alkamiskausi, kk_tutkintoon_johtava, ilmoittaja, timestamp)
+                 values (${henkiloOidB}, ${hakukohdeOid}, 'testitarjoaja', '2000K', true, 'testiilmoittaja', ${now})""")
+        singleConnectionValintarekisteriDb.findEnsikertalaisuus(Set(henkiloOidA), Syksy(1999)) mustEqual Set(EiEnsikertalainen(henkiloOidA, now))
+      }
     }
 
     "store hakukohde multiple times" in {
