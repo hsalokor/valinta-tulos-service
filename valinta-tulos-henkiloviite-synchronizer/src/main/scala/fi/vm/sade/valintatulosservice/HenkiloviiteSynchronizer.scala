@@ -54,8 +54,8 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
     private def relatedHenkilot(henkiloviitteet: Seq[Henkiloviite]): Seq[Seq[String]] = {
       henkiloviitteet
         .groupBy(_.masterOid)
-        .map({ case (masterOid, slaves) => (masterOid, masterOid :: slaves.map(_.henkiloOid)) })
-        .values
+        .map({ case (masterOid, slaves) => (masterOid, masterOid +: slaves.map(_.henkiloOid)) })
+        .values.toSeq
     }
 
     private def allOrderedPairs[A](xs: Seq[A]): Seq[(A, A)] = {
