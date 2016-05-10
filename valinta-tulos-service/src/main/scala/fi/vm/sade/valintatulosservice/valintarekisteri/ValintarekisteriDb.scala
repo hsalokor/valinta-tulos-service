@@ -126,6 +126,12 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                 and haku_oid = $hakuOid""".as[VastaanottoRecord]).toSet
   }
 
+  override def findHaunVastaanotot(hakuOid: String): Set[VastaanottoRecord] = {
+    runBlocking(sql"""select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp"
+                      from newest_vastaanotto_events
+                      where haku_oid = ${hakuOid}""".as[VastaanottoRecord]).toSet
+  }
+
   override def findHenkilonVastaanottoHakukohteeseen(personOid: String, hakukohdeOid: String): DBIOAction[Option[VastaanottoRecord], NoStream, Effect] = {
     sql"""select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp"
           from newest_vastaanotot
@@ -249,17 +255,5 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                    or kk_tutkintoon_johtava <> ${hakukohdeRecord.kktutkintoonJohtava}
                    or koulutuksen_alkamiskausi <> ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec})"""
     ) == 1
-  }
-
-  override def findHaunVastaanotot(hakuOid: String): Set[VastaanottoRecord] = {
-    val vastaanottoRecords = runBlocking(
-      sql"""select distinct on (vo.henkilo, vo.hakukohde) vo.henkilo as henkiloOid, hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
-                                            vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
-            from vastaanotot vo
-            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
-            where hk.haku_oid = $hakuOid
-                and vo.deleted is null
-            order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord])
-    vastaanottoRecords.toSet
   }
 }
