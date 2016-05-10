@@ -14,7 +14,7 @@ class MailDecorator(hakemusRepository: HakemusRepository, valintatulosCollection
             val mailables = status.hakukohteet.filter(_.shouldMail)
             val deadline: Option[Date] = mailables.flatMap(_.deadline).sorted.headOption
             Some(VastaanotettavuusIlmoitus(
-              status.hakemusOid, henkiloOid, asiointikieli, kutsumanimi, email, deadline, mailables.map(_.hakukohdeOid)
+              status.hakemusOid, henkiloOid, asiointikieli, kutsumanimi, email, deadline, mailables.map(toHakukohde)
             ))
           case Some(hakemus) =>
             logger.warn("Hakemukselta puuttuu kutsumanimi tai email: " + status.hakemusOid)
@@ -33,4 +33,7 @@ class MailDecorator(hakemusRepository: HakemusRepository, valintatulosCollection
       case _ => None
     }
   }
+
+  def toHakukohde(hakukohdeMailStatus: HakukohdeMailStatus) =
+    Hakukohde(hakukohdeMailStatus.hakukohdeOid, hakukohdeMailStatus.ehdollisestiHyvaksyttavissa)
 }
