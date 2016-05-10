@@ -35,28 +35,16 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
     val d = runBlocking(
-      sql"""with related_person_oids as (
-                (select linked_oid as person_oid from henkiloviitteet where person_oid = $personOid
-                 union
-                 (select $personOid))
-            ),
-            newest_vastaanotto_events as (
-                select distinct on (vastaanotot.henkilo, vastaanotot.hakukohde) "timestamp", koulutuksen_alkamiskausi, action
-                from vastaanotot
-                join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
-                where vastaanotot.deleted is null
-                    and hakukohteet.kk_tutkintoon_johtava
-                    and vastaanotot.henkilo in (select person_oid from related_person_oids)
-                order by vastaanotot.henkilo, vastaanotot.hakukohde, vastaanotot.id desc
-            ),
-            old_vastaanotot as (
+      sql"""with old_vastaanotot as (
                 select "timestamp", koulutuksen_alkamiskausi from vanhat_vastaanotot
                 where kk_tutkintoon_johtava
-                    and henkilo in (select person_oid from related_person_oids)
+                    and (henkilo in (select linked_oid from henkiloviitteet where person_oid = ${personOid})
+                    or vanhat_vastaanotot.henkilo = ${personOid})
             )
             select min(all_vastaanotot."timestamp")
-            from (select "timestamp", koulutuksen_alkamiskausi from newest_vastaanotto_events
-                  where action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti')
+            from (select "timestamp", koulutuksen_alkamiskausi from newest_vastaanotot
+                  where newest_vastaanotot.henkilo = ${personOid}
+                      and newest_vastaanotot.kk_tutkintoon_johtava
                   union
                   select "timestamp", koulutuksen_alkamiskausi from old_vastaanotot) as all_vastaanotot
             where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}""".as[Option[java.sql.Timestamp]])
@@ -106,42 +94,26 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
       }
     })
     val findVastaanottos =
-      sql"""with query_oids as (
-                select person_oids.oid as query_oid, henkiloviitteet.linked_oid
-                from person_oids
-                    join henkiloviitteet on henkiloviitteet.person_oid = person_oids.oid
-                union
-                select oid as query_oid, oid as linked_oid from person_oids
-            ),
-            newest_vastaanotto_events as (
-                select distinct on (vastaanotot.henkilo, vastaanotot.hakukohde)
-                    henkilo, "timestamp", koulutuksen_alkamiskausi, action
-                from vastaanotot
-                    join hakukohteet on hakukohteet.hakukohde_oid = vastaanotot.hakukohde
-                where vastaanotot.deleted is null
-                    and hakukohteet.kk_tutkintoon_johtava
-                    and vastaanotot.henkilo in (select linked_oid from query_oids)
-                order by vastaanotot.henkilo, vastaanotot.hakukohde, vastaanotot.id desc
-            ),
-            new_vastaanotot as (
-                select query_oids.query_oid as henkilo, "timestamp", koulutuksen_alkamiskausi
-                from newest_vastaanotto_events
-                    join query_oids on query_oids.linked_oid = newest_vastaanotto_events.henkilo
-                where action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti')
+      sql"""with new_vastaanotot as (
+                select henkilo, "timestamp", koulutuksen_alkamiskausi
+                from newest_vastaanotot
+                    join person_oids on person_oids.oid = newest_vastaanotot.henkilo
+                where newest_vastaanotot.kk_tutkintoon_johtava
             ),
             old_vastaanotot as (
-                select query_oids.query_oid as henkilo, "timestamp", koulutuksen_alkamiskausi
+                select henkilo, "timestamp", koulutuksen_alkamiskausi
                 from vanhat_vastaanotot
-                    join query_oids on query_oids.linked_oid = vanhat_vastaanotot.henkilo
                 where vanhat_vastaanotot.kk_tutkintoon_johtava
+                    and (vanhat_vastaanotot.henkilo in (select linked_oid from henkiloviitteet join person_oids on person_oids.oid = henkiloviitteet.person_oid)
+                    or vanhat_vastaanotot.henkilo in (select oid from person_oids))
             )
-            select query_oids.query_oid, min(all_vastaanotot."timestamp") from query_oids
+            select person_oids.oid, min(all_vastaanotot."timestamp") from person_oids
             left join ((select henkilo, "timestamp", koulutuksen_alkamiskausi from new_vastaanotot)
                        union
                        (select henkilo, "timestamp", koulutuksen_alkamiskausi from old_vastaanotot)) as all_vastaanotot
-                on all_vastaanotot.henkilo = query_oids.query_oid
+                on all_vastaanotot.henkilo = person_oids.oid
                    and all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}
-            group by query_oids.query_oid
+            group by person_oids.oid
         """.as[(String, Option[java.sql.Timestamp])]
 
     val operations = createTempTable.andThen(insertPersonOids).andThen(findVastaanottos)
@@ -150,35 +122,18 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   override def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
-    val vastaanottoRecords = runBlocking(
-      sql"""select distinct on (vo.henkilo, vo.hakukohde)
-            vo.henkilo as henkiloOid, hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
-            vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
-            from vastaanotot vo
-            join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
-            where vo.henkilo = $henkiloOid
-                and hk.haku_oid = $hakuOid
-                and vo.deleted is null
-            order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord])
-    vastaanottoRecords.toSet
+    runBlocking(
+      sql"""select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp"
+            from newest_vastaanotto_events
+            where henkilo = $henkiloOid
+                and haku_oid = $hakuOid""".as[VastaanottoRecord]).toSet
   }
 
   override def findHenkilonVastaanottoHakukohteeseen(personOid: String, hakukohdeOid: String): DBIOAction[Option[VastaanottoRecord], NoStream, Effect] = {
-    sql"""with related_person_oids as (
-              select linked_oid as person_oid from henkiloviitteet where person_oid = $personOid
-              union
-              (select $personOid)
-          )
-          select distinct on (vo.henkilo) $personOid as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
-                                          vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
-          from vastaanotot vo
-          join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
-          join related_person_oids on related_person_oids.person_oid = vo.henkilo
-          where hk.hakukohde_oid = $hakukohdeOid
-              and vo.deleted is null
-          order by vo.henkilo, vo.id desc""".as[VastaanottoRecord].map(_.filter(vastaanottoRecord => {
-      Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
-    })).map(vastaanottoRecords => {
+    sql"""select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp"
+          from newest_vastaanotot
+          where henkilo = $personOid
+              and hakukohde = $hakukohdeOid""".as[VastaanottoRecord].map(vastaanottoRecords => {
       if (vastaanottoRecords.size > 1) {
         throw ConflictingAcceptancesException(personOid, vastaanottoRecords, "samaan hakukohteeseen")
       } else {
@@ -188,28 +143,18 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   override def findYhdenPaikanSaannonPiirissaOlevatVastaanotot(personOid: String, koulutuksenAlkamiskausi: Kausi): DBIOAction[Option[VastaanottoRecord], NoStream, Effect] = {
-    sql"""with related_person_oids as (
-              select linked_oid as person_oid from henkiloviitteet where person_oid = $personOid
-              union
-              (select $personOid)
-          )
-          select distinct on (vo.henkilo, vo.hakukohde) $personOid as henkiloOid,  hk.haku_oid as hakuOid, hk.hakukohde_oid as hakukohdeOid,
-                                          vo.action as action, vo.ilmoittaja as ilmoittaja, vo.timestamp as "timestamp"
-          from vastaanotot vo
-          join hakukohteet hk on hk.hakukohde_oid = vo.hakukohde
-          join related_person_oids on related_person_oids.person_oid = vo.henkilo
-          where hk.yhden_paikan_saanto_voimassa
-              and vo.deleted is null
-              and hk.koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}
-          order by vo.henkilo, vo.hakukohde, vo.id desc""".as[VastaanottoRecord].map(_.filter(vastaanottoRecord => {
-      Set[VastaanottoAction](VastaanotaSitovasti, VastaanotaEhdollisesti).contains(vastaanottoRecord.action)
-    })).map(vastaanottoRecords => {
-      if (vastaanottoRecords.size > 1) {
-        throw ConflictingAcceptancesException(personOid, vastaanottoRecords, "yhden paikan säännön piirissä")
-      } else {
-        vastaanottoRecords.headOption
-      }
-    })
+    sql"""select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp"
+          from newest_vastaanotot
+          where henkilo = $personOid
+              and yhden_paikan_saanto_voimassa
+              and koulutuksen_alkamiskausi = ${koulutuksenAlkamiskausi.toKausiSpec}""".as[VastaanottoRecord]
+      .map(vastaanottoRecords => {
+        if (vastaanottoRecords.size > 1) {
+          throw ConflictingAcceptancesException(personOid, vastaanottoRecords, "yhden paikan säännön piirissä")
+        } else {
+          vastaanottoRecords.headOption
+        }
+      })
   }
 
   override def store(vastaanottoEvent: VastaanottoEvent, vastaanottoDate: Date) = {
