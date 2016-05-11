@@ -155,7 +155,7 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
   }
 
   override def getArbitraryPublishedHakukohdeOid(hakuOid: String): Option[String] = {
-    val url = appConfig.settings.tarjontaUrl + s"/rest/v1/hakukohde/search?tila=JULKAISTU&hakuOid=$hakuOid&offset=0&limit=1"
+    val url = appConfig.settings.tarjontaUrl + s"/rest/v1/hakukohde/search?tila=VALMIS&tila=JULKAISTU&hakuOid=$hakuOid&offset=0&limit=1"
     fetch(url) { response =>
       (parse(response) \ "result" \ "tulokset" \ "tulokset" \ "oid" ).extractOpt[String]
     }.flatten
