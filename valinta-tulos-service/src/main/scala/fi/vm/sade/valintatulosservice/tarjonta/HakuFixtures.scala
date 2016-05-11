@@ -80,4 +80,6 @@ object HakuFixtures extends HakuService with JsonHakuService {
     "1.2.246.562.5.72607738903",
     "1.2.246.562.5.72607738904"
   )
+
+  override def getArbitraryPublishedHakukohdeOid(hakuOid: String) = getHakukohdeOids(hakuOid).headOption
 }

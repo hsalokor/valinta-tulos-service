@@ -11,7 +11,7 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
 
   def getHaunKoulutuksenAlkamiskausi(oid: String): Option[Kausi] = {
     val record = hakukohdeRepository.findHaunArbitraryHakukohde(oid)
-    record.orElse(hakuService.getHakukohdeOids(oid).headOption.map(fetchAndStoreHakukohdeDetails)).map(_.koulutuksenAlkamiskausi)
+    record.orElse(hakuService.getArbitraryPublishedHakukohdeOid(oid).map(fetchAndStoreHakukohdeDetails)).map(_.koulutuksenAlkamiskausi)
   }
 
   def getHakukohdeRecord(oid: String): HakukohdeRecord = {
