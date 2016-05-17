@@ -112,6 +112,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
       valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
       val vastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, vastaanottotila)
       val julkaistavissa = jono.isJulkaistavissa
+      val ehdollisestiHyvaksyttavissa = jono.isEhdollisestiHyvaksyttavissa
       val pisteet: Option[BigDecimal] = Option(jono.getPisteet).map((p: java.math.BigDecimal) => new BigDecimal(p))
 
       HakutoiveenSijoitteluntulos(
@@ -130,6 +131,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
         Option(jono.getVarasijojaTaytetaanAsti),
         Option(jono.getVarasijanNumero).map(_.toInt),
         julkaistavissa,
+        ehdollisestiHyvaksyttavissa,
         jono.getTilanKuvaukset.toMap,
         pisteet
       )
@@ -149,6 +151,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
       valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
       val vastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, vastaanottotila)
       val julkaistavissa = jono.isJulkaistavissa
+      val ehdollisestiHyvaksyttavissa = jono.isEhdollisestiHyvaksyttavissa
       val pisteet: Option[BigDecimal] = Option(jono.getPisteet).map((p: java.math.BigDecimal) => new BigDecimal(p))
 
       HakutoiveenSijoitteluntulos(
@@ -167,6 +170,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
         Option(jono.getVarasijojaTaytetaanAsti),
         Option(jono.getVarasijanNumero).map(_.toInt),
         julkaistavissa,
+        ehdollisestiHyvaksyttavissa,
         jono.getTilanKuvaukset.toMap,
         pisteet
       )
