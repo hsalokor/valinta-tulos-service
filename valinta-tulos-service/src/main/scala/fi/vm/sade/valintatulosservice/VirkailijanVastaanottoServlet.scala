@@ -5,6 +5,7 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats.javaObjectToJsonString
 import fi.vm.sade.valintatulosservice.valintarekisteri.VastaanottoRecord
+import org.joda.time.DateTime
 import org.json4s.jackson.Serialization._
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
@@ -153,5 +154,5 @@ case class VastaanottoEventDto(valintatapajonoOid: String, henkiloOid: String, h
   val errorMessages = fieldsWithNames.filter(_._1 == null).map(_._2 + " was null")
   assert(errorMessages.isEmpty, errorMessages.mkString(", "))
 }
-case class VastaanottoAikarajaMennyt(hakemusOid: String, mennyt: Boolean)
+case class VastaanottoAikarajaMennyt(hakemusOid: String, mennyt: Boolean, vastaanottoDeadline: Option[DateTime])
 case class TilaHakijalle(hakemusOid: String, hakukohdeOid: String, valintatapajonoOid: String, tilaHakijalle: String)

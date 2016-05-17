@@ -247,12 +247,13 @@ class SijoittelutulosService(raportointiService: RaportointiService,
   def haeVastaanotonAikarajaTiedot(hakuOid: String, hakukohdeOid: String, hakemusOids: Set[String]): Set[VastaanottoAikarajaMennyt] = {
     def calculateLateness(aikataulu: Option[Vastaanottoaikataulu])(hakijaDto: KevytHakijaDTO): VastaanottoAikarajaMennyt = {
       val hakutoiveDtoOfThisHakukohde: Option[KevytHakutoiveDTO] = hakijaDto.getHakutoiveet.toList.find(_.getHakukohdeOid == hakukohdeOid)
-      val isLate: Boolean = hakutoiveDtoOfThisHakukohde.flatMap { hakutoive: KevytHakutoiveDTO =>
+      val vastaanottoDeadline: Option[DateTime] = hakutoiveDtoOfThisHakukohde.flatMap { hakutoive: KevytHakutoiveDTO =>
         val jono: KevytHakutoiveenValintatapajonoDTO = JonoFinder.merkitseväJono(hakutoive).get
         val viimeisinHakemuksenTilanMuutos: Option[Date] = Option(jono.getHakemuksenTilanViimeisinMuutos)
         laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos)
-      }.exists(new DateTime().isAfter)
-      VastaanottoAikarajaMennyt(hakijaDto.getHakemusOid, isLate)
+      }
+      val isLate: Boolean = vastaanottoDeadline.exists(new DateTime().isAfter)
+      VastaanottoAikarajaMennyt(hakijaDto.getHakemusOid, isLate, vastaanottoDeadline)
     }
 
     import scala.collection.JavaConverters._
