@@ -27,12 +27,13 @@ class HenkiloviiteClient(config: Properties) {
   implicit val henkiloviiteDecoder = org.http4s.json4s.native.jsonOf[Array[Henkiloviite]]
 
   def fetchHenkiloviitteet(): Try[List[Henkiloviite]] = {
-    Try(client.prepare(Request(
+    val request = Request(
       method = Method.GET,
       uri = resourceUrl
-    )).flatMap {
+    )
+    Try(client.prepare(request).flatMap {
       case r if 200 == r.status.code => r.as[Array[Henkiloviite]].map(_.toList)
-      case r => Task.fail(new RuntimeException(resourceUrl + " " + r.toString))
+      case r => Task.fail(new RuntimeException("Request " + request + " failed with response " + r))
     }.run)
   }
 
