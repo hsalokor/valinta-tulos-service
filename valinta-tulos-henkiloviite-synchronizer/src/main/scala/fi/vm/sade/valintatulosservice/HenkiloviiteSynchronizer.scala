@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
+import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.slf4j.LoggerFactory
@@ -8,11 +9,17 @@ import scala.util.{Failure, Success, Try}
 
 case class HenkiloRelation(personOid: String, linkedOid: String)
 
+sealed trait State
+
+case object NotStarted extends State
+case class Started(at: Date) extends State
+case class Stopped(at: Date, result: Try[Unit]) extends State
+
 class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: HenkiloviiteDb) extends Runnable {
 
   private val logger = LoggerFactory.getLogger(classOf[HenkiloviiteSynchronizer])
   private val running: AtomicBoolean = new AtomicBoolean(false)
-  private var lastRunStatus: String = "Not run"
+  private var state: State = NotStarted
 
   def startSync(): Try[Unit] = {
     if(startRunning()) {
@@ -33,24 +40,27 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
     }
   }
 
-  def status(): String = running.get() match {
-    case true => "Running"
-    case false => lastRunStatus
+  def status(): String = state match {
+    case NotStarted => "Not started"
+    case Started(at) => s"Running since $at"
+    case Stopped(at, Success(())) => s"Last run succeeded $at"
+    case Stopped(at, Failure(e)) => s"Last run failed $at: ${e.getMessage}"
   }
 
   private class HenkiloviiteRunnable extends Runnable {
     def run(): Unit = {
-      (for {
+      val result: Try[Unit] = for {
         henkiloviitteetList <- henkiloClient.fetchHenkiloviitteet()
         _ <- db.refresh(henkiloRelations(henkiloviitteetList))
-      } yield ()) match {
+      } yield ()
+      state = Stopped(new Date(), result)
+      result match {
         case Success(_) =>
           logger.info("Henkiloviite sync finished successfully.")
-          stopRunning("OK")
         case Failure(e) =>
           logger.error("Henkiloviite sync failed.", e)
-          stopRunning(s"Not OK. ${e.getMessage}")
       }
+      running.compareAndSet(true, false)
     }
 
     private def relatedHenkilot(henkiloviitteet: Seq[Henkiloviite]): Seq[Seq[String]] = {
@@ -70,12 +80,12 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
   }
 
   private def startRunning(): Boolean = {
-    running.compareAndSet(false, true)
-  }
-
-  private def stopRunning(status:String) = {
-    lastRunStatus = status
-    running.set(false)
+    if (running.compareAndSet(false, true)) {
+      state = Started(new Date())
+      true
+    } else {
+      false
+    }
   }
 }
 
