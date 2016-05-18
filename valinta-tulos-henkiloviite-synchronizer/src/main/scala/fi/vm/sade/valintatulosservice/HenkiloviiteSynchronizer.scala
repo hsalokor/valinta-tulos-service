@@ -10,7 +10,9 @@ case class HenkiloRelation(personOid: String, linkedOid: String)
 
 class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: HenkiloviiteDb) extends Runnable {
 
-  val logger = LoggerFactory.getLogger(classOf[HenkiloviiteSynchronizer])
+  private val logger = LoggerFactory.getLogger(classOf[HenkiloviiteSynchronizer])
+  private val running: AtomicBoolean = new AtomicBoolean(false)
+  private var lastRunStatus: String = "Not run"
 
   def startSync(): Try[Unit] = {
     if(startRunning()) {
@@ -66,9 +68,6 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
       relatedHenkilot(henkiloviitteet).flatMap(allOrderedPairs(_).map(t => HenkiloRelation(t._1, t._2))).toSet
     }
   }
-
-  private val running:AtomicBoolean = new AtomicBoolean(false)
-  private var lastRunStatus:String = "Not run"
 
   private def startRunning(): Boolean = {
     running.compareAndSet(false, true)
