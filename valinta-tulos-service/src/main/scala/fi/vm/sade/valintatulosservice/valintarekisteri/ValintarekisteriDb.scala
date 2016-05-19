@@ -204,16 +204,20 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   private def kumoaVastaanottotapahtumatAction(vastaanottoEvent: VastaanottoEvent) = {
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, _, ilmoittaja, selite) = vastaanottoEvent
-    DBIO.seq(
-      sqlu"""insert into deleted_vastaanotot (poistaja, selite) values ($ilmoittaja, $selite)""",
-      sqlu"""update vastaanotot set deleted = currval('deleted_vastaanotot_id')
-             where vastaanotot.henkilo = $henkiloOid
-                 and vastaanotot.hakukohde = $hakukohdeOid""").transactionally
+    val insertDelete = sqlu"""insert into deleted_vastaanotot (poistaja, selite) values ($ilmoittaja, $selite)"""
+    val updateVastaanotto = sqlu"""update vastaanotot set deleted = currval('deleted_vastaanotot_id')
+                                       where vastaanotot.henkilo = $henkiloOid
+                                           and vastaanotot.hakukohde = $hakukohdeOid
+                                           and vastaanotot.deleted is null"""
+    insertDelete.andThen(updateVastaanotto).flatMap {
+      case 0 =>
+        DBIO.failed(new IllegalStateException(s"No vastaanotto events found for $henkiloOid to hakukohde $hakukohdeOid"))
+      case n =>
+        DBIO.successful(())
+    }.transactionally
   }
 
   override def findHakukohde(oid: String): Option[HakukohdeRecord] = {
-    implicit val getHakukohdeResult = GetResult(r =>
-      HakukohdeRecord(r.nextString(), r.nextString(), r.nextBoolean(), r.nextBoolean(), Kausi(r.nextString())))
     runBlocking(sql"""select hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi
            from hakukohteet
            where hakukohde_oid = $oid
