@@ -1,18 +1,15 @@
 package fi.vm.sade.valintatulosservice
 
-import java.util.Properties
+import java.sql._
 
 import org.slf4j.LoggerFactory
 
-import java.sql._
+import scala.util.{Failure, Success, Try}
 
-import scala.util.{Success, Try, Failure}
-
-class HenkiloviiteDb(dbConfig: Properties) {
-  val user = dbConfig.getProperty("henkiloviite.valintarekisteri.db.user")
-  val password = dbConfig.getProperty("henkiloviite.valintarekisteri.db.password")
-  val url = Option(dbConfig.getProperty("henkiloviite.valintarekisteri.db.url"))
-    .getOrElse(throw new RuntimeException("Configuration henkiloviite.valintarekisteri.db.url is missing"))
+class HenkiloviiteDb(configuration: DbConfiguration) {
+  val user = configuration.user
+  val password = configuration.password
+  val url = configuration.url
 
   val logger = LoggerFactory.getLogger(classOf[HenkiloviiteDb])
 
@@ -25,7 +22,7 @@ class HenkiloviiteDb(dbConfig: Properties) {
     var statement:PreparedStatement = null
 
     try {
-      connection = DriverManager.getConnection(url, user, password)
+      connection = DriverManager.getConnection(url, user.orNull, password.orNull)
       connection.setAutoCommit(false)
 
       logger.debug(s"Emptying henkiloviitteet table")
