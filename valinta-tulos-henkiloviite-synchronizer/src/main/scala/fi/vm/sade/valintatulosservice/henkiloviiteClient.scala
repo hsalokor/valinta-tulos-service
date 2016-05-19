@@ -38,12 +38,12 @@ class HenkiloviiteClient(config: Properties) {
   }
 
   private def parseResourceUrl(): Uri = {
-    val date = config.getProperty("authentication.service.duplicatehenkilos.date")
-    val url = config.getProperty("authentication.service.duplicatehenkilos.url")
+    val date = config.getProperty("henkiloviite.duplicatehenkilos.since")
+    val url = config.getProperty("henkiloviite.duplicatehenkilos.url")
     Try(new SimpleDateFormat("yyyy-MM-dd").parse(date))
-      .getOrElse(throw new RuntimeException(s"Invalid authentication.service.duplicatehenkilos.date $date"))
+      .getOrElse(throw new RuntimeException(s"Invalid henkiloviite.duplicatehenkilos.sincee $date"))
     Try(Uri.fromString(url).map(_.withQueryParam("date", date)).toOption.get)
-      .getOrElse(throw new RuntimeException(s"Invalid authentication.service.duplicatehenkilos.url $url"))
+      .getOrElse(throw new RuntimeException(s"Invalid henkiloviite.duplicatehenkilos.url $url"))
   }
 
   private def getConfiguration(key:String): String = {
@@ -51,9 +51,9 @@ class HenkiloviiteClient(config: Properties) {
   }
 
   private def createCasClient(): CasAuthenticatingClient = {
-    val username = getConfiguration("authentication.service.username")
-    val password = getConfiguration("authentication.service.password")
-    val casUrl = getConfiguration("host.cas")
+    val username = getConfiguration("henkiloviite.username")
+    val password = getConfiguration("henkiloviite.password")
+    val casUrl = getConfiguration("henkiloviite.cas.host")
     val casParams = CasParams("/authentication-service", username, password)
     new CasAuthenticatingClient(
       new CasClient(casUrl, org.http4s.client.blaze.defaultClient),

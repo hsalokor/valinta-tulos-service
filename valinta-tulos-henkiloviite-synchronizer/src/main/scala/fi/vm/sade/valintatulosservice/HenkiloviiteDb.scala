@@ -9,10 +9,10 @@ import java.sql._
 import scala.util.{Success, Try, Failure}
 
 class HenkiloviiteDb(dbConfig: Properties) {
-  val user = dbConfig.getProperty("henkiloviite.database.username")
-  val password = dbConfig.getProperty("henkiloviite.database.password")
-  val url = Option(dbConfig.getProperty("henkiloviite.database.url"))
-    .getOrElse(throw new RuntimeException("Configuration henkiloviite.database.url is missing"))
+  val user = dbConfig.getProperty("henkiloviite.valintarekisteri.db.user")
+  val password = dbConfig.getProperty("henkiloviite.valintarekisteri.db.password")
+  val url = Option(dbConfig.getProperty("henkiloviite.valintarekisteri.db.url"))
+    .getOrElse(throw new RuntimeException("Configuration henkiloviite.valintarekisteri.db.url is missing"))
 
   val logger = LoggerFactory.getLogger(classOf[HenkiloviiteDb])
 
