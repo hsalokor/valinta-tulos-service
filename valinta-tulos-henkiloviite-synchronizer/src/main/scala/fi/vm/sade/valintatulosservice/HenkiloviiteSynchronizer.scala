@@ -51,7 +51,7 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
     def run(): Unit = {
       val result: Try[Unit] = for {
         henkiloviitteetList <- henkiloClient.fetchHenkiloviitteet()
-        _ <- db.refresh(henkiloRelations(henkiloviitteetList))
+        _ <- db.refresh(HenkiloviiteSynchronizer.henkiloRelations(henkiloviitteetList))
       } yield ()
       state = Stopped(new Date(), result)
       result match {
@@ -61,21 +61,6 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
           logger.error("Henkiloviite sync failed.", e)
       }
       running.compareAndSet(true, false)
-    }
-
-    private def relatedHenkilot(henkiloviitteet: Seq[Henkiloviite]): Seq[Seq[String]] = {
-      henkiloviitteet
-        .groupBy(_.masterOid)
-        .map({ case (masterOid, slaves) => (masterOid, masterOid +: slaves.map(_.henkiloOid)) })
-        .values.toSeq
-    }
-
-    private def allOrderedPairs[A](xs: Seq[A]): Seq[(A, A)] = {
-      xs.permutations.map({ case x :: y :: _ => (x, y) }).toSeq
-    }
-
-    private def henkiloRelations(henkiloviitteet: Seq[Henkiloviite]): Set[HenkiloRelation] = {
-      relatedHenkilot(henkiloviitteet).flatMap(allOrderedPairs(_).map(t => HenkiloRelation(t._1, t._2))).toSet
     }
   }
 
@@ -89,4 +74,19 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
   }
 }
 
+object HenkiloviiteSynchronizer {
+  def relatedHenkilot(henkiloviitteet: Seq[Henkiloviite]): Seq[Seq[String]] = {
+    henkiloviitteet
+      .groupBy(_.masterOid)
+      .map({ case (masterOid, slaves) => (masterOid, masterOid +: slaves.map(_.henkiloOid)) })
+      .values.toSeq
+  }
 
+  def allPairs[A](xs: Seq[A]): Seq[(A, A)] = {
+    xs.permutations.map({ case x :: y :: _ => (x, y) }).toSeq
+  }
+
+  def henkiloRelations(henkiloviitteet: Seq[Henkiloviite]): Set[HenkiloRelation] = {
+    relatedHenkilot(henkiloviitteet).flatMap(allPairs(_).map(t => HenkiloRelation(t._1, t._2))).toSet
+  }
+}
