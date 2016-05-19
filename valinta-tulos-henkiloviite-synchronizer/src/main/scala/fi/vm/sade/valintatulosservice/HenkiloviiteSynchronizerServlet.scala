@@ -21,6 +21,8 @@ class HenkiloviiteSynchronizerServlet(henkiloviiteSynchronizer: HenkiloviiteSync
 
   private def writeResponse(status:Int, message:String, response: HttpServletResponse ) = {
     response.setStatus(status)
+    response.setCharacterEncoding("UTF-8")
+    response.setContentType("text/plain")
     response.getOutputStream.println(message)
     response.getOutputStream.close()
   }
