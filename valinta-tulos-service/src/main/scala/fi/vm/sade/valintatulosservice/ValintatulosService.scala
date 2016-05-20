@@ -337,7 +337,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     valintatulokset.foreach(valintaTulos => {
       val hakemuksenTulosOption: Option[Hakemuksentulos] = hakemustenTulokset.get(valintaTulos.getHakemusOid).orElse(
         crashOrLog(s"No hakemuksen tulos found for hakemus ${valintaTulos.getHakemusOid}"))
-      val hakutoiveenTulosOption: Option[Hakutoiveentulos] = hakemuksenTulosOption.flatMap { _.findHakutoive(valintaTulos.getHakukohdeOid) }.orElse(
+      val hakutoiveenTulosOption: Option[Hakutoiveentulos] = hakemuksenTulosOption.flatMap { _.findHakutoive(valintaTulos.getHakukohdeOid).map(_._1) }.orElse(
         crashOrLog(s"No hakutoive found for hakukohde ${valintaTulos.getHakukohdeOid} in hakemus ${valintaTulos.getHakemusOid}"))
 
       val tulosPari: Option[(Hakemuksentulos, Hakutoiveentulos)] = hakemuksenTulosOption.flatMap { hakemuksenTulos => hakutoiveenTulosOption.map((hakemuksenTulos, _)) }

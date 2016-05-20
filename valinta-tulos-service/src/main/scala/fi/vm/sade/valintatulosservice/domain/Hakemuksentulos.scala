@@ -10,7 +10,11 @@ import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
 import fi.vm.sade.valintatulosservice.tarjonta.Haku
 
 case class Hakemuksentulos(hakuOid: String, hakemusOid: String, hakijaOid: String, aikataulu: Option[Vastaanottoaikataulu], hakutoiveet: List[Hakutoiveentulos]) {
-  def findHakutoive(hakukohdeOid: String): Option[Hakutoiveentulos] = hakutoiveet.find(_.hakukohdeOid == hakukohdeOid)
+  def findHakutoive(hakukohdeOid: String): Option[(Hakutoiveentulos, Int)] =
+    (for {
+      (toive, indeksi) <- hakutoiveet.zipWithIndex
+      if toive.hakukohdeOid == hakukohdeOid
+    } yield (toive, indeksi + 1)).headOption
 }
 
 case class Hakutoiveentulos(hakukohdeOid: String,

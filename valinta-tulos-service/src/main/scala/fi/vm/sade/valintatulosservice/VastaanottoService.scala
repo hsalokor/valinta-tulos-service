@@ -57,13 +57,13 @@ class VastaanottoService(hakuService: HakuService,
     }).toList
   }
 
-  private def checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot: Boolean = true)(vastaanotto: VirkailijanVastaanotto): Try[Hakutoiveentulos] = {
+  private def checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot: Boolean = true)(vastaanotto: VirkailijanVastaanotto): Try[(Hakutoiveentulos, Int)] = {
     for {
       hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
       _ <- vastaanotto.action match {
         case VastaanotaSitovasti | VastaanotaEhdollisesti if tarkistaAiemmatVastaanotot =>
           Try { hakijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)) }
-        case MerkitseMyohastyneeksi => tarkistaHakijakohtainenDeadline(hakutoive)
+        case MerkitseMyohastyneeksi => tarkistaHakijakohtainenDeadline(hakutoive._1)
         case Peru => Success(())
         case VastaanotaSitovasti | VastaanotaEhdollisesti => Success(())
         case Peruuta => Success(())
@@ -94,18 +94,19 @@ class VastaanottoService(hakuService: HakuService,
 
   private def tallenna(vastaanotto: VirkailijanVastaanotto): Try[VastaanottoResult] = {
     (for {
-      hakutoive <- checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = true)(vastaanotto)
+      hakutoiveJaJarjestysNumero <- checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = true)(vastaanotto)
       _ <- Try {
         hakukohdeRecordService.getHakukohdeRecord(vastaanotto.hakukohdeOid)
         hakijaVastaanottoRepository.store(vastaanotto)
       }
       _ <- Try {
+        val hakutoiveenJarjestysNumero = hakutoiveJaJarjestysNumero._2
 
         val createMissingValintatulos: Unit => Valintatulos = Unit => new Valintatulos(vastaanotto.valintatapajonoOid,
-          vastaanotto.hakemusOid, vastaanotto.hakukohdeOid, vastaanotto.henkiloOid, vastaanotto.hakuOid,1)
+          vastaanotto.hakemusOid, vastaanotto.hakukohdeOid, vastaanotto.henkiloOid, vastaanotto.hakuOid, hakutoiveenJarjestysNumero)
 
         valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid, vastaanotto.valintatapajonoOid, vastaanotto.hakemusOid, createMissingValintatulos) { valintatulos =>
-          valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
+          valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoiveJaJarjestysNumero._1.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
         }
       }
     } yield {
@@ -128,7 +129,7 @@ class VastaanottoService(hakuService: HakuService,
 
   def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Try[Unit] = {
     for {
-      hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+      hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid).map(_._1)
       _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
     } yield {
       hakukohdeRecordService.getHakukohdeRecord(vastaanotto.hakukohdeOid)
@@ -139,7 +140,7 @@ class VastaanottoService(hakuService: HakuService,
     }
   }
 
-  private def findHakutoive(hakemusOid: String, hakukohdeOid: String): Try[Hakutoiveentulos] = {
+  private def findHakutoive(hakemusOid: String, hakukohdeOid: String): Try[(Hakutoiveentulos, Int)] = {
     Try {
       val hakuOid = hakuService.getHakukohde(hakukohdeOid).getOrElse(throw new IllegalArgumentException(s"Tuntematon hakukohde $hakukohdeOid")).hakuOid
       val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
