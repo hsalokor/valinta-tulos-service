@@ -14,10 +14,8 @@ class HenkiloRelationSpec extends Specification {
           Henkiloviite("master2", "slave2")
         )
       )
-      related.find(_.contains("master1")) must beSome[Seq[String]]
-      related.find(_.contains("master2")) must beSome[Seq[String]]
-      related.find(_.contains("master1")).get must contain("slave1")
-      related.find(_.contains("master2")).get must contain("slave2")
+      related.find(_.contains("master1")) must beSome((_: Seq[String]) must contain("slave1"))
+      related.find(_.contains("master2")) must beSome((_: Seq[String]) must contain("slave2"))
     }
     "returns a seqs that contain master with all slaves" >> {
       val related = HenkiloviiteSynchronizer.relatedHenkilot(
@@ -27,20 +25,16 @@ class HenkiloRelationSpec extends Specification {
           Henkiloviite("master2", "slave3")
         )
       )
-      val master1 = related.find(_.contains("master1"))
-      master1 must beSome[Seq[String]]
-      master1.get must contain("slave2")
-      master1.get must not contain("slave3")
+      related.find(_.contains("master1")) must beSome((_: Seq[String]) must (contain("slave1", "slave2") and not(contain("slave3"))))
     }
   }
   "allPairs" >> {
     val pairs = HenkiloviiteSynchronizer.allPairs(List("A", "B", "C"))
-    pairs must contain(("A", "B"))
-    pairs must contain(("B", "A"))
-    pairs must contain(("A", "C"))
-    pairs must contain(("C", "A"))
-    pairs must contain(("B", "C"))
-    pairs must contain(("C", "B"))
+    pairs must contain(
+      ("A", "B"), ("B", "A"),
+      ("A", "C"), ("C", "A"),
+      ("B", "C"), ("C", "B")
+    )
   }
   "henkiloRelations" >> {
     val relations = HenkiloviiteSynchronizer.henkiloRelations(List(
@@ -51,19 +45,13 @@ class HenkiloRelationSpec extends Specification {
       Henkiloviite("master2", "slave5"),
       Henkiloviite("master3", "slave6")
     ))
-    relations must contain(HenkiloRelation("master1", "slave1"))
-    relations must contain(HenkiloRelation("slave1", "master1"))
-    relations must contain(HenkiloRelation("master1", "slave2"))
-    relations must contain(HenkiloRelation("slave2", "master1"))
-    relations must contain(HenkiloRelation("master1", "slave3"))
-    relations must contain(HenkiloRelation("slave3", "master1"))
+    relations must contain(HenkiloRelation("master1", "slave1"), HenkiloRelation("slave1", "master1"))
+    relations must contain(HenkiloRelation("master1", "slave2"), HenkiloRelation("slave2", "master1"))
+    relations must contain(HenkiloRelation("master1", "slave3"), HenkiloRelation("slave3", "master1"))
 
-    relations must contain(HenkiloRelation("master2", "slave4"))
-    relations must contain(HenkiloRelation("slave4", "master2"))
-    relations must contain(HenkiloRelation("master2", "slave5"))
-    relations must contain(HenkiloRelation("slave5", "master2"))
+    relations must contain(HenkiloRelation("master2", "slave4"), HenkiloRelation("slave4", "master2"))
+    relations must contain(HenkiloRelation("master2", "slave5"), HenkiloRelation("slave5", "master2"))
 
-    relations must contain(HenkiloRelation("master3", "slave6"))
-    relations must contain(HenkiloRelation("slave6", "master3"))
+    relations must contain(HenkiloRelation("master3", "slave6"), HenkiloRelation("slave6", "master3"))
   }
 }
