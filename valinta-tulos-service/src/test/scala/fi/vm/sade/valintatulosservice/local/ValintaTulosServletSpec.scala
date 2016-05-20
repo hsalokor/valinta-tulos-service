@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice.local
 
+import fi.vm.sade.security.mock.MockSecurityContext
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
@@ -284,7 +285,7 @@ class ValintaTulosServletSpec extends ServletSpecification {
   }
 
   def getTicket = {
-    val ticket = appConfig.securityContext.casClient.ticketFor(appConfig.settings.securitySettings.casServiceIdentifier, "testuser")
+    val ticket = MockSecurityContext.ticketFor(appConfig.settings.securitySettings.casServiceIdentifier, "testuser")
     ticket
   }
 

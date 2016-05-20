@@ -14,8 +14,8 @@ class MockSecurityContext(val casServiceIdentifier: String, val requiredLdapRole
 
   val casClient = new CasClient("", fakeHttpClient) {
     override def validateServiceTicket(service : scala.Predef.String)(ticket : fi.vm.sade.utils.cas.CasClient.ST): Task[Username] = {
-      if (ticket.startsWith(ticketPrefix(service))) {
-        val username = ticket.stripPrefix(ticketPrefix(service))
+      if (ticket.startsWith(MockSecurityContext.ticketPrefix(service))) {
+        val username = ticket.stripPrefix(MockSecurityContext.ticketPrefix(service))
         Task.now(username)
       } else {
         Task.fail(new RuntimeException("unrecognized ticket: " + ticket))
@@ -23,10 +23,6 @@ class MockSecurityContext(val casServiceIdentifier: String, val requiredLdapRole
     }
 
     override def getServiceTicket(service : org.http4s.Uri)(tgtUrl : fi.vm.sade.utils.cas.CasClient.TGTUrl): Task[ST] = Task.now(service.toString())
-
-    def ticketFor(service: String, username: String) = ticketPrefix(service) + username
-
-    private def ticketPrefix(service: String) = "mock-ticket-" + service + "-"
   }
 
   private def fakeHttpClient: Client = new Client {
@@ -40,3 +36,7 @@ class MockSecurityContext(val casServiceIdentifier: String, val requiredLdapRole
   }
 }
 
+object MockSecurityContext {
+  def ticketFor(service: String, username: String) = ticketPrefix(service) + username
+  private def ticketPrefix(service: String) = "mock-ticket-" + service + "-"
+}
