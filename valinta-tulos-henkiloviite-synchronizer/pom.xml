@@ -296,7 +296,8 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <executable>build_deploy_zip.sh</executable>
+                    <executable>${project.basedir}/build_deploy_zip.sh</executable>
+                    <workingDirectory>${project.basedir}</workingDirectory>
                 </configuration>
             </plugin>
         </plugins>
