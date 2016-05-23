@@ -3,14 +3,17 @@ package fi.vm.sade.valintatulosservice
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 
-import fi.vm.sade.utils.cas.{CasAuthenticatingClient, CasClient, CasParams}
-import org.http4s.{Method, Request, Uri}
+import fi.vm.sade.utils.cas.{CasAuthenticatingMiddleware, CasClient, CasParams}
+import org.http4s.Status.ResponseClass.Successful
+import org.http4s.client.Client
+import org.http4s.{Method, Request}
 import org.json4s.DefaultReaders.StringReader
 import org.json4s.JsonAST.JValue
 import org.json4s.Reader
 
 import scala.concurrent.duration.Duration
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
+import scalaz.{-\/, \/-}
 import scalaz.concurrent.Task
 
 case class Henkiloviite(masterOid: String, henkiloOid: String)
@@ -33,16 +36,20 @@ class HenkiloviiteClient(configuration: AuthenticationConfiguration) {
       method = Method.GET,
       uri = resourceUrl
     )
-    Try(client.prepare(request).flatMap {
-      case r if 200 == r.status.code => r.as[Array[Henkiloviite]].map(_.toList)
-      case r => Task.fail(new RuntimeException("Request " + request + " failed with response " + r))
-    }.runFor(Duration(1, TimeUnit.MINUTES)))
+    client.fetch(request) {
+      case Successful(response) => response.as[Array[Henkiloviite]].map(_.toList)
+      case response => Task.fail(new RuntimeException(s"Request $request failed with response $response"))
+    }.unsafePerformSyncAttemptFor(Duration(1, TimeUnit.MINUTES)) match {
+      case -\/(t) => Failure(t)
+      case \/-(x) => Success(x)
+    }
   }
 
-  private def createCasClient(): CasAuthenticatingClient = {
+  private def createCasClient(): Client = {
     val casParams = CasParams("/authentication-service", configuration.cas.user, configuration.cas.password)
-    new CasAuthenticatingClient(
+    CasAuthenticatingMiddleware(
       new CasClient(configuration.cas.host, org.http4s.client.blaze.defaultClient),
-      casParams, org.http4s.client.blaze.defaultClient)
+      casParams
+    )(org.http4s.client.blaze.defaultClient)
   }
 }
