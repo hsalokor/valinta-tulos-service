@@ -48,6 +48,7 @@ object HenkiloviiteSynchronizerApp {
     config.startHour.map(hoursUntilSchedulerStart) match {
       case Some(delay) =>
         scheduler.scheduleAtFixedRate(synchronizer, delay, 24, TimeUnit.HOURS)
+        logger.info(s"Scheduled synchronization started, next synchronization in $delay hours.")
       case None =>
         logger.warn("Scheduler start hour not given, scheduled synchronization not started.")
     }
