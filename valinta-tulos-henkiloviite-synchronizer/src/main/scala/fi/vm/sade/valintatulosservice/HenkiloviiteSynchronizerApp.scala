@@ -5,8 +5,7 @@ import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
 import ch.qos.logback.access.jetty.RequestLogImpl
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.handler.ContextHandler
-import org.eclipse.jetty.servlet.{ServletHandler, ServletHolder}
+import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.slf4j.LoggerFactory
 
 object HenkiloviiteSynchronizerApp {
@@ -20,10 +19,9 @@ object HenkiloviiteSynchronizerApp {
     val servlet = new HenkiloviiteSynchronizerServlet(synchronizer)
 
     val server = new Server(config.port)
-    val context = new ContextHandler("/valinta-tulos-henkiloviite-synchronizer")
-    val servletHandler = new ServletHandler
-    servletHandler.addServletWithMapping(new ServletHolder(servlet), "/*")
-    context.setHandler(servletHandler)
+    val context = new ServletContextHandler()
+    context.setContextPath("/valinta-tulos-henkiloviite-synchronizer")
+    context.addServlet(new ServletHolder(servlet), "/*")
     server.setHandler(context)
 
     val requestLog = new RequestLogImpl
