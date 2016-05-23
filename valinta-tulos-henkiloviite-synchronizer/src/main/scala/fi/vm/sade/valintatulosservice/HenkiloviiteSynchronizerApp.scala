@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice
 import java.util.Calendar
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
+import ch.qos.logback.access.jetty.RequestLogImpl
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.servlet.{ServletHandler, ServletHolder}
@@ -24,6 +25,10 @@ object HenkiloviiteSynchronizerApp {
     servletHandler.addServletWithMapping(new ServletHolder(servlet), "/*")
     context.setHandler(servletHandler)
     server.setHandler(context)
+
+    val requestLog = new RequestLogImpl
+    requestLog.setFileName(config.accessLogConfigPath)
+    server.setRequestLog(requestLog)
 
     val synchronizerScheduler = startScheduledSynchronization(config.scheduler, synchronizer)
     Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {

@@ -14,6 +14,7 @@ case class AuthenticationConfiguration(since: Date, url: Uri, cas: CasConfigurat
 case class CasConfiguration(user: String, password: String, host: String)
 case class SchedulerConfiguration(startHour: Option[Long])
 case class Configuration(port: Int,
+                         accessLogConfigPath: String,
                          db: DbConfiguration,
                          authentication: AuthenticationConfiguration,
                          scheduler: SchedulerConfiguration)
@@ -32,6 +33,7 @@ object Configuration {
     }
     Configuration(
       getInt(properties, "henkiloviite.port"),
+      getString(properties, "logback.access"),
       readDb(properties),
       readAuthentication(properties),
       readScheduler(properties)
