@@ -4,6 +4,7 @@ import java.util.Calendar
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
 import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.servlet.{ServletHandler, ServletHolder}
 import org.slf4j.LoggerFactory
 
@@ -18,9 +19,11 @@ object HenkiloviiteSynchronizerApp {
     val servlet = new HenkiloviiteSynchronizerServlet(synchronizer)
 
     val server = new Server(config.port)
+    val context = new ContextHandler("/valinta-tulos-henkiloviite-synchronizer")
     val servletHandler = new ServletHandler
-    server.setHandler(servletHandler)
     servletHandler.addServletWithMapping(new ServletHolder(servlet), "/*")
+    context.setHandler(servletHandler)
+    server.setHandler(context)
 
     val synchronizerScheduler = startScheduledSynchronization(config.scheduler, synchronizer)
     Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
