@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 
-import fi.vm.sade.utils.cas.{CasAuthenticatingMiddleware, CasClient, CasParams}
+import fi.vm.sade.utils.cas.{CasAuthenticatingClient, CasClient, CasParams}
 import org.http4s.Status.ResponseClass.Successful
 import org.http4s.client.Client
 import org.http4s.{Method, Request}
@@ -12,8 +12,7 @@ import org.json4s.JsonAST.JValue
 import org.json4s.Reader
 
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success, Try}
-import scalaz.{-\/, \/-}
+import scala.util.Try
 import scalaz.concurrent.Task
 
 case class Henkiloviite(masterOid: String, henkiloOid: String)
@@ -36,20 +35,19 @@ class HenkiloviiteClient(configuration: AuthenticationConfiguration) {
       method = Method.GET,
       uri = resourceUrl
     )
-    client.fetch(request) {
+    Try(client.fetch(request) {
       case Successful(response) => response.as[Array[Henkiloviite]].map(_.toList)
       case response => Task.fail(new RuntimeException(s"Request $request failed with response $response"))
-    }.unsafePerformSyncAttemptFor(Duration(1, TimeUnit.MINUTES)) match {
-      case -\/(t) => Failure(t)
-      case \/-(x) => Success(x)
-    }
+    }.unsafePerformSyncFor(Duration(1, TimeUnit.MINUTES)))
   }
 
   private def createCasClient(): Client = {
     val casParams = CasParams("/authentication-service", configuration.cas.user, configuration.cas.password)
-    CasAuthenticatingMiddleware(
+    CasAuthenticatingClient(
       new CasClient(configuration.cas.host, org.http4s.client.blaze.defaultClient),
-      casParams
-    )(org.http4s.client.blaze.defaultClient)
+      casParams,
+      org.http4s.client.blaze.defaultClient,
+      null
+    )
   }
 }
