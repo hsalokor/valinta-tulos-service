@@ -324,16 +324,31 @@
                 <version>1.5.0</version>
                 <executions>
                     <execution>
+                        <id>buildversion properties</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${project.basedir}/set_buildversion_properties.sh</executable>
+                            <arguments>
+                                <argument>${project.build.outputDirectory}/oph-configuration/valinta-tulos-henkiloviite-synchronizer.properties.template</argument>
+                                <argument>${project.version}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>deploy zip</id>
                         <phase>package</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
+                        <configuration>
+                            <executable>${project.basedir}/build_deploy_zip.sh</executable>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <executable>${project.basedir}/build_deploy_zip.sh</executable>
-                    <workingDirectory>${project.basedir}</workingDirectory>
-                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -4,7 +4,7 @@ import java.util.Calendar
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
 import ch.qos.logback.access.jetty.RequestLogImpl
-import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.{RequestLog, Server}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.slf4j.LoggerFactory
 
@@ -17,16 +17,16 @@ object HenkiloviiteSynchronizerApp {
     val db = new HenkiloviiteDb(config.db)
     val synchronizer = new HenkiloviiteSynchronizer(henkiloviiteClient, db)
     val servlet = new HenkiloviiteSynchronizerServlet(synchronizer)
+    val buildversionServlet = new BuildversionServlet(config.buildversion)
 
     val server = new Server(config.port)
-    val context = new ServletContextHandler()
-    context.setContextPath("/valinta-tulos-henkiloviite-synchronizer")
-    context.addServlet(new ServletHolder(servlet), "/*")
-    server.setHandler(context)
+    val servletContext = new ServletContextHandler()
+    servletContext.setContextPath("/valinta-tulos-henkiloviite-synchronizer")
+    servletContext.addServlet(new ServletHolder(buildversionServlet), "/buildversion.txt")
+    servletContext.addServlet(new ServletHolder(servlet), "/*")
+    server.setHandler(servletContext)
 
-    val requestLog = new RequestLogImpl
-    requestLog.setFileName(config.accessLogConfigPath)
-    server.setRequestLog(requestLog)
+    server.setRequestLog(requestLog(config))
 
     val synchronizerScheduler = startScheduledSynchronization(config.scheduler, synchronizer)
     Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
@@ -37,6 +37,12 @@ object HenkiloviiteSynchronizerApp {
     }))
     server.start()
     server.join()
+  }
+
+  private def requestLog(config: Configuration): RequestLog = {
+    val requestLog = new RequestLogImpl
+    requestLog.setFileName(config.accessLogConfigPath)
+    requestLog
   }
 
   private def hoursUntilSchedulerStart(startHour: Long): Long = {
