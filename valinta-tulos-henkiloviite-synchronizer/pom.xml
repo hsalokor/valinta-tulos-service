@@ -247,6 +247,7 @@
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_2.11</artifactId>
             <version>3.7</version>
+            <scope>test</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.scala-lang</groupId>
