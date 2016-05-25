@@ -22,7 +22,7 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
   private var state: State = NotStarted
 
   def startSync(): Try[Unit] = {
-    if(startRunning()) {
+    if (startRunning()) {
       logger.info("Starting henkiloviite sync.")
       Try(new Thread(new HenkiloviiteRunnable).start())
     } else {
@@ -32,7 +32,7 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
   }
 
   def run(): Unit = {
-    if(startRunning()) {
+    if (startRunning()) {
       logger.info("Starting henkiloviite sync by scheduler.")
       (new HenkiloviiteRunnable).run()
     } else {
