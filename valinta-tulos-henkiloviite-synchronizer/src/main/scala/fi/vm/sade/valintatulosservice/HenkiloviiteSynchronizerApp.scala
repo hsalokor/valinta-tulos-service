@@ -16,7 +16,7 @@ object HenkiloviiteSynchronizerApp {
     val henkiloviiteClient = new HenkiloviiteClient(config.authentication)
     val db = new HenkiloviiteDb(config.db)
     val synchronizer = new HenkiloviiteSynchronizer(henkiloviiteClient, db)
-    val servlet = new HenkiloviiteSynchronizerServlet(synchronizer)
+    val servlet = new HenkiloviiteSynchronizerServlet(synchronizer, config.scheduler.intervalHours)
     val buildversionServlet = new BuildversionServlet(config.buildversion)
 
     val server = new Server(config.port)
@@ -54,12 +54,12 @@ object HenkiloviiteSynchronizerApp {
   private def startScheduledSynchronization(config: SchedulerConfiguration,
                                             synchronizer: HenkiloviiteSynchronizer): ScheduledThreadPoolExecutor = {
     val scheduler = new ScheduledThreadPoolExecutor(1)
-    config.startHour.map(hoursUntilSchedulerStart) match {
-      case Some(delay) =>
-        scheduler.scheduleAtFixedRate(synchronizer, delay, 24, TimeUnit.HOURS)
+    (config.startHour.map(hoursUntilSchedulerStart), config.intervalHours) match {
+      case (Some(delay), Some(interval)) =>
+        scheduler.scheduleAtFixedRate(synchronizer, delay, interval, TimeUnit.HOURS)
         logger.info(s"Scheduled synchronization started, next synchronization in $delay hours.")
-      case None =>
-        logger.warn("Scheduler start hour not given, scheduled synchronization not started.")
+      case (_, _) =>
+        logger.warn("Scheduler start hour or run interval not given, scheduled synchronization not started.")
     }
     scheduler
   }
