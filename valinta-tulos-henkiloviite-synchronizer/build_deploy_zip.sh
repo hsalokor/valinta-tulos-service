@@ -13,6 +13,6 @@ JAR=( ./*jar-with-dependencies.jar )
 cp "${JAR[0]}" "${SERVICE}.jar"
 zip -m "${ZIP}" "${SERVICE}.jar"
 cd -
-cd ./src/main/resources
+cd target/classes
 zip -r "${ZIP}" oph-configuration
 cd -
