@@ -12,7 +12,11 @@ set_property() {
     sed -ri "s/($1)=.*/\1=$2/" "${PROPERTIES}"
     if ! grep -q "$1" "${PROPERTIES}"
     then
-        printf "$1=%s\n" "$2" >> "${PROPERTIES}"
+        ENTRY=`printf "$1=%s\n" "$2"`
+        echo "$(basename $0): Writing $ENTRY to $PROPERTIES"
+        echo "$ENTRY" >> "${PROPERTIES}"
+    else
+        echo "$(basename $0): Skipping $ENTRY already in $PROPERTIES"
     fi
 }
 
