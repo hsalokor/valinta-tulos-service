@@ -1,0 +1,63 @@
+{
+  "accessRights": {
+    "update": true,
+    "create": true,
+    "delete": true
+  },
+  "result": {
+    "modified": 1463120721107,
+    "modifiedBy": "1.2.246.562.24.39416139413",
+    "oid": "1.2.246.562.29.75203638285",
+    "hakukausiUri": "kausi_k#1",
+    "hakukausiVuosi": 2016,
+    "hakutapaUri": "hakutapa_02#1",
+    "hakutyyppiUri": "hakutyyppi_01#1",
+    "kohdejoukkoUri": "haunkohdejoukko_12#1",
+    "kohdejoukonTarkenne": "haunkohdejoukontarkenne_1#1",
+    "koulutuksenAlkamisVuosi": 2016,
+    "koulutuksenAlkamiskausiUri": "kausi_s#1",
+    "tila": "JULKAISTU",
+    "ylioppilastutkintoAntaaHakukelpoisuuden": false,
+    "hakukohdeOidsYlioppilastutkintoAntaaHakukelpoisuuden": [],
+    "sijoittelu": false,
+    "jarjestelmanHakulomake": true,
+    "hakuaikas": [
+      {
+        "hakuaikaId": "7046036",
+        "alkuPvm": 1460437200000,
+        "loppuPvm": 1462276800000,
+        "nimet": {
+          "kieli_sv": "",
+          "kieli_fi": "Foo siirtohaku kevät 2016",
+          "kieli_en": ""
+        }
+      }
+    ],
+    "hakukohdeOids": [
+      "1.2.246.562.20.29983577775"
+    ],
+    "nimi": {
+      "kieli_sv": "Lapin yliopiston siirtohaku kevät 2016",
+      "kieli_fi": "Lapin yliopiston siirtohaku kevät 2016",
+      "kieli_en": "Lapin yliopiston siirtohaku kevät 2016"
+    },
+    "maxHakukohdes": 10,
+    "organisaatioOids": [
+      "1.2.246.562.10.12565036949"
+    ],
+    "tarjoajaOids": [
+      "1.2.246.562.10.12565036949"
+    ],
+    "usePriority": false,
+    "sisaltyvatHaut": [],
+    "organisaatioryhmat": [],
+    "koulutusmoduuliTyyppi": "TUTKINTO",
+    "opintopolunNayttaminenLoppuu": "2016-09-20",
+    "maksumuuriKaytossa": false,
+    "yhdenPaikanSaanto": {
+      "voimassa": false,
+      "syy": "Kohdejoukon tarkenne on 'haunkohdejoukontarkenne_1#1', sääntö on voimassa tarkenteille [haunkohdejoukontarkenne_3#]"
+    }
+  },
+  "status": "OK"
+}
