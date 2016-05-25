@@ -23,7 +23,7 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
 
   def startSync(): Try[Unit] = {
     if (startRunning()) {
-      logger.info("Starting henkiloviite sync.")
+      logger.info("Starting henkiloviite sync manually.")
       Try(new Thread(new HenkiloviiteRunnable).start())
     } else {
       logger.warn("Attempt to start henkiloviite sync while already running.")
@@ -44,6 +44,7 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
 
   private class HenkiloviiteRunnable extends Runnable {
     def run(): Unit = {
+      logger.info("Henkiloviite sync starts.")
       val result: Try[Unit] = for {
         henkiloviitteetList <- henkiloClient.fetchHenkiloviitteet()
         _ <- db.refresh(HenkiloviiteSynchronizer.henkiloRelations(henkiloviitteetList))
