@@ -46,9 +46,9 @@ object HenkiloviiteSynchronizerApp {
   }
 
   private def hoursUntilSchedulerStart(startHour: Long): Long = {
-        val hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        if (hourOfDay < startHour) startHour - hourOfDay
-        else 24 - hourOfDay + startHour
+    val hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    if (hourOfDay < startHour) startHour - hourOfDay
+    else 24 - hourOfDay + startHour
   }
 
   private def startScheduledSynchronization(config: SchedulerConfiguration,

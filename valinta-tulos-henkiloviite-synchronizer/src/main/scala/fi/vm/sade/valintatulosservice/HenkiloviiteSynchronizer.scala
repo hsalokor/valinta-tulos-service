@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
-import java.util.Date
+import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.slf4j.LoggerFactory
@@ -12,8 +12,8 @@ case class HenkiloRelation(personOid: String, linkedOid: String)
 sealed trait State
 
 case object NotStarted extends State
-case class Started(at: Date) extends State
-case class Stopped(at: Date, result: Try[Unit]) extends State
+case class Started(at: LocalDateTime) extends State
+case class Stopped(at: LocalDateTime, result: Try[Unit]) extends State
 
 class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: HenkiloviiteDb) extends Runnable {
 
@@ -40,12 +40,7 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
     }
   }
 
-  def status(): String = state match {
-    case NotStarted => "Not started"
-    case Started(at) => s"Running since $at"
-    case Stopped(at, Success(())) => s"Last run succeeded $at"
-    case Stopped(at, Failure(e)) => s"Last run failed $at: ${e.getMessage}"
-  }
+  def getState: State = state
 
   private class HenkiloviiteRunnable extends Runnable {
     def run(): Unit = {
@@ -53,7 +48,7 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
         henkiloviitteetList <- henkiloClient.fetchHenkiloviitteet()
         _ <- db.refresh(HenkiloviiteSynchronizer.henkiloRelations(henkiloviitteetList))
       } yield ()
-      state = Stopped(new Date(), result)
+      state = Stopped(LocalDateTime.now(), result)
       result match {
         case Success(_) =>
           logger.info("Henkiloviite sync finished successfully.")
@@ -66,7 +61,7 @@ class HenkiloviiteSynchronizer(henkiloClient: HenkiloviiteClient, db: Henkilovii
 
   private def startRunning(): Boolean = {
     if (running.compareAndSet(false, true)) {
-      state = Started(new Date())
+      state = Started(LocalDateTime.now())
       true
     } else {
       false
