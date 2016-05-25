@@ -10,6 +10,7 @@
 
     <modules>
       <module>valinta-tulos-service</module>
+      <module>valinta-tulos-henkiloviite-synchronizer</module>
     </modules>
 
     <repositories>

@@ -161,7 +161,7 @@ object AppConfig extends Logging {
   }
 
   trait MockSecurity extends AppConfig {
-    lazy val securityContext = {
+    lazy val securityContext: SecurityContext = {
       new MockSecurityContext(
         settings.securitySettings.casServiceIdentifier,
         settings.securitySettings.requiredLdapRoles,
