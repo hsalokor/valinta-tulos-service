@@ -4,7 +4,7 @@ shopt -s nullglob
 
 PROPERTIES=$1
 VERSION=$2
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
+BRANCH=$(git rev-parse --abbrev-ref HEAD | sed 's+/+-+g')
 COMMIT=$(git rev-parse HEAD)
 TIMESTAMP=$(date --iso-8601=seconds)
 
