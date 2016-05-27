@@ -86,26 +86,30 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
       }
     })
     val findVastaanottos =
-      sql"""with new_vastaanotot as (
-                select henkilo, "timestamp", koulutuksen_alkamiskausi
-                from newest_vastaanotot
-                    join person_oids on person_oids.oid = newest_vastaanotot.henkilo
-                where newest_vastaanotot.kk_tutkintoon_johtava
+      sql"""with query_oids as (
+                select oid as query_oid, oid as alias_oid
+                from person_oids
+                union
+                select person_oid as query_oid, linked_oid as alias_oid
+                from henkiloviitteet hv
+                join person_oids on person_oids.oid = hv.person_oid),
+            new_vastaanotot as (
+                select distinct on (query_oids.query_oid, hakukohde) query_oids.query_oid as henkilo, "timestamp", koulutuksen_alkamiskausi, action
+                from vastaanotot
+                    join query_oids on query_oids.alias_oid = vastaanotot.henkilo
+                    join hakukohteet hk on hk.hakukohde_oid = vastaanotot.hakukohde
+                where hk.kk_tutkintoon_johtava and deleted is null
+                order by query_oids.query_oid, hakukohde, id desc
             ),
             old_vastaanotot as (
-                select person_oids.oid as henkilo, "timestamp", koulutuksen_alkamiskausi
+                select query_oids.query_oid as henkilo, "timestamp", koulutuksen_alkamiskausi
                 from vanhat_vastaanotot
-                    join henkiloviitteet on henkiloviitteet.linked_oid = vanhat_vastaanotot.henkilo
-                    join person_oids on person_oids.oid = henkiloviitteet.person_oid
+                    join query_oids on query_oids.alias_oid = vanhat_vastaanotot.henkilo
                 where vanhat_vastaanotot.kk_tutkintoon_johtava
-                union
-                select henkilo, "timestamp", koulutuksen_alkamiskausi
-                from vanhat_vastaanotot
-                where henkilo in (select oid from person_oids)
-                    and vanhat_vastaanotot.kk_tutkintoon_johtava
             )
             select person_oids.oid, min(all_vastaanotot."timestamp") from person_oids
-            left join ((select henkilo, "timestamp", koulutuksen_alkamiskausi from new_vastaanotot)
+            left join ((select henkilo, "timestamp", koulutuksen_alkamiskausi from new_vastaanotot
+                            where action in ('VastaanotaSitovasti', 'VastaanotaEhdollisesti'))
                        union
                        (select henkilo, "timestamp", koulutuksen_alkamiskausi from old_vastaanotot)) as all_vastaanotot
                 on all_vastaanotot.henkilo = person_oids.oid
