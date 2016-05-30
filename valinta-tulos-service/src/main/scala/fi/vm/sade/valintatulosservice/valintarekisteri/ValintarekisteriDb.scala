@@ -194,8 +194,14 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   private def tallennaVastaanottoTapahtumaAction(vastaanottoEvent: VastaanottoEvent): DBIO[Unit] = {
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, action, ilmoittaja, selite) = vastaanottoEvent
-    sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, selite)
-              values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite)"""
+    DBIO.seq(
+      sqlu"""update vastaanotot set deleted = overriden_vastaanotto_deleted_id()
+                 where henkilo = ${henkiloOid}
+                     and hakukohde = ${hakukohdeOid}
+                     and deleted is null""",
+      sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, selite)
+             values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite)""")
+      .transactionally
   }
 
   private def kumoaVastaanottotapahtumatAction(vastaanottoEvent: VastaanottoEvent): DBIO[Unit] = {

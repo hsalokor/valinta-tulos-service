@@ -654,7 +654,7 @@ class VastaanottoServiceSpec extends ITSpecification with TimeWarp with ThrownMe
       ))
       val hakemuksentulos = hakemuksenTulos(hakuOid, hakemusOid)
       vastaanotonTulos match {
-        case Failure(cae: ConflictingAcceptancesException) => cae.conflictingVastaanottos.map(_.hakukohdeOid) must_== Vector(alinHyvaksyttyHakutoiveOid, ylempiHakutoiveOid)
+        case Failure(cae: ConflictingAcceptancesException) => cae.conflictingVastaanottos.map(_.hakukohdeOid) must_== Vector(ylempiHakutoiveOid, alinHyvaksyttyHakutoiveOid)
         case x => fail(s"Should have failed on several conflicting records but got $x")
       }
 
