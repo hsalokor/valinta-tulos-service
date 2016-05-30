@@ -33,3 +33,6 @@ create or replace view newest_vastaanotto_events as
     order by id;
 
 alter view newest_vastaanotto_events owner to oph;
+
+create index vastaanotot_deleted_idx on vastaanotot using btree (deleted);
+create index vastaanotot_hakukohde_idx on vastaanotot using btree (hakukohde);
