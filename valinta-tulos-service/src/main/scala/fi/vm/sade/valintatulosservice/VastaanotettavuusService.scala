@@ -2,7 +2,8 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, HakukohdeRecordService, VastaanottoRecord}
-import slick.dbio.{DBIO, DBIOAction, Effect, NoStream}
+import slick.dbio.{DBIO, DBIOAction}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class VastaanotettavuusService(hakukohdeRecordService: HakukohdeRecordService,
@@ -19,7 +20,7 @@ class VastaanotettavuusService(hakukohdeRecordService: HakukohdeRecordService,
 
   def tarkistaAiemmatVastaanotot(henkiloOid: String, hakukohdeOid: String): DBIO[Unit] = tarkistaAiemmatVastaanotot(henkiloOid, hakukohdeOid, defaultPriorAcceptanceHandler)
 
-  private def haeAiemmatVastaanotot(hakukohdeRecord: HakukohdeRecord, hakijaOid: String): DBIOAction[Option[VastaanottoRecord], NoStream, Effect] = {
+  private def haeAiemmatVastaanotot(hakukohdeRecord: HakukohdeRecord, hakijaOid: String): DBIO[Option[VastaanottoRecord]] = {
     val HakukohdeRecord(hakukohdeOid, _, yhdenPaikanSaantoVoimassa, _, koulutuksenAlkamiskausi) = hakukohdeRecord
     if (yhdenPaikanSaantoVoimassa) {
       hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(hakijaOid, koulutuksenAlkamiskausi)

@@ -10,7 +10,6 @@ import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus._
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
-import slick.dbio.Effect.All
 import slick.driver.PostgresDriver.api.{Database, _}
 import slick.jdbc.GetResult
 
@@ -136,7 +135,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                       where haku_oid = ${hakuOid}""".as[VastaanottoRecord]).toSet
   }
 
-  override def findHenkilonVastaanottoHakukohteeseen(personOid: String, hakukohdeOid: String): DBIOAction[Option[VastaanottoRecord], NoStream, Effect] = {
+  override def findHenkilonVastaanottoHakukohteeseen(personOid: String, hakukohdeOid: String): DBIO[Option[VastaanottoRecord]] = {
     sql"""select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp"
           from newest_vastaanotot
           where henkilo = $personOid
@@ -149,7 +148,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     })
   }
 
-  override def findYhdenPaikanSaannonPiirissaOlevatVastaanotot(personOid: String, koulutuksenAlkamiskausi: Kausi): DBIOAction[Option[VastaanottoRecord], NoStream, Effect] = {
+  override def findYhdenPaikanSaannonPiirissaOlevatVastaanotot(personOid: String, koulutuksenAlkamiskausi: Kausi): DBIO[Option[VastaanottoRecord]] = {
     sql"""select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp"
           from newest_vastaanotot
           where henkilo = $personOid
@@ -178,7 +177,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
               values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite, ${new java.sql.Timestamp(vastaanottoDate.getTime)})""")
   }
 
-  override def store(vastaanottoEvents: List[VastaanottoEvent], postCondition: DBIOAction[Any, NoStream, All]): Unit = {
+  override def store[T](vastaanottoEvents: List[VastaanottoEvent], postCondition: DBIO[T]): T = {
     runBlocking(DBIO.sequence(
       vastaanottoEvents.map(storeAction)
     ).andThen(postCondition).transactionally)
@@ -188,18 +187,18 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     runBlocking(storeAction(vastaanottoEvent))
   }
 
-  private def storeAction(vastaanottoEvent: VastaanottoEvent) = vastaanottoEvent.action match {
+  private def storeAction(vastaanottoEvent: VastaanottoEvent): DBIO[Unit] = vastaanottoEvent.action match {
     case Poista => kumoaVastaanottotapahtumatAction(vastaanottoEvent)
     case _ => tallennaVastaanottoTapahtumaAction(vastaanottoEvent)
   }
 
-  private def tallennaVastaanottoTapahtumaAction(vastaanottoEvent: VastaanottoEvent) = {
+  private def tallennaVastaanottoTapahtumaAction(vastaanottoEvent: VastaanottoEvent): DBIO[Unit] = {
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, action, ilmoittaja, selite) = vastaanottoEvent
     sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, selite)
               values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite)"""
   }
 
-  private def kumoaVastaanottotapahtumatAction(vastaanottoEvent: VastaanottoEvent) = {
+  private def kumoaVastaanottotapahtumatAction(vastaanottoEvent: VastaanottoEvent): DBIO[Unit] = {
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, _, ilmoittaja, selite) = vastaanottoEvent
     val insertDelete = sqlu"""insert into deleted_vastaanotot (poistaja, selite) values ($ilmoittaja, $selite)"""
     val updateVastaanotto = sqlu"""update vastaanotot set deleted = currval('deleted_vastaanotot_id')
