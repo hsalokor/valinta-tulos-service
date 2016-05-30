@@ -316,7 +316,15 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
   }
 
   private def runVastaanottoTest(findHenkiloOid:String, expectedHenkiloOid:String) = {
-    val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(findHenkiloOid, hakukohdeOid))
+    val vastaanottoHakukohteeseen: Option[VastaanottoRecord] = singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(findHenkiloOid, hakukohdeOid))
+    assertVastaanottoInDb(findHenkiloOid, expectedHenkiloOid, vastaanottoHakukohteeseen)
+
+    val vastaanototHakuun = singleConnectionValintarekisteriDb.findHenkilonVastaanototHaussa(findHenkiloOid, hakuOid)
+    vastaanototHakuun must have size 1
+    assertVastaanottoInDb(findHenkiloOid, expectedHenkiloOid, vastaanototHakuun.headOption)
+  }
+
+  private def assertVastaanottoInDb(findHenkiloOid: String, expectedHenkiloOid: String, vastaanottoRowsFromDb: Option[VastaanottoRecord]) = {
     vastaanottoRowsFromDb must beSome
     val VastaanottoRecord(henkiloOidFromDb, hakuOidFromDb, hakukohdeOidFromDb, actionFromDb,
     ilmoittajaFromDb, timestampFromDb) = vastaanottoRowsFromDb.get
