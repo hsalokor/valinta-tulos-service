@@ -124,9 +124,18 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   override def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
     runBlocking(
       sql"""select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp"
-            from newest_vastaanotto_events
-            where henkilo = $henkiloOid
-                and haku_oid = $hakuOid""".as[VastaanottoRecord]).toSet
+            from (
+                select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp", id
+                from vastaanotot
+                    join hakukohteet on hakukohde_oid = vastaanotot.hakukohde and haku_oid = ${hakuOid}
+                where henkilo = ${henkiloOid} and deleted is null
+                union
+                select henkiloviitteet.linked_oid as henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp", id
+                from vastaanotot
+                    join hakukohteet on hakukohde_oid = vastaanotot.hakukohde and haku_oid = ${hakuOid}
+                    join henkiloviitteet on vastaanotot.henkilo = henkiloviitteet.person_oid and henkiloviitteet.linked_oid = ${henkiloOid}
+                where deleted is null) as t
+            order by id""".as[VastaanottoRecord]).toSet
   }
 
   override def findHaunVastaanotot(hakuOid: String): Set[VastaanottoRecord] = {
