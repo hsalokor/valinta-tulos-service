@@ -10,7 +10,7 @@ import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriDb
 
 trait ITSetup {
   implicit val appConfig = new AppConfig.IT
-  private val dbConfig = appConfig.settings.valintaRekisteriDbConfig
+  val dbConfig = appConfig.settings.valintaRekisteriDbConfig
 
   lazy val singleConnectionValintarekisteriDb = new ValintarekisteriDb(
     dbConfig.withValue("connectionPool", ConfigValueFactory.fromAnyRef("disabled")))

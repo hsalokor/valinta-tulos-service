@@ -509,18 +509,32 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
+                <version>1.5.0</version>
                 <executions>
                     <execution>
+                        <id>local jetty</id>
                         <goals>
                             <goal>java</goal>
                         </goals>
+                        <configuration>
+                            <mainClass>fi.vm.sade.valintatulosservice.JettyLauncher</mainClass>
+                            <classpathScope>test</classpathScope>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate_schema_diagram</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>fi.vm.sade.valintatulosservice.ValintarekisteriDbDdlGeneratorApp</mainClass>
+                            <classpathScope>test</classpathScope>
+                            <arguments>
+                                <argument>${project.version}</argument>
+                            </arguments>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <mainClass>fi.vm.sade.valintatulosservice.JettyLauncher</mainClass>
-                    <classpathScope>test</classpathScope>
-                </configuration>
             </plugin>
         </plugins>
     </build>
