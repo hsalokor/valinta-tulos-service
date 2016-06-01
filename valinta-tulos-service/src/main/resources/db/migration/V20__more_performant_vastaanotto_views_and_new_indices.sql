@@ -5,12 +5,21 @@ create function overriden_vastaanotto_deleted_id()
 insert into deleted_vastaanotot (id, poistaja, "timestamp", selite)
 values (overriden_vastaanotto_deleted_id(), '', to_timestamp(0), 'Korvaava vastaanottotieto tallennettu');
 
+create temporary table relevant_vastaanotto_ids (vastaanotto_id bigint primary key) on commit drop;
+insert into relevant_vastaanotto_ids
+    (select distinct on (henkilo, hakukohde) id
+                         from vastaanotot
+                         order by henkilo, hakukohde, id desc);
+
+create temporary table overriden_vastaanotto_ids (vastaanotto_id bigint primary key) on commit drop;
+insert into overriden_vastaanotto_ids
+    (select id from vastaanotot left join relevant_vastaanotto_ids r on r.vastaanotto_id = id
+     where r.vastaanotto_id is null);
+
 update vastaanotot
 set deleted = overriden_vastaanotto_deleted_id()
 where deleted is null
-      and id not in (select distinct on (henkilo, hakukohde) id
-                     from vastaanotot
-                     order by henkilo, hakukohde, id desc);
+    and id in (select vastaanotto_id from overriden_vastaanotto_ids);
 
 create or replace view newest_vastaanotto_events as
     select
