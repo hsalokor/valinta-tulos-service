@@ -4,6 +4,7 @@ import java.sql._
 
 import org.slf4j.LoggerFactory
 
+import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
 class HenkiloviiteDb(configuration: DbConfiguration) {
@@ -25,6 +26,20 @@ class HenkiloviiteDb(configuration: DbConfiguration) {
       connection = DriverManager.getConnection(url, user.orNull, password.orNull)
       connection.setAutoCommit(false)
 
+      statement = connection.prepareStatement("select person_oid, linked_oid from henkiloviitteet")
+      val henkiloResultSetBeforeUpdate = statement.executeQuery()
+      val henkiloviitteetEnnenPaivitysta: mutable.Set[HenkiloRelation] = new mutable.HashSet[HenkiloRelation]
+      while (henkiloResultSetBeforeUpdate.next()) {
+        val relation = HenkiloRelation(henkiloResultSetBeforeUpdate.getString("person_oid"),
+          henkiloResultSetBeforeUpdate.getString("linked_oid"))
+        henkiloviitteetEnnenPaivitysta += relation
+      }
+      henkiloResultSetBeforeUpdate.close()
+      statement.close()
+      logger.info(s"Before update, we have ${henkiloviitteetEnnenPaivitysta.size} relations in the database.")
+      logger.info(s"New relations: ${henkiloviitteet -- henkiloviitteetEnnenPaivitysta.toSet}")
+      logger.info(s"Removed relations: ${henkiloviitteetEnnenPaivitysta.toSet -- henkiloviitteet}")
+
       logger.debug(s"Emptying henkiloviitteet table")
       val delete = "delete from henkiloviitteet"
 
@@ -36,7 +51,7 @@ class HenkiloviiteDb(configuration: DbConfiguration) {
       val insert = "insert into henkiloviitteet (person_oid, linked_oid) values (?, ?)"
       statement = connection.prepareStatement(insert)
 
-      logger.debug(s"Inserting ${henkiloviitteet.size} henkiloviite")
+      logger.info(s"Inserting ${henkiloviitteet.size} henkiloviite rows.")
 
       for ((henkiloviite, i) <- henkiloviitteet.zipWithIndex) {
         statement.setString(1, henkiloviite.personOid)
