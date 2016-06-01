@@ -18,8 +18,8 @@ class HenkiloviiteDb(configuration: DbConfiguration) {
   Class.forName("org.postgresql.Driver")
 
   def refresh(henkiloviitteet: Set[HenkiloRelation]): Try[Unit] = {
-    var connection:Connection = null
-    var statement:PreparedStatement = null
+    var connection: Connection = null
+    var statement: PreparedStatement = null
 
     try {
       connection = DriverManager.getConnection(url, user.orNull, password.orNull)
@@ -38,12 +38,12 @@ class HenkiloviiteDb(configuration: DbConfiguration) {
 
       logger.debug(s"Inserting ${henkiloviitteet.size} henkiloviite")
 
-      for((henkiloviite, i) <- henkiloviitteet.zipWithIndex) {
+      for ((henkiloviite, i) <- henkiloviitteet.zipWithIndex) {
         statement.setString(1, henkiloviite.personOid)
         statement.setString(2, henkiloviite.linkedOid)
         statement.addBatch()
 
-        if(0 == i % 1000) {
+        if (0 == i % 1000) {
           statement.executeBatch()
           statement.clearBatch()
         }
@@ -59,7 +59,7 @@ class HenkiloviiteDb(configuration: DbConfiguration) {
       Success(())
 
     } catch {
-      case e:Exception if null != connection => try {
+      case e: Exception if null != connection => try {
         logger.error("Something when wrong. Going to rollback.", e)
         connection.rollback()
         Failure(e)
@@ -75,14 +75,13 @@ class HenkiloviiteDb(configuration: DbConfiguration) {
     }
   }
 
-  private def closeInTry(closeable:AutoCloseable) = {
-    if(null != closeable) {
+  private def closeInTry(closeable: AutoCloseable) = {
+    if (null != closeable) {
       try {
         closeable.close()
       } catch {
-        case e:Exception => logger.error("Closing a database resource failed.", e)
+        case e: Exception => logger.error("Closing a database resource failed.", e)
       }
     }
   }
-
 }
