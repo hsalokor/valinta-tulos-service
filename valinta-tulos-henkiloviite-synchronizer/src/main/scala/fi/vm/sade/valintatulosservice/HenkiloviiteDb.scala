@@ -22,10 +22,7 @@ class HenkiloviiteDb(configuration: DbConfiguration) {
     var connection: Connection = null
     var statement: PreparedStatement = null
 
-    try {
-      connection = DriverManager.getConnection(url, user.orNull, password.orNull)
-      connection.setAutoCommit(false)
-
+    def logChanges(): Unit = {
       statement = connection.prepareStatement("select person_oid, linked_oid from henkiloviitteet")
       val henkiloResultSetBeforeUpdate = statement.executeQuery()
       val henkiloviitteetEnnenPaivitysta: mutable.Set[HenkiloRelation] = new mutable.HashSet[HenkiloRelation]
@@ -39,15 +36,17 @@ class HenkiloviiteDb(configuration: DbConfiguration) {
       logger.info(s"Before update, we have ${henkiloviitteetEnnenPaivitysta.size} relations in the database.")
       logger.info(s"New relations: ${henkiloviitteet -- henkiloviitteetEnnenPaivitysta.toSet}")
       logger.info(s"Removed relations: ${henkiloviitteetEnnenPaivitysta.toSet -- henkiloviitteet}")
+    }
 
+    def emptyHenkiloviitteetTable(): Unit = {
       logger.debug(s"Emptying henkiloviitteet table")
       val delete = "delete from henkiloviitteet"
-
       statement = connection.prepareStatement(delete)
       statement.execute()
-
       statement.close()
+    }
 
+    def insertHenkiloviitteet(): Unit = {
       val insert = "insert into henkiloviitteet (person_oid, linked_oid) values (?, ?)"
       statement = connection.prepareStatement(insert)
 
@@ -68,9 +67,17 @@ class HenkiloviiteDb(configuration: DbConfiguration) {
 
       statement.executeBatch()
       connection.commit()
+    }
+
+    try {
+      connection = DriverManager.getConnection(url, user.orNull, password.orNull)
+      connection.setAutoCommit(false)
+
+      logChanges()
+      emptyHenkiloviitteetTable()
+      insertHenkiloviitteet()
 
       logger.debug("Henkiloviitteet updated nicely")
-
       Success(())
 
     } catch {
