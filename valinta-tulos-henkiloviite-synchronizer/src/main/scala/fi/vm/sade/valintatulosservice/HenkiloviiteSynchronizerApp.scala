@@ -4,8 +4,10 @@ import java.util.Calendar
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
 import ch.qos.logback.access.jetty.RequestLogImpl
+import org.eclipse.jetty.server.handler.{ContextHandler, ContextHandlerCollection, HandlerList, ResourceHandler}
 import org.eclipse.jetty.server.{RequestLog, Server}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
+import org.eclipse.jetty.util.resource.Resource
 import org.slf4j.LoggerFactory
 
 object HenkiloviiteSynchronizerApp {
@@ -20,12 +22,23 @@ object HenkiloviiteSynchronizerApp {
     val buildversionServlet = new BuildversionServlet(config.buildversion)
 
     val server = new Server(config.port)
+
     val servletContext = new ServletContextHandler()
     servletContext.setContextPath("/valinta-tulos-henkiloviite-synchronizer")
     servletContext.addServlet(new ServletHolder(buildversionServlet), "/buildversion.txt")
-    servletContext.addServlet(new ServletHolder(servlet), "/*")
-    server.setHandler(servletContext)
+    servletContext.addServlet(new ServletHolder(servlet), "/")
 
+    val resourceContext = new ContextHandler
+    resourceContext.setContextPath("/valinta-tulos-henkiloviite-synchronizer/html")
+    val resourceHandler = new ResourceHandler
+    resourceHandler.setDirectoriesListed(false)
+    resourceHandler.setBaseResource(Resource.newClassPathResource("fi/vm/sade/valintatulosservice/html"))
+    resourceHandler.setWelcomeFiles(Array("index.html"))
+    resourceContext.setHandler(resourceHandler)
+
+    val rootContextHandlers = new ContextHandlerCollection
+    rootContextHandlers.setHandlers(Array(resourceContext, servletContext))
+    server.setHandler(rootContextHandlers)
     server.setRequestLog(requestLog(config))
 
     val synchronizerScheduler = startScheduledSynchronization(config.scheduler, synchronizer)
