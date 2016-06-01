@@ -7,7 +7,7 @@ values (overriden_vastaanotto_deleted_id(), '', to_timestamp(0), 'Korvaava vasta
 
 update vastaanotot
 set deleted = overriden_vastaanotto_deleted_id()
-where deleted is not null
+where deleted is null
       and id not in (select distinct on (henkilo, hakukohde) id
                      from vastaanotot
                      order by henkilo, hakukohde, id desc);
