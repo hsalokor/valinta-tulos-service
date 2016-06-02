@@ -512,13 +512,19 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       val firstVaralla = tulokset.indexWhere(_.valintatila == Valintatila.varalla)
       val firstVastaanotettu = tulokset.indexWhere(_.vastaanottotila == Vastaanottotila.vastaanottanut)
       val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
+      val indexedTulokset = tulokset.zipWithIndex
+      val firstHyvaksyttyUnderFirstVaralla = if (firstVaralla >= 0) {
+        indexedTulokset.indexWhere { case (tulos, index) => index > firstVaralla && Valintatila.isHyväksytty(tulos.valintatila) }
+      } else {
+        -1
+      }
 
       tulokset.zipWithIndex.map {
         case (tulos, index) if isHyväksytty(tulos.valintatila) && tulos.vastaanottotila == Vastaanottotila.kesken =>
           if (firstVastaanotettu >= 0 && index != firstVastaanotettu)
             // Peru vastaanotettua paikkaa alemmat hyväksytyt hakutoiveet
             tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
-          else if (firstVaralla >= 0 && index > firstVaralla) {
+          else if (index == firstHyvaksyttyUnderFirstVaralla) {
            if(ehdollinenVastaanottoMahdollista(ohjausparametrit))
             // Ehdollinen vastaanotto mahdollista
             tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti)
