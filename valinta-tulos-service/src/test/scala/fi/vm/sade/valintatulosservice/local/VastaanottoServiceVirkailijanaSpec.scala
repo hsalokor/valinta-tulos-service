@@ -43,6 +43,26 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
       hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
     }
+    "ehdollinen vastaanotto on mahdollinen vain ylimmälle hyväksytylle hakutoiveelle ja siten että on vielä ylempi hakutoive varalla" in {
+      useFixture("varalla-hyvaksytty-hyvaksytty.json", Nil, hakuFixture = "korkeakoulu-yhteishaku", hakemusFixtures = List("00000441369-3"),
+        yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+      hakemuksenTulos.hakutoiveet.foreach(h => println(h))
+
+      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
+      hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
+      hakemuksenTulos.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
+
+      val ylinHakukohdeOid = hakemuksenTulos.hakutoiveet(0).hakukohdeOid
+      val keskimmainenHakukohdeOid = hakemuksenTulos.hakutoiveet(1).hakukohdeOid
+      val alinHakukohdeOid = hakemuksenTulos.hakutoiveet(2).hakukohdeOid
+
+      val r = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid, keskimmainenHakukohdeOid, hakuOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja).head
+      r.result.status must_== 200
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
+      hakemuksenTulos.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.kesken
+      // TODO assert other cases and implement them
+    }
     "peru yksi hakija" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
       val r = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.perunut, muokkaaja).head
