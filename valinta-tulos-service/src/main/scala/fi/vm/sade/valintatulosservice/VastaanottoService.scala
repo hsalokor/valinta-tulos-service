@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import fi.vm.sade.sijoittelu.domain.{HakemuksenTila, ValintatuloksenTila, Valintatulos}
+import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
@@ -66,6 +66,8 @@ class VastaanottoService(hakuService: HakuService,
       _ <- vastaanotto.action match {
         case VastaanotaEhdollisesti if hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti =>
           Failure(new IllegalArgumentException("Hakutoivetta ei voi ottaa ehdollisesti vastaan"))
+        case VastaanotaSitovasti if !Valintatila.isHyväksytty(hakutoive.valintatila) =>
+          Failure(new IllegalArgumentException(s"Ei-hyväksyttyä hakutoivetta ei voi ottaa vastaan (tila on ${hakutoive.valintatila})"))
         case VastaanotaSitovasti | VastaanotaEhdollisesti if tarkistaAiemmatVastaanotot =>
           Try { hakijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)) }
         case MerkitseMyohastyneeksi => tarkistaHakijakohtainenDeadline(hakutoive)
