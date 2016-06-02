@@ -12,7 +12,7 @@ import fi.vm.sade.valintatulosservice.valintarekisteri._
 import slick.dbio.{DBIO, SuccessAction}
 
 import scala.collection.JavaConverters._
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 
 class VastaanottoService(hakuService: HakuService,
@@ -62,17 +62,19 @@ class VastaanottoService(hakuService: HakuService,
 
   private def checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot: Boolean = true)(vastaanotto: VirkailijanVastaanotto): Try[(Hakutoiveentulos, Int)] = {
     for {
-      hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+      hakutoiveJaPrioriteetti@(hakutoive, _) <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
       _ <- vastaanotto.action match {
+        case VastaanotaEhdollisesti if hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti =>
+          Failure(new IllegalArgumentException("Hakutoivetta ei voi ottaa ehdollisesti vastaan"))
         case VastaanotaSitovasti | VastaanotaEhdollisesti if tarkistaAiemmatVastaanotot =>
           Try { hakijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)) }
-        case MerkitseMyohastyneeksi => tarkistaHakijakohtainenDeadline(hakutoive._1)
+        case MerkitseMyohastyneeksi => tarkistaHakijakohtainenDeadline(hakutoive)
         case Peru => Success(())
         case VastaanotaSitovasti | VastaanotaEhdollisesti => Success(())
         case Peruuta => Success(())
         case Poista => Success(())
       }
-    } yield hakutoive
+    } yield hakutoiveJaPrioriteetti
   }
 
   private def tallennaHakukohteenVastaanotot(hakukohdeOid: String, hakuOid: String, uudetVastaanotot: List[VastaanottoEventDto]): List[VastaanottoResult] = {
