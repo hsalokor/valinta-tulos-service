@@ -41,7 +41,7 @@ class VastaanottoService(hakuService: HakuService,
     val postCondition = DBIO.sequence(vastaanottosToCheckInPostCondition.
       map(v => vastaanotettavuusService.tarkistaAiemmatVastaanotot(v.henkiloOid, v.hakukohdeOid, aiempiVastaanotto => SuccessAction())))
 
-    tallennettavatVastaanotot.toStream.map(checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = false)).find(_.isFailure) match {
+    tallennettavatVastaanotot.toStream.map(vastaanotto => findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)).find(_.isFailure) match {
       case Some(failure) => failure.map(_ => ())
       case None => Try {
         tallennettavatVastaanotot.foreach(v => hakukohdeRecordService.getHakukohdeRecord(v.hakukohdeOid))
@@ -60,7 +60,7 @@ class VastaanottoService(hakuService: HakuService,
     }).toList
   }
 
-  private def checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot: Boolean = true)(vastaanotto: VirkailijanVastaanotto): Try[(Hakutoiveentulos, Int)] = {
+  private def checkVastaanotettavuusVirkailijana(vastaanotto: VirkailijanVastaanotto): Try[(Hakutoiveentulos, Int)] = {
     for {
       hakutoiveJaPrioriteetti@(hakutoive, _) <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
       _ <- vastaanotto.action match {
@@ -68,11 +68,10 @@ class VastaanottoService(hakuService: HakuService,
           Failure(new IllegalArgumentException("Hakutoivetta ei voi ottaa ehdollisesti vastaan"))
         case VastaanotaSitovasti if !Valintatila.isHyväksytty(hakutoive.valintatila) =>
           Failure(new IllegalArgumentException(s"Ei-hyväksyttyä hakutoivetta ei voi ottaa vastaan (tila on ${hakutoive.valintatila})"))
-        case VastaanotaSitovasti | VastaanotaEhdollisesti if tarkistaAiemmatVastaanotot =>
+        case VastaanotaSitovasti | VastaanotaEhdollisesti =>
           Try { hakijaVastaanottoRepository.runBlocking(vastaanotettavuusService.tarkistaAiemmatVastaanotot(vastaanotto.henkiloOid, vastaanotto.hakukohdeOid)) }
         case MerkitseMyohastyneeksi => tarkistaHakijakohtainenDeadline(hakutoive)
         case Peru => Success(())
-        case VastaanotaSitovasti | VastaanotaEhdollisesti => Success(())
         case Peruuta => Success(())
         case Poista => Success(())
       }
@@ -101,7 +100,7 @@ class VastaanottoService(hakuService: HakuService,
 
   private def tallenna(vastaanotto: VirkailijanVastaanotto): Try[VastaanottoResult] = {
     (for {
-      hakutoiveJaJarjestysNumero <- checkVastaanotettavuusVirkailijana(tarkistaAiemmatVastaanotot = true)(vastaanotto)
+      hakutoiveJaJarjestysNumero <- checkVastaanotettavuusVirkailijana(vastaanotto)
       _ <- Try {
         hakukohdeRecordService.getHakukohdeRecord(vastaanotto.hakukohdeOid)
         hakijaVastaanottoRepository.store(vastaanotto)
