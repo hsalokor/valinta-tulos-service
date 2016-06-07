@@ -47,7 +47,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
 
     (for (
-      sijoittelu <- Timer.timed("latest sijoittelu", 1000)(fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)));
+      sijoittelu <- findLatestSijoitteluAjo(hakuOid, hakukohdeOid);
       hakijat <- {
         hakukohdeOid match {
           case Some(hakukohde) => Option(Timer.timed("hakukohteen hakemukset", 1000)(raportointiService.hakemukset(sijoittelu, hakukohde)))
@@ -59,6 +59,11 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     ) yield {
       hakijat
     }).getOrElse(Nil)
+  }
+
+  private def findLatestSijoitteluAjo(hakuOid: String, hakukohdeOid: Option[String]): Option[SijoitteluAjo] = hakukohdeOid match {
+    case Some(hakukohde) => Timer.timed("latest sijoittelu for hakukohde", 1000)(fromOptional(raportointiService.latestSijoitteluAjoForHakukohde(hakuOid, hakukohde)))
+    case None => Timer.timed("latest sijoittelu for haku", 1000)(fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)))
   }
 
   def sijoittelunTuloksetWithoutVastaanottoTieto(hakuOid: String, sijoitteluajoId: String, hyvaksytyt: Option[Boolean], ilmanHyvaksyntaa: Option[Boolean], vastaanottaneet: Option[Boolean],
