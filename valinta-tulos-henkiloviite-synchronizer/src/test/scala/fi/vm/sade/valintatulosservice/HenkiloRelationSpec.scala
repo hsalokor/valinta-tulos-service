@@ -1,8 +1,12 @@
 package fi.vm.sade.valintatulosservice
 
+import org.json4s.DefaultReaders.arrayReader
+import org.json4s.native.JsonMethods.parse
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.io.Source.fromInputStream
 
 @RunWith(classOf[JUnitRunner])
 class HenkiloRelationSpec extends Specification {
@@ -29,11 +33,14 @@ class HenkiloRelationSpec extends Specification {
     }
   }
   "allPairs" >> {
-    val pairs = HenkiloviiteSynchronizer.allPairs(List("A", "B", "C"))
+    val pairs = HenkiloviiteSynchronizer.allPairs(List("A", "B", "C", "D"))
     pairs must contain(
       ("A", "B"), ("B", "A"),
       ("A", "C"), ("C", "A"),
-      ("B", "C"), ("C", "B")
+      ("A", "D"), ("D", "A"),
+      ("B", "C"), ("C", "B"),
+      ("B", "D"), ("D", "B"),
+      ("C", "D"), ("D", "C")
     )
   }
   "henkiloRelations" >> {
@@ -53,5 +60,14 @@ class HenkiloRelationSpec extends Specification {
     relations must contain(HenkiloRelation("master2", "slave5"), HenkiloRelation("slave5", "master2"))
 
     relations must contain(HenkiloRelation("master3", "slave6"), HenkiloRelation("slave6", "master3"))
+  }
+  "henkiloRelations with big data" >> {
+    implicit val henkiloviiteReader = HenkiloviiteClient.henkiloviiteReader
+    val data = fromInputStream(getClass.getResourceAsStream("/viitteet.json")).mkString
+    val viitteet = arrayReader[Henkiloviite].read(parse(data))
+    val start = System.currentTimeMillis()
+    val relations = HenkiloviiteSynchronizer.henkiloRelations(viitteet)
+    (System.currentTimeMillis() - start) must beLessThan[Long](500)
+    relations.size must_== 27018
   }
 }

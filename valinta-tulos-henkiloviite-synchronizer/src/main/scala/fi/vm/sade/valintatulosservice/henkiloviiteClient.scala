@@ -7,9 +7,11 @@ import fi.vm.sade.utils.cas.{CasAuthenticatingClient, CasClient, CasParams}
 import org.http4s.Status.ResponseClass.Successful
 import org.http4s.client.Client
 import org.http4s.{Method, Request}
+import org.http4s.json4s.native.jsonOf
 import org.json4s.DefaultReaders.StringReader
 import org.json4s.JsonAST.JValue
 import org.json4s.Reader
+import org.json4s.DefaultReaders.arrayReader
 
 import scala.concurrent.duration.Duration
 import scala.util.Try
@@ -22,21 +24,13 @@ class HenkiloviiteClient(configuration: AuthenticationConfiguration) {
   private val resourceUrl = configuration.url.withQueryParam("date", dateFormater.format(configuration.since))
   private val client = createCasClient()
 
-  implicit val henkiloviiteReader = new Reader[Henkiloviite] {
-    override def read(v: JValue): Henkiloviite = {
-      Henkiloviite(StringReader.read(v \ "masterOid"), StringReader.read(v \ "henkiloOid"))
-    }
-  }
-  import org.json4s.DefaultReaders.arrayReader
-  implicit val henkiloviiteDecoder = org.http4s.json4s.native.jsonOf[Array[Henkiloviite]]
-
   def fetchHenkiloviitteet(): Try[List[Henkiloviite]] = {
     val request = Request(
       method = Method.GET,
       uri = resourceUrl
     )
     Try(client.fetch(request) {
-      case Successful(response) => response.as[Array[Henkiloviite]].map(_.toList)
+      case Successful(response) => response.as[Array[Henkiloviite]](HenkiloviiteClient.henkiloviiteDecoder).map(_.toList)
       case response => Task.fail(new RuntimeException(s"Request $request failed with response $response"))
     }.unsafePerformSyncFor(Duration(1, TimeUnit.MINUTES)))
   }
@@ -50,4 +44,15 @@ class HenkiloviiteClient(configuration: AuthenticationConfiguration) {
       null
     )
   }
+}
+
+object HenkiloviiteClient {
+  val henkiloviiteReader = new Reader[Henkiloviite] {
+    override def read(v: JValue): Henkiloviite = {
+      Henkiloviite(StringReader.read(v \ "masterOid"), StringReader.read(v \ "henkiloOid"))
+    }
+  }
+  val henkiloviiteDecoder = jsonOf[Array[Henkiloviite]](
+    arrayReader[Henkiloviite](manifest[Henkiloviite], HenkiloviiteClient.henkiloviiteReader)
+  )
 }

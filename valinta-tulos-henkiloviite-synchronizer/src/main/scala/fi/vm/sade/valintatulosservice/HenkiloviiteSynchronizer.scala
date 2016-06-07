@@ -79,7 +79,8 @@ object HenkiloviiteSynchronizer {
   }
 
   def allPairs[A](xs: Seq[A]): Seq[(A, A)] = {
-    xs.permutations.map({ case x :: y :: _ => (x, y) }).toSeq
+    val cs = xs.combinations(2).toSeq
+    (cs ++ cs.map(_.reverse)).map(p => (p.head, p.tail.head))
   }
 
   def henkiloRelations(henkiloviitteet: Seq[Henkiloviite]): Set[HenkiloRelation] = {
