@@ -248,7 +248,6 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           hakijanVastaanotot match {
             case Some(vastaanottos) =>
               vastaanottos.find(_.hakukohdeOid == palautettavaHakutoiveDto.getHakukohdeOid).foreach(vastaanotto => {
-                val tilaIlmanYhdenPaikanSaantoa = sijoittelutulosService.vastaanottotilaVainViimeisimmanVastaanottoActioninPerusteella(Some(vastaanotto.action))
                 yhdenPaikanSannonHuomioiminen.find(_.hakukohdeOid == palautettavaHakutoiveDto.getHakukohdeOid).foreach(hakutoiveenOikeaTulos => {
                   palautettavaHakutoiveDto.setVastaanottotieto(fi.vm.sade.sijoittelu.tulos.dto.ValintatuloksenTila.valueOf(hakutoiveenOikeaTulos.vastaanottotila.toString))
                   palautettavaHakutoiveDto.getHakutoiveenValintatapajonot.asScala.foreach(_.setTilanKuvaukset(hakutoiveenOikeaTulos.tilanKuvaukset.asJava))
