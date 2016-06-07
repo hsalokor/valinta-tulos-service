@@ -201,7 +201,6 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       val tilaVirkailijalle: ValintatuloksenTila = paatteleVastaanottotilaVirkailijaaVarten(hakijaOid, hakijanVastaanototHakukohteeseen, haku, kaudenVastaanotot)
       v.setTila(tilaVirkailijalle, tilaVirkailijalle, "", "") // pass same old and new tila to avoid log entries
       v.setHakijaOid(hakijaOid, "")
-      // v.setTilaHakijalle(tilaHakijalle) // TODO: Set "about to be late" flag here, and add separate API for tila hakijalle
     }
     valintatulokset
   }
