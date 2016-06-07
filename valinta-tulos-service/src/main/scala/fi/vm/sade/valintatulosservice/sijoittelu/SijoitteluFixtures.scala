@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 
 import com.mongodb.DB
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
@@ -22,8 +23,8 @@ case class SijoitteluFixtures(db: DB, valintarekisteriDb : ValintarekisteriDb) {
                     kktutkintoonJohtava: Boolean = false) {
     if (clear) {
       clearFixtures
-      Await.result(valintarekisteriDb.db.run(sqlu"DELETE FROM vastaanotot"), Duration(4, TimeUnit.SECONDS))
-      Await.result(valintarekisteriDb.db.run(sqlu"DELETE FROM hakukohteet"), Duration(4, TimeUnit.SECONDS))
+      Await.result(valintarekisteriDb.db.run(sqlu"DELETE FROM vastaanotot"), Duration(4, SECONDS))
+      Await.result(valintarekisteriDb.db.run(sqlu"DELETE FROM hakukohteet"), Duration(4, SECONDS))
     }
     val tulokset = MongoMockData.readJson("fixtures/sijoittelu/" + fixtureName)
     MongoMockData.insertData(db, tulokset)
