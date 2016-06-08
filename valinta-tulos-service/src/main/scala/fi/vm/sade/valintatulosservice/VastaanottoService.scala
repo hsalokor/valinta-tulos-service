@@ -23,8 +23,11 @@ class VastaanottoService(hakuService: HakuService,
                          virkailijaVastaanottoRepository: VirkailijaVastaanottoRepository,
                          valintatulosRepository: ValintatulosRepository) extends Logging {
 
-  private val statesMatchingInexistentActions = Set(Vastaanottotila.kesken, Vastaanottotila.ei_vastaanotettu_määräaikana)
-
+  private val statesMatchingInexistentActions = Set(
+    Vastaanottotila.kesken,
+    Vastaanottotila.ei_vastaanotettu_määräaikana,
+    Vastaanottotila.ottanut_vastaan_toisen_paikan
+  )
 
   def vastaanotaVirkailijana(vastaanotot: List[VastaanottoEventDto]): Iterable[VastaanottoResult] = {
     vastaanotot.groupBy(v => (v.hakukohdeOid, v.hakuOid)).flatMap {
