@@ -59,7 +59,7 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
         "hakutoiveista 1. kesken 2. hyväksytty 3. perutuuntunut" in {
           useFixture("hyvaksytty-ylempi-sijoittelematon-alempi-peruuntunut.json", hakuFixture = hakuFixture, hakemusFixtures = List("00000441369-3"))
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738903"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738904"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
         }
       }
@@ -151,17 +151,17 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
       }
 
       "sijoittelusta puuttuvat hakutoiveet" in {
-        "näytetään keskeneräisinä" in {
+        "näytetään keskeneräisinä ja julkaisemattomina" in {
           useFixture("hylatty-jonot-valmiit.json", hakuFixture = hakuFixture)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hylätty, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
-          checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+          checkHakutoiveState(getHakutoive("1.2.246.562.5.16303028779"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
           hakemuksenTulos.hakijaOid must_== "1.2.246.562.24.14229104472"
         }
 
         "koko hakemus puuttuu sijoittelusta" in {
-          "näytetään tulos \"kesken\"" in {
+          "näytetään tulos \"kesken\" ja julkaisemattomana" in {
             sijoitteluFixtures.clearFixtures
-            checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, true)
+            checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
             hakemuksenTulos.hakijaOid must_== "1.2.246.562.24.14229104472"
           }
         }

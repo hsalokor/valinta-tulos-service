@@ -50,7 +50,7 @@ object HakutoiveenSijoitteluntulos {
       varasijojaKaytetaanAlkaen = None,
       varasijojaTaytetaanAsti = None,
       varasijanumero = None,
-      julkaistavissa = true,
+      julkaistavissa = false,
       ehdollisestiHyvaksyttavissa = false,
       tilanKuvaukset = Map(),
       pisteet = None
