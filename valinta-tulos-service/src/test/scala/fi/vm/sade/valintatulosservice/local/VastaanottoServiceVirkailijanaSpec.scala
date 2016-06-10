@@ -147,7 +147,7 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
     "vastaanota yksi hakija joka ottanut vastaan toisen kk paikan -> error" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = HakuFixtures.korkeakouluYhteishaku, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
       val r = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.vastaanottanut, muokkaaja).head
-      r.result.message must_== Some("Ei-hyväksyttyä hakutoivetta ei voi ottaa vastaan (tila on PERUUNTUNUT)")
+      r.result.message must_== Some("Ei voi tallentaa vastaanottotietoa, koska hakijalle näytettävä tila on \"PERUUNTUNUT\"")
       r.result.status must_== 400
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
     }
