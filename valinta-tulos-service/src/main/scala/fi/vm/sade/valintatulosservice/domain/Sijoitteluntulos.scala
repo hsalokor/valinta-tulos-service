@@ -38,22 +38,22 @@ object HakutoiveenSijoitteluntulos {
     HakutoiveenSijoitteluntulos(
       hakukohdeOid,
       tarjoajaOid,
-      "",
+      valintatapajonoOid = "",
       Valintatila.kesken,
       Vastaanottotila.kesken,
-      None,
+      vastaanottoDeadline = None,
       Ilmoittautumistila.ei_tehty,
       Vastaanotettavuustila.ei_vastaanotettavissa,
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      true,
-      false,
-      Map(),
-      None
+      viimeisinHakemuksenTilanMuutos = None,
+      viimeisinValintatuloksenMuutos = None,
+      jonosija = None,
+      varasijojaKaytetaanAlkaen = None,
+      varasijojaTaytetaanAsti = None,
+      varasijanumero = None,
+      julkaistavissa = true,
+      ehdollisestiHyvaksyttavissa = false,
+      tilanKuvaukset = Map(),
+      pisteet = None
     )
   }
 }
