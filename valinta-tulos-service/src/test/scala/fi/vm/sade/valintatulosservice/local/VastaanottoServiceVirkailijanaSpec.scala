@@ -43,10 +43,9 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
       hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
     }
-    "ehdollinen vastaanotto on mahdollinen vain ylimmälle hyväksytylle hakutoiveelle ja siten että on vielä ylempi hakutoive varalla" in {
+    "ylimmän hyväksytyn hakutoiveen voi ottaa ehdollisesti vastaan, jos sen yläpuolella on hakutoive varalla" in {
       useFixture("varalla-hyvaksytty-hyvaksytty.json", Nil, hakuFixture = "korkeakoulu-yhteishaku", hakemusFixtures = List("00000441369-3"),
         yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
-      hakemuksenTulos.hakutoiveet.foreach(h => println(h))
 
       hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
       hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
@@ -61,7 +60,65 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
       hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
       hakemuksenTulos.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.kesken
-      // TODO assert other cases and implement them
+    }
+    "varalla olevaa hakutoivetta ei voi ottaa vastaan" in {
+      useFixture("varalla-hyvaksytty-hyvaksytty.json", Nil, hakuFixture = "korkeakoulu-yhteishaku", hakemusFixtures = List("00000441369-3"),
+        yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+
+      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
+      val ylinHakukohdeOid = hakemuksenTulos.hakutoiveet(0).hakukohdeOid
+
+      val ehdollinenVastaanottoResult = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid, ylinHakukohdeOid,
+        hakuOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja).head
+      ehdollinenVastaanottoResult.result.status must_== 400
+
+      val sitovaVastaanottoResult = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid, ylinHakukohdeOid,
+        hakuOid, Vastaanottotila.vastaanottanut, muokkaaja).head
+      sitovaVastaanottoResult.result.status must_== 400
+
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+    }
+    "ylimmän hyväksytyn hakutoiveen voi ottaa sitovasti vastaan, jos sen yläpuolella on hakutoive varalla" in {
+      useFixture("varalla-hyvaksytty-hyvaksytty.json", Nil, hakuFixture = "korkeakoulu-yhteishaku", hakemusFixtures = List("00000441369-3"),
+        yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+
+      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
+      hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
+
+      val keskimmainenHakukohdeOid = hakemuksenTulos.hakutoiveet(1).hakukohdeOid
+
+      val r = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid, keskimmainenHakukohdeOid, hakuOid, Vastaanottotila.vastaanottanut, muokkaaja).head
+      r.result.status must_== 200
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.vastaanottanut
+    }
+    "kahdesta hyväksytystä hakutoiveesta alempaa ei voi ottaa ehdollisesti vastaan" in {
+      useFixture("varalla-hyvaksytty-hyvaksytty.json", Nil, hakuFixture = "korkeakoulu-yhteishaku", hakemusFixtures = List("00000441369-3"),
+        yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+
+      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
+      hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
+      hakemuksenTulos.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
+
+      val keskimmainenHakukohdeOid = hakemuksenTulos.hakutoiveet(1).hakukohdeOid
+      val alinHakukohdeOid = hakemuksenTulos.hakutoiveet(2).hakukohdeOid
+
+      val alimmanToiveenEhdollinenVastaanottoResult = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid,
+        alinHakukohdeOid, hakuOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja).head
+      alimmanToiveenEhdollinenVastaanottoResult.result.status must_== 400
+      alimmanToiveenEhdollinenVastaanottoResult.result.message must_== Some("Hakutoivetta ei voi ottaa ehdollisesti vastaan")
+
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.kesken
+
+      val keskimmaisenToiveenEhdollinenVastaanottoResult = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid,
+        keskimmainenHakukohdeOid, hakuOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja).head
+      keskimmaisenToiveenEhdollinenVastaanottoResult.result.status must_== 200
+
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
+      hakemuksenTulos.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.kesken
     }
     "peru yksi hakija" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
@@ -90,7 +147,8 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
     "vastaanota yksi hakija joka ottanut vastaan toisen kk paikan -> error" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = HakuFixtures.korkeakouluYhteishaku, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
       val r = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.vastaanottanut, muokkaaja).head
-      r.result.status must_== 403
+      r.result.message must_== Some("Ei-hyväksyttyä hakutoivetta ei voi ottaa vastaan (tila on PERUUNTUNUT)")
+      r.result.status must_== 400
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
     }
     "peru yksi hakija jonka paikka ei vastaanotettavissa -> success" in {
@@ -136,11 +194,19 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
     }
     "vastaanota ehdollisesti yksi hakija" in {
-      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
+      useFixture("varalla-hyvaksytty-hyvaksytty.json", Nil, hakuFixture = "korkeakoulu-yhteishaku", hakemusFixtures = List("00000441369-3"),
+        yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+
+      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
+      hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
+      hakemuksenTulos.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
+
+      val keskimmainenHakukohdeOid = hakemuksenTulos.hakutoiveet(1).hakukohdeOid
+
       vastaanotaVirkailijanaTransaktiossa(List(
-        VastaanottoEventDto(valintatapajonoOid, personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, "testiselite")
+        VastaanottoEventDto(valintatapajonoOid, personOid, hakemusOid, keskimmainenHakukohdeOid, hakuOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, "testiselite")
       )).isSuccess must beTrue
-      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
+      hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
     }
     "peru yksi hakija" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
@@ -197,6 +263,13 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
 
       useFixture("hyvaksytty-ylempi-varalla.json", Nil, hakuFixture = "korkeakoulu-yhteishaku", yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
       vastaanota(hakuOid, hakemusOid, alinHyvaksyttyHakutoiveOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", Nil, hakuFixture = "korkeakoulu-yhteishaku", yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true, clearFixturesInitially = false)
+
+      val `hakemuksentulosHakijanVastaanotonJa"Sijoittelun"Jalkeen` = hakemuksenTulos(hakuOid, hakemusOid)
+      `hakemuksentulosHakijanVastaanotonJa"Sijoittelun"Jalkeen`.hakutoiveet(0).valintatila must_== Valintatila.hyväksytty
+      `hakemuksentulosHakijanVastaanotonJa"Sijoittelun"Jalkeen`.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
+      `hakemuksentulosHakijanVastaanotonJa"Sijoittelun"Jalkeen`.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      `hakemuksentulosHakijanVastaanotonJa"Sijoittelun"Jalkeen`.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
 
       val vastaanotonTulos = vastaanotaVirkailijanaTransaktiossa(List(
         VastaanottoEventDto(valintatapajonoOid, personOid, hakemusOid, alinHyvaksyttyHakutoiveOid, hakuOid, Vastaanottotila.kesken, muokkaaja, "testiselite"),
@@ -209,24 +282,35 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
       hakemuksentulos.hakutoiveet(1).valintatila must_== domain.Valintatila.peruuntunut
     }
     "estä useampi vastaanotto kun yhden paikan sääntö on voimassa" in {
-      val alinHyvaksyttyHakutoiveOid = "1.2.246.562.5.16303028779"
-      val ylempiHakutoiveOid = "1.2.246.562.5.72607738902"
+      useFixture("varalla-hyvaksytty-hyvaksytty.json", Nil, hakuFixture = "korkeakoulu-yhteishaku", hakemusFixtures = List("00000441369-3"),
+        yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
 
-      useFixture("hyvaksytty-ylempi-varalla.json", Nil, hakuFixture = "korkeakoulu-yhteishaku", yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
-      vastaanota(hakuOid, hakemusOid, alinHyvaksyttyHakutoiveOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
+      val hakemuksentulosEnnen = hakemuksenTulos(hakuOid, hakemusOid)
+      hakemuksentulosEnnen.hakutoiveet(0).valintatila must_== Valintatila.varalla
+      hakemuksentulosEnnen.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
+      hakemuksentulosEnnen.hakutoiveet(2).valintatila must_== Valintatila.hyväksytty
+      hakemuksentulosEnnen.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksentulosEnnen.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksentulosEnnen.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.kesken
+
+      val keskimmainenHakukohdeOid = hakemuksentulosEnnen.hakutoiveet(1).hakukohdeOid
+      val alinHakukohdeOid = hakemuksentulosEnnen.hakutoiveet(2).hakukohdeOid
+
+      vastaanota(hakuOid, hakemusOid, keskimmainenHakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
 
       val vastaanotonTulos = vastaanotaVirkailijanaTransaktiossa(List(
-        VastaanottoEventDto(valintatapajonoOid, personOid, hakemusOid, alinHyvaksyttyHakutoiveOid, hakuOid, Vastaanottotila.vastaanottanut, muokkaaja, "testiselite"),
-        VastaanottoEventDto(valintatapajonoOid, personOid, hakemusOid, ylempiHakutoiveOid, hakuOid, Vastaanottotila.vastaanottanut, muokkaaja, "testiselite")
+        VastaanottoEventDto(valintatapajonoOid, personOid, hakemusOid, keskimmainenHakukohdeOid, hakuOid, Vastaanottotila.vastaanottanut, muokkaaja, "testiselite"),
+        VastaanottoEventDto(valintatapajonoOid, personOid, hakemusOid, alinHakukohdeOid, hakuOid, Vastaanottotila.vastaanottanut, muokkaaja, "testiselite")
       ))
       val hakemuksentulos = hakemuksenTulos(hakuOid, hakemusOid)
       vastaanotonTulos match {
-        case Failure(cae: ConflictingAcceptancesException) => cae.conflictingVastaanottos.map(_.hakukohdeOid) must_== Vector(ylempiHakutoiveOid, alinHyvaksyttyHakutoiveOid)
+        case Failure(cae: ConflictingAcceptancesException) => cae.conflictingVastaanottos.map(_.hakukohdeOid) must_== Vector(alinHakukohdeOid, keskimmainenHakukohdeOid)
         case x => fail(s"Should have failed on several conflicting records but got $x")
       }
 
       hakemuksentulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
       hakemuksentulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
+      hakemuksentulos.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.kesken
     }
   }
 

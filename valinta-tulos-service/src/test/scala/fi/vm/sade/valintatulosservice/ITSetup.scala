@@ -27,12 +27,13 @@ trait ITSetup {
                  hakemusFixtures: List[String] = HakemusFixtures.defaultFixtures,
                  hakuFixture: String = HakuFixtures.korkeakouluYhteishaku,
                  yhdenPaikanSaantoVoimassa: Boolean = false,
-                 kktutkintoonJohtava: Boolean = false
+                 kktutkintoonJohtava: Boolean = false,
+                 clearFixturesInitially: Boolean = true
                 ) {
 
-    sijoitteluFixtures.importFixture(fixtureName, true, yhdenPaikanSaantoVoimassa, kktutkintoonJohtava)
+    sijoitteluFixtures.importFixture(fixtureName, clear = clearFixturesInitially, yhdenPaikanSaantoVoimassa = yhdenPaikanSaantoVoimassa, kktutkintoonJohtava = kktutkintoonJohtava)
     extraFixtureNames.map(fixtureName =>
-      sijoitteluFixtures.importFixture(fixtureName, false, yhdenPaikanSaantoVoimassa, kktutkintoonJohtava)
+      sijoitteluFixtures.importFixture(fixtureName, clear = false, yhdenPaikanSaantoVoimassa = yhdenPaikanSaantoVoimassa, kktutkintoonJohtava = kktutkintoonJohtava)
     )
 
     OhjausparametritFixtures.activeFixture = ohjausparametritFixture
