@@ -56,6 +56,20 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
       }.apply
       poller.etsiHaut must_== Nil
     }
+
+    "Jos tulosten julkistus ei ole alkanut -> ei mukaan" in {
+      new GeneratedFixture(new SingleHakemusFixture()){
+        override def ohjausparametritFixture = "tuloksia-ei-viela-saa-julkaista"
+      }.apply
+      poller.etsiHaut must_== Nil
+    }
+
+    "Jos tulokset julkistettu -> mukaan" in {
+      new GeneratedFixture(new SingleHakemusFixture()){
+        override def ohjausparametritFixture = "tulokset-saa-julkaista"
+      }.apply
+      poller.etsiHaut must_== List("1")
+    }
   }
 
   "Kun päässyt kaikkiin hakukohteisiin" in {
