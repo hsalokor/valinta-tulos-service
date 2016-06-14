@@ -14,15 +14,20 @@ class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatul
       .filter{haku => haku.korkeakoulu}
       .filter{haku =>
         val include = haku.hakuAjat.isEmpty || haku.hakuAjat.exists(hakuaika => hakuaika.hasStarted)
-        if (!include) logger.debug("Pudotetaan haku " + haku.oid + " koska hakuaika ei alkanut")
+        if (!include) logger.info("Pudotetaan haku " + haku.oid + " koska hakuaika ei alkanut")
         include
        }
       .filter{haku =>
         ohjausparameteritService.ohjausparametrit(haku.oid) match {
-          case Some(Ohjausparametrit(_, _, _, Some(hakuKierrosPaattyy))) =>
-            val include = new DateTime().isBefore(hakuKierrosPaattyy)
-            if (!include) logger.debug("Pudotetaan haku " + haku.oid + " koska hakukierros päättyy " + hakuKierrosPaattyy)
-            include
+          case Some(Ohjausparametrit(_, _, _, Some(hakukierrosPaattyy), _)) if hakukierrosPaattyy.isBeforeNow() =>
+            logger.info("Pudotetaan haku " + haku.oid + " koska hakukierros päättynyt " + hakukierrosPaattyy)
+            false
+          case Some(Ohjausparametrit(_, _, _, _, Some(tulostenJulkistusAlkaa))) if tulostenJulkistusAlkaa.isAfterNow()=>
+            logger.info("Pudotetaan haku " + haku.oid + " koska tulosten julkistus alkaa " + tulostenJulkistusAlkaa)
+            false
+          case None =>
+            logger.warn("Pudotetaan haku " + haku.oid + " koska ei saatu haettua ohjausparametreja")
+            false
           case x =>
             true
         }

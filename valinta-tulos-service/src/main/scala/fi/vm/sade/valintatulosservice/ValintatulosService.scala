@@ -609,7 +609,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   }
 
   private def ehdollinenVastaanottoMahdollista(ohjausparametrit: Option[Ohjausparametrit]): Boolean = {
-    ohjausparametrit.getOrElse(Ohjausparametrit(None, None, None, None)).varasijaSaannotAstuvatVoimaan match {
+    ohjausparametrit.getOrElse(Ohjausparametrit(None, None, None, None, None)).varasijaSaannotAstuvatVoimaan match {
       case None => true
       case Some(varasijaSaannotAstuvatVoimaan) => varasijaSaannotAstuvatVoimaan.isBefore(new DateTime())
     }
