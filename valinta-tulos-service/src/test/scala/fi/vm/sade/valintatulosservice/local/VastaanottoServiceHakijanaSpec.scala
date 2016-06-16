@@ -498,7 +498,7 @@ class VastaanottoServiceHakijanaSpec extends ITSpecification with TimeWarp with 
 
   private def hakemuksenTulos: Hakemuksentulos = hakemuksenTulos(hakuOid, hakemusOid)
   private def hakemuksenTulos(hakuOid: String, hakemusOid: String) = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).get
-  private def hakemustenTulokset(hakuOid: String) = valintatulosService.hakemustenTulosByHaku(hakuOid).get.toList
+  private def hakemustenTulokset(hakuOid: String) = valintatulosService.hakemustenTulosByHaku(hakuOid, true).get.toList
 
   private def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: String, selite: String, personOid: String) = {
     vastaanottoService.vastaanotaHakijana(HakijanVastaanotto(personOid, hakemusOid, hakukohdeOid, HakijanVastaanottoAction.getHakijanVastaanottoAction(tila))).get

@@ -51,14 +51,14 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
   }
 
   lazy val getHakemuksetSwagger: OperationBuilder = (apiOperation[Unit]("getHakemukset")
-    summary "Hae haun kaikkien hakemusten tulokset."
+    summary "Hae haun kaikkien hakemusten tulokset. Palauttaa julkaistu tilaiset valintatulokset jo ennen haun tulosten julkaisupäivää."
     notes "Palauttaa tyyppiä Seq[Hakemuksentulos]. Esim:\n" +
       pretty(Extraction.decompose(Seq(exampleHakemuksenTulos)))
     parameter pathParam[String]("hakuOid").description("Haun oid")
   )
   get("/:hakuOid", operation(getHakemuksetSwagger)) {
     val hakuOid = params("hakuOid")
-    serveStreamingResults({ valintatulosService.hakemustenTulosByHaku(hakuOid) })
+    serveStreamingResults({ valintatulosService.hakemustenTulosByHaku(hakuOid, false) })
   }
 
   get("/:hakuOid/hakukohde/:hakukohdeOid", operation(getHakukohteenHakemuksetSwagger)) {
