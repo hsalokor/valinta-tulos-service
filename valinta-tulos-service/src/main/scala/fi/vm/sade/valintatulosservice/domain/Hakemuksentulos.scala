@@ -64,8 +64,8 @@ case class Hakutoiveentulos(hakukohdeOid: String,
 }
 
 object Hakutoiveentulos {
-  def julkaistavaVersioSijoittelunTuloksesta(tulos: HakutoiveenSijoitteluntulos, hakutoive: Hakutoive, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(implicit appConfig: AppConfig): Hakutoiveentulos = {
-    val saaJulkaista: Boolean = ohjausparametrit.flatMap(_.tulostenJulkistusAlkaa).map(_.isBeforeNow()).getOrElse(ohjausparametrit.isDefined)
+  def julkaistavaVersioSijoittelunTuloksesta(tulos: HakutoiveenSijoitteluntulos, hakutoive: Hakutoive, haku: Haku, ohjausparametrit: Option[Ohjausparametrit], checkJulkaisuAikaParametri: Boolean = true)(implicit appConfig: AppConfig): Hakutoiveentulos = {
+    val saaJulkaista: Boolean = !checkJulkaisuAikaParametri || ohjausparametrit.flatMap(_.tulostenJulkistusAlkaa).map(_.isBeforeNow()).getOrElse(ohjausparametrit.isDefined)
     Hakutoiveentulos(
       tulos.hakukohdeOid,
       hakutoive.nimi,
