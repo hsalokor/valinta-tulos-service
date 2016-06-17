@@ -8,10 +8,6 @@
 valinta-tulos-service.ohjausparametrit.url=https\://{{host_virkailija}}/ohjausparametrit-service/api/v1/rest/parametri
 valinta-tulos-service.ilmoittautuminen.enabled={{valintatulosservice_ilmoittautuminen_enabled}}
 
-#VALINTALASKENTA-SERVICE
-valintalaskenta-laskenta-service.mongodb.dbname=valintalaskentadb
-valintalaskenta-laskenta-service.mongodb.uri=mongodb://{{mongodb_valintalaskentadb_auth | default(mongodb_virkailija_auth) }}@{{mongodb_valintalaskentadb_host | default(mongodb_virkailija_host)}}:{{mongodb_valintalaskentadb_port | default(mongodb_virkailija_port)}}
-
 #SIJOITTELU-SERVICE
 sijoittelu-service.mongodb.dbname=sijoitteludb
 sijoittelu-service.mongodb.uri=mongodb://{{mongodb_sijoitteludb_auth | default(mongodb_virkailija_auth) }}@{{mongodb_sijoitteludb_host | default(mongodb_virkailija_host)}}:{{mongodb_sijoitteludb_port | default(mongodb_virkailija_port)}}
