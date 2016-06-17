@@ -1,11 +1,13 @@
 package fi.vm.sade.valintatulosservice.production
 
 import fi.vm.sade.utils.http.DefaultHttpClient
+import org.junit.Ignore
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
+@Ignore
 class ProductionSmokeTest extends Specification {
   val hakuOid = "1.2.246.562.5.2014022711042555034240"
   val hyväksytty = "1.2.246.562.11.00000923132"
