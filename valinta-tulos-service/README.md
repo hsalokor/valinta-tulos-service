@@ -1,17 +1,31 @@
 valinta-tulos-service
 =====================
 
-Valintatuloksien REST-rajapinta, DRAFT
+Valintatuloksien ja vastaanottotietojen REST-rajapinta.
 
-Tavoitteena luoda kaikkien hakujen valintatuloksille yhteinen rajapinta.
+Tavoitteena luoda kaikkien hakujen valintatuloksille ja vastaanottotietojen hallinnalle (valintarekisterille) yhteinen rajapinta.
 
-Rajapinnan kautta voi valintatulosten lisäksi lisätä hakemuksen hakukohteelle vastaanottotieto.
+Rajapinta käyttää
+* `sijoitteludb`-Mongo-kantaa
+* `hakulomake`-Mongo-kantaa
+* `valintarekisteri`-PostgreSQL-kantaa
 
-Alkuvaiheessa rajapinta toteutetaan käyttäen tietovarastona sijoittelu-tietokantaa. Tavoitteena on jatkossa siirtää tulokset uuteen yhteiseen tietokantaan.
+Tavoitteena on jatkossa siirtää tulokset `valintarekisteri`-kantaan. Tällä hetkellä (17.6.2016) vastaanottotiedot on siirretty.
 
 ## Maven-buildi
 
 ### Testit
+
+Uudet testit käyttävät lokaalia valintarekisteri-tietokantaa. Sen ajamista varten tarvitaan
+* toimiva PostgreSQL-asennus
+* `PATH`iin tarvittavat PostgreSQL-binäärit (esim /usr/lib/postgresql/9.5/bin/ :inistä), ainakin
+   - `initdb`
+   - `pg_isready`
+   - `postgres`
+   - `dropdb`
+   - `createdb`
+   - `psql`
+* todennäköisesti käyttäjäsi tulee olla postgres-ryhmässä, jotta lukkotiedoston kirjoittaminen onnistuu (tämä selviää kokeilemalla)
 
 Aja kaikki testit
 
@@ -51,6 +65,7 @@ Profiili määrittää lähinnä, mistä propertyt haetaan, mutta sen avulla my�
 ### it-profiili
 
 Käytetään embedded mongoa, johon syötetään fixtuuridataa. Tätä käytetään myös automaattisissa testeissä kuten `ValintaTulosServletSpec`.
+Käytetään myös paikallista PostgreSQL-kantaa, joka luodaan vain testiajoa varten.
 
 ### dev-profiili
 
@@ -92,27 +107,3 @@ Yksinkertaistetusti pollauksessa haetaan ensimmäisessä vaiheessa joukko kandid
 Tarkistusaikaleimojen nollauksen voi tehdä mongoon seuraavasti (muokkaa minimiaikaleima sopivaksi):
 
     db.Valintatulos.update({"mailStatus.previousCheck": {"$gte": ISODate("2015-07-20T18:00:00.000Z")}}, {$unset: {"mailStatus.previousCheck": ""}}, {multi:true})
-
-## Paikallinen PostgreSQL-kanta opiskelijavalintarekisteriä varten
-
-Tyhjän testikannan ensimmäistä käynnistystä varten voi luoda esimerkiksi seuraavasti (vaatii PostgreSQL-clientin sekä Dockerin ja mahdollisesti boot2docker:in).
-`-h` on Windows/OS X ympäristössä `boot2docker ip`:n antama osoite, Linuxilla `localhost`. `-p` kertoo mitä porttia kanta kuuntelee.
-
-Muista konfiguroida käynnistyksessä annettavaan `.properties`-tiedostoon pystyttämäsi testikannan tiedot.
-
-1. `docker run -p 5432:5432 postgres`
-2. `psql -h192.168.59.103 -p5432 -Upostgres postgres -c "CREATE DATABASE valintarekisteri;"`
-3. `psql -h192.168.59.103 -p5432 -Upostgres postgres -c "CREATE ROLE OPH;"`
-
-Embedattu tietokanta käynnistyy sovelluksessa ja vaatii paikallisen PostgreSQL:n ja lisäksi 
-* polkuun monta komentoa (esim /usr/lib/postgresql/9.5/bin/ :inistä)
-** postgres
-** initdb
-** createdb
-** dropdb
-* todennäköisesti käyttäjäsi tulee olla postgres-ryhmässä, jotta lukkotiedoston kirjoittaminen onnistuu (tämä selviää kokeilemalla)
-
-## TODO: Tietokanta
-
-Palvelinympäristöissä tietokantaa on tarkoitus käyttää oph-nimisellä roolilla.
-
