@@ -23,12 +23,10 @@ class SijoittelutulosService(raportointiService: RaportointiService,
                              hakijaVastaanottoRepository: HakijaVastaanottoRepository) {
   import scala.collection.JavaConversions._
 
-  def hakemuksenTulos(haku: Haku, hakemusOid: String, hakijaOidIfFound: Option[String]): Option[HakemuksenSijoitteluntulos] = {
-    def aikataulu = ohjausparametritService.ohjausparametrit(haku.oid).flatMap(_.vastaanottoaikataulu)
-
+  def hakemuksenTulos(haku: Haku, hakemusOid: String, hakijaOidIfFound: Option[String], aikataulu: Option[Vastaanottoaikataulu], latestSijoitteluAjo: Option[SijoitteluAjo]): Option[HakemuksenSijoitteluntulos] = {
     for (
       hakijaOid <- hakijaOidIfFound;
-      sijoitteluAjo <- Timer.timed("hakemuksenTulos -> raportointiService.latestSijoitteluAjoForHaku", 100) { fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid)) };
+      sijoitteluAjo <- latestSijoitteluAjo;
       hakija: HakijaDTO <- Timer.timed("hakemuksenTulos -> raportointiService.hakemus", 1000) { Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)) }
     ) yield hakemuksenYhteenveto(hakija, aikataulu, fetchVastaanotto(hakijaOid, haku.oid))
   }
@@ -61,7 +59,19 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     }).getOrElse(Nil)
   }
 
-  private def findLatestSijoitteluAjo(hakuOid: String, hakukohdeOid: Option[String]): Option[SijoitteluAjo] = hakukohdeOid match {
+  def findAikatauluFromOhjausparametritService(hakuOid: String): Option[Vastaanottoaikataulu] = {
+    Timer.timed("findAikatauluFromOhjausparametritService -> ohjausparametritService.ohjausparametrit", 100) {
+      ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
+    }
+  }
+
+  def findLatestSijoitteluAjoForHaku(haku: Haku): Option[SijoitteluAjo] = {
+    Timer.timed("findLatestSijoitteluAjoForHaku -> raportointiService.latestSijoitteluAjoForHaku", 100) {
+      fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid))
+    }
+  }
+
+  def findLatestSijoitteluAjo(hakuOid: String, hakukohdeOid: Option[String]): Option[SijoitteluAjo] = hakukohdeOid match {
     case Some(hakukohde) => Timer.timed("findLatestSijoitteluAjo -> latest sijoittelu for hakukohde", 1000)(fromOptional(raportointiService.latestSijoitteluAjoForHakukohde(hakuOid, hakukohde)))
     case None => Timer.timed("findLatestSijoitteluAjo -> latest sijoittelu for haku", 1000)(fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)))
   }

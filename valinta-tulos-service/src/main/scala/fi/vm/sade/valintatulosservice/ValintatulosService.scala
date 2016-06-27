@@ -56,25 +56,30 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   }
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
+    val vastaanottoaikataulu = sijoittelutulosService.findAikatauluFromOhjausparametritService(hakuOid)
+
     for {
       haku <- hakuService.getHaku(hakuOid)
+      latestSijoitteluAjo = sijoittelutulosService.findLatestSijoitteluAjoForHaku(haku)
       hakemus <- fetchTulokset(
         haku,
         () => hakemusRepository.findHakemus(hakemusOid).iterator,
-        hakijaOidsByHakemusOids => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids.get(hakemusOid)).toSeq
+        hakijaOidsByHakemusOids => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids.get(hakemusOid), vastaanottoaikataulu, latestSijoitteluAjo).toSeq
       ).toSeq.headOption
     } yield hakemus
   }
 
   def hakemuksentuloksetByPerson(hakuOid: String, personOid: String): List[Hakemuksentulos] = {
     val hakemukset = hakemusRepository.findHakemukset(hakuOid, personOid).toSeq
+    val vastaanottoAikataulu = sijoittelutulosService.findAikatauluFromOhjausparametritService(hakuOid)
     (for {
       haku <- hakuService.getHaku(hakuOid)
+      latestSijoitteluAjo <- sijoittelutulosService.findLatestSijoitteluAjoForHaku(haku)
     } yield {
       fetchTulokset(
         haku,
         () => hakemukset.toIterator,
-        hakijaOidsByHakemusOids => hakemukset.flatMap(hakemus => sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid, hakijaOidsByHakemusOids.get(hakemus.oid)))
+        hakijaOidsByHakemusOids => hakemukset.flatMap(hakemus => sijoittelutulosService.hakemuksenTulos(haku, hakemus.oid, hakijaOidsByHakemusOids.get(hakemus.oid), vastaanottoAikataulu, Some(latestSijoitteluAjo)))
       ).toList
     }).getOrElse(List.empty)
   }
@@ -89,9 +94,11 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   def haeTilatHakijoille(hakuOid: String, hakukohdeOid: String, valintatapajonoOid: String, hakemusOids: Set[String]): Set[TilaHakijalle] = {
     hakuService.getHaku(hakuOid) match {
       case Some(haku) =>
+        val vastaanottoaikataulu = sijoittelutulosService.findAikatauluFromOhjausparametritService(hakuOid)
+        val latestSijoitteluAjo = sijoittelutulosService.findLatestSijoitteluAjo(hakuOid, Some(hakukohdeOid))
         val hakemustenTulokset = fetchTulokset(haku,
           () => hakemusRepository.findHakemuksetByOids(hakemusOids),
-          hakijaOidsByHakemusOids => hakemusOids.flatMap(hakemusOid => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids.get(hakemusOid))).toSeq)
+          hakijaOidsByHakemusOids => hakemusOids.flatMap(hakemusOid => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids.get(hakemusOid), vastaanottoaikataulu, latestSijoitteluAjo)).toSeq)
         hakemustenTulokset.map { hakemuksenTulos =>
           hakemuksenTulos.hakutoiveet.find(_.valintatapajonoOid == valintatapajonoOid).map { hakutoiveenTulos =>
             val tilaHakijalle = ValintatuloksenTila.valueOf(hakutoiveenTulos.vastaanottotila.toString)
