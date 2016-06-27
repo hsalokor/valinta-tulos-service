@@ -28,8 +28,8 @@ class SijoittelutulosService(raportointiService: RaportointiService,
 
     for (
       hakijaOid <- hakijaOidIfFound;
-      sijoitteluAjo <- fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid));
-      hakija: HakijaDTO <- Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid))
+      sijoitteluAjo <- Timer.timed("hakemuksenTulos -> raportointiService.latestSijoitteluAjoForHaku", 100) { fromOptional(raportointiService.latestSijoitteluAjoForHaku(haku.oid)) };
+      hakija: HakijaDTO <- Timer.timed("hakemuksenTulos -> raportointiService.hakemus", 1000) { Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)) }
     ) yield hakemuksenYhteenveto(hakija, aikataulu, fetchVastaanotto(hakijaOid, haku.oid))
   }
 
@@ -62,8 +62,8 @@ class SijoittelutulosService(raportointiService: RaportointiService,
   }
 
   private def findLatestSijoitteluAjo(hakuOid: String, hakukohdeOid: Option[String]): Option[SijoitteluAjo] = hakukohdeOid match {
-    case Some(hakukohde) => Timer.timed("latest sijoittelu for hakukohde", 1000)(fromOptional(raportointiService.latestSijoitteluAjoForHakukohde(hakuOid, hakukohde)))
-    case None => Timer.timed("latest sijoittelu for haku", 1000)(fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)))
+    case Some(hakukohde) => Timer.timed("findLatestSijoitteluAjo -> latest sijoittelu for hakukohde", 1000)(fromOptional(raportointiService.latestSijoitteluAjoForHakukohde(hakuOid, hakukohde)))
+    case None => Timer.timed("findLatestSijoitteluAjo -> latest sijoittelu for haku", 1000)(fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid)))
   }
 
   def sijoittelunTuloksetWithoutVastaanottoTieto(hakuOid: String, sijoitteluajoId: String, hyvaksytyt: Option[Boolean], ilmanHyvaksyntaa: Option[Boolean], vastaanottaneet: Option[Boolean],
@@ -102,7 +102,9 @@ class SijoittelutulosService(raportointiService: RaportointiService,
   }
 
   private def fetchVastaanotto(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
-    hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
+    Timer.timed("hakijaVastaanottoRepository.findHenkilonVastaanototHaussa", 100) {
+      hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
+    }
   }
 
   private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu], vastaanottoRecord: Set[VastaanottoRecord]): HakemuksenSijoitteluntulos = {
