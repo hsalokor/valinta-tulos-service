@@ -9,7 +9,7 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottoaikataulu
 
-case class Ohjausparametrit(vastaanottoaikataulu: Option[Vastaanottoaikataulu], varasijaSaannotAstuvatVoimaan: Option[DateTime], ilmoittautuminenPaattyy: Option[DateTime], hakukierrosPaattyy: Option[DateTime], tulostenJulkistusAlkaa: Option[DateTime])
+case class Ohjausparametrit(vastaanottoaikataulu: Option[Vastaanottoaikataulu], varasijaSaannotAstuvatVoimaan: Option[DateTime], ilmoittautuminenPaattyy: Option[DateTime], hakukierrosPaattyy: Option[DateTime], tulostenJulkistusAlkaa: Option[DateTime], kaikkiJonotSijoittelussa: Option[DateTime])
 
 trait OhjausparametritService {
   def ohjausparametrit(asId: String): Option[Ohjausparametrit]
@@ -54,7 +54,7 @@ class RemoteOhjausparametritService(implicit appConfig: AppConfig) extends Ohjau
 private object OhjausparametritParser extends JsonFormats {
 
   def parseOhjausparametrit(json: JValue) = {
-    Some(Ohjausparametrit(parseVastaanottoaikataulu(json), parseVarasijaSaannotAstuvatVoimaan(json), parseIlmoittautuminenPaattyy(json), parseHakukierrosPaattyy(json), parseTulostenJulkistus(json)))
+    Some(Ohjausparametrit(parseVastaanottoaikataulu(json), parseVarasijaSaannotAstuvatVoimaan(json), parseIlmoittautuminenPaattyy(json), parseHakukierrosPaattyy(json), parseTulostenJulkistus(json), parseKaikkiJonotSijoittelussa(json)))
   }
 
   private def parseDateTime(json: JValue, key: String): Option[DateTime] = {
@@ -86,5 +86,7 @@ private object OhjausparametritParser extends JsonFormats {
   private def parseIlmoittautuminenPaattyy(json: JValue) = parseDateTime(json, "PH_IP")
 
   private def parseHakukierrosPaattyy(json: JValue) =  parseDateTime(json, "PH_HKP")
+
+  private def parseKaikkiJonotSijoittelussa(json: JValue) =  parseDateTime(json, "PH_VTSSV")
 }
 

@@ -620,10 +620,15 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   }
 
   private def ehdollinenVastaanottoMahdollista(ohjausparametrit: Option[Ohjausparametrit]): Boolean = {
-    ohjausparametrit.getOrElse(Ohjausparametrit(None, None, None, None, None)).varasijaSaannotAstuvatVoimaan match {
+    val varasijaSaannotVoimassa = ohjausparametrit.getOrElse(Ohjausparametrit(None, None, None, None, None, None)).varasijaSaannotAstuvatVoimaan match {
       case None => true
       case Some(varasijaSaannotAstuvatVoimaan) => varasijaSaannotAstuvatVoimaan.isBefore(new DateTime())
     }
+    val kaikkiJonotSijoittelussa = ohjausparametrit.getOrElse(Ohjausparametrit(None, None, None, None, None, None)).kaikkiJonotSijoittelussa match {
+      case None => true
+      case Some(kaikkiJonotSijoittelussa) => kaikkiJonotSijoittelussa.isBefore(new DateTime())
+    }
+    varasijaSaannotVoimassa && kaikkiJonotSijoittelussa
   }
 
   case class Välitulos(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) {
