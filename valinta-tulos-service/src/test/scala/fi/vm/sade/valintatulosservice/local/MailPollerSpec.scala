@@ -7,7 +7,7 @@ import fi.vm.sade.valintatulosservice.domain.{Vastaanottotila, VirkailijanVastaa
 import fi.vm.sade.valintatulosservice.generatedfixtures._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
-import fi.vm.sade.valintatulosservice.sijoittelu.{ValintatulosRepository, SijoittelutulosService}
+import fi.vm.sade.valintatulosservice.sijoittelu.{DirectMongoLatestSijoitteluAjoClient, LatestSijoitteluAjoClient, SijoittelutulosService, ValintatulosRepository}
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
 import fi.vm.sade.valintatulosservice.vastaanottomeili._
@@ -20,7 +20,8 @@ import org.specs2.runner.JUnitRunner
 class MailPollerSpec extends ITSpecification with TimeWarp {
   lazy val hakuService = HakuService(null, appConfig)
   lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
-  lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, valintarekisteriDb)
+  lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService,
+    valintarekisteriDb, new DirectMongoLatestSijoitteluAjoClient(appConfig))
   lazy val hakukohdeRecordService = new HakukohdeRecordService(hakuService, valintarekisteriDb, true)
   lazy val vastaanotettavuusService = new VastaanotettavuusService(hakukohdeRecordService, valintarekisteriDb)
   lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, valintarekisteriDb, hakuService, hakukohdeRecordService)(appConfig)

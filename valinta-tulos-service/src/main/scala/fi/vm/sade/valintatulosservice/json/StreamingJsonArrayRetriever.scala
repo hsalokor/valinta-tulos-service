@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice.json
 
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 import com.fasterxml.jackson.core.{JsonFactory, JsonParser, JsonToken}
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -21,7 +22,7 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
   private val jsonFactory = new JsonFactory()
   private val mapper = new ObjectMapper()
 
-  def processStreaming[T,R](targetService: String, url: String, targetClass: Class[T], processSingleItem: T => R): Unit = {
+  def processStreaming[T,R](targetService: String, url: String, targetClass: Class[T], processSingleItem: T => R, responseIsArray: Boolean = true): Unit = {
     logger.info(s"Making a request to $url")
     val casParams = createCasParams(appConfig, targetService)
     val jsessionId = authenticate(casParams)
@@ -36,7 +37,7 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
       var currentToken: JsonToken = null
 
       var arrayStartedOrDocumentFinished = false
-      while (!arrayStartedOrDocumentFinished) {
+      while (responseIsArray && !arrayStartedOrDocumentFinished) {
         currentToken = jsonParser.nextToken()
         arrayStartedOrDocumentFinished = JsonToken.START_ARRAY == currentToken || currentToken == null
       }
@@ -58,12 +59,20 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
     })
     if (response.code == Status.Ok.code) {
       logger.info(s"Processed $count items of response with status ${response.code} from $url")
+    } else if (looksLikeCasRedirect(response)) {
+      logger.info("Looks like server JSessionId got old, let's fetch new JSessionId")
+      JSessionIdHolder.clear()
+      processStreaming(targetService, url, targetClass, processSingleItem, responseIsArray)
     } else {
       logger.warn(s"Got non-OK response code ${response.code} from $url")
       response.headers.foreach { case (header: String, value: String) =>
         logger.warn(s"$header: $value")
       }
     }
+  }
+
+  private def looksLikeCasRedirect[R, T](response: HttpResponse[Unit]): Boolean = {
+    response.code == Status.Found.code
   }
 
   private def parseObject[T](mapper: ObjectMapper, jsonParser: JsonParser, targetClass: Class[T]): Option[T] = try {
@@ -77,12 +86,30 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
   private def authenticate(casParams: CasParams): String = {
     val sessions: Process[Task, JSessionId] = Process(casParams).toSource through appConfig.securityContext.casClient.sessionRefreshChannel
 
-    var jSessionId = "<not fetched>"
-    sessions.map(sessionIdFromCas => jSessionId = sessionIdFromCas).run.run
-    jSessionId
+    JSessionIdHolder.synchronized {
+      if (JSessionIdHolder.hasSessionId) {
+        JSessionIdHolder.jSessionId.get()
+      } else {
+        var jSessionId = JSessionIdHolder.NOT_FETCHED
+        sessions.map(sessionIdFromCas => jSessionId = sessionIdFromCas).run.run
+        JSessionIdHolder.jSessionId.set(jSessionId)
+        jSessionId
+      }
+    }
   }
 
   private def createCasParams(appConfig: AppConfig, targetService: String): CasParams = {
     CasParams(targetService, appConfig.settings.securitySettings.casUsername, appConfig.settings.securitySettings.casPassword)
+  }
+}
+
+object JSessionIdHolder {
+  val NOT_FETCHED = "<not fetched>"
+  val jSessionId = new AtomicReference[String](NOT_FETCHED)
+
+  def hasSessionId: Boolean = jSessionId.get() != NOT_FETCHED
+
+  def clear(): Unit = JSessionIdHolder.synchronized {
+    jSessionId.set(NOT_FETCHED)
   }
 }
