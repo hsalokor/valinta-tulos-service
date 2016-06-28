@@ -21,7 +21,7 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
   private val jsonFactory = new JsonFactory()
   private val mapper = new ObjectMapper()
 
-  def processStreaming[T,R](targetService: String, url: String, targetClass: Class[T], processSingleItem: T => R): Unit = {
+  def processStreaming[T,R](targetService: String, url: String, targetClass: Class[T], processSingleItem: T => R, responseIsArray: Boolean = true): Unit = {
     logger.info(s"Making a request to $url")
     val casParams = createCasParams(appConfig, targetService)
     val jsessionId = authenticate(casParams)
@@ -36,7 +36,7 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
       var currentToken: JsonToken = null
 
       var arrayStartedOrDocumentFinished = false
-      while (!arrayStartedOrDocumentFinished) {
+      while (responseIsArray && !arrayStartedOrDocumentFinished) {
         currentToken = jsonParser.nextToken()
         arrayStartedOrDocumentFinished = JsonToken.START_ARRAY == currentToken || currentToken == null
       }

@@ -21,7 +21,8 @@ class LatestSijoitteluAjoClient(appConfig: AppConfig) {
       ajo
     }
 
-    retriever.processStreaming[SijoitteluajoDTO,SijoitteluAjo]("/sijoittelu-service", url(hakuOid, hakukohdeOid), classOf[SijoitteluajoDTO], processor)
+    retriever.processStreaming[SijoitteluajoDTO,SijoitteluAjo]("/sijoittelu-service", url(hakuOid, hakukohdeOid), classOf[SijoitteluajoDTO],
+      processor, responseIsArray = false)
 
     if (ajo.getSijoitteluajoId == null) { // empty object was created in SijoitteluResourceImpl
       None
