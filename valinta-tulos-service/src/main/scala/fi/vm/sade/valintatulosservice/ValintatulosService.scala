@@ -143,7 +143,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
   }
 
   def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String, hakukohteenVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None, checkJulkaisuAikaParametri: Boolean = true): Option[Iterator[Hakemuksentulos]] = {
-    timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakuOid, 1000) (
+    timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakukohdeOid, 1000) (
       for {
         haku <- hakuService.getHaku(hakuOid)
         koulutuksenAlkamiskausi <- hakukohdeRecordService.getHaunKoulutuksenAlkamiskausi(hakuOid)
