@@ -86,15 +86,16 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
   private def authenticate(casParams: CasParams): String = {
     val sessions: Process[Task, JSessionId] = Process(casParams).toSource through appConfig.securityContext.casClient.sessionRefreshChannel
 
-    if (JSessionIdHolder.hasSessionId) {
-      JSessionIdHolder.jSessionId.get()
-    } else {
-      var jSessionId = JSessionIdHolder.NOT_FETCHED
-      sessions.map(sessionIdFromCas => jSessionId = sessionIdFromCas).run.run
-      JSessionIdHolder.jSessionId.set(jSessionId)
-      jSessionId
+    JSessionIdHolder.synchronized {
+      if (JSessionIdHolder.hasSessionId) {
+        JSessionIdHolder.jSessionId.get()
+      } else {
+        var jSessionId = JSessionIdHolder.NOT_FETCHED
+        sessions.map(sessionIdFromCas => jSessionId = sessionIdFromCas).run.run
+        JSessionIdHolder.jSessionId.set(jSessionId)
+        jSessionId
+      }
     }
-
   }
 
   private def createCasParams(appConfig: AppConfig, targetService: String): CasParams = {
@@ -108,5 +109,7 @@ object JSessionIdHolder {
 
   def hasSessionId: Boolean = jSessionId.get() != NOT_FETCHED
 
-  def clear(): Unit = jSessionId.set(NOT_FETCHED)
+  def clear(): Unit = JSessionIdHolder.synchronized {
+    jSessionId.set(NOT_FETCHED)
+  }
 }
