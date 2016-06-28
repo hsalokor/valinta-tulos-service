@@ -4,9 +4,9 @@ import fi.vm.sade.utils.Timer
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.sijoittelu.SijoittelutulosService
+import fi.vm.sade.valintatulosservice.sijoittelu.{DirectMongoLatestSijoitteluAjoClient, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import fi.vm.sade.valintatulosservice.vastaanottomeili.{ValintatulosMongoCollection, HakemusMailStatus, MailPoller}
+import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusMailStatus, MailPoller, ValintatulosMongoCollection}
 import fi.vm.sade.valintatulosservice.{TimeWarp, ValintatulosService}
 
 object PollerTester extends App with Logging with TimeWarp {
@@ -14,7 +14,8 @@ object PollerTester extends App with Logging with TimeWarp {
   appConfig.start
 
   val hakuService = HakuService(null, appConfig)
-  lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, null)
+  lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService,
+    appConfig.ohjausparametritService, null, new DirectMongoLatestSijoitteluAjoClient(appConfig))
   lazy val valintatulosService = new ValintatulosService(null, sijoittelutulosService, null, hakuService, null)
   lazy val valintatulokset = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
   val poller = new MailPoller(valintatulokset, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 100)
