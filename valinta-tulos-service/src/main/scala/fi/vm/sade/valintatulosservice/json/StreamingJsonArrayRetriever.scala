@@ -23,7 +23,7 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
   private val mapper = new ObjectMapper()
 
   def processStreaming[T,R](targetService: String, url: String, targetClass: Class[T], processSingleItem: T => R, responseIsArray: Boolean = true): Unit = {
-    logger.info(s"Making a request to $url")
+    logger.debug(s"Making a request to $url")
     val casParams = createCasParams(appConfig, targetService)
     val jsessionId = authenticate(casParams)
 
@@ -32,7 +32,7 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
 
     var count = 0
     val response: HttpResponse[Unit] = request.execute[Unit](inputStream => {
-      logger.info(s"Starting to process inputstream of response from $url")
+      logger.debug(s"Starting to process inputstream of response from $url")
       val jsonParser = jsonFactory.createParser(inputStream)
       var currentToken: JsonToken = null
 
@@ -58,7 +58,7 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
       }
     })
     if (response.code == Status.Ok.code) {
-      logger.info(s"Processed $count items of response with status ${response.code} from $url")
+      logger.debug(s"Processed $count items of response with status ${response.code} from $url")
     } else if (looksLikeCasRedirect(response)) {
       logger.info("Looks like server JSessionId got old, let's fetch new JSessionId")
       JSessionIdHolder.clear()
