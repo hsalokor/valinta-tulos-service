@@ -28,7 +28,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     for (
       hakijaOid <- hakijaOidIfFound;
       sijoitteluAjo <- latestSijoitteluAjo;
-      hakija: HakijaDTO <- Timer.timed("hakemuksenTulos -> raportointiService.hakemus", 1000) { findHakemus(hakemusOid, sijoitteluAjo) }
+      hakija: HakijaDTO <- findHakemus(hakemusOid, sijoitteluAjo)
     ) yield hakemuksenYhteenveto(hakija, aikataulu, fetchVastaanotto(hakijaOid, haku.oid))
   }
 
