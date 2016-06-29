@@ -1,13 +1,14 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
 import fi.vm.sade.sijoittelu.domain.{Hakukohde, HakukohdeItem, SijoitteluAjo}
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
 import fi.vm.sade.sijoittelu.tulos.dto.{HakukohdeDTO, SijoitteluajoDTO}
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
 import fi.vm.sade.valintatulosservice.json.StreamingJsonArrayRetriever
 
 import scala.collection.JavaConverters._
 
-class LatestSijoitteluAjoClient(appConfig: AppConfig) {
+class SijoittelunTulosRestClient(appConfig: AppConfig) {
   private val retriever = new StreamingJsonArrayRetriever(appConfig)
 
   def fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid: String, hakukohdeOid: Option[String]): Option[SijoitteluAjo] = {
@@ -21,7 +22,7 @@ class LatestSijoitteluAjoClient(appConfig: AppConfig) {
       ajo
     }
 
-    retriever.processStreaming[SijoitteluajoDTO,SijoitteluAjo]("/sijoittelu-service", url(hakuOid, hakukohdeOid), classOf[SijoitteluajoDTO],
+    retriever.processStreaming[SijoitteluajoDTO,SijoitteluAjo]("/sijoittelu-service", latestSijoitteluAjoUrl(hakuOid, hakukohdeOid), classOf[SijoitteluajoDTO],
       processor, responseIsArray = false)
 
     if (ajo.getSijoitteluajoId == null) { // empty object was created in SijoitteluResourceImpl
@@ -37,18 +38,30 @@ class LatestSijoitteluAjoClient(appConfig: AppConfig) {
     item
   }
 
-  private def url(hakuOid: String, hakukohdeOidOption: Option[String]): String = {
+  private def latestSijoitteluAjoUrl(hakuOid: String, hakukohdeOidOption: Option[String]): String = {
     val latestUrlForHaku = s"${appConfig.settings.sijoitteluServiceRestUrl}/resources/sijoittelu/$hakuOid/sijoitteluajo/latest"
     hakukohdeOidOption match {
       case Some(hakukohdeOid) => latestUrlForHaku + "?hakukohdeOid=" + hakukohdeOid
       case None => latestUrlForHaku
     }
   }
+
+  def fetchHakemuksenTulos(sijoitteluAjo: SijoitteluAjo, hakemusOid: String): Option[HakijaDTO] = {
+    val hakuOid = sijoitteluAjo.getHakuOid
+    val url = s"${appConfig.settings.sijoitteluServiceRestUrl}/resources/sijoittelu/$hakuOid/sijoitteluajo/${sijoitteluAjo.getSijoitteluajoId}/hakemus/$hakemusOid"
+    var result: HakijaDTO = null
+    val processor: HakijaDTO => HakijaDTO = { h =>
+      result = h
+      h
+    }
+    retriever.processStreaming[HakijaDTO,HakijaDTO]("/sijoittelu-service", url, classOf[HakijaDTO], processor, responseIsArray = false)
+    Option(result)
+  }
 }
 
-object LatestSijoitteluAjoClient {
+object SijoittelunTulosRestClient {
   def apply(appConfig: AppConfig) = appConfig match {
-    case _: StubbedExternalDeps => new DirectMongoLatestSijoitteluAjoClient(appConfig)
-    case _ => new LatestSijoitteluAjoClient(appConfig)
+    case _: StubbedExternalDeps => new DirectMongoSijoittelunTulosRestClient(appConfig)
+    case _ => new SijoittelunTulosRestClient(appConfig)
   }
 }
