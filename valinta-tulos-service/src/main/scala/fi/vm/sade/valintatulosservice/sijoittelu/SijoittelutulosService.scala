@@ -21,14 +21,14 @@ import org.joda.time.DateTime
 class SijoittelutulosService(raportointiService: RaportointiService,
                              ohjausparametritService: OhjausparametritService,
                              hakijaVastaanottoRepository: HakijaVastaanottoRepository,
-                             latestSijoitteluAjoClient: LatestSijoitteluAjoClient) {
+                             sijoittelunTulosClient: SijoittelunTulosRestClient) {
   import scala.collection.JavaConversions._
 
   def hakemuksenTulos(haku: Haku, hakemusOid: String, hakijaOidIfFound: Option[String], aikataulu: Option[Vastaanottoaikataulu], latestSijoitteluAjo: Option[SijoitteluAjo]): Option[HakemuksenSijoitteluntulos] = {
     for (
       hakijaOid <- hakijaOidIfFound;
       sijoitteluAjo <- latestSijoitteluAjo;
-      hakija: HakijaDTO <- Timer.timed("hakemuksenTulos -> raportointiService.hakemus", 1000) { Option(raportointiService.hakemus(sijoitteluAjo, hakemusOid)) }
+      hakija: HakijaDTO <- findHakemus(hakemusOid, sijoitteluAjo)
     ) yield hakemuksenYhteenveto(hakija, aikataulu, fetchVastaanotto(hakijaOid, haku.oid))
   }
 
@@ -68,13 +68,13 @@ class SijoittelutulosService(raportointiService: RaportointiService,
 
   def findLatestSijoitteluAjoForHaku(haku: Haku): Option[SijoitteluAjo] = {
     Timer.timed("findLatestSijoitteluAjoForHaku -> latestSijoitteluAjoClient.fetchLatestSijoitteluAjoFromSijoitteluService", 100) {
-      latestSijoitteluAjoClient.fetchLatestSijoitteluAjoFromSijoitteluService(haku.oid, None)
+      sijoittelunTulosClient.fetchLatestSijoitteluAjoFromSijoitteluService(haku.oid, None)
     }
   }
 
   def findLatestSijoitteluAjo(hakuOid: String, hakukohdeOid: Option[String]): Option[SijoitteluAjo] = {
     Timer.timed(s"findLatestSijoitteluAjo -> latestSijoitteluAjoClient.fetchLatestSijoitteluAjoFromSijoitteluService($hakuOid, $hakukohdeOid)") {
-      latestSijoitteluAjoClient.fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid, hakukohdeOid)
+      sijoittelunTulosClient.fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid, hakukohdeOid)
     }
   }
 
@@ -105,13 +105,20 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     }.getOrElse(new HakijaPaginationObject)
   }
 
-  def sijoittelunTulosForAjoWithoutVastaanottoTieto(sijoitteluAjo: SijoitteluAjo, hakemusOid: String): HakijaDTO = raportointiService.hakemus(sijoitteluAjo, hakemusOid)
+  def sijoittelunTulosForAjoWithoutVastaanottoTieto(sijoitteluAjo: SijoitteluAjo, hakemusOid: String): HakijaDTO = findHakemus(hakemusOid, sijoitteluAjo).orNull
 
   def findSijoitteluAjo(hakuOid: String, sijoitteluajoId: String): Option[SijoitteluAjo] = {
     if (SijoitteluResource.LATEST == sijoitteluajoId) {
-      latestSijoitteluAjoClient.fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid, None)
+      sijoittelunTulosClient.fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid, None)
     } else fromOptional(raportointiService.getSijoitteluAjo(sijoitteluajoId.toLong))
   }
+
+  private def findHakemus(hakemusOid: String, sijoitteluAjo: SijoitteluAjo): Option[HakijaDTO] = {
+    Timer.timed("SijoittelutulosService -> sijoittelunTulosClient.fetchHakemuksenTulos", 1000) {
+      sijoittelunTulosClient.fetchHakemuksenTulos(sijoitteluAjo, hakemusOid)
+    }
+  }
+
 
   private def fetchVastaanotto(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
     Timer.timed("hakijaVastaanottoRepository.findHenkilonVastaanototHaussa", 100) {
@@ -276,7 +283,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     }
 
     import scala.collection.JavaConverters._
-    Timer.timed(s"haeVastaanotonAikarajaTiedot -> latestSijoitteluAjoClient.fetchLatestSijoitteluAjoFromSijoitteluService($hakuOid, Some($hakukohdeOid))", 100) { latestSijoitteluAjoClient.fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid, Some(hakukohdeOid)) } match {
+    Timer.timed(s"haeVastaanotonAikarajaTiedot -> latestSijoitteluAjoClient.fetchLatestSijoitteluAjoFromSijoitteluService($hakuOid, Some($hakukohdeOid))", 100) { sijoittelunTulosClient.fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid, Some(hakukohdeOid)) } match {
       case Some(sijoitteluAjo) =>
         val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
         val allHakijasForHakukohde = Timer.timed(s"Fetch hakemukset just for hakukohde $hakukohdeOid of haku $hakuOid", 1000) {

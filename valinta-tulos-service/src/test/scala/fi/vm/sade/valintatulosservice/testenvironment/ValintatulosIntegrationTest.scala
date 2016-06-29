@@ -5,7 +5,7 @@ import java.io.File
 import fi.vm.sade.valintatulosservice.ValintatulosService
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.domain.Hakemuksentulos
-import fi.vm.sade.valintatulosservice.sijoittelu.{LatestSijoitteluAjoClient, SijoittelutulosService}
+import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelunTulosRestClient, SijoittelunTulosRestClient$, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import org.junit.runner.RunWith
 import org.specs2.execute._
@@ -22,7 +22,7 @@ class ValintatulosIntegrationTest extends Specification {
 
         val hakuService = HakuService(null, appConfig)
         val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, null,
-          LatestSijoitteluAjoClient(appConfig))
+          SijoittelunTulosRestClient(appConfig))
         val valintatulosService = new ValintatulosService(null, sijoittelutulosService, null, hakuService, null)
 
         val tulos: Hakemuksentulos = valintatulosService.hakemuksentulos("1.2.246.562.29.92175749016", "1.2.246.562.11.00000000330").get

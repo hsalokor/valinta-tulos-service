@@ -8,7 +8,7 @@ import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 /**
   * For testing _only_. Goes directly to raportointiservice without invoking sijoittelu-service REST API.
   */
-class DirectMongoLatestSijoitteluAjoClient(appConfig: AppConfig) extends LatestSijoitteluAjoClient(appConfig) {
+class DirectMongoSijoittelunTulosRestClient(appConfig: AppConfig) extends SijoittelunTulosRestClient(appConfig) {
   private val raportointiService = appConfig.sijoitteluContext.raportointiService
 
   override def fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid: String, hakukohdeOid: Option[String]): Option[SijoitteluAjo] = {
@@ -18,6 +18,10 @@ class DirectMongoLatestSijoitteluAjoClient(appConfig: AppConfig) extends LatestS
     }
   }
 
+
+  override def fetchHakemuksenTulos(sijoitteluAjo: SijoitteluAjo, hakemusOid: String) = {
+    Option(raportointiService.hakemus(sijoitteluAjo.getHakuOid, sijoitteluAjo.getSijoitteluajoId.toString, hakemusOid))
+  }
 
   def fromOptional[T](opt: Optional[T]) = {
     if (opt.isPresent) {
