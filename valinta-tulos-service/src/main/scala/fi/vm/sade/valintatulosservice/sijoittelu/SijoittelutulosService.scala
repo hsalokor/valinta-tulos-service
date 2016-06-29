@@ -114,7 +114,9 @@ class SijoittelutulosService(raportointiService: RaportointiService,
   }
 
   private def findHakemus(hakemusOid: String, sijoitteluAjo: SijoitteluAjo): Option[HakijaDTO] = {
-    sijoittelunTulosClient.fetchHakemuksenTulos(sijoitteluAjo, hakemusOid)
+    Timer.timed("SijoittelutulosService -> sijoittelunTulosClient.fetchHakemuksenTulos", 1000) {
+      sijoittelunTulosClient.fetchHakemuksenTulos(sijoitteluAjo, hakemusOid)
+    }
   }
 
 
