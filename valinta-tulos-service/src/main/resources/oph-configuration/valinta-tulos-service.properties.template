@@ -13,6 +13,7 @@ sijoittelu-service.mongodb.dbname=sijoitteludb
 sijoittelu-service.mongodb.uri=mongodb://{{mongodb_sijoitteludb_auth | default(mongodb_virkailija_auth) }}@{{mongodb_sijoitteludb_host | default(mongodb_virkailija_host)}}:{{mongodb_sijoitteludb_port | default(mongodb_virkailija_port)}}
 sijoittelu-service.rest.url=https://{{host_virkailija}}/sijoittelu-service
 valinta-tulos-service.parseleniently.sijoitteluajontulos={{valintatulosservice_parseleniently_sijoitteluajontulos}}
+sijoittelu-service.hakukohdeCache.populate=false
 
 # KOODISTO
 koodisto-service.rest.url=https://{{host_virkailija}}/koodisto-service
