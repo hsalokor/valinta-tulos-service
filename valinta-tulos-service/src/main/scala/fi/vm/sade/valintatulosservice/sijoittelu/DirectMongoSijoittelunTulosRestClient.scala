@@ -13,8 +13,8 @@ class DirectMongoSijoittelunTulosRestClient(appConfig: AppConfig) extends Sijoit
 
   override def fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid: String, hakukohdeOid: Option[String]): Option[SijoitteluAjo] = {
     hakukohdeOid match {
-      case Some(oid) => fromOptional(raportointiService.cachedLatestSijoitteluAjoForHakukohde(hakuOid, oid))
-      case None => fromOptional(raportointiService.cachedLatestSijoitteluAjoForHaku(hakuOid))
+      case Some(oid) => fromOptional(raportointiService.latestSijoitteluAjoForHakukohde(hakuOid, oid))
+      case None => fromOptional(raportointiService.latestSijoitteluAjoForHaku(hakuOid))
     }
   }
 
