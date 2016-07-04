@@ -51,10 +51,23 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   private def generateTallennettavatVastaanototList(vastaanotot: List[VastaanottoEventDto]): List[VirkailijanVastaanotto] = {
+    val hakuOidit = vastaanotot.map(_.hakuOid).toSet
+    logger.info(s"Ollaan tallentamassa ${vastaanotot.size} vastaanottoa, joista löytyi ${hakuOidit.size} eri hakuOidia ($hakuOidit).")
+    if (hakuOidit.size > 1) {
+      logger.warn("Pitäisi olla vain yksi hakuOid")
+    } else if (hakuOidit.isEmpty) {
+      logger.warn("Ei löytynyt yhtään hakuOidia, lopetetaan.")
+      return Nil
+    }
+
+    val henkiloidenVastaanototHauissaByHakuOid: Map[String, Map[String, List[Valintatulos]]] =
+      hakuOidit.map(hakuOid => (hakuOid, findValintatulokset(hakuOid))).toMap
+
     (for {
       ((hakukohdeOid, hakuOid), vastaanottoEventDtos) <- vastaanotot.groupBy(v => (v.hakukohdeOid, v.hakuOid))
-      hakukohteenValintatulokset = findValintatulokset(hakuOid, hakukohdeOid)
-      vastaanottoEventDto <- vastaanottoEventDtos if isPaivitys(vastaanottoEventDto, hakukohteenValintatulokset.get(vastaanottoEventDto.henkiloOid))
+      haunValintatulokset = henkiloidenVastaanototHauissaByHakuOid(hakuOid)
+      hakukohteenValintatulokset: Map[String, Option[Valintatulos]] = haunValintatulokset.mapValues(_.find(_.getHakuOid == hakuOid))
+      vastaanottoEventDto <- vastaanottoEventDtos if isPaivitys(vastaanottoEventDto, hakukohteenValintatulokset.get(vastaanottoEventDto.henkiloOid).flatten)
     } yield {
       VirkailijanVastaanotto(vastaanottoEventDto)
     }).toList
@@ -97,6 +110,10 @@ class VastaanottoService(hakuService: HakuService,
 
   private def findValintatulokset(hakuOid: String, hakukohdeOid: String): Map[String, Valintatulos] = {
     valintatulosService.findValintaTuloksetForVirkailija(hakuOid, hakukohdeOid).asScala.toList.groupBy(_.getHakijaOid).mapValues(_.head)
+  }
+
+  private def findValintatulokset(hakuOid: String): Map[String, List[Valintatulos]] = {
+    valintatulosService.findValintaTuloksetForVirkailija(hakuOid).asScala.toList.groupBy(_.getHakijaOid)
   }
 
   private def tallenna(vastaanotto: VirkailijanVastaanotto): Try[VastaanottoResult] = {
