@@ -17,6 +17,12 @@ case class VirkailijanVastaanotto(hakuOid: String, valintatapajonoOid: String, h
                                   action: VirkailijanVastaanottoAction, ilmoittaja: String, selite: String) extends VastaanottoEvent
 
 object VirkailijanVastaanotto {
+  def tallennusJarjestys: (VirkailijanVastaanotto, VirkailijanVastaanotto) => Boolean = (first, second) => {
+    val firstsTila: ValintatuloksenTila = first.action.valintatuloksenTila
+    List(ValintatuloksenTila.KESKEN, ValintatuloksenTila.PERUUTETTU, ValintatuloksenTila.PERUNUT, ValintatuloksenTila.EI_VASTAANOTETTU_MAARA_AIKANA).contains(firstsTila)
+  }
+
+
   def apply(dto: VastaanottoEventDto): VirkailijanVastaanotto = {
     VirkailijanVastaanotto(dto.hakuOid, dto.valintatapajonoOid, dto.henkiloOid, dto.hakemusOid, dto.hakukohdeOid,
       VirkailijanVastaanottoAction.getVirkailijanVastaanottoAction(dto.tila), dto.ilmoittaja, dto.selite)

@@ -37,6 +37,7 @@ class VastaanottoService(hakuService: HakuService,
 
   def vastaanotaVirkailijanaInTransaction(vastaanotot: List[VastaanottoEventDto]): Try[Unit] = {
     val tallennettavatVastaanotot = generateTallennettavatVastaanototList(vastaanotot)
+    logger.info(s"Tallennettavat vastaanotot (${tallennettavatVastaanotot.size} kpl): " + tallennettavatVastaanotot)
     val vastaanottosToCheckInPostCondition = tallennettavatVastaanotot.filter(v => v.action == VastaanotaEhdollisesti || v.action == VastaanotaSitovasti)
     val postCondition = DBIO.sequence(vastaanottosToCheckInPostCondition.
       map(v => vastaanotettavuusService.tarkistaAiemmatVastaanotot(v.henkiloOid, v.hakukohdeOid, aiempiVastaanotto => SuccessAction())))
@@ -70,7 +71,7 @@ class VastaanottoService(hakuService: HakuService,
       vastaanottoEventDto <- vastaanottoEventDtos if isPaivitys(vastaanottoEventDto, hakukohteenValintatulokset.get(vastaanottoEventDto.henkiloOid).flatten)
     } yield {
       VirkailijanVastaanotto(vastaanottoEventDto)
-    }).toList
+    }).toList.sortWith(VirkailijanVastaanotto.tallennusJarjestys)
   }
 
   private def checkVastaanotettavuusVirkailijana(vastaanotto: VirkailijanVastaanotto): Try[(Hakutoiveentulos, Int)] = {
