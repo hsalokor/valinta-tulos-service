@@ -14,7 +14,7 @@ sijoittelu-service.mongodb.uri=mongodb://{{mongodb_sijoitteludb_auth | default(m
 sijoittelu-service.rest.url=https://{{host_virkailija}}/sijoittelu-service
 valinta-tulos-service.parseleniently.sijoitteluajontulos={{valintatulosservice_parseleniently_sijoitteluajontulos}}
 sijoittelu-service.hakukohdeCache.populate=false
-sijoittelu-service.hakukohdeDao.batchSize=450
+sijoittelu-service.hakukohdeDao.batchSize=300
 
 # KOODISTO
 koodisto-service.rest.url=https://{{host_virkailija}}/koodisto-service
