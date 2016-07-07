@@ -39,7 +39,7 @@ object JonoFinder {
       } else {
         val ord = tila1.compareTo(tila2)
         if(ord == 0) {
-          ind1.compareTo(ind2) > 0
+          ind1.compareTo(ind2) < 0
         } else {
           ord < 0
         }

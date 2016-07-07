@@ -28,11 +28,15 @@ class JonoFinderSpec extends Specification {
       val hakutoive = new HakutoiveDTO()
 
       val jono1 = jonoWithTila(HakemuksenTila.HYLATTY, None)
+      jono1.setTilanKuvaukset(Map("FI" -> "EKA"))
       val jono2 = jonoWithTila(HakemuksenTila.HYLATTY, None)
+      jono2.setTilanKuvaukset(Map("FI" -> "TOKA"))
 
       hakutoive.setHakutoiveenValintatapajonot(List(jono1, jono2))
 
-      JonoFinder.merkitseväJono(hakutoive) must_== Some(jono2)
+      val outJono = JonoFinder.merkitseväJono(hakutoive)
+
+      outJono.get.getTilanKuvaukset.get("FI") must_== "TOKA"
 
     }
 
