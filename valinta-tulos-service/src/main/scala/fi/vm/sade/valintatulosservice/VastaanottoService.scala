@@ -103,10 +103,10 @@ class VastaanottoService(hakuService: HakuService,
       }
     })
     if (!vastaanottoResultsWithUpdatedInfo.exists(_._2)) {
-      logger.warn(s"Determined that no vastaanotto events needed to be saved for haku $hakuOid / hakukohde $hakukohdeOid from the input of ${uudetVastaanotot.size} items.")
-      logger.warn(s"Vastaanotto events for haku $hakuOid / hakukohde $hakukohdeOid were: $uudetVastaanotot.")
+      logger.debug(s"Determined that no vastaanotto events needed to be saved for haku $hakuOid / hakukohde $hakukohdeOid from the input of ${uudetVastaanotot.size} items.")
+      logger.debug(s"Vastaanotto events for haku $hakuOid / hakukohde $hakukohdeOid were: $uudetVastaanotot.")
       val existingValintatulokset = uudetVastaanotot.map(vastaanottoDto => hakukohteenValintatulokset.get(vastaanottoDto.henkiloOid))
-      logger.warn(s"Existing valintatulokset for vastaanotto events for haku $hakuOid / hakukohde $hakukohdeOid were: $existingValintatulokset.")
+      logger.debug(s"Existing valintatulokset for vastaanotto events for haku $hakuOid / hakukohde $hakukohdeOid were: $existingValintatulokset.")
     }
     vastaanottoResultsWithUpdatedInfo.map(_._1)
   }
