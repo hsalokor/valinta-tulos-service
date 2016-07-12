@@ -95,13 +95,20 @@ class VastaanottoService(hakuService: HakuService,
 
   private def tallennaHakukohteenVastaanotot(hakukohdeOid: String, hakuOid: String, uudetVastaanotot: List[VastaanottoEventDto]): List[VastaanottoResult] = {
     val hakukohteenValintatulokset = findValintatulokset(hakuOid, hakukohdeOid)
-    uudetVastaanotot.map(vastaanottoDto => {
+    val vastaanottoResultsWithUpdatedInfo: List[(VastaanottoResult, Boolean)] = uudetVastaanotot.map(vastaanottoDto => {
       if (isPaivitys(vastaanottoDto, hakukohteenValintatulokset.get(vastaanottoDto.henkiloOid))) {
-        tallenna(VirkailijanVastaanotto(vastaanottoDto)).get
+        (tallenna(VirkailijanVastaanotto(vastaanottoDto)).get, true)
       } else {
-        VastaanottoResult(vastaanottoDto.henkiloOid, vastaanottoDto.hakemusOid, vastaanottoDto.hakukohdeOid, Result(200, None))
+        (VastaanottoResult(vastaanottoDto.henkiloOid, vastaanottoDto.hakemusOid, vastaanottoDto.hakukohdeOid, Result(200, None)), false)
       }
     })
+    if (!vastaanottoResultsWithUpdatedInfo.exists(_._2)) {
+      logger.warn(s"Determined that no vastaanotto events needed to be saved for haku $hakuOid / hakukohde $hakukohdeOid from the input of ${uudetVastaanotot.size} items.")
+      logger.warn(s"Vastaanotto events for haku $hakuOid / hakukohde $hakukohdeOid were: $uudetVastaanotot.")
+      val existingValintatulokset = uudetVastaanotot.map(vastaanottoDto => hakukohteenValintatulokset.get(vastaanottoDto.henkiloOid))
+      logger.warn(s"Existing valintatulokset for vastaanotto events for haku $hakuOid / hakukohde $hakukohdeOid were: $existingValintatulokset.")
+    }
+    vastaanottoResultsWithUpdatedInfo.map(_._1)
   }
 
   private def isPaivitys(virkailijanVastaanotto: VastaanottoEventDto, valintatulos: Option[Valintatulos]): Boolean = valintatulos match {
