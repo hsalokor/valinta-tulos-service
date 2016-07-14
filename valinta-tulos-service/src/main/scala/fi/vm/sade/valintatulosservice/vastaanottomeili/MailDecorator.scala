@@ -11,7 +11,7 @@ class HakukohdeNotFoundException(message: String) extends RuntimeException(messa
 class HakuNotFoundException(message: String) extends RuntimeException(message)
 
 class MailDecorator(hakemusRepository: HakemusRepository, valintatulosCollection: ValintatulosMongoCollection, hakuService: HakuService) extends Logging {
-  def statusToMail(status: HakemusMailStatus): Option[VastaanotettavuusIlmoitus] = {
+  def statusToMail(status: HakemusMailStatus): Option[Ilmoitus] = {
     status.anyMailToBeSent match {
       case true => {
         hakemusRepository.findHakemus(status.hakemusOid) match {
@@ -20,7 +20,7 @@ class MailDecorator(hakemusRepository: HakemusRepository, valintatulosCollection
             val deadline: Option[Date] = mailables.flatMap(_.deadline).sorted.headOption
 
             try {
-              Some(VastaanotettavuusIlmoitus(
+              Some(Ilmoitus(
                 status.hakemusOid, henkiloOid, asiointikieli, kutsumanimi, email, deadline, mailables.map(toHakukohde),
                 toHaku(status.hakuOid)
               ))
@@ -52,8 +52,19 @@ class MailDecorator(hakemusRepository: HakemusRepository, valintatulosCollection
   def toHakukohde(hakukohdeMailStatus: HakukohdeMailStatus) : Hakukohde = {
     hakuService.getHakukohde(hakukohdeMailStatus.hakukohdeOid) match {
       case Some(hakukohde) =>
-        Hakukohde(hakukohdeMailStatus.hakukohdeOid, hakukohdeMailStatus.ehdollisestiHyvaksyttavissa,
-          hakukohde.hakukohteenNimet, hakukohde.tarjoajaNimet)
+        Hakukohde(hakukohdeMailStatus.hakukohdeOid,
+          hakukohdeMailStatus.reasonToMail match {
+            case Some(MailReason.VASTAANOTTOILMOITUS) => LahetysSyy.vastaanottoilmoitus
+            case Some(MailReason.EHDOLLISEN_PERIYTYMISEN_ILMOITUS) => LahetysSyy.ehdollisen_periytymisen_ilmoitus
+            case Some(MailReason.SITOVAN_VASTAANOTON_ILMOITUS) => LahetysSyy.sitovan_vastaanoton_ilmoitus
+            case _ => {
+              throw new RuntimeException(s"Tuntematon lähetyssyy ${hakukohdeMailStatus.reasonToMail}")
+            }
+          },
+          hakukohdeMailStatus.vastaanottotila,
+          hakukohdeMailStatus.ehdollisestiHyvaksyttavissa,
+          hakukohde.hakukohteenNimet,
+          hakukohde.tarjoajaNimet)
 
       case _ =>
         val msg = "Hakukohde ei löydy, oid: " + hakukohdeMailStatus.hakukohdeOid

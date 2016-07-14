@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.local
 
-import fi.vm.sade.valintatulosservice.vastaanottomeili.{LahetysKuittaus, VastaanotettavuusIlmoitus}
+import fi.vm.sade.valintatulosservice.vastaanottomeili.{LahetysKuittaus, Ilmoitus}
 import fi.vm.sade.valintatulosservice.{ServletSpecification, TimeWarp}
 import org.json4s.jackson.Serialization
 import org.junit.runner.RunWith
@@ -58,7 +58,7 @@ class EmailStatusServletSpec extends ServletSpecification with TimeWarp {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakemusFixtures = List("00000441369"))
       withFixedDateTime("10.10.2014 12:00") {
         get("vastaanottoposti") {
-          val mailsToSend = Serialization.read[List[VastaanotettavuusIlmoitus]](body)
+          val mailsToSend = Serialization.read[List[Ilmoitus]](body)
           mailsToSend.isEmpty must_== false
           withFixedDateTime("12.10.2014 12:00") {
             val kuittaukset = mailsToSend.map { mail =>

@@ -18,7 +18,7 @@ object PollerTester extends App with Logging with TimeWarp {
     appConfig.ohjausparametritService, null, new DirectMongoSijoittelunTulosRestClient(appConfig))
   lazy val valintatulosService = new ValintatulosService(null, sijoittelutulosService, null, hakuService, null)
   lazy val valintatulokset = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
-  val poller = new MailPoller(valintatulokset, valintatulosService, hakuService, appConfig.ohjausparametritService, limit = 100)
+  val poller = new MailPoller(valintatulokset, valintatulosService, null, hakuService, appConfig.ohjausparametritService, limit = 100)
 
   logger.info("Polling...")
   var total = 0
