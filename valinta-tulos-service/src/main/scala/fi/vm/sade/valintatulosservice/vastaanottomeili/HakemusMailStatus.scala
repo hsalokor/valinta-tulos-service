@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice.vastaanottomeili
 
 import java.util.Date
 
+import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 
 case class HakemusMailStatus(hakijaOid: String, hakemusOid: String, hakukohteet: List[HakukohdeMailStatus], hakuOid: String) {
@@ -11,7 +12,9 @@ case class HakemusMailStatus(hakijaOid: String, hakemusOid: String, hakukohteet:
 case class HakukohdeMailStatus(hakukohdeOid: String, valintatapajonoOid: String,
                                status: MailStatus.Value,
                                reasonToMail: Option[MailReason.Value],
-                               deadline: Option[Date], message: String, vastaanottotila: Vastaanottotila,
+                               deadline: Option[Date], message: String,
+                               valintatila: Valintatila,
+                               vastaanottotila: Vastaanottotila,
                                ehdollisestiHyvaksyttavissa: Boolean) {
   def shouldMail = status == MailStatus.SHOULD_MAIL
 }
