@@ -2,7 +2,10 @@ package fi.vm.sade.valintatulosservice.vastaanottomeili
 
 import java.util.Date
 
-case class VastaanotettavuusIlmoitus(
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
+import fi.vm.sade.valintatulosservice.vastaanottomeili.LahetysSyy.LahetysSyy
+
+case class Ilmoitus(
   hakemusOid: String,
   hakijaOid: String,
   asiointikieli: String,
@@ -15,6 +18,8 @@ case class VastaanotettavuusIlmoitus(
 
 case class Hakukohde(
   oid: String,
+  lahetysSyy: LahetysSyy,
+  vastaanottotila: Vastaanottotila,
   ehdollisestiHyvaksyttavissa: Boolean,
   hakukohteenNimet: Map[String, String],
   tarjoajaNimet: Map[String, String]
@@ -30,3 +35,10 @@ case class LahetysKuittaus(
   hakukohteet: List[String],
   mediat: List[String]
 )
+
+object LahetysSyy {
+  type LahetysSyy = String
+  val vastaanottoilmoitus: LahetysSyy = "VASTAANOTTOILMOITUS"
+  val ehdollisen_periytymisen_ilmoitus: LahetysSyy = "EHDOLLISEN_PERIYTYMISEN_ILMOITUS"
+  val sitovan_vastaanoton_ilmoitus: LahetysSyy = "SITOVAN_VASTAANOTON_ILMOITUS"
+}

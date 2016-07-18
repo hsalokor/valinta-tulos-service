@@ -49,7 +49,21 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}""".as[Option[java.sql.Timestamp]])
     Ensikertalaisuus(personOid, d.head)
   }
-
+  override def findVastaanottoHistoryHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
+    runBlocking(
+      sql"""select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp"
+            from (
+                select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp", id
+                from vastaanotot
+                    join hakukohteet on hakukohde_oid = vastaanotot.hakukohde and haku_oid = ${hakuOid}
+                where henkilo = ${henkiloOid}
+                union
+                select henkiloviitteet.linked_oid as henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp", id
+                from vastaanotot
+                    join hakukohteet on hakukohde_oid = vastaanotot.hakukohde and haku_oid = ${hakuOid}
+                    join henkiloviitteet on vastaanotot.henkilo = henkiloviitteet.person_oid and henkiloviitteet.linked_oid = ${henkiloOid}) as t
+            order by id""".as[VastaanottoRecord]).toSet
+  }
   override def findVastaanottoHistory(personOid: String): VastaanottoHistoria = {
     val newList = runBlocking(
       sql"""select haku_oid, hakukohde, "action", "timestamp"

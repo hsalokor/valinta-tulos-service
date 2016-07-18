@@ -1,5 +1,7 @@
 package fi.vm.sade.valintatulosservice.vastaanottomeili
 
+import java.util.Date
+
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import fi.vm.sade.utils.config.MongoConfig
@@ -11,11 +13,11 @@ import org.joda.time.{DateTime, DateTimeUtils}
 class ValintatulosMongoCollection(mongoConfig: MongoConfig) {
   private val valintatulos = MongoFactory.createDB(mongoConfig)("Valintatulos")
 
-  def pollForCandidates(hakuOids: List[String], limit: Int, recheckIntervalHours: Int = 24,  excludeHakemusOids: Set[String] = Set.empty): Set[HakemusIdentifier] = {
+  def pollForCandidates(hakuOids: List[String], limit: Int, recheckIntervalHours: Int = (24 * 3),  excludeHakemusOids: Set[String] = Set.empty): Set[HakemusIdentifier] = {
     val query = Map(
       "hakuOid" -> Map("$in" -> hakuOids),
       "julkaistavissa" -> true,
-      "mailStatus.sent" -> Map("$exists" -> false),
+      "mailStatus.done" -> Map("$exists" -> false),
       "$or" -> List(
         Map("mailStatus.previousCheck" -> Map("$lt" -> new DateTime().minusHours(recheckIntervalHours).toDate)),
         Map("mailStatus.previousCheck" -> Map("$exists" -> false))
@@ -29,30 +31,26 @@ class ValintatulosMongoCollection(mongoConfig: MongoConfig) {
     }
       .take(limit)
       .toList
-      .map{ tulos => HakemusIdentifier(tulos.get("hakuOid").asInstanceOf[String], tulos.get("hakemusOid").asInstanceOf[String])}
+      .map{ tulos => HakemusIdentifier(tulos.get("hakuOid").asInstanceOf[String],
+        tulos.get("hakemusOid").asInstanceOf[String],
+        tulos.expand[java.util.Date]("mailStatus.sent"))}
 
     updateCheckTimestamps(candidates.map(_.hakemusOid))
 
     candidates.toSet
   }
 
-  def alreadyMailed(hakemus: Hakemuksentulos, hakutoive: Hakutoiveentulos): Boolean = {
-    val query = Map(
-      "hakukohdeOid" -> hakutoive.hakukohdeOid,
-      "hakemusOid" -> hakemus.hakemusOid,
-      "mailStatus.sent" -> Map(
-        "$exists" -> true
-      )
+  def alreadyMailed(hakemusOid: String, hakukohdeOid: String): Option[java.util.Date] = {
+    val result = valintatulos.findOne(
+      ("hakukohdeOid" $eq hakukohdeOid) ++
+        ("hakemusOid" $eq hakemusOid) ++
+        ("mailStatus.sent" $exists(true))
     )
-    valintatulos.count(query) > 0
+    result.flatMap(_.expand[java.util.Date]("mailStatus.sent"))
   }
 
   def addMessage(hakemus: HakemusMailStatus, hakukohde: HakukohdeMailStatus, message: String): Unit = {
     updateValintatulos(hakemus.hakemusOid, hakukohde.hakukohdeOid, Map("mailStatus.message" -> message))
-  }
-
-  def markAsNonMailable(hakemus: HakemusMailStatus, hakukohde: HakukohdeMailStatus, message: String) = {
-    markAsSent(hakemus.hakemusOid, hakukohde.hakukohdeOid, Nil, message)
   }
 
   def markAsSent(mailContents: LahetysKuittaus) {
@@ -61,8 +59,15 @@ class ValintatulosMongoCollection(mongoConfig: MongoConfig) {
     }
   }
 
+  def markAsNonMailable(hakemusOid: String, hakuKohdeOid: String, message: String) {
+    val timestamp = new Date(DateTimeUtils.currentTimeMillis)
+    val fields: Map[JSFunction, Any] = Map("mailStatus.done" -> timestamp, "mailStatus.message" -> message)
+
+    updateValintatulos(hakemusOid, hakuKohdeOid, fields)
+  }
+
   private def markAsSent(hakemusOid: String, hakuKohdeOid: String, sentViaMedias: List[String], message: String) {
-    val timestamp = DateTimeUtils.currentTimeMillis
+    val timestamp = new Date(DateTimeUtils.currentTimeMillis)
     val fields: Map[JSFunction, Any] = Map("mailStatus.sent" -> timestamp, "mailStatus.media" -> sentViaMedias, "mailStatus.message" -> message)
 
     updateValintatulos(hakemusOid, hakuKohdeOid, fields)
@@ -79,9 +84,7 @@ class ValintatulosMongoCollection(mongoConfig: MongoConfig) {
 
     val update = Map(
       "$set" -> Map(
-        "mailStatus" -> Map(
-          "previousCheck" -> timestamp
-        )
+        "mailStatus.previousCheck" -> timestamp
       )
     )
 
