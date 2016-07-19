@@ -5,6 +5,7 @@ import java.util.Date
 
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
@@ -112,8 +113,19 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   private def isPaivitys(virkailijanVastaanotto: VastaanottoEventDto, valintatulos: Option[Valintatulos]): Boolean = valintatulos match {
-    case Some(v) => !Vastaanottotila.matches(virkailijanVastaanotto.tila, v.getTila) && virkailijanVastaanotto.tila != Vastaanottotila.ottanut_vastaan_toisen_paikan
+    case Some(v) => existingTilaMustBeUpdated(v.getTila, virkailijanVastaanotto.tila)
     case None => !statesMatchingInexistentActions.contains(virkailijanVastaanotto.tila)
+  }
+
+  private def existingTilaMustBeUpdated(currentState: ValintatuloksenTila, newStateFromVirkailijanVastaanotto: Vastaanottotila): Boolean = {
+    if (newStateFromVirkailijanVastaanotto == Vastaanottotila.ottanut_vastaan_toisen_paikan || Vastaanottotila.matches(newStateFromVirkailijanVastaanotto, currentState)) {
+      return false
+    }
+    if (newStateFromVirkailijanVastaanotto == Vastaanottotila.kesken && currentState == ValintatuloksenTila.OTTANUT_VASTAAN_TOISEN_PAIKAN) {
+      // Even if the stored state is OTTANUT_VASTAAN_TOISEN_PAIKAN, UI can see it as "KESKEN" in some cases
+      return false
+    }
+    !Vastaanottotila.matches(newStateFromVirkailijanVastaanotto, currentState)
   }
 
   private def findValintatulokset(hakuOid: String, hakukohdeOid: String): Map[String, Valintatulos] = {
