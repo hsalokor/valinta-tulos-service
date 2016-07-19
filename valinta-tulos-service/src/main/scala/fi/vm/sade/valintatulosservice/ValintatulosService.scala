@@ -55,7 +55,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     }
   }
 
-  def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
+  def hakemuksentulos(hakuOid: String, hakemusOid: String, vastaanotettavuusVirkailijana: Boolean = false): Option[Hakemuksentulos] = {
     val vastaanottoaikataulu = sijoittelutulosService.findAikatauluFromOhjausparametritService(hakuOid)
 
     for {
@@ -64,7 +64,12 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       hakemus <- fetchTulokset(
         haku,
         () => hakemusRepository.findHakemus(hakemusOid).iterator,
-        hakijaOidsByHakemusOids => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids.get(hakemusOid), vastaanottoaikataulu, latestSijoitteluAjo).toSeq
+        hakijaOidsByHakemusOids => sijoittelutulosService.hakemuksenTulos(haku,
+          hakemusOid,
+          hakijaOidsByHakemusOids.get(hakemusOid),
+          vastaanottoaikataulu,
+          latestSijoitteluAjo,
+          vastaanotettavuusVirkailijana).toSeq
       ).toSeq.headOption
     } yield hakemus
   }
@@ -530,25 +535,27 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
       tulokset.zipWithIndex.map {
         case (tulos, index) if isHyväksytty(tulos.valintatila) && tulos.vastaanottotila == Vastaanottotila.kesken =>
-          if (firstVastaanotettu >= 0 && index != firstVastaanotettu)
+          if (firstVastaanotettu >= 0 && index != firstVastaanotettu) {
             // Peru vastaanotettua paikkaa alemmat hyväksytyt hakutoiveet
             tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
-          else if (index == firstHyvaksyttyUnderFirstVaralla) {
-           if(ehdollinenVastaanottoMahdollista(ohjausparametrit))
-            // Ehdollinen vastaanotto mahdollista
-            tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti)
-           else
-            // Ehdollinen vastaanotto ei vielä mahdollista, näytetään keskeneräisenä
+          } else if (index == firstHyvaksyttyUnderFirstVaralla) {
+            if (ehdollinenVastaanottoMahdollista(ohjausparametrit)) {
+              // Ehdollinen vastaanotto mahdollista
+              tulos.copy(vastaanotettavuustila = Vastaanotettavuustila.vastaanotettavissa_ehdollisesti)
+            } else {
+              // Ehdollinen vastaanotto ei vielä mahdollista, näytetään keskeneräisenä
+              tulos.toKesken
+            }
+          } else if (firstKesken >= 0 && index > firstKesken) {
             tulos.toKesken
-          }
-          else if (firstKesken >= 0 && index > firstKesken)
-            tulos.toKesken
-          else
+          } else {
             tulos
+          }
         case (tulos, index) if firstVastaanotettu >= 0 && index != firstVastaanotettu && List(Valintatila.varalla, Valintatila.kesken).contains(tulos.valintatila) =>
           // Peru muut varalla/kesken toiveet, jos jokin muu vastaanotettu
           tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
-        case (tulos, _) => tulos
+        case (tulos, index) =>
+          tulos
       }
     } else {
       tulokset
@@ -619,14 +626,16 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     }
   }
 
-  private def ehdollinenVastaanottoMahdollista(ohjausparametrit: Option[Ohjausparametrit]): Boolean = {
-    val varasijaSaannotVoimassa = ohjausparametrit.getOrElse(Ohjausparametrit(None, None, None, None, None, None)).varasijaSaannotAstuvatVoimaan match {
+  private def ehdollinenVastaanottoMahdollista(ohjausparametritOption: Option[Ohjausparametrit]): Boolean = {
+    val ohjausparametrit: Ohjausparametrit = ohjausparametritOption.getOrElse(Ohjausparametrit(None, None, None, None, None, None))
+    val now: DateTime = new DateTime()
+    val varasijaSaannotVoimassa = ohjausparametrit.varasijaSaannotAstuvatVoimaan match {
       case None => true
-      case Some(varasijaSaannotAstuvatVoimaan) => varasijaSaannotAstuvatVoimaan.isBefore(new DateTime())
+      case Some(varasijaSaannotAstuvatVoimaan) => varasijaSaannotAstuvatVoimaan.isBefore(now)
     }
-    val kaikkiJonotSijoittelussa = ohjausparametrit.getOrElse(Ohjausparametrit(None, None, None, None, None, None)).kaikkiJonotSijoittelussa match {
+    val kaikkiJonotSijoittelussa = ohjausparametrit.kaikkiJonotSijoittelussa match {
       case None => true
-      case Some(kaikkiJonotSijoittelussa) => kaikkiJonotSijoittelussa.isBefore(new DateTime())
+      case Some(kaikkiJonotSijoittelussa) => kaikkiJonotSijoittelussa.isBefore(now)
     }
     varasijaSaannotVoimassa && kaikkiJonotSijoittelussa
   }

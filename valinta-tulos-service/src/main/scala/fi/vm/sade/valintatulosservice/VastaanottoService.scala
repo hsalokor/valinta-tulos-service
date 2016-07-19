@@ -31,7 +31,7 @@ class VastaanottoService(hakuService: HakuService,
 
   def vastaanotaVirkailijana(vastaanotot: List[VastaanottoEventDto]): Iterable[VastaanottoResult] = {
     vastaanotot.groupBy(v => (v.hakukohdeOid, v.hakuOid)).flatMap {
-      case ((hakukohdeOid, hakuOid), vastaanottoEventDtos) => tallennaHakukohteenVastaanotot(hakukohdeOid, hakuOid, vastaanottoEventDtos)
+      case ((hakukohdeOid, hakuOid), vastaanottoEventDtos) => tallennaVirkailijanHakukohteenVastaanotot(hakukohdeOid, hakuOid, vastaanottoEventDtos)
     }
   }
 
@@ -76,7 +76,7 @@ class VastaanottoService(hakuService: HakuService,
 
   private def checkVastaanotettavuusVirkailijana(vastaanotto: VirkailijanVastaanotto): Try[(Hakutoiveentulos, Int)] = {
     for {
-      hakutoiveJaPrioriteetti@(hakutoive, _) <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)
+      hakutoiveJaPrioriteetti@(hakutoive, _) <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid, vastaanotettavuusVirkailijana = true)
       _ <- vastaanotto.action match {
         case VastaanotaEhdollisesti if hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti =>
           Failure(new IllegalArgumentException("Hakutoivetta ei voi ottaa ehdollisesti vastaan"))
@@ -93,7 +93,7 @@ class VastaanottoService(hakuService: HakuService,
     } yield hakutoiveJaPrioriteetti
   }
 
-  private def tallennaHakukohteenVastaanotot(hakukohdeOid: String, hakuOid: String, uudetVastaanotot: List[VastaanottoEventDto]): List[VastaanottoResult] = {
+  private def tallennaVirkailijanHakukohteenVastaanotot(hakukohdeOid: String, hakuOid: String, uudetVastaanotot: List[VastaanottoEventDto]): List[VastaanottoResult] = {
     val hakukohteenValintatulokset = findValintatulokset(hakuOid, hakukohdeOid)
     val vastaanottoResultsWithUpdatedInfo: List[(VastaanottoResult, Boolean)] = uudetVastaanotot.map(vastaanottoDto => {
       if (isPaivitys(vastaanottoDto, hakukohteenValintatulokset.get(vastaanottoDto.henkiloOid))) {
@@ -172,10 +172,10 @@ class VastaanottoService(hakuService: HakuService,
     }
   }
 
-  private def findHakutoive(hakemusOid: String, hakukohdeOid: String): Try[(Hakutoiveentulos, Int)] = {
+  private def findHakutoive(hakemusOid: String, hakukohdeOid: String, vastaanotettavuusVirkailijana: Boolean = false): Try[(Hakutoiveentulos, Int)] = {
     Try {
       val hakuOid = hakuService.getHakukohde(hakukohdeOid).getOrElse(throw new IllegalArgumentException(s"Tuntematon hakukohde $hakukohdeOid")).hakuOid
-      val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
+      val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid, vastaanotettavuusVirkailijana).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
       hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
     }
   }

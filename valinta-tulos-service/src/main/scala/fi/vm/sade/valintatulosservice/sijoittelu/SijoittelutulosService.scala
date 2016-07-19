@@ -24,12 +24,12 @@ class SijoittelutulosService(raportointiService: RaportointiService,
                              sijoittelunTulosClient: SijoittelunTulosRestClient) {
   import scala.collection.JavaConversions._
 
-  def hakemuksenTulos(haku: Haku, hakemusOid: String, hakijaOidIfFound: Option[String], aikataulu: Option[Vastaanottoaikataulu], latestSijoitteluAjo: Option[SijoitteluAjo]): Option[HakemuksenSijoitteluntulos] = {
+  def hakemuksenTulos(haku: Haku, hakemusOid: String, hakijaOidIfFound: Option[String], aikataulu: Option[Vastaanottoaikataulu], latestSijoitteluAjo: Option[SijoitteluAjo], vastaanotettavuusVirkailijana: Boolean = false): Option[HakemuksenSijoitteluntulos] = {
     for (
       hakijaOid <- hakijaOidIfFound;
       sijoitteluAjo <- latestSijoitteluAjo;
       hakija: HakijaDTO <- findHakemus(hakemusOid, sijoitteluAjo)
-    ) yield hakemuksenYhteenveto(hakija, aikataulu, fetchVastaanotto(hakijaOid, haku.oid))
+    ) yield hakemuksenYhteenveto(hakija, aikataulu, fetchVastaanotto(hakijaOid, haku.oid), vastaanotettavuusVirkailijana)
   }
 
   def hakemustenTulos(hakuOid: String,
@@ -126,7 +126,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     }
   }
 
-  private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu], vastaanottoRecord: Set[VastaanottoRecord]): HakemuksenSijoitteluntulos = {
+  private def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu], vastaanottoRecord: Set[VastaanottoRecord], vastaanotettavuusVirkailijana: Boolean = false): HakemuksenSijoitteluntulos = {
 
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val vastaanotto = vastaanottoRecord.find(v => v.hakukohdeOid == hakutoive.getHakukohdeOid).map(_.action)
@@ -134,7 +134,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
       var valintatila: Valintatila = jononValintatila(jono, hakutoive)
       val viimeisinHakemuksenTilanMuutos: Option[Date] = Option(jono.getHakemuksenTilanViimeisinMuutos)
       val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos)
-      val ( vastaanottotila, vastaanottoDeadline ) = laskeVastaanottotila(valintatila, vastaanotto, aikataulu, viimeisinHakemuksenTilanMuutos)
+      val ( vastaanottotila, vastaanottoDeadline ) = laskeVastaanottotila(valintatila, vastaanotto, aikataulu, viimeisinHakemuksenTilanMuutos, vastaanotettavuusVirkailijana)
       valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
       val vastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, vastaanottotila)
       val julkaistavissa = jono.isJulkaistavissa
@@ -252,20 +252,20 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     case Some(MerkitseMyohastyneeksi) => Vastaanottotila.ei_vastaanotettu_määräaikana
   }
 
-  private def laskeVastaanottotila(valintatila: Valintatila, vastaanotto: Option[VastaanottoAction], aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date]): ( Vastaanottotila, Option[DateTime] ) = {
+  private def laskeVastaanottotila(valintatila: Valintatila, vastaanotto: Option[VastaanottoAction], aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], vastaanotettavuusVirkailijana: Boolean = false): ( Vastaanottotila, Option[DateTime] ) = {
     val tilaVainActioninPerusteella: Vastaanottotila = vastaanottotilaVainViimeisimmanVastaanottoActioninPerusteella(vastaanotto)
 
     tilaVainActioninPerusteella match {
       case Vastaanottotila.kesken if ( Valintatila.isHyväksytty(valintatila) || valintatila == Valintatila.perunut ) =>
-        laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos, tilaVainActioninPerusteella)
+        laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos, tilaVainActioninPerusteella, vastaanotettavuusVirkailijana)
       case tila if Valintatila.isHyväksytty(valintatila) => (tila, laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos))
       case tila => (tila, None)
     }
   }
 
-  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], tilaVainActioninPerusteella: Vastaanottotila): (Vastaanottotila, Option[DateTime]) = {
+  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], tilaVainActioninPerusteella: Vastaanottotila, vastaanotettavuusVirkailijana: Boolean = false): (Vastaanottotila, Option[DateTime]) = {
     laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos) match {
-      case Some(deadline) if new DateTime().isAfter(deadline) => (Vastaanottotila.ei_vastaanotettu_määräaikana, Some(deadline))
+      case Some(deadline) if new DateTime().isAfter(deadline) && !vastaanotettavuusVirkailijana => (Vastaanottotila.ei_vastaanotettu_määräaikana, Some(deadline))
       case deadline => (tilaVainActioninPerusteella, deadline)
     }
   }
