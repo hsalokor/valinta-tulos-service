@@ -184,6 +184,16 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
       r.tail.head.result.status must_== 200
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
     }
+
+    "hyväksytty, ylempi varalla, vastaanotto loppunut, virkailija asettaa ehdollisesti vastaanottanut" in {
+      useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku, ohjausparametritFixture = "vastaanotto-loppunut")
+      val r = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid, "1.2.246.562.5.16303028779", hakuOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja).head
+      r.result.status must_== 200
+      hakemuksenTulos.hakutoiveet(0).valintatila must_== Valintatila.varalla
+      hakemuksenTulos.hakutoiveet(1).valintatila must_== Valintatila.hyväksytty
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
+      hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
+    }
   }
   "vastaanotaVirkailijanaInTransaction" in {
     "älä vastaanota sitovasti hakijaa, kun toinen vastaanotto ei onnistu" in {
