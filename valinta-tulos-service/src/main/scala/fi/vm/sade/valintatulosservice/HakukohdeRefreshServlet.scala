@@ -6,13 +6,15 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
 import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.domain.HakukohdeRecord
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, HakukohdeRepository}
-import org.scalatra.json.JacksonJsonSupport
-import org.scalatra.swagger.{SwaggerSupport, Swagger}
+import org.json4s.jackson.Serialization._
 import org.scalatra._
+import org.scalatra.json.JacksonJsonSupport
+import org.scalatra.swagger.{Swagger, SwaggerSupport}
 
-import scala.collection.parallel.{ForkJoinTaskSupport, ThreadPoolTaskSupport}
+import scala.collection.parallel.{ForkJoinTaskSupport, ParSet}
 import scala.concurrent.Future
 import scala.concurrent.forkjoin.ForkJoinPool
 
@@ -26,6 +28,8 @@ class HakukohdeRefreshServlet(hakukohdeRepository: HakukohdeRepository,
   override protected def applicationDescription: String = "Hakukohdetietojen virkistys API"
 
   private val running = new AtomicReference[Option[Date]](None)
+  import scala.concurrent.ExecutionContext.Implicits.global
+
 
   val statusSwagger = (apiOperation[Status]("virkistysStatus")
     summary "Virkistyksen tila")
@@ -37,14 +41,15 @@ class HakukohdeRefreshServlet(hakukohdeRepository: HakukohdeRepository,
   }
 
   val virkistaSwagger = (apiOperation[Unit]("virkistaHakukohteet")
-    summary "Virkistä hakukohteiden tiedot")
+    summary "Virkistä hakukohteiden tiedot"
+    parameter bodyParam[Set[String]]("hakukohdeOids").description("Virkistettävien hakukohteiden oidit. Huom, tyhjä lista virkistää kaikki!"))
   post("/", operation(virkistaSwagger)) {
     val started = Some(new Date())
+    val hakukohdeOids = read[Set[String]](request.body)
     if (running.compareAndSet(None, started)) {
-      import scala.concurrent.ExecutionContext.Implicits.global
       Future {
         try {
-          val hakukohteet = hakukohdeRepository.all.par
+          val hakukohteet = findHakukohteet(hakukohdeOids)
           val i = new AtomicInteger(0)
           val pool = new ForkJoinPool(4)
           hakukohteet.tasksupport = new ForkJoinTaskSupport(pool)
@@ -68,5 +73,13 @@ class HakukohdeRefreshServlet(hakukohdeRepository: HakukohdeRepository,
       logger.info("Hakukohde refresh started")
     }
     SeeOther(url(statusController))
+  }
+
+  private def findHakukohteet(hakukohdeOids: Set[String]): ParSet[HakukohdeRecord] = {
+    if (hakukohdeOids.isEmpty) {
+      hakukohdeRepository.all.par
+    } else {
+      hakukohdeRepository.findHakukohteet(hakukohdeOids).par
+    }
   }
 }

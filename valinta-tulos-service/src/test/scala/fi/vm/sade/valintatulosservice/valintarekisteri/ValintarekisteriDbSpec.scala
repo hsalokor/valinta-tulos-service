@@ -62,6 +62,18 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       stored must beSome[HakukohdeRecord](old)
     }
 
+    "hakukohteet can be found by oids" in {
+      val kohde = HakukohdeRecord(refreshedHakukohdeOid, hakuOid, true, true, Kevat(2015))
+      singleConnectionValintarekisteriDb.storeHakukohde(kohde)
+      val stored: Option[HakukohdeRecord] = singleConnectionValintarekisteriDb.findHakukohteet(Set("1.2.3", refreshedHakukohdeOid)).headOption
+      stored must beSome[HakukohdeRecord](kohde)
+    }
+
+    "finding hakukohteet by oids is injection proof" in {
+      (singleConnectionValintarekisteriDb.findHakukohteet(Set("; drop table hakukohteet;--"))
+        must throwA[IllegalArgumentException])
+    }
+
     "store vastaanotto actions" in {
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
       val henkiloOidsAndActionsFromDb = singleConnectionValintarekisteriDb.runBlocking(

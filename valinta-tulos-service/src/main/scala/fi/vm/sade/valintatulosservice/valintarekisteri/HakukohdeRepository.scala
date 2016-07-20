@@ -6,6 +6,7 @@ trait HakukohdeRepository {
   def findHakukohde(oid: String): Option[HakukohdeRecord]
   def findHaunArbitraryHakukohde(oid: String): Option[HakukohdeRecord]
   def all: Set[HakukohdeRecord]
+  def findHakukohteet(hakukohdeOids: Set[String]): Set[HakukohdeRecord]
   def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit
   def updateHakukohde(hakukohdeRecord: HakukohdeRecord): Boolean
 }

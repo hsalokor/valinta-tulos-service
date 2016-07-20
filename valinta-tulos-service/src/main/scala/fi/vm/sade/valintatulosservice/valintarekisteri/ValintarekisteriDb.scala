@@ -249,6 +249,17 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             from hakukohteet""".as[HakukohdeRecord]).toSet
   }
 
+  override def findHakukohteet(hakukohdeOids: Set[String]): Set[HakukohdeRecord] = {
+    val invalidOids = hakukohdeOids.filterNot(OidValidator.isOid)
+    if (invalidOids.nonEmpty) {
+      throw new IllegalArgumentException(s"${invalidOids.size} huonoa oidia syötteessä: $invalidOids")
+    }
+    val inParameter = hakukohdeOids.map(oid => s"'$oid'").mkString(",")
+    runBlocking(
+      sql"""select hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi
+            from hakukohteet where hakukohde_oid in (#$inParameter)""".as[HakukohdeRecord]).toSet
+  }
+
   override def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit = {
     val UNIQUE_VIOLATION = "23505"
     try {
