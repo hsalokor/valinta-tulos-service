@@ -81,7 +81,7 @@ class VastaanottoService(hakuService: HakuService,
       _ <- vastaanotto.action match {
         case VastaanotaEhdollisesti if hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti =>
           Failure(new IllegalArgumentException("Hakutoivetta ei voi ottaa ehdollisesti vastaan"))
-        case VastaanotaSitovasti if !Valintatila.isHyväksytty(hakutoive.valintatila) =>
+        case VastaanotaSitovasti if !Valintatila.hasBeenHyväksytty(hakutoive.valintatila) =>
           logger.warn(s"Could not save $VastaanotaSitovasti because state was ${hakutoive.valintatila} in $vastaanotto")
           Failure(new IllegalArgumentException(s"""Ei voi tallentaa vastaanottotietoa, koska hakijalle näytettävä tila on "${hakutoive.valintatila}""""))
         case VastaanotaSitovasti | VastaanotaEhdollisesti =>

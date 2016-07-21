@@ -337,6 +337,22 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
       hakemuksentulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
       hakemuksentulos.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.kesken
     }
+
+    "perunut hakija voidaan siirtää hyväksytyksi" in {
+      useFixture("perunut-ei-vastaanottanut-maaraaikana.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku, ohjausparametritFixture = "vastaanotto-loppunut")
+      hakemuksenTulos(hakuOid, hakemusOid).hakutoiveet.head.vastaanottotila must_== Vastaanottotila.ei_vastaanotettu_määräaikana
+      hakemuksenTulos(hakuOid, hakemusOid).hakutoiveet.head.valintatila must_== Valintatila.perunut
+
+      val results: Iterable[VastaanottoResult] = vastaanotaVirkailijana(List(
+        VastaanottoEventDto("14090336922663576781797489829887", personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.vastaanottanut, muokkaaja, "testiselite")
+      ))
+      results.head.result.message.must_==(None)
+      results.head.result.status.must_==(200)
+
+      hakemuksenTulos(hakuOid, hakemusOid).hakutoiveet.head.vastaanottotila must_== Vastaanottotila.vastaanottanut
+      hakemuksenTulos(hakuOid, hakemusOid).hakutoiveet.head.valintatila must_== Valintatila.hyväksytty
+    }
+
   }
 
   step(valintarekisteriDb.db.shutdown)
