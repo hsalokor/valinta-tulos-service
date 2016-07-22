@@ -201,7 +201,18 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
       hakemuksenTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.ehdollisesti_vastaanottanut
     }
+
+    "vaikka vastaanoton aikaraja olisi mennyt, peruuntunut - vastaanottanut toisen paikan näkyy oikein" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"),
+        hakuFixture = HakuFixtures.korkeakouluYhteishaku, ohjausparametritFixture = "vastaanotto-loppunut",
+        yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+      val r = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.vastaanottanut, muokkaaja).head
+      r.result.message must_== Some("Ei voi tallentaa vastaanottotietoa, koska hakijalle näytettävä tila on \"PERUUNTUNUT\"")
+      r.result.status must_== 400
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.ottanut_vastaan_toisen_paikan
+    }
   }
+
   "vastaanotaVirkailijanaInTransaction" in {
     "älä vastaanota sitovasti hakijaa, kun toinen vastaanotto ei onnistu" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)

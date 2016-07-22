@@ -11,7 +11,7 @@ import org.json4s.ext.EnumNameSerializer
 object JsonFormats {
   private val enumSerializers = List(new EnumNameSerializer(Ilmoittautumistila), new EnumNameSerializer(Vastaanotettavuustila), new EnumNameSerializer(Valintatila), new EnumNameSerializer(Language))
   val customSerializers = List(new LanguageMapSerializer()) ++ enumSerializers ++ List(new EnsikertalaisuusSerializer,
-    new HakijanVastaanottoActionSerializer, new VirkailijanVastaanottoActionSerializer)
+    new HakijanVastaanottoActionSerializer, new VirkailijanVastaanottoActionSerializer, new HakutoiveentulosSerializer)
   val jsonFormats: Formats = GenericJsonFormats.genericFormats ++ customSerializers
 
   def formatJson(found: AnyRef): String = {
