@@ -131,12 +131,20 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val vastaanotto = vastaanottoRecord.find(v => v.hakukohdeOid == hakutoive.getHakukohdeOid).map(_.action)
       val jono: HakutoiveenValintatapajonoDTO = JonoFinder.merkitseväJono(hakutoive).get
-      var valintatila: Valintatila = jononValintatila(jono, hakutoive)
+      val valintatila: Valintatila = jononValintatila(jono, hakutoive)
+
       val viimeisinHakemuksenTilanMuutos: Option[Date] = Option(jono.getHakemuksenTilanViimeisinMuutos)
       val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos)
-      val ( vastaanottotila, vastaanottoDeadline ) = laskeVastaanottotila(valintatila, vastaanotto, aikataulu, viimeisinHakemuksenTilanMuutos, vastaanotettavuusVirkailijana)
-      valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
-      val vastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, vastaanottotila)
+      val ( hakijanVastaanottotila, vastaanottoDeadline ) = laskeVastaanottotila(valintatila, vastaanotto, aikataulu, viimeisinHakemuksenTilanMuutos, vastaanotettavuusVirkailijana)
+      val hakijanValintatila = vastaanottotilanVaikutusValintatilaan(valintatila, hakijanVastaanottotila)
+      val hakijanVastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, hakijanVastaanottotila)
+      val hakijanTilat = HakutoiveenSijoittelunTilaTieto(hakijanValintatila, hakijanVastaanottotila, hakijanVastaanotettavuustila)
+
+      val ( virkailijanVastaanottotila, _ ) = laskeVastaanottotila(valintatila, vastaanotto, aikataulu, viimeisinHakemuksenTilanMuutos, true)
+      val virkailijanValintatila = vastaanottotilanVaikutusValintatilaan(valintatila, virkailijanVastaanottotila)
+      val virkailijanVastaanotettavuustila = laskeVastaanotettavuustila(valintatila, virkailijanVastaanottotila)
+      val virkailijanTilat = HakutoiveenSijoittelunTilaTieto(virkailijanValintatila, virkailijanVastaanottotila, virkailijanVastaanotettavuustila)
+
       val julkaistavissa = jono.isJulkaistavissa
       val ehdollisestiHyvaksyttavissa = jono.isEhdollisestiHyvaksyttavissa
       val pisteet: Option[BigDecimal] = Option(jono.getPisteet).map((p: java.math.BigDecimal) => new BigDecimal(p))
@@ -145,11 +153,10 @@ class SijoittelutulosService(raportointiService: RaportointiService,
         hakutoive.getHakukohdeOid,
         hakutoive.getTarjoajaOid,
         jono.getValintatapajonoOid,
-        valintatila,
-        vastaanottotila,
+        hakijanTilat = hakijanTilat,
+        virkailijanTilat = virkailijanTilat,
         vastaanottoDeadline.map(_.toDate),
         Ilmoittautumistila.withName(Option(jono.getIlmoittautumisTila).getOrElse(IlmoittautumisTila.EI_TEHTY).name()),
-        vastaanotettavuustila,
         viimeisinHakemuksenTilanMuutos,
         viimeisinValintatuloksenMuutos,
         Option(jono.getJonosija).map(_.toInt),
@@ -170,12 +177,21 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: KevytHakutoiveDTO =>
       val vastaanotto = vastaanottoRecord.find(v => v.hakukohdeOid == hakutoive.getHakukohdeOid).map(_.action)
       val jono: KevytHakutoiveenValintatapajonoDTO = JonoFinder.merkitseväJono(hakutoive).get
-      var valintatila: Valintatila = jononValintatila(jono, hakutoive)
+
+      val valintatila: Valintatila = jononValintatila(jono, hakutoive)
+
       val viimeisinHakemuksenTilanMuutos: Option[Date] = Option(jono.getHakemuksenTilanViimeisinMuutos)
       val viimeisinValintatuloksenMuutos: Option[Date] = Option(jono.getValintatuloksenViimeisinMuutos)
-      val ( vastaanottotila, vastaanottoDeadline ) = laskeVastaanottotila(valintatila, vastaanotto, aikataulu, viimeisinHakemuksenTilanMuutos)
-      valintatila = vastaanottotilanVaikutusValintatilaan(valintatila, vastaanottotila)
-      val vastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, vastaanottotila)
+      val ( hakijanVastaanottotila, vastaanottoDeadline ) = laskeVastaanottotila(valintatila, vastaanotto, aikataulu, viimeisinHakemuksenTilanMuutos, false)
+      val hakijanValintatila = vastaanottotilanVaikutusValintatilaan(valintatila, hakijanVastaanottotila)
+      val hakijanVastaanotettavuustila: Vastaanotettavuustila.Value = laskeVastaanotettavuustila(valintatila, hakijanVastaanottotila)
+      val hakijanTilat = HakutoiveenSijoittelunTilaTieto(hakijanValintatila, hakijanVastaanottotila, hakijanVastaanotettavuustila)
+
+      val ( virkailijanVastaanottotila, _ ) = laskeVastaanottotila(valintatila, vastaanotto, aikataulu, viimeisinHakemuksenTilanMuutos, true)
+      val virkailijanValintatila = vastaanottotilanVaikutusValintatilaan(valintatila, virkailijanVastaanottotila)
+      val virkailijanVastaanotettavuustila = laskeVastaanotettavuustila(valintatila, virkailijanVastaanottotila)
+      val virkailijanTilat = HakutoiveenSijoittelunTilaTieto(virkailijanValintatila, virkailijanVastaanottotila, virkailijanVastaanotettavuustila)
+
       val julkaistavissa = jono.isJulkaistavissa
       val ehdollisestiHyvaksyttavissa = jono.isEhdollisestiHyvaksyttavissa
       val pisteet: Option[BigDecimal] = Option(jono.getPisteet).map((p: java.math.BigDecimal) => new BigDecimal(p))
@@ -184,11 +200,10 @@ class SijoittelutulosService(raportointiService: RaportointiService,
         hakutoive.getHakukohdeOid,
         hakutoive.getTarjoajaOid,
         jono.getValintatapajonoOid,
-        valintatila,
-        vastaanottotila,
+        hakijanTilat = hakijanTilat,
+        virkailijanTilat = virkailijanTilat,
         vastaanottoDeadline.map(_.toDate),
         Ilmoittautumistila.withName(Option(jono.getIlmoittautumisTila).getOrElse(IlmoittautumisTila.EI_TEHTY).name()),
-        vastaanotettavuustila,
         viimeisinHakemuksenTilanMuutos,
         viimeisinValintatuloksenMuutos,
         Option(jono.getJonosija).map(_.toInt),

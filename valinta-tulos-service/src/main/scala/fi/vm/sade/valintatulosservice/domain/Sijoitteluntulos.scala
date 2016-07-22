@@ -38,15 +38,15 @@ case class HakutoiveenSijoitteluntulos(
 
 object HakutoiveenSijoitteluntulos {
   def kesken(hakukohdeOid: String, tarjoajaOid: String) = {
+    val tilat = HakutoiveenSijoittelunTilaTieto(Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa)
     HakutoiveenSijoitteluntulos(
       hakukohdeOid,
       tarjoajaOid,
       valintatapajonoOid = "",
-      Valintatila.kesken,
-      Vastaanottotila.kesken,
+      hakijanTilat = tilat,
+      virkailijanTilat = tilat,
       vastaanottoDeadline = None,
       Ilmoittautumistila.ei_tehty,
-      Vastaanotettavuustila.ei_vastaanotettavissa,
       viimeisinHakemuksenTilanMuutos = None,
       viimeisinValintatuloksenMuutos = None,
       jonosija = None,
@@ -57,48 +57,6 @@ object HakutoiveenSijoitteluntulos {
       ehdollisestiHyvaksyttavissa = false,
       tilanKuvaukset = Map(),
       pisteet = None
-    )
-  }
-
-  def apply(
-    hakukohdeOid: String,
-    tarjoajaOid: String,
-    valintatapajonoOid: String,
-    valintatila: Valintatila,
-    vastaanottotila: Vastaanottotila,
-    vastaanottoDeadline: Option[Date],
-    ilmoittautumistila: Ilmoittautumistila,
-    vastaanotettavuustila: Vastaanotettavuustila,
-    viimeisinHakemuksenTilanMuutos: Option[Date],
-    viimeisinValintatuloksenMuutos: Option[Date],
-    jonosija: Option[Int],
-    varasijojaKaytetaanAlkaen: Option[Date],
-    varasijojaTaytetaanAsti: Option[Date],
-    varasijanumero: Option[Int],
-    julkaistavissa: Boolean,
-    ehdollisestiHyvaksyttavissa: Boolean,
-    tilanKuvaukset: Map[String, String],
-    pisteet: Option[BigDecimal]
-  ): HakutoiveenSijoitteluntulos = {
-    val tilat = HakutoiveenSijoittelunTilaTieto(valintatila, vastaanottotila, vastaanotettavuustila)
-    HakutoiveenSijoitteluntulos(
-      hakukohdeOid,
-      tarjoajaOid,
-      valintatapajonoOid,
-      hakijanTilat = tilat,
-      virkailijanTilat = tilat,
-      vastaanottoDeadline,
-      ilmoittautumistila,
-      viimeisinHakemuksenTilanMuutos,
-      viimeisinValintatuloksenMuutos,
-      jonosija,
-      varasijojaKaytetaanAlkaen,
-      varasijojaTaytetaanAsti,
-      varasijanumero,
-      julkaistavissa,
-      ehdollisestiHyvaksyttavissa,
-      tilanKuvaukset,
-      pisteet
     )
   }
 }
