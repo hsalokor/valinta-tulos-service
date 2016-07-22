@@ -16,11 +16,10 @@ case class HakutoiveenSijoitteluntulos(
   hakukohdeOid: String,
   tarjoajaOid: String,
   valintatapajonoOid: String,
-  valintatila: Valintatila,
-  vastaanottotila: Vastaanottotila,
+  hakijanTilat: HakutoiveenSijoittelunTilaTieto,
+  virkailijanTilat: HakutoiveenSijoittelunTilaTieto,
   vastaanottoDeadline: Option[Date],
   ilmoittautumistila: Ilmoittautumistila,
-  vastaanotettavuustila: Vastaanotettavuustila,
   viimeisinHakemuksenTilanMuutos: Option[Date],
   viimeisinValintatuloksenMuutos: Option[Date],
   jonosija: Option[Int],
@@ -31,7 +30,11 @@ case class HakutoiveenSijoitteluntulos(
   ehdollisestiHyvaksyttavissa: Boolean,
   tilanKuvaukset: Map[String, String],
   pisteet: Option[BigDecimal]
-)
+) {
+  def valintatila: Valintatila = hakijanTilat.valintatila
+  def vastaanottotila: Vastaanottotila = hakijanTilat.vastaanottotila
+  def vastaanotettavuustila: Vastaanotettavuustila = hakijanTilat.vastaanotettavuustila
+}
 
 object HakutoiveenSijoitteluntulos {
   def kesken(hakukohdeOid: String, tarjoajaOid: String) = {
@@ -56,4 +59,48 @@ object HakutoiveenSijoitteluntulos {
       pisteet = None
     )
   }
+
+  def apply(
+    hakukohdeOid: String,
+    tarjoajaOid: String,
+    valintatapajonoOid: String,
+    valintatila: Valintatila,
+    vastaanottotila: Vastaanottotila,
+    vastaanottoDeadline: Option[Date],
+    ilmoittautumistila: Ilmoittautumistila,
+    vastaanotettavuustila: Vastaanotettavuustila,
+    viimeisinHakemuksenTilanMuutos: Option[Date],
+    viimeisinValintatuloksenMuutos: Option[Date],
+    jonosija: Option[Int],
+    varasijojaKaytetaanAlkaen: Option[Date],
+    varasijojaTaytetaanAsti: Option[Date],
+    varasijanumero: Option[Int],
+    julkaistavissa: Boolean,
+    ehdollisestiHyvaksyttavissa: Boolean,
+    tilanKuvaukset: Map[String, String],
+    pisteet: Option[BigDecimal]
+  ): HakutoiveenSijoitteluntulos = {
+    val tilat = HakutoiveenSijoittelunTilaTieto(valintatila, vastaanottotila, vastaanotettavuustila)
+    HakutoiveenSijoitteluntulos(
+      hakukohdeOid,
+      tarjoajaOid,
+      valintatapajonoOid,
+      hakijanTilat = tilat,
+      virkailijanTilat = tilat,
+      vastaanottoDeadline,
+      ilmoittautumistila,
+      viimeisinHakemuksenTilanMuutos,
+      viimeisinValintatuloksenMuutos,
+      jonosija,
+      varasijojaKaytetaanAlkaen,
+      varasijojaTaytetaanAsti,
+      varasijanumero,
+      julkaistavissa,
+      ehdollisestiHyvaksyttavissa,
+      tilanKuvaukset,
+      pisteet
+    )
+  }
 }
+
+case class HakutoiveenSijoittelunTilaTieto(valintatila: Valintatila, vastaanottotila: Vastaanottotila, vastaanotettavuustila: Vastaanotettavuustila)

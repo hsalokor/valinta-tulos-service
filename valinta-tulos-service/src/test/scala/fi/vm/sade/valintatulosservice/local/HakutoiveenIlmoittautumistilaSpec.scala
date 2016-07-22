@@ -9,7 +9,10 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class HakutoiveenIlmoittautumistilaSpec extends Specification {
-  val vastaanottanut = HakutoiveenSijoitteluntulos.kesken("","").copy(vastaanottotila = Vastaanottotila.vastaanottanut)
+  val vastaanottanut = {
+    val kesken: HakutoiveenSijoitteluntulos = HakutoiveenSijoitteluntulos.kesken("", "")
+    kesken.copy(hakijanTilat = kesken.hakijanTilat.copy(vastaanottotila = Vastaanottotila.vastaanottanut))
+  }
   "Ilmoittautuminen" should {
     "should be enabled in IT" in {
       implicit val appConfig = new AppConfig.IT
