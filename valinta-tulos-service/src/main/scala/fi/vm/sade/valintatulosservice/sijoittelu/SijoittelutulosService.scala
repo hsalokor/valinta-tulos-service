@@ -271,7 +271,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     val tilaVainActioninPerusteella: Vastaanottotila = vastaanottotilaVainViimeisimmanVastaanottoActioninPerusteella(vastaanotto)
 
     tilaVainActioninPerusteella match {
-      case Vastaanottotila.kesken if ( Valintatila.isHyväksytty(valintatila) || valintatila == Valintatila.perunut ) =>
+      case Vastaanottotila.kesken if Valintatila.isHyväksytty(valintatila) || valintatila == Valintatila.perunut =>
         laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos, tilaVainActioninPerusteella, vastaanotettavuusVirkailijana)
       case tila if Valintatila.isHyväksytty(valintatila) => (tila, laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos))
       case tila => (tila, None)
@@ -311,7 +311,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
   }
 
   private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date]): Option[DateTime] = {
-    (aikataulu) match {
+    aikataulu match {
       case Some(Vastaanottoaikataulu(Some(deadlineFromHaku), buffer)) =>
         val deadlineFromHakemuksenTilanMuutos = getDeadlineWithBuffer(viimeisinHakemuksenTilanMuutos, buffer, deadlineFromHaku)
         val deadlines = Some(deadlineFromHaku) ++ deadlineFromHakemuksenTilanMuutos
