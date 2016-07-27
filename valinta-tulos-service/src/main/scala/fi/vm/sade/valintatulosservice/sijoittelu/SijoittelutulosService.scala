@@ -268,20 +268,18 @@ class SijoittelutulosService(raportointiService: RaportointiService,
   }
 
   private def laskeVastaanottotila(valintatila: Valintatila, vastaanotto: Option[VastaanottoAction], aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], vastaanotettavuusVirkailijana: Boolean = false): ( Vastaanottotila, Option[DateTime] ) = {
+    val deadline = laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos)
     val tilaVainActioninPerusteella: Vastaanottotila = vastaanottotilaVainViimeisimmanVastaanottoActioninPerusteella(vastaanotto)
 
     tilaVainActioninPerusteella match {
       case Vastaanottotila.kesken if Valintatila.isHyväksytty(valintatila) || valintatila == Valintatila.perunut =>
-        laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos, tilaVainActioninPerusteella, vastaanotettavuusVirkailijana)
-      case tila if Valintatila.isHyväksytty(valintatila) => (tila, laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos))
+        if (deadline.exists(_.isBeforeNow) && !vastaanotettavuusVirkailijana) {
+          (Vastaanottotila.ei_vastaanotettu_määräaikana, deadline)
+        } else {
+          (Vastaanottotila.kesken, deadline)
+        }
+      case tila if Valintatila.isHyväksytty(valintatila) => (tila, deadline)
       case tila => (tila, None)
-    }
-  }
-
-  private def laskeVastaanottoDeadline(aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], tilaVainActioninPerusteella: Vastaanottotila, vastaanotettavuusVirkailijana: Boolean = false): (Vastaanottotila, Option[DateTime]) = {
-    laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos) match {
-      case Some(deadline) if new DateTime().isAfter(deadline) && !vastaanotettavuusVirkailijana => (Vastaanottotila.ei_vastaanotettu_määräaikana, Some(deadline))
-      case deadline => (tilaVainActioninPerusteella, deadline)
     }
   }
 
