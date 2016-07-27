@@ -269,9 +269,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
 
   private def laskeVastaanottotila(valintatila: Valintatila, vastaanotto: Option[VastaanottoAction], aikataulu: Option[Vastaanottoaikataulu], viimeisinHakemuksenTilanMuutos: Option[Date], vastaanotettavuusVirkailijana: Boolean = false): ( Vastaanottotila, Option[DateTime] ) = {
     val deadline = laskeVastaanottoDeadline(aikataulu, viimeisinHakemuksenTilanMuutos)
-    val tilaVainActioninPerusteella: Vastaanottotila = vastaanottotilaVainViimeisimmanVastaanottoActioninPerusteella(vastaanotto)
-
-    tilaVainActioninPerusteella match {
+    vastaanottotilaVainViimeisimmanVastaanottoActioninPerusteella(vastaanotto) match {
       case Vastaanottotila.kesken if Valintatila.isHyväksytty(valintatila) || valintatila == Valintatila.perunut =>
         if (deadline.exists(_.isBeforeNow) && !vastaanotettavuusVirkailijana) {
           (Vastaanottotila.ei_vastaanotettu_määräaikana, deadline)
