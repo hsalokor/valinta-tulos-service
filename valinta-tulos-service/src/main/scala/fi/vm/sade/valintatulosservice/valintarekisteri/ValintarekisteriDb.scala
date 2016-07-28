@@ -11,7 +11,7 @@ import fi.vm.sade.valintatulosservice.ensikertalaisuus._
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
 import slick.driver.PostgresDriver.api.{Database, _}
-import slick.jdbc.GetResult
+import slick.jdbc.{GetResult, TransactionIsolation}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -200,14 +200,30 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
               values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite, ${new java.sql.Timestamp(vastaanottoDate.getTime)})""")
   }
 
+  private def runAsSerialized[T](retries: Int, wait: Duration, description: String, action: DBIO[T]): T = {
+    val SERIALIZATION_VIOLATION = "40001"
+    try {
+      runBlocking(action.transactionally.withTransactionIsolation(TransactionIsolation.Serializable))
+    } catch {
+      case e: PSQLException if e.getSQLState == SERIALIZATION_VIOLATION =>
+        if (retries > 0) {
+          logger.warn(s"$description failed because of an concurrent action, retrying after $wait ms")
+          Thread.sleep(wait.toMillis)
+          runAsSerialized(retries - 1, wait + wait, description, action)
+        } else {
+          throw new RuntimeException(s"$description failed because of an concurrent action.", e)
+        }
+    }
+  }
+
   override def store[T](vastaanottoEvents: List[VastaanottoEvent], postCondition: DBIO[T]): T = {
-    runBlocking(DBIO.sequence(
-      vastaanottoEvents.map(storeAction)
-    ).andThen(postCondition).transactionally)
+    runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing $vastaanottoEvents",
+      DBIO.sequence(vastaanottoEvents.map(storeAction)).andThen(postCondition))
   }
 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
-    runBlocking(storeAction(vastaanottoEvent))
+    runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing $vastaanottoEvent",
+      storeAction(vastaanottoEvent))
   }
 
   private def storeAction(vastaanottoEvent: VastaanottoEvent): DBIO[Unit] = vastaanottoEvent.action match {
@@ -224,7 +240,6 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                      and deleted is null""",
       sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, selite)
              values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite)""")
-      .transactionally
   }
 
   private def kumoaVastaanottotapahtumatAction(vastaanottoEvent: VastaanottoEvent): DBIO[Unit] = {
@@ -239,7 +254,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
         DBIO.failed(new IllegalStateException(s"No vastaanotto events found for $henkiloOid to hakukohde $hakukohdeOid"))
       case n =>
         DBIO.successful(())
-    }.transactionally
+    }
   }
 
   override def findHakukohde(oid: String): Option[HakukohdeRecord] = {
