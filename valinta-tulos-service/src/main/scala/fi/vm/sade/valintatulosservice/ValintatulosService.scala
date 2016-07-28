@@ -462,13 +462,13 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       if (ehdollinenVastaanottoTallaHakemuksella) {
         tulokset
       } else if (sitovaVastaanottoTallaHakemuksella) {
-        tulokset.map(tulos => if (Vastaanottotila.kesken == tulos.vastaanottotila && hyvaksyttyTaiVaralla(tulos)) {
+        tulokset.map(tulos => if (Vastaanottotila.kesken == tulos.virkailijanTilat.vastaanottotila && hyvaksyttyTaiVaralla(tulos)) {
           peruuntunutOttanutVastaanToisenPaikan(tulos)
         } else {
           tulos
         })
       } else {
-        tulokset.map(tulos => if (Vastaanottotila.kesken == tulos.vastaanottotila && hyvaksyttyTaiVaralla(tulos) && aiempiVastaanotto(tulos.hakukohdeOid)) {
+        tulokset.map(tulos => if (Vastaanottotila.kesken == tulos.virkailijanTilat.vastaanottotila && hyvaksyttyTaiVaralla(tulos) && aiempiVastaanotto(tulos.hakukohdeOid)) {
           peruuntunutOttanutVastaanToisenPaikan(tulos)
         } else {
           tulos

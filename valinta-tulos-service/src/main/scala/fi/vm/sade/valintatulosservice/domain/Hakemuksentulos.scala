@@ -36,7 +36,8 @@ case class Hakutoiveentulos(hakukohdeOid: String,
                             julkaistavissa: Boolean,
                             ehdollisestiHyvaksyttavissa: Boolean,
                             tilanKuvaukset: Map[String, String],
-                            pisteet: Option[BigDecimal]
+                            pisteet: Option[BigDecimal],
+                            virkailijanTilat: HakutoiveenSijoittelunTilaTieto
                             ) {
 
   def toKesken = {
@@ -50,7 +51,8 @@ case class Hakutoiveentulos(hakukohdeOid: String,
         julkaistavissa = false,
         ehdollisestiHyvaksyttavissa = false,
         tilanKuvaukset = Map(),
-        pisteet = None
+        pisteet = None,
+        virkailijanTilat = HakutoiveenSijoittelunTilaTieto.apply(valintatila, vastaanottotila, vastaanotettavuustila)
     )
   }
 
@@ -86,7 +88,8 @@ object Hakutoiveentulos {
       saaJulkaista && tulos.julkaistavissa,
       tulos.ehdollisestiHyvaksyttavissa,
       tulos.tilanKuvaukset,
-      tulos.pisteet
+      tulos.pisteet,
+      virkailijanTilat = tulos.virkailijanTilat
     ).julkaistavaVersio
   }
 }
