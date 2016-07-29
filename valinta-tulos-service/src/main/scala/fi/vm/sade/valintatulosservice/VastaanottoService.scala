@@ -10,7 +10,7 @@ import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
-import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelutulosService, ValintatulosRepository}
+import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelunTulosRestClient, SijoittelutulosService, ValintatulosRepository}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.valintarekisteri._
 import slick.dbio.{DBIO, SuccessAction}
@@ -28,6 +28,7 @@ class VastaanottoService(hakuService: HakuService,
                          ohjausparametritService: OhjausparametritService,
                          sijoittelutulosService: SijoittelutulosService,
                          hakemusRepository: HakemusRepository,
+                         sijoittelunTulosClient: SijoittelunTulosRestClient,
                          valintatulosRepository: ValintatulosRepository) extends Logging {
 
   private val statesMatchingInexistentActions = Set(
@@ -190,9 +191,14 @@ class VastaanottoService(hakuService: HakuService,
       latestSijoitteluajo <- Try(sijoittelutulosService.findLatestSijoitteluAjoForHaku(haku))
 
       hakemus <- withError(hakemusRepository.findHakemus(hakemusOid), s"Hakemusta $hakemusOid ei löydy hausta $hakuOid")
-      sijoittelunTulos = sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, Some(vastaanotto.henkiloOid), vastaanottoaikataulu, latestSijoitteluajo, vastaanotettavuusVirkailijana = false)
-        .getOrElse(valintatulosService.tyhjäHakemuksenTulos(hakemusOid, vastaanottoaikataulu))
-      kaudenVastaanottaneet: Option[Set[String]] = if (haku.yhdenPaikanSaanto.voimassa) {
+
+      vastaanottoHaussa = hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(vastaanotto.henkiloOid, hakuOid)
+      sijoittelunTulos = (for {
+        sijoitteluajo <- latestSijoitteluajo
+        hakija <- sijoittelunTulosClient.fetchHakemuksenTulos(sijoitteluajo, hakemusOid)
+      } yield sijoittelutulosService.hakemuksenYhteenveto(hakija, vastaanottoaikataulu, vastaanottoHaussa, false)).getOrElse(valintatulosService.tyhjäHakemuksenTulos(hakemusOid, vastaanottoaikataulu))
+
+      kaudenVastaanottaneet = if (haku.yhdenPaikanSaanto.voimassa) {
         hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(vastaanotto.henkiloOid, koulutuksenAlkamiskausi)) match {
           case Some(_) => Some(Set(vastaanotto.henkiloOid))
           case None => Some(Set())
