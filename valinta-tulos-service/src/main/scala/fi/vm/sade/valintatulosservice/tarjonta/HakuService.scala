@@ -11,7 +11,7 @@ import org.json4s.JsonAST.{JInt, JObject, JString}
 import org.json4s.jackson.JsonMethods._
 import org.json4s.{CustomSerializer, Formats, MappingException}
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 import scalaj.http.HttpOptions
 
 trait HakuService {
@@ -189,25 +189,23 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
   }
 
   private def fetch[T](url: String)(parse: (String => T)): Option[T] = {
-    val (responseCode, _, resultString) = DefaultHttpClient.httpGet(
+    DefaultHttpClient.httpGet(
       url,
       HttpOptions.connTimeout(30000),
       HttpOptions.readTimeout(120000)
-    ).responseWithHeaders
-
-    responseCode match {
-      case 200 => {
-        parseStatus(resultString) match {
-          case Some(status) if status.equals("NOT_FOUND") => None
-          case _ => {
-            val parsed = Try(parse(resultString))
-            if(parsed.isFailure) logger.error(s"Error parsing response from: $resultString", parsed.failed.get)
-            parsed.toOption
-          }
+    ).responseWithHeaders match {
+      case (200, _, resultString) if parseStatus(resultString).contains("NOT_FOUND") =>
+        logger.warn(s"Get haku from $url failed with status string NOT_FOUND")
+        None
+      case (200, _, resultString) =>
+        Try(parse(resultString)) match {
+          case Success(t) => Some(t)
+          case Failure(t) =>
+            logger.error(s"Error parsing response from: $resultString", t)
+            None
         }
-      }
-      case _ =>
-        logger.warn("Get haku from " + url + " failed with status " + responseCode)
+      case (responseCode, _, _) =>
+        logger.warn(s"Get haku from $url failed with status $responseCode")
         None
     }
   }
