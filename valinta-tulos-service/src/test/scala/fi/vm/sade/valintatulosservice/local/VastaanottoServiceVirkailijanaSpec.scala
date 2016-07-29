@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice.local
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.sijoittelu.{DirectMongoSijoittelunTulosRestClient, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
@@ -390,9 +391,9 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
   lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService,
     appConfig.ohjausparametritService, valintarekisteriDb, new DirectMongoSijoittelunTulosRestClient(appConfig))
   lazy val vastaanotettavuusService = new VastaanotettavuusService(hakukohdeRecordService, valintarekisteriDb)
-  lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, valintarekisteriDb, hakuService, hakukohdeRecordService)(appConfig)
+  lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, valintarekisteriDb, hakuService, valintarekisteriDb, hakukohdeRecordService)(appConfig)
   lazy val vastaanottoService = new VastaanottoService(hakuService, hakukohdeRecordService, vastaanotettavuusService, valintatulosService,
-    valintarekisteriDb, valintarekisteriDb, appConfig.sijoitteluContext.valintatulosRepository)
+    valintarekisteriDb, valintarekisteriDb, appConfig.ohjausparametritService, sijoittelutulosService, new HakemusRepository(), appConfig.sijoitteluContext.valintatulosRepository)
   lazy val ilmoittautumisService = new IlmoittautumisService(valintatulosService,
     appConfig.sijoitteluContext.valintatulosRepository, valintarekisteriDb)
 

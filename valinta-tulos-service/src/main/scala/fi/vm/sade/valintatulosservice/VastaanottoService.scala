@@ -4,10 +4,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
+import fi.vm.sade.sijoittelu.tulos.service.SijoitteluTulosService
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
+import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
+import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
+import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelutulosService, ValintatulosRepository}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.valintarekisteri._
 import slick.dbio.{DBIO, SuccessAction}
@@ -22,6 +25,9 @@ class VastaanottoService(hakuService: HakuService,
                          valintatulosService: ValintatulosService,
                          hakijaVastaanottoRepository: HakijaVastaanottoRepository,
                          virkailijaVastaanottoRepository: VirkailijaVastaanottoRepository,
+                         ohjausparametritService: OhjausparametritService,
+                         sijoittelutulosService: SijoittelutulosService,
+                         hakemusRepository: HakemusRepository,
                          valintatulosRepository: ValintatulosRepository) extends Logging {
 
   private val statesMatchingInexistentActions = Set(
@@ -177,7 +183,26 @@ class VastaanottoService(hakuService: HakuService,
     val hakemusOid = vastaanotto.hakemusOid
     for {
       hakuOid <- withError(hakuService.getHakukohde(hakukohdeOid), s"Tuntematon hakukohde $hakukohdeOid").map(_.hakuOid)
-      hakemuksenTulos <- withError(valintatulosService.hakemuksentulos(hakuOid, hakemusOid, false), s"Hakemusta $hakemusOid ei löydy hausta $hakuOid")
+
+      vastaanottoaikataulu <- Try(ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu))
+      haku <- withError(hakuService.getHaku(hakuOid), s"Tuntematon haku $hakuOid")
+      latestSijoitteluajo <- Try(sijoittelutulosService.findLatestSijoitteluAjoForHaku(haku))
+
+      ohjausparametrit <- Try(ohjausparametritService.ohjausparametrit(haku.oid))
+      hakemus <- withError(hakemusRepository.findHakemus(hakemusOid), s"Hakemusta $hakemusOid ei löydy hausta $hakuOid")
+      sijoittelunTulos = sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, Some(vastaanotto.henkiloOid), vastaanottoaikataulu, latestSijoitteluajo, vastaanotettavuusVirkailijana = false)
+        .getOrElse(valintatulosService.tyhjäHakemuksenTulos(hakemusOid, vastaanottoaikataulu))
+      kaudenVastaanottaneet: Option[Set[String]] = if (haku.yhdenPaikanSaanto.voimassa) {
+        val koulutuksenAlkamiskausi = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid).koulutuksenAlkamiskausi
+        hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(vastaanotto.henkiloOid, koulutuksenAlkamiskausi)) match {
+          case Some(_) => Some(Set(vastaanotto.henkiloOid))
+          case None => Some(Set())
+        }
+      } else {
+        None
+      }
+      hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, kaudenVastaanottaneet)(hakemus)
+
       (hakutoive, _) <- withError(hakemuksenTulos.findHakutoive(hakukohdeOid), s"Hakutoivetta $hakukohdeOid ei löydy hakemukselta $hakemusOid")
       _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
     } yield {
