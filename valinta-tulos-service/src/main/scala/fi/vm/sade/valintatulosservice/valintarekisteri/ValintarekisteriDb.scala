@@ -135,21 +135,20 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     result.map(row => Ensikertalaisuus(row._1, row._2)).toSet
   }
 
-  override def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
-    runBlocking(
-      sql"""select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp"
-            from (
-                select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp", id
-                from vastaanotot
-                    join hakukohteet on hakukohde_oid = vastaanotot.hakukohde and haku_oid = ${hakuOid}
-                where henkilo = ${henkiloOid} and deleted is null
-                union
-                select henkiloviitteet.linked_oid as henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp", id
-                from vastaanotot
-                    join hakukohteet on hakukohde_oid = vastaanotot.hakukohde and haku_oid = ${hakuOid}
-                    join henkiloviitteet on vastaanotot.henkilo = henkiloviitteet.person_oid and henkiloviitteet.linked_oid = ${henkiloOid}
-                where deleted is null) as t
-            order by id""".as[VastaanottoRecord]).toSet
+  override def findHenkilonVastaanototHaussa(henkiloOid: String, hakuOid: String): DBIO[Set[VastaanottoRecord]] = {
+    sql"""select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp"
+          from (
+              select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp", id
+              from vastaanotot
+                  join hakukohteet on hakukohde_oid = vastaanotot.hakukohde and haku_oid = ${hakuOid}
+              where henkilo = ${henkiloOid} and deleted is null
+              union
+              select henkiloviitteet.linked_oid as henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp", id
+              from vastaanotot
+                  join hakukohteet on hakukohde_oid = vastaanotot.hakukohde and haku_oid = ${hakuOid}
+                  join henkiloviitteet on vastaanotot.henkilo = henkiloviitteet.person_oid and henkiloviitteet.linked_oid = ${henkiloOid}
+              where deleted is null) as t
+          order by id""".as[VastaanottoRecord].map(_.toSet)
   }
 
   override def findHaunVastaanotot(hakuOid: String): Set[VastaanottoRecord] = {
@@ -200,7 +199,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
               values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite, ${new java.sql.Timestamp(vastaanottoDate.getTime)})""")
   }
 
-  private def runAsSerialized[T](retries: Int, wait: Duration, description: String, action: DBIO[T]): T = {
+  def runAsSerialized[T](retries: Int, wait: Duration, description: String, action: DBIO[T]): T = {
     val SERIALIZATION_VIOLATION = "40001"
     try {
       runBlocking(action.transactionally.withTransactionIsolation(TransactionIsolation.Serializable))
@@ -226,7 +225,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
       storeAction(vastaanottoEvent))
   }
 
-  private def storeAction(vastaanottoEvent: VastaanottoEvent): DBIO[Unit] = vastaanottoEvent.action match {
+  def storeAction(vastaanottoEvent: VastaanottoEvent): DBIO[Unit] = vastaanottoEvent.action match {
     case Poista => kumoaVastaanottotapahtumatAction(vastaanottoEvent)
     case _ => tallennaVastaanottoTapahtumaAction(vastaanottoEvent)
   }

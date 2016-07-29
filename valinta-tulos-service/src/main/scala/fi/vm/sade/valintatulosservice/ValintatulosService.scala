@@ -236,7 +236,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     val hakemuksenTulos = hakemuksentulos(hakuOid, hakemusOid)
       .getOrElse(throw new IllegalArgumentException(s"Not hakemuksen tulos for hakemus $hakemusOid in haku $hakuOid"))
     val henkiloOid = hakemuksenTulos.hakijaOid
-    val vastaanotot = virkailijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
+    val vastaanotot = virkailijaVastaanottoRepository.runBlocking(virkailijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, hakuOid))
     val valintatulokset: util.List[Valintatulos] = valintatulosDao.loadValintatuloksetForHakemus(hakemusOid)
 
     setValintatuloksetTilat(hakuOid, valintatulokset.asScala, Map(hakemusOid -> hakemuksenTulos), Map(henkiloOid -> vastaanotot))

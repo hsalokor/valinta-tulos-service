@@ -89,7 +89,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid, hakemusOid, otherHakukohdeOidForHakuOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid, hakemusOid, otherHakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid + "2", hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
-      val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
+      val vastaanottoRowsFromDb = singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanototHaussa(henkiloOid, hakuOid))
       vastaanottoRowsFromDb must have size 2
       val a = vastaanottoRowsFromDb.find(_.hakukohdeOid == hakukohdeOid).get
       a.henkiloOid mustEqual henkiloOid
@@ -338,7 +338,7 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     val vastaanottoHakukohteeseen: Option[VastaanottoRecord] = singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(findHenkiloOid, hakukohdeOid))
     assertVastaanottoInDb(findHenkiloOid, expectedHenkiloOid, vastaanottoHakukohteeseen)
 
-    val vastaanototHakuun = singleConnectionValintarekisteriDb.findHenkilonVastaanototHaussa(findHenkiloOid, hakuOid)
+    val vastaanototHakuun = singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanototHaussa(findHenkiloOid, hakuOid))
     vastaanototHakuun must have size 1
     assertVastaanottoInDb(findHenkiloOid, expectedHenkiloOid, vastaanototHakuun.headOption)
   }
