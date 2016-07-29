@@ -188,24 +188,19 @@ class VastaanottoService(hakuService: HakuService,
       koulutuksenAlkamiskausi = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid).koulutuksenAlkamiskausi
       ohjausparametrit <- Try(ohjausparametritService.ohjausparametrit(hakuOid))
       vastaanottoaikataulu = ohjausparametrit.flatMap(_.vastaanottoaikataulu)
-      latestSijoitteluajo <- Try(sijoittelutulosService.findLatestSijoitteluAjoForHaku(haku))
+      hakija <- Try(sijoittelutulosService.findLatestSijoitteluAjoForHaku(haku)
+        .flatMap(sijoittelunTulosClient.fetchHakemuksenTulos(_, hakemusOid)))
 
       hakemus <- withError(hakemusRepository.findHakemus(hakemusOid), s"Hakemusta $hakemusOid ei löydy hausta $hakuOid")
 
       vastaanottoHaussa = hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(vastaanotto.henkiloOid, hakuOid)
-      sijoittelunTulos = (for {
-        sijoitteluajo <- latestSijoitteluajo
-        hakija <- sijoittelunTulosClient.fetchHakemuksenTulos(sijoitteluajo, hakemusOid)
-      } yield sijoittelutulosService.hakemuksenYhteenveto(hakija, vastaanottoaikataulu, vastaanottoHaussa, false)).getOrElse(valintatulosService.tyhjäHakemuksenTulos(hakemusOid, vastaanottoaikataulu))
-
       kaudenVastaanottaneet = if (haku.yhdenPaikanSaanto.voimassa) {
-        hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(vastaanotto.henkiloOid, koulutuksenAlkamiskausi)) match {
-          case Some(_) => Some(Set(vastaanotto.henkiloOid))
-          case None => Some(Set())
-        }
+        Some(hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(vastaanotto.henkiloOid, koulutuksenAlkamiskausi)).map(_.henkiloOid).toSet)
       } else {
         None
       }
+      sijoittelunTulos = hakija.map(sijoittelutulosService.hakemuksenYhteenveto(_, vastaanottoaikataulu, vastaanottoHaussa, false))
+        .getOrElse(valintatulosService.tyhjäHakemuksenTulos(hakemusOid, vastaanottoaikataulu))
       hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, kaudenVastaanottaneet)(hakemus)
 
       (hakutoive, _) <- withError(hakemuksenTulos.findHakutoive(hakukohdeOid), s"Hakutoivetta $hakukohdeOid ei löydy hakemukselta $hakemusOid")
