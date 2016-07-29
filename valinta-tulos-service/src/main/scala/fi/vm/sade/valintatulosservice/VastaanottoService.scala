@@ -172,13 +172,18 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Try[Unit] = {
+    def withError[T](o: Option[T], e: String): Try[T] = Try(o.getOrElse(throw new IllegalArgumentException(e)))
+    val hakukohdeOid = vastaanotto.hakukohdeOid
+    val hakemusOid = vastaanotto.hakemusOid
     for {
-      hakutoive <- findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid).map(_._1)
+      hakuOid <- withError(hakuService.getHakukohde(hakukohdeOid), s"Tuntematon hakukohde $hakukohdeOid").map(_.hakuOid)
+      hakemuksenTulos <- withError(valintatulosService.hakemuksentulos(hakuOid, hakemusOid, false), s"Hakemusta $hakemusOid ei löydy hausta $hakuOid")
+      (hakutoive, _) <- withError(hakemuksenTulos.findHakutoive(hakukohdeOid), s"Hakutoivetta $hakukohdeOid ei löydy hakemukselta $hakemusOid")
       _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
     } yield {
-      hakukohdeRecordService.getHakukohdeRecord(vastaanotto.hakukohdeOid)
+      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
       hakijaVastaanottoRepository.store(vastaanotto)
-      valintatulosRepository.modifyValintatulos(vastaanotto.hakukohdeOid,hakutoive.valintatapajonoOid,vastaanotto.hakemusOid,(Unit) => throw new IllegalArgumentException("Valintatulosta ei löydy")) { valintatulos =>
+      valintatulosRepository.modifyValintatulos(hakukohdeOid, hakutoive.valintatapajonoOid, vastaanotto.hakemusOid,(Unit) => throw new IllegalArgumentException("Valintatulosta ei löydy")) { valintatulos =>
         valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
       }
     }
