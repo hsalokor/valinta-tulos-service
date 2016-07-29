@@ -183,17 +183,16 @@ class VastaanottoService(hakuService: HakuService,
     val hakemusOid = vastaanotto.hakemusOid
     for {
       hakuOid <- withError(hakuService.getHakukohde(hakukohdeOid), s"Tuntematon hakukohde $hakukohdeOid").map(_.hakuOid)
-
-      vastaanottoaikataulu <- Try(ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu))
       haku <- withError(hakuService.getHaku(hakuOid), s"Tuntematon haku $hakuOid")
+      koulutuksenAlkamiskausi = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid).koulutuksenAlkamiskausi
+      ohjausparametrit <- Try(ohjausparametritService.ohjausparametrit(hakuOid))
+      vastaanottoaikataulu = ohjausparametrit.flatMap(_.vastaanottoaikataulu)
       latestSijoitteluajo <- Try(sijoittelutulosService.findLatestSijoitteluAjoForHaku(haku))
 
-      ohjausparametrit <- Try(ohjausparametritService.ohjausparametrit(haku.oid))
       hakemus <- withError(hakemusRepository.findHakemus(hakemusOid), s"Hakemusta $hakemusOid ei löydy hausta $hakuOid")
       sijoittelunTulos = sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, Some(vastaanotto.henkiloOid), vastaanottoaikataulu, latestSijoitteluajo, vastaanotettavuusVirkailijana = false)
         .getOrElse(valintatulosService.tyhjäHakemuksenTulos(hakemusOid, vastaanottoaikataulu))
       kaudenVastaanottaneet: Option[Set[String]] = if (haku.yhdenPaikanSaanto.voimassa) {
-        val koulutuksenAlkamiskausi = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid).koulutuksenAlkamiskausi
         hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(vastaanotto.henkiloOid, koulutuksenAlkamiskausi)) match {
           case Some(_) => Some(Set(vastaanotto.henkiloOid))
           case None => Some(Set())
@@ -206,7 +205,6 @@ class VastaanottoService(hakuService: HakuService,
       (hakutoive, _) <- withError(hakemuksenTulos.findHakutoive(hakukohdeOid), s"Hakutoivetta $hakukohdeOid ei löydy hakemukselta $hakemusOid")
       _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
     } yield {
-      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
       hakijaVastaanottoRepository.store(vastaanotto)
       valintatulosRepository.modifyValintatulos(hakukohdeOid, hakutoive.valintatapajonoOid, vastaanotto.hakemusOid,(Unit) => throw new IllegalArgumentException("Valintatulosta ei löydy")) { valintatulos =>
         valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
