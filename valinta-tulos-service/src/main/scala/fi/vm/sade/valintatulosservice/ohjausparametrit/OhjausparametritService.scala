@@ -9,6 +9,8 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottoaikataulu
 
+import scala.util.{Failure, Success, Try}
+
 case class Ohjausparametrit(vastaanottoaikataulu: Option[Vastaanottoaikataulu], varasijaSaannotAstuvatVoimaan: Option[DateTime], ilmoittautuminenPaattyy: Option[DateTime], hakukierrosPaattyy: Option[DateTime], tulostenJulkistusAlkaa: Option[DateTime], kaikkiJonotSijoittelussa: Option[DateTime])
 
 trait OhjausparametritService {
@@ -21,7 +23,7 @@ class StubbedOhjausparametritService extends OhjausparametritService {
     Option(getClass.getResourceAsStream(fileName))
       .map(io.Source.fromInputStream(_).mkString)
       .map(parse(_).asInstanceOf[JObject])
-      .flatMap(OhjausparametritParser.parseOhjausparametrit(_))
+      .map(OhjausparametritParser.parseOhjausparametrit)
   }
 }
 
@@ -40,21 +42,29 @@ class RemoteOhjausparametritService(implicit appConfig: AppConfig) extends Ohjau
   import org.json4s.jackson.JsonMethods._
 
   def ohjausparametrit(asId: String) = {
-    val (responseCode, _, resultString) = DefaultHttpClient.httpGet(appConfig.settings.ohjausparametritUrl + "/" + asId)
-      .responseWithHeaders
-
-    responseCode match {
-      case 200 =>
-        parse(resultString).extractOpt[JValue].flatMap(OhjausparametritParser.parseOhjausparametrit(_))
-      case _ => None
+    val url = appConfig.settings.ohjausparametritUrl + "/" + asId
+    DefaultHttpClient.httpGet(url).responseWithHeaders match {
+      case (200, _, resultString) =>
+        Try(OhjausparametritParser.parseOhjausparametrit(parse(resultString))) match {
+          case Success(r) => Some(r)
+          case Failure(t) => throw new RuntimeException(s"Error parsing response $resultString", t)
+        }
+      case (404, _, _) => None
+      case (status, _, _) => throw new RuntimeException(s"Fetching $url failed with HTTP status $status")
     }
   }
 }
 
 private object OhjausparametritParser extends JsonFormats {
 
-  def parseOhjausparametrit(json: JValue) = {
-    Some(Ohjausparametrit(parseVastaanottoaikataulu(json), parseVarasijaSaannotAstuvatVoimaan(json), parseIlmoittautuminenPaattyy(json), parseHakukierrosPaattyy(json), parseTulostenJulkistus(json), parseKaikkiJonotSijoittelussa(json)))
+  def parseOhjausparametrit(json: JValue): Ohjausparametrit = {
+    Ohjausparametrit(
+      parseVastaanottoaikataulu(json),
+      parseVarasijaSaannotAstuvatVoimaan(json),
+      parseIlmoittautuminenPaattyy(json),
+      parseHakukierrosPaattyy(json),
+      parseTulostenJulkistus(json),
+      parseKaikkiJonotSijoittelussa(json))
   }
 
   private def parseDateTime(json: JValue, key: String): Option[DateTime] = {
@@ -62,7 +72,6 @@ private object OhjausparametritParser extends JsonFormats {
       obj <- (json \ key).toOption
       date <- (obj \ "date").extractOpt[Long].map(new DateTime(_))
     } yield date
-
   }
 
   private def parseVastaanottoaikataulu(json: JValue) = {
