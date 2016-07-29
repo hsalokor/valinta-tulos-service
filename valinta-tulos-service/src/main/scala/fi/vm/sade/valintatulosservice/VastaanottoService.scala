@@ -2,9 +2,9 @@ package fi.vm.sade.valintatulosservice
 
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.concurrent.TimeUnit
 
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
-import fi.vm.sade.sijoittelu.tulos.service.SijoitteluTulosService
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
@@ -16,6 +16,8 @@ import fi.vm.sade.valintatulosservice.valintarekisteri._
 import slick.dbio.{DBIO, SuccessAction}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
 
@@ -193,20 +195,23 @@ class VastaanottoService(hakuService: HakuService,
 
       hakemus <- withError(hakemusRepository.findHakemus(hakemusOid), s"Hakemusta $hakemusOid ei löydy hausta $hakuOid")
 
-      vastaanottoHaussa = hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(vastaanotto.henkiloOid, hakuOid)
-      kaudenVastaanottaneet = if (haku.yhdenPaikanSaanto.voimassa) {
-        Some(hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(vastaanotto.henkiloOid, koulutuksenAlkamiskausi)).map(_.henkiloOid).toSet)
-      } else {
-        None
-      }
-      sijoittelunTulos = hakija.map(sijoittelutulosService.hakemuksenYhteenveto(_, vastaanottoaikataulu, vastaanottoHaussa, false))
-        .getOrElse(valintatulosService.tyhjäHakemuksenTulos(hakemusOid, vastaanottoaikataulu))
-      hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, kaudenVastaanottaneet)(hakemus)
-
-      (hakutoive, _) <- withError(hakemuksenTulos.findHakutoive(hakukohdeOid), s"Hakutoivetta $hakukohdeOid ei löydy hakemukselta $hakemusOid")
-      _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, vastaanotto.action)
+      hakutoive <- hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
+        (for {
+          sijoittelunTulos <- hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(vastaanotto.henkiloOid, hakuOid)
+            .map(vastaanottoHaussa => hakija.map(sijoittelutulosService.hakemuksenYhteenveto(_, vastaanottoaikataulu, vastaanottoHaussa, false))
+              .getOrElse(valintatulosService.tyhjäHakemuksenTulos(hakemusOid, vastaanottoaikataulu)))
+          hakemuksenTulos <- (if (haku.yhdenPaikanSaanto.voimassa) {
+            hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(vastaanotto.henkiloOid, koulutuksenAlkamiskausi)
+              .map(o => Some(o.map(v => v.henkiloOid).toSet))
+          } else {
+            DBIO.successful(None)
+          }).map(kaudenVastaanotto => valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, kaudenVastaanotto)(hakemus))
+          hakutoive <- tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos, hakukohdeOid, vastaanotto.action) match {
+            case Success(h) => hakijaVastaanottoRepository.storeAction(vastaanotto).andThen(DBIO.successful(h))
+            case Failure(t) => DBIO.failed(t)
+          }
+        } yield hakutoive).asTry)
     } yield {
-      hakijaVastaanottoRepository.store(vastaanotto)
       valintatulosRepository.modifyValintatulos(hakukohdeOid, hakutoive.valintatapajonoOid, vastaanotto.hakemusOid,(Unit) => throw new IllegalArgumentException("Valintatulosta ei löydy")) { valintatulos =>
         valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
       }
@@ -239,6 +244,14 @@ class VastaanottoService(hakuService: HakuService,
       case VastaanotaEhdollisesti if hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti => Failure(e)
       case _ => Success(())
     }
+  }
+
+  private def tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos: Hakemuksentulos, hakukohdeOid: String, haluttuTila: VastaanottoAction): Try[Hakutoiveentulos] = {
+    val missingHakutoive = s"Hakutoivetta $hakukohdeOid ei löydy hakemukselta ${hakemuksenTulos.hakemusOid}"
+    for {
+      (hakutoive, _) <- Try(hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException(missingHakutoive)))
+      _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, haluttuTila)
+    } yield hakutoive
   }
 }
 

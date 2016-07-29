@@ -122,7 +122,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
 
   private def fetchVastaanotto(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
     Timer.timed("hakijaVastaanottoRepository.findHenkilonVastaanototHaussa", 100) {
-      hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, hakuOid)
+      hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, hakuOid))
     }
   }
 
