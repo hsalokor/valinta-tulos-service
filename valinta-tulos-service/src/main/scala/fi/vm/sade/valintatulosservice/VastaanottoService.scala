@@ -181,19 +181,16 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Unit = {
-    val hakukohdeOid = vastaanotto.hakukohdeOid
-    val hakemusOid = vastaanotto.hakemusOid
-    val henkiloOid = vastaanotto.henkiloOid
-    val hakukohde = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
-    val hakuOid = hakukohde.hakuOid
-    val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException(s"Tuntematon haku ${hakuOid}"))
+    val VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, _, _, _) = vastaanotto
+    val HakukohdeRecord(_, hakuOid, _, _, koulutuksenAlkamiskausi) = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
+    val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException(s"Tuntematon haku $hakuOid"))
     val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-    val hakemus = hakemusRepository.findHakemus(hakemusOid).getOrElse(throw new IllegalArgumentException(s"Hakemusta $hakemusOid ei löydy hausta ${hakuOid}"))
+    val hakemus = hakemusRepository.findHakemus(hakemusOid).getOrElse(throw new IllegalArgumentException(s"Hakemusta $hakemusOid ei löydy hausta $hakuOid"))
     val hakutoive = hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
       for {
         sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
         hakemuksenTulos <- (if (haku.yhdenPaikanSaanto.voimassa) {
-          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, hakukohde.koulutuksenAlkamiskausi).map {
+          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, koulutuksenAlkamiskausi).map {
             case Some(v) => Some(Set(v.henkiloOid))
             case None => Some(Set[String]())
           }
