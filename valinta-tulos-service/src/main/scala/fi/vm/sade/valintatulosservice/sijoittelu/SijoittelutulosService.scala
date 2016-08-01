@@ -69,9 +69,9 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     }
   }
 
-  def findLatestSijoitteluAjoForHaku(haku: Haku): Option[SijoitteluAjo] = {
+  def findLatestSijoitteluAjoForHaku(hakuOid: String): Option[SijoitteluAjo] = {
     Timer.timed("findLatestSijoitteluAjoForHaku -> latestSijoitteluAjoClient.fetchLatestSijoitteluAjoFromSijoitteluService", 100) {
-      sijoittelunTulosClient.fetchLatestSijoitteluAjoFromSijoitteluService(haku.oid, None)
+      sijoittelunTulosClient.fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid, None)
     }
   }
 
@@ -108,10 +108,10 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     }.getOrElse(new HakijaPaginationObject)
   }
 
-  def latestSijoittelunTulos(haku: Haku, henkiloOid: String, hakemusOid: String,
+  def latestSijoittelunTulos(hakuOid: String, henkiloOid: String, hakemusOid: String,
                              vastaanottoaikataulu: Option[Vastaanottoaikataulu]): DBIO[HakemuksenSijoitteluntulos] = {
-    findLatestSijoitteluAjoForHaku(haku).flatMap(findHakemus(hakemusOid, _)).map(hakija => {
-      hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, haku.oid).map(vastaanotot => {
+    findLatestSijoitteluAjoForHaku(hakuOid).flatMap(findHakemus(hakemusOid, _)).map(hakija => {
+      hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, hakuOid).map(vastaanotot => {
         hakemuksenYhteenveto(hakija, vastaanottoaikataulu, vastaanotot, false)
       })
     }).getOrElse(DBIO.successful(HakemuksenSijoitteluntulos(hakemusOid, None, Nil)))

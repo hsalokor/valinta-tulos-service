@@ -191,7 +191,7 @@ class VastaanottoService(hakuService: HakuService,
     val hakemus = hakemusRepository.findHakemus(hakemusOid).getOrElse(throw new IllegalArgumentException(s"Hakemusta $hakemusOid ei löydy hausta ${haku.oid}"))
     val hakutoive = hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
       for {
-        sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(haku, henkiloOid, hakemusOid, vastaanottoaikataulu)
+        sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(haku.oid, henkiloOid, hakemusOid, vastaanottoaikataulu)
         hakemuksenTulos <- (if (haku.yhdenPaikanSaanto.voimassa) {
           hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, hakukohde.koulutuksenAlkamiskausi).map {
             case Some(v) => Some(Set(v.henkiloOid))

@@ -63,7 +63,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     for {
       haku <- hakuService.getHaku(hakuOid)
       koulutuksenAlkamiskausi <- hakukohdeRecordService.getHaunKoulutuksenAlkamiskausi(hakuOid)
-      latestSijoitteluAjo = sijoittelutulosService.findLatestSijoitteluAjoForHaku(haku)
+      latestSijoitteluAjo = sijoittelutulosService.findLatestSijoitteluAjoForHaku(hakuOid)
       h <- hakemusRepository.findHakemus(hakemusOid)
       hakemus <- fetchTulokset(
         haku,
