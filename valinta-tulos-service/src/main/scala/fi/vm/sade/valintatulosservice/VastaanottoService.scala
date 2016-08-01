@@ -180,39 +180,33 @@ class VastaanottoService(hakuService: HakuService,
     findHakutoive(vastaanotettavaHakemusOid, hakukohdeOid).get
   }
 
-  def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Try[Unit] = {
-    def withError[T](o: Option[T], e: String): Try[T] = Try(o.getOrElse(throw new IllegalArgumentException(e)))
+  def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Unit = {
     val hakukohdeOid = vastaanotto.hakukohdeOid
     val hakemusOid = vastaanotto.hakemusOid
     val henkiloOid = vastaanotto.henkiloOid
-    for {
-      hakuOid <- withError(hakuService.getHakukohde(hakukohdeOid), s"Tuntematon hakukohde $hakukohdeOid").map(_.hakuOid)
-      haku <- withError(hakuService.getHaku(hakuOid), s"Tuntematon haku $hakuOid")
-      koulutuksenAlkamiskausi = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid).koulutuksenAlkamiskausi
-      ohjausparametrit <- Try(ohjausparametritService.ohjausparametrit(hakuOid))
-      vastaanottoaikataulu = ohjausparametrit.flatMap(_.vastaanottoaikataulu)
-      hakemus <- withError(hakemusRepository.findHakemus(hakemusOid), s"Hakemusta $hakemusOid ei löydy hausta $hakuOid")
-
-      hakutoive <- hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
-        (for {
-          sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(haku, henkiloOid, hakemusOid, vastaanottoaikataulu)
-          hakemuksenTulos <- (if (haku.yhdenPaikanSaanto.voimassa) {
-            hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, koulutuksenAlkamiskausi).map {
-              case Some(v) => Some(Set(v.henkiloOid))
-              case None => Some(Set[String]())
-            }
-          } else {
-            DBIO.successful(None)
-          }).map(valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, _)(hakemus))
-          hakutoive <- tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos, hakukohdeOid, vastaanotto.action) match {
-            case Success(h) => hakijaVastaanottoRepository.storeAction(vastaanotto).andThen(DBIO.successful(h))
-            case Failure(t) => DBIO.failed(t)
+    val hakukohde = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
+    val haku = hakuService.getHaku(hakukohde.hakuOid).getOrElse(throw new IllegalArgumentException(s"Tuntematon haku ${hakukohde.hakuOid}"))
+    val ohjausparametrit = ohjausparametritService.ohjausparametrit(haku.oid)
+    val vastaanottoaikataulu = ohjausparametrit.flatMap(_.vastaanottoaikataulu)
+    val hakemus = hakemusRepository.findHakemus(hakemusOid).getOrElse(throw new IllegalArgumentException(s"Hakemusta $hakemusOid ei löydy hausta ${haku.oid}"))
+    val hakutoive = hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
+      for {
+        sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(haku, henkiloOid, hakemusOid, vastaanottoaikataulu)
+        hakemuksenTulos <- (if (haku.yhdenPaikanSaanto.voimassa) {
+          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, hakukohde.koulutuksenAlkamiskausi).map {
+            case Some(v) => Some(Set(v.henkiloOid))
+            case None => Some(Set[String]())
           }
-        } yield hakutoive).asTry)
-    } yield {
-      valintatulosRepository.modifyValintatulos(hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, (Unit) => throw new IllegalArgumentException("Valintatulosta ei löydy")) { valintatulos =>
-        valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
-      }
+        } else {
+          DBIO.successful(None)
+        }).map(valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, _)(hakemus))
+        hakutoive <- tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos, hakukohdeOid, vastaanotto.action) match {
+          case Success(h) => hakijaVastaanottoRepository.storeAction(vastaanotto).andThen(DBIO.successful(h))
+          case Failure(t) => DBIO.failed(t)
+        }
+      } yield hakutoive)
+    valintatulosRepository.modifyValintatulos(hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, (Unit) => throw new IllegalArgumentException("Valintatulosta ei löydy")) { valintatulos =>
+      valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
     }
   }
 
