@@ -17,6 +17,9 @@ import fi.vm.sade.valintatulosservice.tarjonta.Haku
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoRecord}
 import org.apache.commons.lang.StringUtils
 import org.joda.time.DateTime
+import slick.dbio.DBIO
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class SijoittelutulosService(raportointiService: RaportointiService,
                              ohjausparametritService: OhjausparametritService,
@@ -103,6 +106,15 @@ class SijoittelutulosService(raportointiService: RaportointiService,
       raportointiService.hakemukset(ajo, toJavaBoolean(hyvaksytyt), toJavaBoolean(ilmanHyvaksyntaa), toJavaBoolean(vastaanottaneet),
         hakukohdeOidsAsJava, toJavaInt(count), toJavaInt(index))
     }.getOrElse(new HakijaPaginationObject)
+  }
+
+  def latestSijoittelunTulos(haku: Haku, henkiloOid: String, hakemusOid: String,
+                             vastaanottoaikataulu: Option[Vastaanottoaikataulu]): DBIO[HakemuksenSijoitteluntulos] = {
+    findLatestSijoitteluAjoForHaku(haku).flatMap(findHakemus(hakemusOid, _)).map(hakija => {
+      hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(henkiloOid, haku.oid).map(vastaanotot => {
+        hakemuksenYhteenveto(hakija, vastaanottoaikataulu, vastaanotot, false)
+      })
+    }).getOrElse(DBIO.successful(HakemuksenSijoitteluntulos(hakemusOid, None, Nil)))
   }
 
   def sijoittelunTulosForAjoWithoutVastaanottoTieto(sijoitteluAjo: SijoitteluAjo, hakemusOid: String): HakijaDTO = findHakemus(hakemusOid, sijoitteluAjo).orNull

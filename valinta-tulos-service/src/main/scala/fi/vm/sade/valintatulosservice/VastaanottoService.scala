@@ -190,16 +190,11 @@ class VastaanottoService(hakuService: HakuService,
       koulutuksenAlkamiskausi = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid).koulutuksenAlkamiskausi
       ohjausparametrit <- Try(ohjausparametritService.ohjausparametrit(hakuOid))
       vastaanottoaikataulu = ohjausparametrit.flatMap(_.vastaanottoaikataulu)
-      hakija <- Try(sijoittelutulosService.findLatestSijoitteluAjoForHaku(haku)
-        .flatMap(sijoittelunTulosClient.fetchHakemuksenTulos(_, hakemusOid)))
-
       hakemus <- withError(hakemusRepository.findHakemus(hakemusOid), s"Hakemusta $hakemusOid ei löydy hausta $hakuOid")
 
       hakutoive <- hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
         (for {
-          sijoittelunTulos <- hakijaVastaanottoRepository.findHenkilonVastaanototHaussa(vastaanotto.henkiloOid, hakuOid)
-            .map(vastaanottoHaussa => hakija.map(sijoittelutulosService.hakemuksenYhteenveto(_, vastaanottoaikataulu, vastaanottoHaussa, false))
-              .getOrElse(valintatulosService.tyhjäHakemuksenTulos(hakemusOid, vastaanottoaikataulu)))
+          sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(haku, vastaanotto.henkiloOid, hakemusOid, vastaanottoaikataulu)
           hakemuksenTulos <- (if (haku.yhdenPaikanSaanto.voimassa) {
             hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(vastaanotto.henkiloOid, koulutuksenAlkamiskausi)
               .map(o => Some(o.map(v => v.henkiloOid).toSet))
