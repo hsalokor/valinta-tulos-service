@@ -6,10 +6,11 @@ PROPERTIES=$1
 VERSION=$2
 BRANCH=$(git rev-parse --abbrev-ref HEAD | sed 's+/+-+g')
 COMMIT=$(git rev-parse HEAD)
-TIMESTAMP=$(date --iso-8601=seconds)
+TIMESTAMP=$(date "+%FT%T%:z")
 
 set_property() {
-    sed -ri "s/($1)=.*/\1=$2/" "${PROPERTIES}"
+    sed -E -i.bak "s/($1)=.*/\1=$2/" "${PROPERTIES}"
+    rm "${PROPERTIES}.bak"
     if ! grep -q "$1" "${PROPERTIES}"
     then
         ENTRY=`printf "$1=%s\n" "$2"`
