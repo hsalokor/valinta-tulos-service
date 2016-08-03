@@ -102,7 +102,7 @@ class VastaanottoService(hakuService: HakuService,
           } else {
             DBIO.successful(None)
           }
-          hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, maybeAiempiVastaanottoKaudella.map(_.map(_.henkiloOid).toSet))(hakemus)
+          hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, maybeAiempiVastaanottoKaudella.map(_.isDefined))(hakemus)
           r <- tarkistaHakutoiveenVastaanotettavuusVirkailijana(hakemuksenTulos, hakukohdeOid, vastaanottoDto, maybeAiempiVastaanottoKaudella) match {
             case Success(Some(hakutoive)) => hakijaVastaanottoRepository.storeAction(vastaanotto).andThen(DBIO.successful(Some(hakutoive)))
             case Success(None) => DBIO.successful(None)
@@ -166,10 +166,7 @@ class VastaanottoService(hakuService: HakuService,
       for {
         sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
         hakemuksenTulos <- (if (haku.yhdenPaikanSaanto.voimassa) {
-          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, koulutuksenAlkamiskausi).map {
-            case Some(v) => Some(Set(v.henkiloOid))
-            case None => Some(Set[String]())
-          }
+          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, koulutuksenAlkamiskausi).map(v => Some(v.isDefined))
         } else {
           DBIO.successful(None)
         }).map(valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, _)(hakemus))

@@ -271,7 +271,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         hakijaDto.setHakijaOid(hakijaOidFromHakemus)
         val hakijanVastaanotot = haunVastaanototByHakijaOid.get(hakijaDto.getHakijaOid)
         val hakutoiveidenTulokset = hakutoiveidenTuloksetByHakemusOid.getOrElse(hakijaDto.getHakemusOid, throw new IllegalArgumentException(s"Hakemusta ${hakijaDto.getHakemusOid} ei löydy"))
-        val yhdenPaikanSannonHuomioiminen = asetaVastaanotettavuusValintarekisterinPerusteella(hakijaDto.getHakijaOid, kaudenVastaanottaneet)(hakutoiveidenTulokset, haku, None)
+        val yhdenPaikanSannonHuomioiminen = asetaVastaanotettavuusValintarekisterinPerusteella(kaudenVastaanottaneet.map(_.contains(hakijaDto.getHakijaOid)))(hakutoiveidenTulokset, haku, None)
         hakijaDto.getHakutoiveet.asScala.foreach(palautettavaHakutoiveDto =>
           hakijanVastaanotot match {
             case Some(vastaanottos) =>
@@ -407,15 +407,15 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     }
     hakemukset.map(hakemus => {
       val sijoitteluTulos = sijoitteluTulokset.getOrElse(hakemus.oid, tyhjäHakemuksenTulos(hakemus.oid, ohjausparametrit.flatMap(_.vastaanottoaikataulu)))
-      julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit, checkJulkaisuAikaParametri, kaudenVastaanottaneet)(hakemus)
+      julkaistavaTulos(sijoitteluTulos, haku, ohjausparametrit, checkJulkaisuAikaParametri, kaudenVastaanottaneet.map(_.contains(hakemus.henkiloOid)))(hakemus)
     })
   }
 
   def julkaistavaTulos(sijoitteluTulos: HakemuksenSijoitteluntulos,
-                               haku: Haku,
-                               ohjausparametrit: Option[Ohjausparametrit],
-                               checkJulkaisuAikaParametri: Boolean,
-                               kaudenVastaanottaneet: Option[Set[String]])(h:Hakemus): Hakemuksentulos = {
+                       haku: Haku,
+                       ohjausparametrit: Option[Ohjausparametrit],
+                       checkJulkaisuAikaParametri: Boolean,
+                       vastaanottoKaudella: Option[Boolean])(h:Hakemus): Hakemuksentulos = {
     val tulokset = h.toiveet.map { toive =>
       val hakutoiveenSijoittelunTulos: HakutoiveenSijoitteluntulos = sijoitteluTulos.hakutoiveet.find { t =>
         t.hakukohdeOid == toive.oid
@@ -432,7 +432,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       .map(sovellaKorkeakoulujenLisähaunSääntöjä)
       .map(näytäAlemmatPeruutuneetKeskeneräisinäJosYlemmätKeskeneräisiä)
       .map(piilotaKuvauksetKeskeneräisiltä)
-      .map(asetaVastaanotettavuusValintarekisterinPerusteella(h.henkiloOid, kaudenVastaanottaneet))
+      .map(asetaVastaanotettavuusValintarekisterinPerusteella(vastaanottoKaudella))
       .tulokset
 
     Hakemuksentulos(haku.oid, h.oid, sijoitteluTulos.hakijaOid.getOrElse(h.henkiloOid), ohjausparametrit.flatMap(_.vastaanottoaikataulu), lopullisetTulokset)
@@ -440,7 +440,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   def tyhjäHakemuksenTulos(hakemusOid: String, aikataulu: Option[Vastaanottoaikataulu]) = HakemuksenSijoitteluntulos(hakemusOid, None, Nil)
 
-  private def asetaVastaanotettavuusValintarekisterinPerusteella(henkiloOid: String, kaudenVastaanottaneet: Option[Set[String]])(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+  private def asetaVastaanotettavuusValintarekisterinPerusteella(vastaanottoKaudella: Option[Boolean])(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
     def ottanutVastaanToisenPaikan(tulos: Hakutoiveentulos): Hakutoiveentulos =
       tulos.copy(
         vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa,
@@ -475,7 +475,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           tulos
         })
       } else {
-        tulokset.map(tulos => if (Vastaanottotila.kesken == tulos.virkailijanTilat.vastaanottotila && hyvaksyttyTaiVaralla(tulos) && kaudenVastaanottaneet.get.contains(henkiloOid)) {
+        tulokset.map(tulos => if (Vastaanottotila.kesken == tulos.virkailijanTilat.vastaanottotila && hyvaksyttyTaiVaralla(tulos) && vastaanottoKaudella.get) {
           peruuntunutOttanutVastaanToisenPaikan(tulos)
         } else {
           tulos
