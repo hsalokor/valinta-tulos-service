@@ -1,18 +1,21 @@
 package fi.vm.sade.valintatulosservice.vastaanottomeili
 
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.valintarekisteri.{VastaanottoRecord, HakijaVastaanottoRepository}
-import fi.vm.sade.valintatulosservice.{VastaanottoService, ValintatulosService}
+import fi.vm.sade.valintatulosservice.ValintatulosService
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import org.joda.time.DateTime
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoRecord}
+
+import scala.util.{Failure, Success}
 
 class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatulosService: ValintatulosService, hakijaVastaanottoRepository: HakijaVastaanottoRepository, hakuService: HakuService, ohjausparameteritService: OhjausparametritService, val limit: Integer) extends Logging {
   def etsiHaut: List[String] = {
-    val found = hakuService.kaikkiJulkaistutHaut
-      .filter{haku => haku.korkeakoulu}
+    val found = (hakuService.kaikkiJulkaistutHaut match {
+      case Right(haut) => haut
+      case Left(e) => throw e
+    }).filter{haku => haku.korkeakoulu}
       .filter{haku =>
         val include = haku.hakuAjat.isEmpty || haku.hakuAjat.exists(hakuaika => hakuaika.hasStarted)
         if (!include) logger.info("Pudotetaan haku " + haku.oid + " koska hakuaika ei alkanut")
@@ -20,14 +23,14 @@ class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatul
        }
       .filter{haku =>
         ohjausparameteritService.ohjausparametrit(haku.oid) match {
-          case Some(Ohjausparametrit(_, _, _, Some(hakukierrosPaattyy), _, _)) if hakukierrosPaattyy.isBeforeNow() =>
+          case Right(Some(Ohjausparametrit(_, _, _, Some(hakukierrosPaattyy), _, _))) if hakukierrosPaattyy.isBeforeNow() =>
             logger.info("Pudotetaan haku " + haku.oid + " koska hakukierros päättynyt " + hakukierrosPaattyy)
             false
-          case Some(Ohjausparametrit(_, _, _, _, Some(tulostenJulkistusAlkaa), _)) if tulostenJulkistusAlkaa.isAfterNow()=>
+          case Right(Some(Ohjausparametrit(_, _, _, _, Some(tulostenJulkistusAlkaa), _))) if tulostenJulkistusAlkaa.isAfterNow()=>
             logger.info("Pudotetaan haku " + haku.oid + " koska tulosten julkistus alkaa " + tulostenJulkistusAlkaa)
             false
-          case None =>
-            logger.warn("Pudotetaan haku " + haku.oid + " koska ei saatu haettua ohjausparametreja")
+          case Left(e) =>
+            logger.warn("Pudotetaan haku " + haku.oid + " koska ei saatu haettua ohjausparametreja", e)
             false
           case x =>
             true

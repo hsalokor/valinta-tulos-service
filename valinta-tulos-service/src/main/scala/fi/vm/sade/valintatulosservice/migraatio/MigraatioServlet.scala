@@ -12,7 +12,7 @@ import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeDetailsRetrievalException, HakukohdeRecordService, ValintarekisteriDb}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
 import org.apache.commons.lang3.StringUtils
 import org.mongodb.morphia.Datastore
 import org.scalatra.Ok
@@ -21,6 +21,8 @@ import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.springframework.util.StopWatch
 
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Success}
+import scala.util.control.NonFatal
 
 class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintarekisteriDb: ValintarekisteriDb,
                        hakemusRepository: HakemusRepository, raportointiService: RaportointiService, hakuService: HakuService)
@@ -55,7 +57,10 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
 
     logger.info("Haetaan uniikit hakukohdeoidit tarjonnasta:")
     stopWatch.start("uniikkien hakukohdeOidien haku")
-    val hakukohdeOidsFromTarjonta = hakuOids.flatMap(hakuService.getHakukohdeOids)
+    val hakukohdeOidsFromTarjonta = hakuOids.flatMap(hakuService.getHakukohdeOids(_) match {
+      case Right(oids) => oids
+      case Left(e) => throw e
+    })
     stopWatch.stop()
     logger.info(s"Löytyi ${hakukohdeOidsFromTarjonta.size} hakukohdeOidia tarjonnasta")
 
@@ -74,11 +79,8 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
     logger.info("Hakukohteiden tarkistaminen kannasta ja hakeminen tarjonnasta tarvittaessa:")
     stopWatch.start("hakukohteiden tarkistaminen ja tallentaminen")
     hakukohdeOids.foreach(oid => {
-      try {
-        hakukohdeRecordService.getHakukohdeRecord(oid)
-      } catch {
-        case e: HakukohdeDetailsRetrievalException => logger.warn(s"Ongelma haettaessa hakukohdetta $oid: ${e.getMessage}")
-      }
+      hakukohdeRecordService.getHakukohdeRecord(oid)
+        .left.foreach(e => logger.warn(s"Ongelma haettaessa hakukohdetta $oid: ${e.getMessage}"))
     })
     stopWatch.stop()
 
@@ -294,10 +296,10 @@ class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintare
 
   private def resolveHakijaOidIfMissing(valintatulos: MigraatioValintatulos): MigraatioValintatulos = valintatulos.hakijaOid match {
     case hakijaOid if StringUtils.isBlank(hakijaOid) => hakemusRepository.findHakemus(valintatulos.hakemusOid) match {
-      case None =>
+      case Left(e) =>
         resolvePersonOidFromHakemusAndHenkiloPalvelu(hakijaOid, valintatulos, s"Hakemusta ${valintatulos.hakemusOid} ei löydy valintatulokselle $valintatulos!")
-      case Some(hakemus) if StringUtils.isBlank(hakemus.henkiloOid) => resolvePersonOidFromHakemusAndHenkiloPalvelu(hakijaOid, valintatulos, s"Valintatulokselle ei löydy hakijaOidia hakemukselta ${valintatulos.hakemusOid}")
-      case Some(hakemus) => valintatulos.copy(hakijaOid = hakemus.henkiloOid)
+      case Right(hakemus) if StringUtils.isBlank(hakemus.henkiloOid) => resolvePersonOidFromHakemusAndHenkiloPalvelu(hakijaOid, valintatulos, s"Valintatulokselle ei löydy hakijaOidia hakemukselta ${valintatulos.hakemusOid}")
+      case Right(hakemus) => valintatulos.copy(hakijaOid = hakemus.henkiloOid)
     }
     case _ => valintatulos
   }
