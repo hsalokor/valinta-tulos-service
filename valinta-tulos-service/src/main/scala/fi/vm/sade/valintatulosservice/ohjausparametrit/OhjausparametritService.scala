@@ -1,39 +1,40 @@
 package fi.vm.sade.valintatulosservice.ohjausparametrit
 
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.utils.http.DefaultHttpClient
+import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.domain.Vastaanottoaikataulu
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
 import org.joda.time.DateTime
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
-import fi.vm.sade.valintatulosservice.domain.Vastaanottoaikataulu
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
+import scala.util.control.NonFatal
 
 case class Ohjausparametrit(vastaanottoaikataulu: Option[Vastaanottoaikataulu], varasijaSaannotAstuvatVoimaan: Option[DateTime], ilmoittautuminenPaattyy: Option[DateTime], hakukierrosPaattyy: Option[DateTime], tulostenJulkistusAlkaa: Option[DateTime], kaikkiJonotSijoittelussa: Option[DateTime])
 
 trait OhjausparametritService {
-  def ohjausparametrit(asId: String): Option[Ohjausparametrit]
+  def ohjausparametrit(asId: String): Either[Throwable, Option[Ohjausparametrit]]
 }
 
 class StubbedOhjausparametritService extends OhjausparametritService {
-  def ohjausparametrit(asId: String): Option[Ohjausparametrit] = {
+  def ohjausparametrit(asId: String): Either[Throwable, Option[Ohjausparametrit]] = {
     val fileName = "/fixtures/ohjausparametrit/" + OhjausparametritFixtures.activeFixture + ".json"
-    Option(getClass.getResourceAsStream(fileName))
+    Right(Option(getClass.getResourceAsStream(fileName))
       .map(io.Source.fromInputStream(_).mkString)
       .map(parse(_).asInstanceOf[JObject])
-      .map(OhjausparametritParser.parseOhjausparametrit)
+      .map(OhjausparametritParser.parseOhjausparametrit))
   }
 }
 
 object CachedRemoteOhjausparametritService {
   def apply(implicit appConfig: AppConfig): OhjausparametritService = {
     val service = new RemoteOhjausparametritService()
-    val ohjausparametritMemo = TTLOptionalMemoize.memoize(service.ohjausparametrit _, 60 * 60)
+    val ohjausparametritMemo = TTLOptionalMemoize.memoize[String, Option[Ohjausparametrit]](service.ohjausparametrit, 60 * 60)
 
     new OhjausparametritService() {
-      override def ohjausparametrit(asId: String) = ohjausparametritMemo(asId)
+      override def ohjausparametrit(asId: String): Either[Throwable, Option[Ohjausparametrit]] = ohjausparametritMemo(asId)
     }
   }
 }
@@ -41,17 +42,18 @@ object CachedRemoteOhjausparametritService {
 class RemoteOhjausparametritService(implicit appConfig: AppConfig) extends OhjausparametritService with JsonFormats {
   import org.json4s.jackson.JsonMethods._
 
-  def ohjausparametrit(asId: String) = {
+  def ohjausparametrit(asId: String): Either[Throwable, Option[Ohjausparametrit]] = {
     val url = appConfig.settings.ohjausparametritUrl + "/" + asId
-    DefaultHttpClient.httpGet(url).responseWithHeaders match {
-      case (200, _, resultString) =>
-        Try(OhjausparametritParser.parseOhjausparametrit(parse(resultString))) match {
-          case Success(r) => Some(r)
-          case Failure(t) => throw new RuntimeException(s"Error parsing response $resultString", t)
-        }
-      case (404, _, _) => None
-      case (status, _, _) => throw new RuntimeException(s"Fetching $url failed with HTTP status $status")
-    }
+    Try(DefaultHttpClient.httpGet(url).responseWithHeaders match {
+      case (200, _, body) =>
+        Try(Right(Some(OhjausparametritParser.parseOhjausparametrit(parse(body))))).recover {
+          case NonFatal(e) => Left(new IllegalStateException(s"Parsing result $body of GET $url failed", e))
+        }.get
+      case (404, _, body) => Right(None)
+      case (status, _, body) => Left(new RuntimeException(s"GET $url failed with $status: $body"))
+    }).recover {
+      case NonFatal(e) => Left(new RuntimeException(s"GET $url failed", e))
+    }.get
   }
 }
 

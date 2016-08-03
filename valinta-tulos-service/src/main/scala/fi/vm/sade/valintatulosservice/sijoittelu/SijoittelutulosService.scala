@@ -46,7 +46,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
         case (None, _) => throw new IllegalStateException(s"No hakija oid for hakemus $hakemusOid")
       }
 
-    val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
+    val aikataulu = findAikatauluFromOhjausparametritService(hakuOid)
 
     (for (
       sijoittelu <- findLatestSijoitteluAjo(hakuOid, hakukohdeOid);
@@ -65,7 +65,10 @@ class SijoittelutulosService(raportointiService: RaportointiService,
 
   def findAikatauluFromOhjausparametritService(hakuOid: String): Option[Vastaanottoaikataulu] = {
     Timer.timed("findAikatauluFromOhjausparametritService -> ohjausparametritService.ohjausparametrit", 100) {
-      ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
+      ohjausparametritService.ohjausparametrit(hakuOid) match {
+        case Right(o) => o.flatMap(_.vastaanottoaikataulu)
+        case Left(e) => throw e
+      }
     }
   }
 
@@ -317,7 +320,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     import scala.collection.JavaConverters._
     Timer.timed(s"haeVastaanotonAikarajaTiedot -> latestSijoitteluAjoClient.fetchLatestSijoitteluAjoFromSijoitteluService($hakuOid, Some($hakukohdeOid))", 100) { sijoittelunTulosClient.fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid, Some(hakukohdeOid)) } match {
       case Some(sijoitteluAjo) =>
-        val aikataulu = ohjausparametritService.ohjausparametrit(hakuOid).flatMap(_.vastaanottoaikataulu)
+        val aikataulu = findAikatauluFromOhjausparametritService(hakuOid)
         val allHakijasForHakukohde = Timer.timed(s"Fetch hakemukset just for hakukohde $hakukohdeOid of haku $hakuOid", 1000) {
           raportointiService.hakemuksetVainHakukohteenTietojenKanssa(sijoitteluAjo, hakukohdeOid).asScala
         }

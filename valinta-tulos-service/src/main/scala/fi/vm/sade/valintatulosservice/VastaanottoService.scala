@@ -55,7 +55,10 @@ class VastaanottoService(hakuService: HakuService,
     tallennettavatVastaanotot.toStream.map(vastaanotto => findHakutoive(vastaanotto.hakemusOid, vastaanotto.hakukohdeOid)).find(_.isFailure) match {
       case Some(failure) => failure.map(_ => ())
       case None => Try {
-        tallennettavatVastaanotot.foreach(v => hakukohdeRecordService.getHakukohdeRecord(v.hakukohdeOid))
+        tallennettavatVastaanotot.foreach(v => hakukohdeRecordService.getHakukohdeRecord(v.hakukohdeOid) match {
+          case Right(h) => h
+          case Left(e) => throw e
+        })
         hakijaVastaanottoRepository.store(tallennettavatVastaanotot, postCondition)
       }
     }
@@ -85,14 +88,23 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   private def tallennaVirkailijanHakukohteenVastaanotot(hakukohdeOid: String, hakuOid: String, uudetVastaanotot: List[VastaanottoEventDto]): List[VastaanottoResult] = {
-    val HakukohdeRecord(_, _, _, _, koulutuksenAlkamiskausi) = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
-    val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException(s"Tuntematon haku $hakuOid"))
-    val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
+    val HakukohdeRecord(_, _, _, _, koulutuksenAlkamiskausi) = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) match {
+      case Right(h) => h
+      case Left(e) => throw e
+    }
+    val haku = hakuService.getHaku(hakuOid) match {
+      case Right(h) => h
+      case Left(e) => throw e
+    }
+    val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid) match {
+      case Right(o) => o
+      case Left(e) => throw e
+    }
     uudetVastaanotot.map(vastaanottoDto => {
       val henkiloOid = vastaanottoDto.henkiloOid
       val hakemusOid = vastaanottoDto.hakemusOid
       val vastaanotto = VirkailijanVastaanotto(vastaanottoDto)
-      val maybeHakemus = hakemusRepository.findHakemus(hakemusOid)
+      val maybeHakemus = hakemusRepository.findHakemus(hakemusOid).right.toOption
       val vastaanotettuHakutoive = hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanottoDto",
         (for {
           hakemus <- maybeHakemus.map(DBIO.successful).getOrElse(DBIO.failed(new IllegalArgumentException(s"Hakemusta $hakemusOid ei löydy hausta $hakuOid")))
@@ -158,10 +170,22 @@ class VastaanottoService(hakuService: HakuService,
 
   def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Unit = {
     val VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, _, _, _) = vastaanotto
-    val HakukohdeRecord(_, hakuOid, _, _, koulutuksenAlkamiskausi) = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
-    val haku = hakuService.getHaku(hakuOid).getOrElse(throw new IllegalArgumentException(s"Tuntematon haku $hakuOid"))
-    val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid)
-    val hakemus = hakemusRepository.findHakemus(hakemusOid).getOrElse(throw new IllegalArgumentException(s"Hakemusta $hakemusOid ei löydy hausta $hakuOid"))
+    val HakukohdeRecord(_, hakuOid, _, _, koulutuksenAlkamiskausi) = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) match {
+      case Right(h) => h
+      case Left(e) => throw e
+    }
+    val haku = hakuService.getHaku(hakuOid) match {
+      case Right(h) => h
+      case Left(e) => throw e
+    }
+    val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid) match {
+      case Right(o) => o
+      case Left(e) => throw e
+    }
+    val hakemus = hakemusRepository.findHakemus(hakemusOid) match {
+      case Right(h) => h
+      case Left(e) => throw e
+    }
     val hakutoive = hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
       for {
         sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
@@ -182,7 +206,7 @@ class VastaanottoService(hakuService: HakuService,
 
   private def findHakutoive(hakemusOid: String, hakukohdeOid: String, vastaanotettavuusVirkailijana: Boolean = false): Try[(Hakutoiveentulos, Int)] = {
     Try {
-      val hakuOid = hakuService.getHakukohde(hakukohdeOid).getOrElse(throw new IllegalArgumentException(s"Tuntematon hakukohde $hakukohdeOid")).hakuOid
+      val hakuOid = hakuService.getHakukohde(hakukohdeOid).right.get.hakuOid
       val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid, vastaanotettavuusVirkailijana).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
       hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
     }

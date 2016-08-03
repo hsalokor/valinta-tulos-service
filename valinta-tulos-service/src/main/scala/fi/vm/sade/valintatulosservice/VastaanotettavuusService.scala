@@ -11,7 +11,10 @@ class VastaanotettavuusService(hakukohdeRecordService: HakukohdeRecordService,
   private val defaultPriorAcceptanceHandler: VastaanottoRecord => DBIO[Unit] = aiempiVastaanotto => DBIOAction.failed(PriorAcceptanceException(aiempiVastaanotto))
 
   def tarkistaAiemmatVastaanotot(henkiloOid: String, hakukohdeOid: String, priorAcceptanceHandler: VastaanottoRecord => DBIO[Unit]): DBIO[Unit] = {
-    val hakukohdeRecord = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
+    val hakukohdeRecord = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) match {
+      case Right(h) => h
+      case Left(e) => throw e
+    }
     haeAiemmatVastaanotot(hakukohdeRecord, henkiloOid).flatMap {
       case None => DBIOAction.successful()
       case Some(aiempiVastaanotto) => priorAcceptanceHandler(aiempiVastaanotto)

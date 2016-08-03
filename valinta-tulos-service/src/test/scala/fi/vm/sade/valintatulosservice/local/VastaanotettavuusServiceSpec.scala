@@ -74,7 +74,7 @@ class VastaanotettavuusServiceSpec extends Specification with MockitoMatchers wi
       ilmoittaja = "",
       new Date(0)
     )
-    hakukohdeRecordService.getHakukohdeRecord(hakukohde.oid) returns HakukohdeRecord(hakukohde.oid, haku.oid, true, true, kausi)
+    hakukohdeRecordService.getHakukohdeRecord(hakukohde.oid) returns Right(HakukohdeRecord(hakukohde.oid, haku.oid, true, true, kausi))
   }
 
   trait IlmanYhdenPaikanSaantoa extends Mockito with Scope with MustThrownExpectations { this: VastaanotettavuusServiceWithMocks =>
@@ -94,7 +94,7 @@ class VastaanotettavuusServiceSpec extends Specification with MockitoMatchers wi
       ilmoittaja = "",
       new Date(0)
     )
-    hakukohdeRecordService.getHakukohdeRecord(hakukohde.oid) returns HakukohdeRecord(hakukohde.oid, haku.oid, false, true, kausi)
+    hakukohdeRecordService.getHakukohdeRecord(hakukohde.oid) returns Right(HakukohdeRecord(hakukohde.oid, haku.oid, false, true, kausi))
   }
 
   trait VastaanotettavuusServiceWithMocks extends Mockito with Scope with MustThrownExpectations {
