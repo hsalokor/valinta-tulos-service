@@ -103,17 +103,10 @@ class VastaanottoService(hakuService: HakuService,
             DBIO.successful(None)
           }
           hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, maybeAiempiVastaanottoKaudella.map(_.map(_.henkiloOid).toSet))(hakemus)
-          (hakutoive, hakutoiveenJarjestysnumero) <- hakemuksenTulos.findHakutoive(hakukohdeOid).map(DBIO.successful)
-            .getOrElse(DBIO.failed(new IllegalArgumentException(s"Hakutoivetta $hakukohdeOid ei löydy hakemukselta $hakemusOid")))
-          r <- if (isPaivitys(vastaanottoDto, Some(ValintatuloksenTila.valueOf(hakutoive.virkailijanTilat.vastaanottotila.toString)))) {
-            tarkistaHakutoiveenVastaanotettavuusVirkailijana(vastaanotto, hakutoive, maybeAiempiVastaanottoKaudella) match {
-              case Success(_) => hakijaVastaanottoRepository.storeAction(vastaanotto)
-                .andThen(DBIO.successful(Some((hakutoive, hakutoiveenJarjestysnumero))))
-              case Failure(e) => DBIO.failed(e)
-            }
-          } else {
-            logger.info(s"Vastaanotto event $vastaanottoDto is not an update to hakutoive $hakutoive")
-            DBIO.successful(None)
+          r <- tarkistaHakutoiveenVastaanotettavuusVirkailijana(hakemuksenTulos, hakukohdeOid, vastaanottoDto, maybeAiempiVastaanottoKaudella) match {
+            case Success(Some(hakutoive)) => hakijaVastaanottoRepository.storeAction(vastaanotto).andThen(DBIO.successful(Some(hakutoive)))
+            case Success(None) => DBIO.successful(None)
+            case Failure(e) => DBIO.failed(e)
           }
         } yield r).asTry)
       vastaanotettuHakutoive.foreach(o => o.foreach(t => {
@@ -152,23 +145,6 @@ class VastaanottoService(hakuService: HakuService,
 
   private def findValintatulokset(hakuOid: String): Map[String, List[Valintatulos]] = {
     valintatulosService.findValintaTuloksetForVirkailija(hakuOid).asScala.toList.groupBy(_.getHakijaOid)
-  }
-
-  private def tarkistaHakutoiveenVastaanotettavuusVirkailijana(vastaanotto: VirkailijanVastaanotto, hakutoive: Hakutoiveentulos, maybeAiempiVastaanottoKaudella: Option[Option[VastaanottoRecord]]): Try[Unit] = vastaanotto.action match {
-    case VastaanotaEhdollisesti if hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti =>
-      Failure(new IllegalArgumentException("Hakutoivetta ei voi ottaa ehdollisesti vastaan"))
-    case VastaanotaSitovasti if !Valintatila.hasBeenHyväksytty(hakutoive.valintatila) =>
-      logger.warn(s"Could not save $VastaanotaSitovasti because state was ${hakutoive.valintatila} in $vastaanotto")
-      Failure(new IllegalArgumentException(s"""Ei voi tallentaa vastaanottotietoa, koska hakijalle näytettävä tila on "${hakutoive.valintatila}""""))
-    case VastaanotaSitovasti | VastaanotaEhdollisesti =>
-      maybeAiempiVastaanottoKaudella match {
-        case Some(Some(aiempiVastaanotto)) => Failure(PriorAcceptanceException(aiempiVastaanotto))
-        case _ => Success(())
-      }
-    case MerkitseMyohastyneeksi => tarkistaHakijakohtainenDeadline(hakutoive)
-    case Peru => Success(())
-    case Peruuta => Success(())
-    case Poista => Success(())
   }
 
   private def createVastaanottoResult(statusCode: Int, exception: Option[Throwable], vastaanottoEvent: VastaanottoEvent) = {
@@ -242,6 +218,42 @@ class VastaanottoService(hakuService: HakuService,
       _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, haluttuTila)
     } yield hakutoive
   }
+
+  private def tarkistaHakutoiveenVastaanotettavuusVirkailijana(vastaanotto: VirkailijanVastaanotto, hakutoive: Hakutoiveentulos, maybeAiempiVastaanottoKaudella: Option[Option[VastaanottoRecord]]): Try[Unit] = vastaanotto.action match {
+    case VastaanotaEhdollisesti if hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti =>
+      Failure(new IllegalArgumentException("Hakutoivetta ei voi ottaa ehdollisesti vastaan"))
+    case VastaanotaSitovasti if !Valintatila.hasBeenHyväksytty(hakutoive.valintatila) =>
+      logger.warn(s"Could not save $VastaanotaSitovasti because state was ${hakutoive.valintatila} in $vastaanotto")
+      Failure(new IllegalArgumentException(s"""Ei voi tallentaa vastaanottotietoa, koska hakijalle näytettävä tila on "${hakutoive.valintatila}""""))
+    case VastaanotaSitovasti | VastaanotaEhdollisesti =>
+      maybeAiempiVastaanottoKaudella match {
+        case Some(Some(aiempiVastaanotto)) => Failure(PriorAcceptanceException(aiempiVastaanotto))
+        case _ => Success(())
+      }
+    case MerkitseMyohastyneeksi => tarkistaHakijakohtainenDeadline(hakutoive)
+    case Peru => Success(())
+    case Peruuta => Success(())
+    case Poista => Success(())
+  }
+
+  private def tarkistaHakutoiveenVastaanotettavuusVirkailijana(hakemuksentulos: Hakemuksentulos, hakukohdeOid: String,
+                                                               vastaanottoDto: VastaanottoEventDto,
+                                                               maybeAiempiVastaanottoKaudella: Option[Option[VastaanottoRecord]]): Try[Option[(Hakutoiveentulos, Int)]] = {
+    val missingHakutoive = s"Hakutoivetta $hakukohdeOid ei löydy hakemukselta ${hakemuksentulos.hakemusOid}"
+    for {
+      (hakutoive, i) <- Try(hakemuksentulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException(missingHakutoive)))
+      vastaanotto = VirkailijanVastaanotto(vastaanottoDto)
+      valintatuloksenTila = ValintatuloksenTila.valueOf(hakutoive.virkailijanTilat.vastaanottotila.toString)
+      r <- if (isPaivitys(vastaanottoDto, Some(valintatuloksenTila))) {
+        tarkistaHakutoiveenVastaanotettavuusVirkailijana(vastaanotto, hakutoive, maybeAiempiVastaanottoKaudella)
+          .map(_ => Some((hakutoive, i)))
+      } else {
+        logger.info(s"Vastaanotto event $vastaanottoDto is not an update to hakutoive $hakutoive")
+        Success(None)
+      }
+    } yield r
+  }
+
 }
 
 case class PriorAcceptanceException(aiempiVastaanotto: VastaanottoRecord)
