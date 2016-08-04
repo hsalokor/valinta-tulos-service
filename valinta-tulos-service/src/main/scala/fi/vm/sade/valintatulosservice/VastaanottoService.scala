@@ -106,7 +106,7 @@ class VastaanottoService(hakuService: HakuService,
       val vastaanotto = VirkailijanVastaanotto(vastaanottoDto)
       val maybeHakemus = hakemusRepository.findHakemus(hakemusOid).right.toOption
       val vastaanotettuHakutoive = hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanottoDto",
-        (for {
+        for {
           hakemus <- maybeHakemus.map(DBIO.successful).getOrElse(DBIO.failed(new IllegalArgumentException(s"Hakemusta $hakemusOid ei löydy hausta $hakuOid")))
           sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulosVirkailijana(hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
           maybeAiempiVastaanottoKaudella <- if (haku.yhdenPaikanSaanto.voimassa) {
@@ -120,8 +120,8 @@ class VastaanottoService(hakuService: HakuService,
             case Success(None) => DBIO.successful(None)
             case Failure(e) => DBIO.failed(e)
           }
-        } yield r).asTry)
-      vastaanotettuHakutoive.foreach(o => o.foreach(t => {
+        } yield r)
+      vastaanotettuHakutoive.right.foreach(o => o.foreach(t => {
         val hakutoive = t._1
         val hakutoiveenJarjestysnumero = t._2
         val createMissingValintatulos: Unit => Valintatulos = Unit => new Valintatulos(vastaanotto.valintatapajonoOid,
@@ -131,11 +131,12 @@ class VastaanottoService(hakuService: HakuService,
           valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
         }
       }))
-      vastaanotettuHakutoive.map(_ => createVastaanottoResult(200, None, vastaanotto)).recover {
-        case e: PriorAcceptanceException => createVastaanottoResult(403, Some(e), vastaanotto)
-        case e@(_: IllegalArgumentException | _: IllegalStateException) => createVastaanottoResult(400, Some(e), vastaanotto)
-        case e: Exception => createVastaanottoResult(500, Some(e), vastaanotto)
-      }.get
+      vastaanotettuHakutoive match {
+        case Right(_) => createVastaanottoResult(200, None, vastaanotto)
+        case Left(e: PriorAcceptanceException) => createVastaanottoResult(403, Some(e), vastaanotto)
+        case Left(e@(_: IllegalArgumentException | _: IllegalStateException)) => createVastaanottoResult(400, Some(e), vastaanotto)
+        case Left(e) => createVastaanottoResult(500, Some(e), vastaanotto)
+      }
     })
   }
 
@@ -198,7 +199,10 @@ class VastaanottoService(hakuService: HakuService,
           case Success(h) => hakijaVastaanottoRepository.storeAction(vastaanotto).andThen(DBIO.successful(h))
           case Failure(t) => DBIO.failed(t)
         }
-      } yield hakutoive)
+      } yield hakutoive) match {
+      case Right(h) => h
+      case Left(e) => throw e
+    }
     valintatulosRepository.modifyValintatulos(hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, (Unit) => throw new IllegalArgumentException("Valintatulosta ei löydy")) { valintatulos =>
       valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
     }
