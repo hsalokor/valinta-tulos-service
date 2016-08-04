@@ -15,6 +15,7 @@ import slick.jdbc.{GetResult, TransactionIsolation}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
+import scala.util.control.NonFatal
 
 
 class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with HakijaVastaanottoRepository
@@ -199,10 +200,10 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
               values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite, ${new java.sql.Timestamp(vastaanottoDate.getTime)})""")
   }
 
-  def runAsSerialized[T](retries: Int, wait: Duration, description: String, action: DBIO[T]): T = {
+  def runAsSerialized[T](retries: Int, wait: Duration, description: String, action: DBIO[T]): Either[Throwable, T] = {
     val SERIALIZATION_VIOLATION = "40001"
     try {
-      runBlocking(action.transactionally.withTransactionIsolation(TransactionIsolation.Serializable))
+      Right(runBlocking(action.transactionally.withTransactionIsolation(TransactionIsolation.Serializable)))
     } catch {
       case e: PSQLException if e.getSQLState == SERIALIZATION_VIOLATION =>
         if (retries > 0) {
@@ -210,19 +211,26 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
           Thread.sleep(wait.toMillis)
           runAsSerialized(retries - 1, wait + wait, description, action)
         } else {
-          throw new RuntimeException(s"$description failed because of an concurrent action.", e)
+          Left(new RuntimeException(s"$description failed because of an concurrent action.", e))
         }
+      case NonFatal(e) => Left(e)
     }
   }
 
   override def store[T](vastaanottoEvents: List[VastaanottoEvent], postCondition: DBIO[T]): T = {
     runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing $vastaanottoEvents",
-      DBIO.sequence(vastaanottoEvents.map(storeAction)).andThen(postCondition))
+      DBIO.sequence(vastaanottoEvents.map(storeAction)).andThen(postCondition)) match {
+      case Right(x) => x
+      case Left(e) => throw e
+    }
   }
 
   override def store(vastaanottoEvent: VastaanottoEvent): Unit = {
     runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing $vastaanottoEvent",
-      storeAction(vastaanottoEvent))
+      storeAction(vastaanottoEvent)) match {
+      case Right(_) => ()
+      case Left(e) => throw e
+    }
   }
 
   def storeAction(vastaanottoEvent: VastaanottoEvent): DBIO[Unit] = vastaanottoEvent.action match {
