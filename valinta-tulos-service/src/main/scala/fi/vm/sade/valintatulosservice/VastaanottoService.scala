@@ -9,16 +9,16 @@ import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
-import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
+import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelunTulosRestClient, SijoittelutulosService, ValintatulosRepository}
-import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
+import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.valintarekisteri._
 import slick.dbio.{DBIO, SuccessAction}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 
 class VastaanottoService(hakuService: HakuService,
