@@ -33,5 +33,6 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
     val action = parsedBody.extract[HakijanVastaanottoAction]
 
     vastaanottoService.vastaanotaHakijana(HakijanVastaanotto(personOid, hakemusOid, hakukohdeOid, action))
+      .left.foreach(e => throw e)
   }
 }

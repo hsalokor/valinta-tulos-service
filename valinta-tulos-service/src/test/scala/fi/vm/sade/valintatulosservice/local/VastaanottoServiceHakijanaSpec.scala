@@ -505,6 +505,7 @@ class VastaanottoServiceHakijanaSpec extends ITSpecification with TimeWarp with 
 
   private def vastaanota(hakuOid: String, hakemusOid: String, hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: String, selite: String, personOid: String) = {
     vastaanottoService.vastaanotaHakijana(HakijanVastaanotto(personOid, hakemusOid, hakukohdeOid, HakijanVastaanottoAction.getHakijanVastaanottoAction(tila)))
+      .left.foreach(e => throw e)
     success
   }
 
