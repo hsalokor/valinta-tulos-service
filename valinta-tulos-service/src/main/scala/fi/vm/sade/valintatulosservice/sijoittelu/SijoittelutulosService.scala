@@ -27,12 +27,12 @@ class SijoittelutulosService(raportointiService: RaportointiService,
                              sijoittelunTulosClient: SijoittelunTulosRestClient) {
   import scala.collection.JavaConversions._
 
-  def hakemuksenTulos(haku: Haku, hakemusOid: String, hakijaOidIfFound: Option[String], aikataulu: Option[Vastaanottoaikataulu], latestSijoitteluAjo: Option[SijoitteluAjo], vastaanotettavuusVirkailijana: Boolean = false): Option[HakemuksenSijoitteluntulos] = {
+  def hakemuksenTulos(haku: Haku, hakemusOid: String, hakijaOidIfFound: Option[String], aikataulu: Option[Vastaanottoaikataulu], latestSijoitteluAjo: Option[SijoitteluAjo]): Option[HakemuksenSijoitteluntulos] = {
     for (
       hakijaOid <- hakijaOidIfFound;
       sijoitteluAjo <- latestSijoitteluAjo;
       hakija: HakijaDTO <- findHakemus(hakemusOid, sijoitteluAjo)
-    ) yield hakemuksenYhteenveto(hakija, aikataulu, fetchVastaanotto(hakijaOid, haku.oid), vastaanotettavuusVirkailijana)
+    ) yield hakemuksenYhteenveto(hakija, aikataulu, fetchVastaanotto(hakijaOid, haku.oid), false)
   }
 
   def hakemustenTulos(hakuOid: String,
@@ -55,7 +55,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
           case Some(hakukohde) => Option(Timer.timed("hakukohteen hakemukset", 1000)(raportointiService.hakemukset(sijoittelu, hakukohde)))
             .map(_.toList.map(h => hakemuksenKevytYhteenveto(h, aikataulu, fetchVastaanottos(h.getHakemusOid, Option(h.getHakijaOid)))))
           case None => Option(Timer.timed("hakemukset", 1000)(raportointiService.hakemukset(sijoittelu, null, null, null, null, null, null)))
-            .map(_.getResults.toList.map(h => hakemuksenYhteenveto(h, aikataulu, fetchVastaanottos(h.getHakemusOid, Option(h.getHakijaOid)))))
+            .map(_.getResults.toList.map(h => hakemuksenYhteenveto(h, aikataulu, fetchVastaanottos(h.getHakemusOid, Option(h.getHakijaOid)), false)))
         }
       }
     ) yield {
@@ -150,7 +150,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
     }
   }
 
-  def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu], vastaanottoRecord: Set[VastaanottoRecord], vastaanotettavuusVirkailijana: Boolean = false): HakemuksenSijoitteluntulos = {
+  def hakemuksenYhteenveto(hakija: HakijaDTO, aikataulu: Option[Vastaanottoaikataulu], vastaanottoRecord: Set[VastaanottoRecord], vastaanotettavuusVirkailijana: Boolean): HakemuksenSijoitteluntulos = {
 
     val hakutoiveidenYhteenvedot = hakija.getHakutoiveet.toList.map { hakutoive: HakutoiveDTO =>
       val vastaanotto = vastaanottoRecord.find(v => v.hakukohdeOid == hakutoive.getHakukohdeOid).map(_.action)

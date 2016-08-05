@@ -61,7 +61,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     }
   }
 
-  def hakemuksentulos(hakuOid: String, hakemusOid: String, vastaanotettavuusVirkailijana: Boolean = false): Option[Hakemuksentulos] = {
+  def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
     val vastaanottoaikataulu = sijoittelutulosService.findAikatauluFromOhjausparametritService(hakuOid)
 
     for {
@@ -76,8 +76,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           hakemusOid,
           hakijaOidsByHakemusOids.get(hakemusOid),
           vastaanottoaikataulu,
-          latestSijoitteluAjo,
-          vastaanotettavuusVirkailijana).toSeq,
+          latestSijoitteluAjo).toSeq,
         kaudenVastaanottaneet = if (haku.yhdenPaikanSaanto.voimassa) {
           hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(h.henkiloOid, koulutuksenAlkamiskausi)) match {
             case Some(_) => Some(Set(h.henkiloOid))
