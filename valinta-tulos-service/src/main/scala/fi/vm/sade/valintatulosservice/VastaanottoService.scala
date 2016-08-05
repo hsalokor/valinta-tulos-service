@@ -124,12 +124,21 @@ class VastaanottoService(hakuService: HakuService,
       vastaanotettuHakutoive.right.foreach(o => o.foreach(t => {
         val hakutoive = t._1
         val hakutoiveenJarjestysnumero = t._2
-        val createMissingValintatulos: Unit => Valintatulos = Unit => new Valintatulos(vastaanotto.valintatapajonoOid,
-          vastaanotto.hakemusOid, hakukohdeOid, vastaanotto.henkiloOid, vastaanotto.hakuOid, hakutoiveenJarjestysnumero)
-
-        valintatulosRepository.modifyValintatulos(hakukohdeOid, vastaanotto.valintatapajonoOid, vastaanotto.hakemusOid, createMissingValintatulos) { valintatulos =>
-          valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
-        }
+        valintatulosRepository.createIfMissingAndModifyValintatulos(
+          hakukohdeOid,
+          vastaanotto.valintatapajonoOid,
+          vastaanotto.hakemusOid,
+          vastaanotto.henkiloOid,
+          vastaanotto.hakuOid,
+          hakutoiveenJarjestysnumero,
+          valintatulos =>
+            valintatulos.setTila(
+              ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString),
+              vastaanotto.action.valintatuloksenTila,
+              vastaanotto.selite,
+              vastaanotto.ilmoittaja
+            )
+        ).left.foreach(e => throw e)
       }))
       vastaanotettuHakutoive match {
         case Right(_) => createVastaanottoResult(200, None, vastaanotto)
@@ -203,9 +212,18 @@ class VastaanottoService(hakuService: HakuService,
       case Right(h) => h
       case Left(e) => throw e
     }
-    valintatulosRepository.modifyValintatulos(hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, (Unit) => throw new IllegalArgumentException("Valintatulosta ei löydy")) { valintatulos =>
-      valintatulos.setTila(ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString), vastaanotto.action.valintatuloksenTila, vastaanotto.selite, vastaanotto.ilmoittaja)
-    }
+    valintatulosRepository.modifyValintatulos(
+      hakukohdeOid,
+      hakutoive.valintatapajonoOid,
+      hakemusOid,
+      valintatulos =>
+        valintatulos.setTila(
+          ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString),
+          vastaanotto.action.valintatuloksenTila,
+          vastaanotto.selite,
+          vastaanotto.ilmoittaja
+        )
+    ).left.foreach(e => throw e)
   }
 
   private def findHakutoive(hakemusOid: String, hakukohdeOid: String, vastaanotettavuusVirkailijana: Boolean = false): Try[(Hakutoiveentulos, Int)] = {
