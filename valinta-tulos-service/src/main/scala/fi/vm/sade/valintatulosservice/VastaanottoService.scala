@@ -100,7 +100,7 @@ class VastaanottoService(hakuService: HakuService,
         haku <- hakuEither.right
         ohjausparametrit <- ohjausparametritEither.right
         hakemus <- hakemusRepository.findHakemus(hakemusOid).right
-        vastaanotettuHakutoive <- hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanottoDto",
+        hakutoive <- hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanottoDto",
           for {
             sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulosVirkailijana(hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
             maybeAiempiVastaanottoKaudella <- if (haku.yhdenPaikanSaanto.voimassa) {
@@ -109,13 +109,10 @@ class VastaanottoService(hakuService: HakuService,
               DBIO.successful(None)
             }
             hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, maybeAiempiVastaanottoKaudella.map(_.isDefined))(hakemus)
-            r <- tarkistaHakutoiveenVastaanotettavuusVirkailijana(hakemuksenTulos, hakukohdeOid, vastaanottoDto, maybeAiempiVastaanottoKaudella) match {
-              case Success(Some(hakutoive)) => hakijaVastaanottoRepository.storeAction(vastaanotto).andThen(DBIO.successful(Some(hakutoive)))
-              case Success(None) => DBIO.successful(None)
-              case Failure(e) => DBIO.failed(e)
-            }
-          } yield r).right
-        _ <- vastaanotettuHakutoive.fold[Either[Throwable, Unit]](Right(())) {
+            hakutoive <- tarkistaHakutoiveenVastaanotettavuusVirkailijana(hakemuksenTulos, hakukohdeOid, vastaanottoDto, maybeAiempiVastaanottoKaudella).fold(DBIO.failed, DBIO.successful)
+            _ <- hakutoive.fold[DBIO[Unit]](DBIO.successful())(_ => hakijaVastaanottoRepository.storeAction(vastaanotto))
+          } yield hakutoive).right
+        _ <- hakutoive.fold[Either[Throwable, Unit]](Right(())) {
           case (hakutoive, hakutoiveenJarjestysnumero) =>
             valintatulosRepository.createIfMissingAndModifyValintatulos(
               hakukohdeOid,
@@ -133,7 +130,7 @@ class VastaanottoService(hakuService: HakuService,
                 )
             )
         }.right
-      } yield vastaanotettuHakutoive) match {
+      } yield hakutoive) match {
         case Right(_) => createVastaanottoResult(200, None, vastaanotto)
         case Left(e: PriorAcceptanceException) => createVastaanottoResult(403, Some(e), vastaanotto)
         case Left(e@(_: IllegalArgumentException | _: IllegalStateException)) => createVastaanottoResult(400, Some(e), vastaanotto)
@@ -180,18 +177,16 @@ class VastaanottoService(hakuService: HakuService,
       hakemus <- hakemusRepository.findHakemus(hakemusOid).right
       hakutoive <- hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
         for {
-        sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(hakukohde.hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
-        maybeAiempiVastaanottoKaudella <- if (haku.yhdenPaikanSaanto.voimassa) {
-          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, hakukohde.koulutuksenAlkamiskausi).map(Some(_))
-        } else {
-          DBIO.successful(None)
-        }
-        hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, maybeAiempiVastaanottoKaudella.map(_.isDefined))(hakemus)
-        hakutoive <- tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos, hakukohdeOid, vastaanotto.action) match {
-          case Success(h) => hakijaVastaanottoRepository.storeAction(vastaanotto).andThen(DBIO.successful(h))
-          case Failure(t) => DBIO.failed(t)
-        }
-      } yield hakutoive).right
+          sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(hakukohde.hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
+          maybeAiempiVastaanottoKaudella <- if (haku.yhdenPaikanSaanto.voimassa) {
+            hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, hakukohde.koulutuksenAlkamiskausi).map(Some(_))
+          } else {
+            DBIO.successful(None)
+          }
+          hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, maybeAiempiVastaanottoKaudella.map(_.isDefined))(hakemus)
+          hakutoive <- tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos, hakukohdeOid, vastaanotto.action).fold(DBIO.failed, DBIO.successful)
+          _ <- hakijaVastaanottoRepository.storeAction(vastaanotto)
+        } yield hakutoive).right
       _ <- valintatulosRepository.modifyValintatulos(
         hakukohdeOid,
         hakutoive.valintatapajonoOid,
@@ -215,65 +210,68 @@ class VastaanottoService(hakuService: HakuService,
     }
   }
 
-  private def tarkistaHakijakohtainenDeadline(hakutoive: Hakutoiveentulos): Try[Unit] = {
+  private def tarkistaHakijakohtainenDeadline(hakutoive: Hakutoiveentulos): Either[Throwable, Unit] = {
     val vastaanottoDeadline = hakutoive.vastaanottoDeadline
-    Try {
-      if(vastaanottoDeadline.isDefined && vastaanottoDeadline.get.after(new Date())) {
-        throw new IllegalArgumentException(
-          s"""Hakijakohtaista määräaikaa ${new SimpleDateFormat("dd-MM-yyyy").format(vastaanottoDeadline)}
-             |kohteella ${hakutoive.hakukohdeOid} : ${hakutoive.vastaanotettavuustila.toString} ei ole vielä ohitettu.""".stripMargin)
-      }
+    if (vastaanottoDeadline.isDefined && vastaanottoDeadline.get.after(new Date())) {
+      Left(new IllegalArgumentException(
+        s"""Hakijakohtaista määräaikaa ${new SimpleDateFormat("dd-MM-yyyy").format(vastaanottoDeadline)}
+            |kohteella ${hakutoive.hakukohdeOid} : ${hakutoive.vastaanotettavuustila.toString} ei ole vielä ohitettu.""".stripMargin))
+    } else {
+      Right(())
     }
   }
 
-  private def tarkistaHakutoiveenVastaanotettavuus(hakutoive: Hakutoiveentulos, haluttuTila: VastaanottoAction): Try[Unit] = {
+  private def tarkistaHakutoiveenVastaanotettavuus(hakutoive: Hakutoiveentulos, haluttuTila: VastaanottoAction): Either[Throwable, Unit] = {
     val e = new IllegalArgumentException(s"Väärä vastaanotettavuustila kohteella ${hakutoive.hakukohdeOid}: ${hakutoive.vastaanotettavuustila.toString} (yritetty muutos: $haluttuTila)")
     haluttuTila match {
-      case Peru | VastaanotaSitovasti if !Vastaanotettavuustila.isVastaanotettavissa(hakutoive.vastaanotettavuustila) => Failure(e)
-      case VastaanotaEhdollisesti if hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti => Failure(e)
-      case _ => Success(())
+      case Peru | VastaanotaSitovasti if !Vastaanotettavuustila.isVastaanotettavissa(hakutoive.vastaanotettavuustila) => Left(e)
+      case VastaanotaEhdollisesti if hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti => Left(e)
+      case _ => Right(())
     }
   }
 
-  private def tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos: Hakemuksentulos, hakukohdeOid: String, haluttuTila: VastaanottoAction): Try[Hakutoiveentulos] = {
+  private def tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos: Hakemuksentulos, hakukohdeOid: String, haluttuTila: VastaanottoAction): Either[Throwable, Hakutoiveentulos] = {
     val missingHakutoive = s"Hakutoivetta $hakukohdeOid ei löydy hakemukselta ${hakemuksenTulos.hakemusOid}"
     for {
-      (hakutoive, _) <- Try(hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException(missingHakutoive)))
-      _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive, haluttuTila)
-    } yield hakutoive
+      hakutoive <- hakemuksenTulos.findHakutoive(hakukohdeOid).toRight(new IllegalArgumentException(missingHakutoive)).right
+      _ <- tarkistaHakutoiveenVastaanotettavuus(hakutoive._1, haluttuTila).right
+    } yield hakutoive._1
   }
 
-  private def tarkistaHakutoiveenVastaanotettavuusVirkailijana(vastaanotto: VirkailijanVastaanotto, hakutoive: Hakutoiveentulos, maybeAiempiVastaanottoKaudella: Option[Option[VastaanottoRecord]]): Try[Unit] = vastaanotto.action match {
+  private def tarkistaHakutoiveenVastaanotettavuusVirkailijana(vastaanotto: VirkailijanVastaanotto,
+                                                               hakutoive: Hakutoiveentulos,
+                                                               maybeAiempiVastaanottoKaudella: Option[Option[VastaanottoRecord]]): Either[Throwable, Unit] = vastaanotto.action match {
     case VastaanotaEhdollisesti if hakutoive.vastaanotettavuustila != Vastaanotettavuustila.vastaanotettavissa_ehdollisesti =>
-      Failure(new IllegalArgumentException("Hakutoivetta ei voi ottaa ehdollisesti vastaan"))
+      Left(new IllegalArgumentException("Hakutoivetta ei voi ottaa ehdollisesti vastaan"))
     case VastaanotaSitovasti if !Valintatila.hasBeenHyväksytty(hakutoive.valintatila) =>
       logger.warn(s"Could not save $VastaanotaSitovasti because state was ${hakutoive.valintatila} in $vastaanotto")
-      Failure(new IllegalArgumentException(s"""Ei voi tallentaa vastaanottotietoa, koska hakijalle näytettävä tila on "${hakutoive.valintatila}""""))
+      Left(new IllegalArgumentException(s"""Ei voi tallentaa vastaanottotietoa, koska hakijalle näytettävä tila on "${hakutoive.valintatila}""""))
     case VastaanotaSitovasti | VastaanotaEhdollisesti =>
       maybeAiempiVastaanottoKaudella match {
-        case Some(Some(aiempiVastaanotto)) => Failure(PriorAcceptanceException(aiempiVastaanotto))
-        case _ => Success(())
+        case Some(Some(aiempiVastaanotto)) => Left(PriorAcceptanceException(aiempiVastaanotto))
+        case _ => Right(())
       }
     case MerkitseMyohastyneeksi => tarkistaHakijakohtainenDeadline(hakutoive)
-    case Peru => Success(())
-    case Peruuta => Success(())
-    case Poista => Success(())
+    case Peru => Right(())
+    case Peruuta => Right(())
+    case Poista => Right(())
   }
 
   private def tarkistaHakutoiveenVastaanotettavuusVirkailijana(hakemuksentulos: Hakemuksentulos, hakukohdeOid: String,
                                                                vastaanottoDto: VastaanottoEventDto,
-                                                               maybeAiempiVastaanottoKaudella: Option[Option[VastaanottoRecord]]): Try[Option[(Hakutoiveentulos, Int)]] = {
+                                                               maybeAiempiVastaanottoKaudella: Option[Option[VastaanottoRecord]]): Either[Throwable, Option[(Hakutoiveentulos, Int)]] = {
     val missingHakutoive = s"Hakutoivetta $hakukohdeOid ei löydy hakemukselta ${hakemuksentulos.hakemusOid}"
     for {
-      (hakutoive, i) <- Try(hakemuksentulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException(missingHakutoive)))
-      vastaanotto = VirkailijanVastaanotto(vastaanottoDto)
-      valintatuloksenTila = ValintatuloksenTila.valueOf(hakutoive.virkailijanTilat.vastaanottotila.toString)
-      r <- if (isPaivitys(vastaanottoDto, Some(valintatuloksenTila))) {
-        tarkistaHakutoiveenVastaanotettavuusVirkailijana(vastaanotto, hakutoive, maybeAiempiVastaanottoKaudella)
-          .map(_ => Some((hakutoive, i)))
+      hakutoiveJaJarjestysnumero <- hakemuksentulos.findHakutoive(hakukohdeOid).toRight(new IllegalArgumentException(missingHakutoive)).right
+      r <- if (isPaivitys(vastaanottoDto, Some(ValintatuloksenTila.valueOf(hakutoiveJaJarjestysnumero._1.virkailijanTilat.vastaanottotila.toString)))) {
+        tarkistaHakutoiveenVastaanotettavuusVirkailijana(
+          VirkailijanVastaanotto(vastaanottoDto),
+          hakutoiveJaJarjestysnumero._1,
+          maybeAiempiVastaanottoKaudella
+        ).right.map(_ => Some(hakutoiveJaJarjestysnumero)).right
       } else {
-        logger.info(s"Vastaanotto event $vastaanottoDto is not an update to hakutoive $hakutoive")
-        Success(None)
+        logger.info(s"Vastaanotto event $vastaanottoDto is not an update to hakutoive ${hakutoiveJaJarjestysnumero._1}")
+        Right(None).right
       }
     } yield r
   }
