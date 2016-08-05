@@ -26,8 +26,16 @@ class IlmoittautumisService(valintatulosService: ValintatulosService,
       throw new IllegalStateException(s"Hakija ${hakemuksenTulos.hakijaOid} ei voi ilmoittautua hakukohteeseen ${hakutoive.hakukohdeOid} koska sitovaa vastaanottoa ei löydy.")
     }
 
-    tulokset.modifyValintatulos(ilmoittautuminen.hakukohdeOid, hakutoive.valintatapajonoOid, hakemusOid, (Unit) => throw new IllegalArgumentException("Valintatulosta ei löydy")) { valintatulos =>
-      valintatulos.setIlmoittautumisTila(IlmoittautumisTila.valueOf(ilmoittautuminen.tila.toString), ilmoittautuminen.selite, ilmoittautuminen.muokkaaja)
-    }
+    tulokset.modifyValintatulos(
+      ilmoittautuminen.hakukohdeOid,
+      hakutoive.valintatapajonoOid,
+      hakemusOid,
+      valintatulos =>
+        valintatulos.setIlmoittautumisTila(
+          IlmoittautumisTila.valueOf(ilmoittautuminen.tila.toString),
+          ilmoittautuminen.selite,
+          ilmoittautuminen.muokkaaja
+        )
+    ).left.foreach(e => throw e)
   }
 }
