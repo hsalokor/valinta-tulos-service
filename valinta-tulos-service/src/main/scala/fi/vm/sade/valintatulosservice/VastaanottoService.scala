@@ -120,26 +120,25 @@ class VastaanottoService(hakuService: HakuService,
             case Success(None) => DBIO.successful(None)
             case Failure(e) => DBIO.failed(e)
           }
-        } yield r)
-      vastaanotettuHakutoive.right.foreach(o => o.foreach(t => {
-        val hakutoive = t._1
-        val hakutoiveenJarjestysnumero = t._2
-        valintatulosRepository.createIfMissingAndModifyValintatulos(
-          hakukohdeOid,
-          vastaanotto.valintatapajonoOid,
-          vastaanotto.hakemusOid,
-          vastaanotto.henkiloOid,
-          vastaanotto.hakuOid,
-          hakutoiveenJarjestysnumero,
-          valintatulos =>
-            valintatulos.setTila(
-              ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString),
-              vastaanotto.action.valintatuloksenTila,
-              vastaanotto.selite,
-              vastaanotto.ilmoittaja
-            )
-        ).left.foreach(e => throw e)
-      }))
+        } yield r).right.flatMap {
+        case h @ Some((hakutoive, hakutoiveenJarjestysnumero)) =>
+          valintatulosRepository.createIfMissingAndModifyValintatulos(
+            hakukohdeOid,
+            vastaanotto.valintatapajonoOid,
+            vastaanotto.hakemusOid,
+            vastaanotto.henkiloOid,
+            vastaanotto.hakuOid,
+            hakutoiveenJarjestysnumero,
+            valintatulos =>
+              valintatulos.setTila(
+                ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString),
+                vastaanotto.action.valintatuloksenTila,
+                vastaanotto.selite,
+                vastaanotto.ilmoittaja
+              )
+          ).right.map(_ => h)
+        case None => Right(None)
+      }
       vastaanotettuHakutoive match {
         case Right(_) => createVastaanottoResult(200, None, vastaanotto)
         case Left(e: PriorAcceptanceException) => createVastaanottoResult(403, Some(e), vastaanotto)
