@@ -9,9 +9,9 @@ import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
-import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
+import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelunTulosRestClient, SijoittelutulosService, ValintatulosRepository}
-import fi.vm.sade.valintatulosservice.tarjonta.HakuService
+import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 import fi.vm.sade.valintatulosservice.valintarekisteri._
 import slick.dbio.{DBIO, SuccessAction}
 
@@ -177,29 +177,18 @@ class VastaanottoService(hakuService: HakuService,
     findHakutoive(vastaanotettavaHakemusOid, hakukohdeOid).get
   }
 
-  def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Unit = {
+  def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Either[Throwable, Unit] = {
     val VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, _, _, _) = vastaanotto
-    val HakukohdeRecord(_, hakuOid, _, _, koulutuksenAlkamiskausi) = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) match {
-      case Right(h) => h
-      case Left(e) => throw e
-    }
-    val haku = hakuService.getHaku(hakuOid) match {
-      case Right(h) => h
-      case Left(e) => throw e
-    }
-    val ohjausparametrit = ohjausparametritService.ohjausparametrit(hakuOid) match {
-      case Right(o) => o
-      case Left(e) => throw e
-    }
-    val hakemus = hakemusRepository.findHakemus(hakemusOid) match {
-      case Right(h) => h
-      case Left(e) => throw e
-    }
-    val hakutoive = hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
-      for {
-        sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
+    for {
+      hakukohde <- hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid).right
+      haku <- hakuService.getHaku(hakukohde.hakuOid).right
+      ohjausparametrit <- ohjausparametritService.ohjausparametrit(hakukohde.hakuOid).right
+      hakemus <- hakemusRepository.findHakemus(hakemusOid).right
+      hakutoive <- hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
+        for {
+        sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(hakukohde.hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
         hakemuksenTulos <- (if (haku.yhdenPaikanSaanto.voimassa) {
-          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, koulutuksenAlkamiskausi).map(v => Some(v.isDefined))
+          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, hakukohde.koulutuksenAlkamiskausi).map(v => Some(v.isDefined))
         } else {
           DBIO.successful(None)
         }).map(valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, _)(hakemus))
@@ -207,22 +196,20 @@ class VastaanottoService(hakuService: HakuService,
           case Success(h) => hakijaVastaanottoRepository.storeAction(vastaanotto).andThen(DBIO.successful(h))
           case Failure(t) => DBIO.failed(t)
         }
-      } yield hakutoive) match {
-      case Right(h) => h
-      case Left(e) => throw e
-    }
-    valintatulosRepository.modifyValintatulos(
-      hakukohdeOid,
-      hakutoive.valintatapajonoOid,
-      hakemusOid,
-      valintatulos =>
-        valintatulos.setTila(
-          ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString),
-          vastaanotto.action.valintatuloksenTila,
-          vastaanotto.selite,
-          vastaanotto.ilmoittaja
-        )
-    ).left.foreach(e => throw e)
+      } yield hakutoive).right
+      _ <- valintatulosRepository.modifyValintatulos(
+        hakukohdeOid,
+        hakutoive.valintatapajonoOid,
+        hakemusOid,
+        valintatulos =>
+          valintatulos.setTila(
+            ValintatuloksenTila.valueOf(hakutoive.vastaanottotila.toString),
+            vastaanotto.action.valintatuloksenTila,
+            vastaanotto.selite,
+            vastaanotto.ilmoittaja
+          )
+      ).right
+    } yield ()
   }
 
   private def findHakutoive(hakemusOid: String, hakukohdeOid: String, vastaanotettavuusVirkailijana: Boolean = false): Try[(Hakutoiveentulos, Int)] = {
