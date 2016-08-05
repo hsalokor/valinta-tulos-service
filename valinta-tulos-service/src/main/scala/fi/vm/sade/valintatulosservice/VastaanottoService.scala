@@ -181,11 +181,12 @@ class VastaanottoService(hakuService: HakuService,
       hakutoive <- hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
         for {
         sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(hakukohde.hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
-        hakemuksenTulos <- (if (haku.yhdenPaikanSaanto.voimassa) {
-          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, hakukohde.koulutuksenAlkamiskausi).map(v => Some(v.isDefined))
+        maybeAiempiVastaanottoKaudella <- if (haku.yhdenPaikanSaanto.voimassa) {
+          hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, hakukohde.koulutuksenAlkamiskausi).map(Some(_))
         } else {
           DBIO.successful(None)
-        }).map(valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, _)(hakemus))
+        }
+        hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, maybeAiempiVastaanottoKaudella.map(_.isDefined))(hakemus)
         hakutoive <- tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos, hakukohdeOid, vastaanotto.action) match {
           case Success(h) => hakijaVastaanottoRepository.storeAction(vastaanotto).andThen(DBIO.successful(h))
           case Failure(t) => DBIO.failed(t)
