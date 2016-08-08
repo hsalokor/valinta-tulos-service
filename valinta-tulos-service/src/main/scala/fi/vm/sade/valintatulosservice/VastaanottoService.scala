@@ -26,11 +26,9 @@ class VastaanottoService(hakuService: HakuService,
                          vastaanotettavuusService: VastaanotettavuusService,
                          valintatulosService: ValintatulosService,
                          hakijaVastaanottoRepository: HakijaVastaanottoRepository,
-                         virkailijaVastaanottoRepository: VirkailijaVastaanottoRepository,
                          ohjausparametritService: OhjausparametritService,
                          sijoittelutulosService: SijoittelutulosService,
                          hakemusRepository: HakemusRepository,
-                         sijoittelunTulosClient: SijoittelunTulosRestClient,
                          valintatulosRepository: ValintatulosRepository) extends Logging {
 
   private val statesMatchingInexistentActions = Set(
