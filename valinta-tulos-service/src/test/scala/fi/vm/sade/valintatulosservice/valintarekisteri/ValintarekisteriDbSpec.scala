@@ -262,13 +262,6 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       })), Duration(60, TimeUnit.SECONDS)) must not(throwAn[Exception])
     }
 
-    "store vastaanottotieto multiple times" in {
-      Await.result(Future.sequence((1 to 10).map(_ => Future {
-        valintarekisteriDbWithPool.store(HakijanVastaanotto(henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti))
-      })), Duration(60, TimeUnit.SECONDS)) must not(throwAn[Exception])
-      singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOid, hakukohdeOid)) must not(throwAn[Exception])
-    }
-
     "find haun vastaanotot" in {
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid, "testiselite"))
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
