@@ -22,7 +22,7 @@ object Valintatila extends Enumeration {
   }
 
   def hasBeenHyväksytty(tila: Valintatila) = {
-    tila == perunut || isHyväksytty(tila)
+    tila == perunut || tila == peruutettu || isHyväksytty(tila)
   }
 
   def isFinal(tila: Valintatila) = {

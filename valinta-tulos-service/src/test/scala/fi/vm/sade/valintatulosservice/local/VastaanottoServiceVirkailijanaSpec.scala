@@ -152,6 +152,22 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
       }
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.peruutettu
     }
+
+    "virkailija voi vastaanottaa peruutetun hakutoiveen" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = HakuFixtures.korkeakouluYhteishaku)
+      val peruutusResponse = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid,
+        Vastaanottotila.peruutettu, muokkaaja).head
+      peruutusResponse.result.status must_== 200
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.peruutettu
+
+      val sitovaResponse = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid,
+        Vastaanottotila.vastaanottanut, muokkaaja).head
+
+      hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
+      sitovaResponse.result.message must_== None
+      sitovaResponse.result.status must_== 200
+    }
+
     "vastaanota yksi hakija joka ottanut vastaan toisen kk paikan -> error" in {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = HakuFixtures.korkeakouluYhteishaku, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
       val r = vastaanotaVirkailijana(valintatapajonoOid, personOid, hakemusOid, "1.2.246.562.5.72607738902", hakuOid, Vastaanottotila.vastaanottanut, muokkaaja).head
