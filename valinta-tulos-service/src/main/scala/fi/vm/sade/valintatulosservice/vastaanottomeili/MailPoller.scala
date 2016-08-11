@@ -45,7 +45,7 @@ class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatul
     val sendableMails: List[Ilmoitus] = mailCandidates.flatMap(mailDecorator.statusToMail)
     logger.info("{} statuses converted to {} mails", mailCandidates.size, sendableMails.size)
 
-    if (sendableMails.size > 0 || mailCandidates.isEmpty) {
+    if (sendableMails.nonEmpty || mailCandidates.isEmpty) {
       sendableMails
     } else {
       searchMailsToSend(limit, mailDecorator)
