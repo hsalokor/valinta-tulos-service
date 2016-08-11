@@ -1,13 +1,13 @@
 package fi.vm.sade.valintatulosservice.vastaanottomeili
 
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.valintarekisteri.{VastaanottoRecord, HakijaVastaanottoRepository}
-import fi.vm.sade.valintatulosservice.{VastaanottoService, ValintatulosService}
+import fi.vm.sade.valintatulosservice.ValintatulosService
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.{Vastaanottotila => _}
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import org.joda.time.DateTime
+import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoRecord}
 
 class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatulosService: ValintatulosService, hakijaVastaanottoRepository: HakijaVastaanottoRepository, hakuService: HakuService, ohjausparameteritService: OhjausparametritService, val limit: Integer) extends Logging {
   def etsiHaut: List[String] = {
@@ -81,7 +81,7 @@ class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatul
 
     saveMessages(statii)
 
-    if (!candidates.isEmpty && mailables.size < limit) {
+    if (candidates.nonEmpty && mailables.size < limit) {
       logger.debug("fetching more mailables")
       mailables ++ pollForMailables(hakuOids, limit = limit - mailables.size, excludeHakemusOids = excludeHakemusOids ++ mailables.map(_.hakemusOid).toSet)
     } else {
@@ -112,7 +112,7 @@ class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatul
     } else {
       val newestSitovaIsNotVastaanotettuByHakija =
         sitovaVastaanottoInHakukohdeThatIsNotVastaanotettuByHakija(hakutoive, uudetVastaanotot)
-      if(newestSitovaIsNotVastaanotettuByHakija) {
+      if(newestSitovaIsNotVastaanotettuByHakija && vastaanottoMuuttuuEhdollisestaSitovaksi(hakutoive, vanhatVastaanotot, uudetVastaanotot)) {
         (MailStatus.SHOULD_MAIL, Some(MailReason.SITOVAN_VASTAANOTON_ILMOITUS), "Sitova vastaanotto")
       } else {
         val newestEhdollinenNotVastaanotettuByHakija =
@@ -150,9 +150,17 @@ class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatul
       .exists(_.action == VastaanotaEhdollisesti)
   }
 
-  def sitovaVastaanottoInHakukohdeThatIsNotVastaanotettuByHakija(hakutoive: Hakutoiveentulos, uudetVastaanotot: Set[VastaanottoRecord]): Boolean = {
-    uudetVastaanotot.toList.sortBy(_.timestamp).headOption
+  def vastaanottoMuuttuuEhdollisestaSitovaksi(hakutoive: Hakutoiveentulos, vanhatVastaanotot: Set[VastaanottoRecord], uudetVastaanotot: Set[VastaanottoRecord]) = {
+    (vanhatVastaanotot ++ uudetVastaanotot).toList
       .filter(_.hakukohdeOid == hakutoive.hakukohdeOid)
+      .sortBy(_.timestamp).reverse
+      .tail.headOption
+      .exists(_.action == VastaanotaEhdollisesti)
+  }
+  def sitovaVastaanottoInHakukohdeThatIsNotVastaanotettuByHakija(hakutoive: Hakutoiveentulos, uudetVastaanotot: Set[VastaanottoRecord]): Boolean = {
+    uudetVastaanotot.toList
+      .filter(_.hakukohdeOid == hakutoive.hakukohdeOid)
+      .sortBy(_.timestamp).reverse.headOption
       .filter(vastaanotto => vastaanotto.henkiloOid != vastaanotto.ilmoittaja)
       .exists(_.action == VastaanotaSitovasti)
   }
