@@ -10,5 +10,5 @@ import slick.driver.PostgresDriver.backend.Database
 
 trait VastaanottoRepository {
   val db: Database
-  def runBlocking[R](operations: DBIO[R], timeout: Duration = Duration(10, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
+  def runBlocking[R](operations: DBIO[R], timeout: Duration = Duration(20, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
 }
