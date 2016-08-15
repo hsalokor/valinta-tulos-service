@@ -32,6 +32,7 @@ class HakijanVastaanottoServlet(vastaanottoService: VastaanottoService)(implicit
     val hakukohdeOid = params("hakukohdeOid")
     val action = parsedBody.extract[HakijanVastaanottoAction]
 
-    vastaanottoService.vastaanotaHakijana(HakijanVastaanotto(personOid, hakemusOid, hakukohdeOid, action)).get
+    vastaanottoService.vastaanotaHakijana(HakijanVastaanotto(personOid, hakemusOid, hakukohdeOid, action))
+      .left.foreach(e => throw e)
   }
 }

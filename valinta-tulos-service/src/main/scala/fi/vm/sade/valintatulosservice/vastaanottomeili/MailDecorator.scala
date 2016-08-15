@@ -1,10 +1,13 @@
 package fi.vm.sade.valintatulosservice.vastaanottomeili
 
 import java.util.Date
+
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain.{Hakemus, Henkilotiedot}
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
+
+import scala.util.{Failure, Success}
 
 class HakukohdeNotFoundException(message: String) extends RuntimeException(message)
 
@@ -15,7 +18,7 @@ class MailDecorator(hakemusRepository: HakemusRepository, valintatulosCollection
     status.anyMailToBeSent match {
       case true => {
         hakemusRepository.findHakemus(status.hakemusOid) match {
-          case Some(Hakemus(_, _, henkiloOid, asiointikieli, _, Henkilotiedot(Some(kutsumanimi), Some(email), true))) =>
+          case Right(Hakemus(_, _, henkiloOid, asiointikieli, _, Henkilotiedot(Some(kutsumanimi), Some(email), true))) =>
             val mailables = status.hakukohteet.filter(_.shouldMail)
             val deadline: Option[Date] = mailables.flatMap(_.deadline).sorted.headOption
 
@@ -31,14 +34,14 @@ class MailDecorator(hakemusRepository: HakemusRepository, valintatulosCollection
                 }
                 None
             }
-          case Some(hakemus) =>
+          case Right(hakemus) =>
             logger.warn("Hakemukselta puuttuu kutsumanimi tai email: " + status.hakemusOid)
             status.hakukohteet.filter(_.shouldMail).foreach {
               valintatulosCollection.addMessage(status, _,  "Hakemukselta puuttuu kutsumanimi tai email")
             }
             None
-          case _ =>
-            logger.error("Hakemusta ei löydy: " + status.hakemusOid)
+          case Left(e) =>
+            logger.error("Hakemusta ei löydy: " + status.hakemusOid, e)
             status.hakukohteet.filter(_.shouldMail).foreach {
               valintatulosCollection.addMessage(status, _,  "Hakemusta ei löydy")
             }
@@ -51,36 +54,33 @@ class MailDecorator(hakemusRepository: HakemusRepository, valintatulosCollection
 
   def toHakukohde(hakukohdeMailStatus: HakukohdeMailStatus) : Hakukohde = {
     hakuService.getHakukohde(hakukohdeMailStatus.hakukohdeOid) match {
-      case Some(hakukohde) =>
+      case Right(hakukohde) =>
         Hakukohde(hakukohdeMailStatus.hakukohdeOid,
           hakukohdeMailStatus.reasonToMail match {
             case Some(MailReason.VASTAANOTTOILMOITUS) => LahetysSyy.vastaanottoilmoitus
             case Some(MailReason.EHDOLLISEN_PERIYTYMISEN_ILMOITUS) => LahetysSyy.ehdollisen_periytymisen_ilmoitus
             case Some(MailReason.SITOVAN_VASTAANOTON_ILMOITUS) => LahetysSyy.sitovan_vastaanoton_ilmoitus
-            case _ => {
+            case _ =>
               throw new RuntimeException(s"Tuntematon lähetyssyy ${hakukohdeMailStatus.reasonToMail}")
-            }
           },
           hakukohdeMailStatus.vastaanottotila,
           hakukohdeMailStatus.ehdollisestiHyvaksyttavissa,
           hakukohde.hakukohteenNimet,
           hakukohde.tarjoajaNimet)
-
-      case _ =>
+      case Left(e) =>
         val msg = "Hakukohde ei löydy, oid: " + hakukohdeMailStatus.hakukohdeOid
-        logger.error(msg)
+        logger.error(msg, e)
         throw new HakukohdeNotFoundException(msg)
     }
   }
 
   def toHaku(oid: String) : Haku = {
     hakuService.getHaku(oid) match {
-      case Some(haku) =>
+      case Right(haku) =>
         Haku(haku.oid, haku.nimi)
-
-      case _ =>
+      case Left(e) =>
         val msg = "Hakua ei löydy, oid: " + oid
-        logger.error(msg)
+        logger.error(msg, e)
         throw new HakuNotFoundException(msg)
     }
   }

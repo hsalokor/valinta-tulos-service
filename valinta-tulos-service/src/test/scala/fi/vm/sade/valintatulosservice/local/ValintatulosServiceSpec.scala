@@ -158,14 +158,6 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
 
     def testitKaikilleHakutyypeille(hakuFixture: String) = {
 
-      "henkilön hakemusten haun tulosten haku" in {
-        "palauttaa henkilön hakemuksen" in {
-          useFixture("hyvaksytty-ylempi-varalla.json", hakuFixture = hakuFixture)
-          val tulokset = valintatulosService.hakemuksentuloksetByPerson(hakuOid, "1.2.246.562.24.14229104472")
-          tulokset.map(_.hakemusOid) must_== List("1.2.246.562.11.00000441369", "1.2.246.562.11.00000441370", "1.2.246.562.11.00000441371")
-        }
-      }
-
       "sijoittelusta puuttuvat hakutoiveet" in {
         "näytetään keskeneräisinä ja julkaisemattomina" in {
           useFixture("hylatty-jonot-valmiit.json", hakuFixture = hakuFixture)
@@ -397,7 +389,7 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
     appConfig.ohjausparametritService, valintarekisteriDb, new DirectMongoSijoittelunTulosRestClient(appConfig))
   lazy val hakukohdeRecordService = new HakukohdeRecordService(hakuService, valintarekisteriDb, true)
   lazy val vastaanotettavuusService = new VastaanotettavuusService(hakukohdeRecordService, valintarekisteriDb)
-  lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, valintarekisteriDb, hakuService, hakukohdeRecordService)
+  lazy val valintatulosService = new ValintatulosService(vastaanotettavuusService, sijoittelutulosService, valintarekisteriDb, hakuService, valintarekisteriDb, hakukohdeRecordService)
 
   val hakuOid: String = "1.2.246.562.5.2013080813081926341928"
   val sijoitteluAjoId: String = "latest"

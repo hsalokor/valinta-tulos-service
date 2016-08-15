@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
 import fi.vm.sade.valintatulosservice.domain.{HakukohdeRecord, Kausi}
-import fi.vm.sade.valintatulosservice.koodisto.{KoodistoService, Koodi, KoodiUri, Relaatiot}
+import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, KoodistoService, Relaatiot}
 import fi.vm.sade.valintatulosservice.tarjonta._
 import org.junit.runner.RunWith
 import org.specs2.matcher.MustThrownExpectations
@@ -11,6 +11,8 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.Scope
 
+import scala.util.Success
+
 @RunWith(classOf[JUnitRunner])
 class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with MockitoStubs with CalledMatchers {
 
@@ -19,16 +21,16 @@ class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with
       val hakukohdeRecordService = new HakukohdeRecordService(hakuService, hakukohdeRepository, true)
 
       hakukohdeRepository.findHakukohde(hakukohdeOid) returns Some(hakukohdeRecord)
-      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must_== hakukohdeRecord
+      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must_== Right(hakukohdeRecord)
       there was noMoreCallsTo(hakuService)
     }
     "invokes tarjonta when hakukohde record is not found" in new HakukohdeRecordServiceWithMocks {
       val hakukohdeRecordService = new HakukohdeRecordService(hakuService, hakukohdeRepository, true)
       hakukohdeRepository.findHakukohde(hakukohdeOid) returns None
-      hakuService.getHakukohde(hakukohdeOid) returns Some(hakukohdeFromTarjonta)
-      hakuService.getHaku(hakuOid) returns Some(hakuFromTarjonta)
-      hakuService.getKoulutus(julkaistuKoulutus.oid) returns Some(julkaistuKoulutus)
-      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must_== hakukohdeRecord
+      hakuService.getHakukohde(hakukohdeOid) returns Right(hakukohdeFromTarjonta)
+      hakuService.getHaku(hakuOid) returns Right(hakuFromTarjonta)
+      hakuService.getKoulutus(julkaistuKoulutus.oid) returns Right(julkaistuKoulutus)
+      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must_== Right(hakukohdeRecord)
       one(hakukohdeRepository).storeHakukohde(hakukohdeRecord)
     }
   }
@@ -37,10 +39,10 @@ class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with
     "throws an exception for hakukohde with conflicting koulutuksen alkamiskausi" in new HakukohdeRecordServiceWithMocks {
       val hakukohdeRecordService = new HakukohdeRecordService(hakuService, hakukohdeRepository, false)
       hakukohdeRepository.findHakukohde(hakukohdeOid) returns None
-      hakuService.getHakukohde(hakukohdeOid) returns Some(hakukohdeFromTarjonta.copy(hakukohdeKoulutusOids = List(luonnosKoulutus.oid)))
-      hakuService.getHaku(hakuOid) returns Some(hakuFromTarjonta)
-      hakuService.getKoulutus(luonnosKoulutus.oid) returns Some(luonnosKoulutus)
-      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must throwA[HakukohdeDetailsRetrievalException]
+      hakuService.getHakukohde(hakukohdeOid) returns Right(hakukohdeFromTarjonta.copy(hakukohdeKoulutusOids = List(luonnosKoulutus.oid)))
+      hakuService.getHaku(hakuOid) returns Right(hakuFromTarjonta)
+      hakuService.getKoulutus(luonnosKoulutus.oid) returns Right(luonnosKoulutus)
+      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must beLeft[Throwable]
       there was no(hakukohdeRepository).storeHakukohde(hakukohdeRecord)
     }
   }
@@ -51,10 +53,10 @@ class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with
       val hakukohdeRecordWithKausiFromHaku: HakukohdeRecord = hakukohdeRecord.copy(koulutuksenAlkamiskausi = hakuFromTarjonta.koulutuksenAlkamiskausi.get)
 
       hakukohdeRepository.findHakukohde(hakukohdeOid) returns None
-      hakuService.getHakukohde(hakukohdeOid) returns Some(hakukohdeFromTarjonta.copy(hakukohdeKoulutusOids = List(luonnosKoulutus.oid)))
-      hakuService.getHaku(hakuOid) returns Some(hakuFromTarjonta)
-      hakuService.getKoulutus(luonnosKoulutus.oid) returns Some(luonnosKoulutus)
-      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must_== hakukohdeRecordWithKausiFromHaku
+      hakuService.getHakukohde(hakukohdeOid) returns Right(hakukohdeFromTarjonta.copy(hakukohdeKoulutusOids = List(luonnosKoulutus.oid)))
+      hakuService.getHaku(hakuOid) returns Right(hakuFromTarjonta)
+      hakuService.getKoulutus(luonnosKoulutus.oid) returns Right(luonnosKoulutus)
+      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must_== Right(hakukohdeRecordWithKausiFromHaku)
       one(hakukohdeRepository).storeHakukohde(hakukohdeRecordWithKausiFromHaku)
     }
 
@@ -62,10 +64,10 @@ class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with
       val hakukohdeRecordService = new HakukohdeRecordService(hakuService, hakukohdeRepository, true)
 
       hakukohdeRepository.findHakukohde(hakukohdeOid) returns None
-      hakuService.getHakukohde(hakukohdeOid) returns Some(hakukohdeFromTarjonta.copy(hakukohdeKoulutusOids = List(luonnosKoulutus.oid)))
-      hakuService.getHaku(hakuOid) returns Some(hakuFromTarjonta.copy(koulutuksenAlkamiskausi = None))
-      hakuService.getKoulutus(luonnosKoulutus.oid) returns Some(luonnosKoulutus)
-      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must throwA[HakukohdeDetailsRetrievalException]
+      hakuService.getHakukohde(hakukohdeOid) returns Right(hakukohdeFromTarjonta.copy(hakukohdeKoulutusOids = List(luonnosKoulutus.oid)))
+      hakuService.getHaku(hakuOid) returns Right(hakuFromTarjonta.copy(koulutuksenAlkamiskausi = None))
+      hakuService.getKoulutus(luonnosKoulutus.oid) returns Right(luonnosKoulutus)
+      hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must beLeft[Throwable]
       there was no(hakukohdeRepository).storeHakukohde(hakukohdeRecord)
     }
   }

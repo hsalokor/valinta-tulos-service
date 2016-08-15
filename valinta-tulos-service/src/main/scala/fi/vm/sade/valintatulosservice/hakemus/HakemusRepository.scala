@@ -8,6 +8,8 @@ import fi.vm.sade.valintatulosservice.domain.{Hakemus, Hakutoive, Henkilotiedot}
 import fi.vm.sade.valintatulosservice.hakemus.DatabaseKeys.tarjoajaIdKeyPostfix
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 
+import scala.util.Try
+
 object DatabaseKeys {
   val oidKey: String = "oid"
   val personOidKey: String = "personOid"
@@ -58,8 +60,11 @@ class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
     findHakemuksetByQuery(MongoDBObject(DatabaseKeys.applicationSystemIdKey -> hakuOid))
   }
 
-  def findHakemus(hakemusOid: String): Option[Hakemus] = {
-    findHakemuksetByQuery(MongoDBObject(DatabaseKeys.oidKey -> hakemusOid)).toStream.headOption
+  def findHakemus(hakemusOid: String): Either[Throwable, Hakemus] = {
+    Try(findHakemuksetByQuery(MongoDBObject(DatabaseKeys.oidKey -> hakemusOid)).toStream.headOption
+      .toRight(new IllegalArgumentException(s"No hakemus $hakemusOid found"))).recover {
+      case e => Left(e)
+    }.get
   }
 
   def findHakemuksetByOids(hakemusOids: Iterable[String]): Iterator[Hakemus] = {

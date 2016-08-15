@@ -6,6 +6,8 @@ import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixtures, HakemusRepositor
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
+import scala.util.Success
+
 @RunWith(classOf[JUnitRunner])
 class HakemusRepositorySpec extends ITSpecification {
   val repo = new HakemusRepository()
@@ -15,7 +17,7 @@ class HakemusRepositorySpec extends ITSpecification {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakemusFixtures = HakemusFixtures.defaultFixtures)
 
       val hakutoiveet = repo.findHakemus("1.2.246.562.11.00000878229")
-      hakutoiveet must_== Some(Hakemus("1.2.246.562.11.00000878229", "1.2.246.562.29.92478804245", "1.2.246.562.24.14229104472", "FI",
+      hakutoiveet must_== Right(Hakemus("1.2.246.562.11.00000878229", "1.2.246.562.29.92478804245", "1.2.246.562.24.14229104472", "FI",
         List(Hakutoive("1.2.246.562.20.83060182827", "1.2.246.562.10.83122281013", "stevari amk hakukohde", "Saimaan ammattikorkeakoulu, Skinnarilan kampus, Lappeenranta"), Hakutoive("1.2.246.562.10.83122281012", "1.2.246.562.10.83122281012", "", "")),
         Henkilotiedot(Some("Teppo"), None, true)
       ))
@@ -57,7 +59,7 @@ class HakemusRepositorySpec extends ITSpecification {
       useFixture("hyvaksytty-kesken-julkaistavissa.json", hakemusFixtures = HakemusFixtures.defaultFixtures)
 
       val hakutoiveet = repo.findHakemus("1.2.246.562.11.00000878229-SE")
-      hakutoiveet must_== Some(Hakemus("1.2.246.562.11.00000878229-SE", "1.2.246.562.29.92478804245", "1.2.246.562.24.14229104472", "SV",
+      hakutoiveet must_== Right(Hakemus("1.2.246.562.11.00000878229-SE", "1.2.246.562.29.92478804245", "1.2.246.562.24.14229104472", "SV",
         List(Hakutoive("1.2.246.562.20.83060182827", "1.2.246.562.10.83122281013", "stevari amk hakukohde", "Saimaan ammattikorkeakoulu, Skinnarilan kampus, Lappeenranta"), Hakutoive("1.2.246.562.10.83122281012", "1.2.246.562.10.83122281012", "", "")),
         Henkilotiedot(Some("Teppo"), None, true)
       ))
