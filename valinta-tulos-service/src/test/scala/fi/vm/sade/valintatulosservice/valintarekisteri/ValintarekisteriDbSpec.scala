@@ -183,6 +183,28 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOid, hakemusOid, hakukohdeOid, Poista, henkiloOid, "testiselite")) must throwAn[IllegalStateException]
     }
 
+    "mark vastaanotot as deleted for all linked henkilos" in {
+      storeHenkiloviitteet()
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOidA, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOidB, hakemusOid, hakukohdeOid, Poista, henkiloOid, "testiselite"))
+      singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOidA, hakukohdeOid)) must beNone
+      singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOidB, hakukohdeOid)) must beNone
+    }
+
+    "mark previous vastaanotot as deleted for all linked henkilos when updating vastaanotto" in {
+      storeHenkiloviitteet()
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOidA, hakemusOid, hakukohdeOid, VastaanotaEhdollisesti, henkiloOid, "testiselite"))
+      singleConnectionValintarekisteriDb.store(VirkailijanVastaanotto(hakuOid, valintatapajonoOid, henkiloOidB, hakemusOid, hakukohdeOid, VastaanotaSitovasti, henkiloOid, "testiselite"))
+      val a = singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOidA, hakukohdeOid))
+      val b = singleConnectionValintarekisteriDb.runBlocking(singleConnectionValintarekisteriDb.findHenkilonVastaanottoHakukohteeseen(henkiloOidB, hakukohdeOid))
+      a must beSome[VastaanottoRecord]
+      a.get.henkiloOid must beEqualTo(henkiloOidA)
+      a.get.action must be(VastaanotaSitovasti)
+      b must beSome[VastaanottoRecord]
+      b.get.henkiloOid must beEqualTo(henkiloOidB)
+      b.get.action must be(VastaanotaSitovasti)
+    }
+
     "rollback failing transaction" in {
       singleConnectionValintarekisteriDb.store( List(
         VirkailijanVastaanotto(hakuOid, valintatapajonoOid, "123!", "2222323", "134134134.123", VastaanotaSitovasti, "123!", "testiselite")), DBIOAction.successful()) must throwA[Exception]

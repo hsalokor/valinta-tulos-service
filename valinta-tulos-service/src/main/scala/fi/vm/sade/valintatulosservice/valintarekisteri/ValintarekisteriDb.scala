@@ -242,7 +242,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, action, ilmoittaja, selite) = vastaanottoEvent
     DBIO.seq(
       sqlu"""update vastaanotot set deleted = overriden_vastaanotto_deleted_id()
-                 where henkilo = ${henkiloOid}
+                 where (henkilo = ${henkiloOid}
+                        or henkilo in (select linked_oid from henkiloviitteet where person_oid = ${henkiloOid}))
                      and hakukohde = ${hakukohdeOid}
                      and deleted is null""",
       sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, selite)
@@ -253,7 +254,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, _, ilmoittaja, selite) = vastaanottoEvent
     val insertDelete = sqlu"""insert into deleted_vastaanotot (poistaja, selite) values ($ilmoittaja, $selite)"""
     val updateVastaanotto = sqlu"""update vastaanotot set deleted = currval('deleted_vastaanotot_id')
-                                       where vastaanotot.henkilo = $henkiloOid
+                                       where (vastaanotot.henkilo = $henkiloOid
+                                              or vastaanotot.henkilo in (select linked_oid from henkiloviitteet where person_oid = $henkiloOid))
                                            and vastaanotot.hakukohde = $hakukohdeOid
                                            and vastaanotot.deleted is null"""
     insertDelete.andThen(updateVastaanotto).flatMap {
