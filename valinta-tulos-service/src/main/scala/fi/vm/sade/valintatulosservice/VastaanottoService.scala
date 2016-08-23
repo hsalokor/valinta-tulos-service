@@ -104,7 +104,7 @@ class VastaanottoService(hakuService: HakuService,
             sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulosVirkailijana(hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
             maybeAiempiVastaanottoKaudella <- aiempiVastaanottoKaudella(hakukohdes.find(_.oid == hakukohdeOid).get, henkiloOid)
             hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true,
-              vastaanottoKaudella = kausi => maybeAiempiVastaanottoKaudella.isDefined,
+              vastaanottoKaudella = kausi => maybeAiempiVastaanottoKaudella.flatten.isDefined,
               hakutoiveenKausi = hakukohdeOid => hakukohdes.find(_.oid == hakukohdeOid).map(_.koulutuksenAlkamiskausi))(hakemus)
             hakutoive <- tarkistaHakutoiveenVastaanotettavuusVirkailijana(hakemuksenTulos, hakukohdeOid, vastaanottoDto, maybeAiempiVastaanottoKaudella).fold(DBIO.failed, DBIO.successful)
             _ <- hakutoive.fold[DBIO[Unit]](DBIO.successful())(_ => hakijaVastaanottoRepository.storeAction(vastaanotto))
@@ -177,7 +177,7 @@ class VastaanottoService(hakuService: HakuService,
           sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(hakukohde.hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
           maybeAiempiVastaanottoKaudella <- aiempiVastaanottoKaudella(hakukohde, henkiloOid)
           hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true,
-            vastaanottoKaudella = kausi => maybeAiempiVastaanottoKaudella.isDefined,
+            vastaanottoKaudella = kausi => maybeAiempiVastaanottoKaudella.flatten.isDefined,
           hakutoiveenKausi = hakukohdeOid => None)(hakemus)
           hakutoive <- tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos, hakukohdeOid, vastaanotto.action).fold(DBIO.failed, DBIO.successful)
           _ <- hakijaVastaanottoRepository.storeAction(vastaanotto)
