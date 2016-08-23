@@ -105,7 +105,7 @@ class VastaanottoService(hakuService: HakuService,
             maybeAiempiVastaanottoKaudella <- aiempiVastaanottoKaudella(hakukohdes.find(_.oid == hakukohdeOid).get, henkiloOid)
             hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true,
               vastaanottoKaudella = kausi => maybeAiempiVastaanottoKaudella.flatten.isDefined,
-              hakutoiveenKausi = hakukohdeOid => hakukohdes.find(_.oid == hakukohdeOid).map(_.koulutuksenAlkamiskausi))(hakemus)
+              hakutoiveenKausi = hakukohdeRecordToHakutoiveenKausi(hakukohdes))(hakemus)
             hakutoive <- tarkistaHakutoiveenVastaanotettavuusVirkailijana(hakemuksenTulos, hakukohdeOid, vastaanottoDto, maybeAiempiVastaanottoKaudella).fold(DBIO.failed, DBIO.successful)
             _ <- hakutoive.fold[DBIO[Unit]](DBIO.successful())(_ => hakijaVastaanottoRepository.storeAction(vastaanotto))
           } yield hakutoive).right
@@ -164,7 +164,9 @@ class VastaanottoService(hakuService: HakuService,
   def tarkistaVastaanotettavuus(vastaanotettavaHakemusOid: String, hakukohdeOid: String): Unit = {
     findHakutoive(vastaanotettavaHakemusOid, hakukohdeOid).get
   }
-
+  private def hakukohdeRecordToHakutoiveenKausi(hakukohdes: Seq[HakukohdeRecord])(oid: String): Option[Kausi] = {
+    hakukohdes.find(_.oid == oid).filter(_.yhdenPaikanSaantoVoimassa).map(_.koulutuksenAlkamiskausi)
+  }
   def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Either[Throwable, Unit] = {
     val VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, _, _, _) = vastaanotto
     for {
@@ -179,7 +181,7 @@ class VastaanottoService(hakuService: HakuService,
           maybeAiempiVastaanottoKaudella <- aiempiVastaanottoKaudella(hakukohde, henkiloOid)
           hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true,
             vastaanottoKaudella = kausi => maybeAiempiVastaanottoKaudella.flatten.isDefined,
-            hakutoiveenKausi = hkOid => hakukohdes.find(_.oid == hkOid).map(_.koulutuksenAlkamiskausi)
+            hakutoiveenKausi = hakukohdeRecordToHakutoiveenKausi(hakukohdes)
           )(hakemus)
           hakutoive <- tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos, hakukohdeOid, vastaanotto.action).fold(DBIO.failed, DBIO.successful)
           _ <- hakijaVastaanottoRepository.storeAction(vastaanotto)
