@@ -168,17 +168,19 @@ class VastaanottoService(hakuService: HakuService,
   def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Either[Throwable, Unit] = {
     val VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, _, _, _) = vastaanotto
     for {
-      hakukohde <- hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid).right
-      haku <- hakuService.getHaku(hakukohde.hakuOid).right
-      ohjausparametrit <- ohjausparametritService.ohjausparametrit(hakukohde.hakuOid).right
       hakemus <- hakemusRepository.findHakemus(hakemusOid).right
+      hakukohdes <- hakukohdeRecordService.getHakukohdeRecords(hakemus.toiveet.map(_.oid)).right
+      hakukohde <- (hakukohdes.find(_.oid == hakukohdeOid) match { case Some(hk) => Right(hk) case None => Left(new RuntimeException(s"Hakukohde $hakukohdeOid not in hakemus $hakemusOid"))}).right
+      haku <- hakuService.getHaku(hakukohde.hakuOid).right
+      ohjausparametrit <- ohjausparametritService.ohjausparametrit(haku.oid).right
       hakutoive <- hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
         for {
-          sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(hakukohde.hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
+          sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(haku.oid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
           maybeAiempiVastaanottoKaudella <- aiempiVastaanottoKaudella(hakukohde, henkiloOid)
           hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true,
             vastaanottoKaudella = kausi => maybeAiempiVastaanottoKaudella.flatten.isDefined,
-          hakutoiveenKausi = hakukohdeOid => None)(hakemus)
+            hakutoiveenKausi = hkOid => hakukohdes.find(_.oid == hkOid).map(_.koulutuksenAlkamiskausi)
+          )(hakemus)
           hakutoive <- tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos, hakukohdeOid, vastaanotto.action).fold(DBIO.failed, DBIO.successful)
           _ <- hakijaVastaanottoRepository.storeAction(vastaanotto)
         } yield hakutoive).right
