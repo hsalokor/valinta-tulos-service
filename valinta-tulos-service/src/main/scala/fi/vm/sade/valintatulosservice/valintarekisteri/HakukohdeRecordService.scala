@@ -17,11 +17,13 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
     }
   }
 
-  def getHakukohteidenKoulutuksenAlkamiskausi(oids: Seq[String]): Either[Throwable, Seq[(String,Kausi)]] = {
+  def getHakukohteidenKoulutuksenAlkamiskausi(oids: Seq[String]): Either[Throwable, Seq[(String,Option[Kausi])]] = {
     val hakukohdes = for{oid <- oids.toStream
     } yield Try(hakukohdeRepository.findHakukohde(oid)) match {
-      case Success(Some(hakukohde)) => Right(oid -> hakukohde.koulutuksenAlkamiskausi)
-      case Success(None) => fetchAndStoreHakukohdeDetails(oid).right.map(oid -> _.koulutuksenAlkamiskausi)
+      case Success(Some(hakukohde)) => Right(oid -> {if(hakukohde.yhdenPaikanSaantoVoimassa) Some(hakukohde.koulutuksenAlkamiskausi) else None})
+      case Success(None) => fetchAndStoreHakukohdeDetails(oid).right.map(k => k.oid -> {
+        if(k.yhdenPaikanSaantoVoimassa) Some(k.koulutuksenAlkamiskausi) else None
+      })
       case Failure(e) => Left(e)
     }
 
