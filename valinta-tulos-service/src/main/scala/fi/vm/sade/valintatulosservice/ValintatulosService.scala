@@ -141,8 +141,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         haku <- hakuService.getHaku(hakuOid).right.toOption
         hakukohdes <- hakuService.getHakukohdeOids(hakuOid).right.toOption
         koulutuksenAlkamiskaudet <- hakukohdeRecordService.getHakukohteidenKoulutuksenAlkamiskausi(hakukohdes)
-            .right.map(_.toMap)
-          .right.toOption
+            .right.map(_.toMap).right.toOption
       } yield {
         fetchTulokset(
           haku,
@@ -150,7 +149,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           hakijaOidsByHakemusOids => sijoittelutulosService.hakemustenTulos(hakuOid, hakijaOidsByHakemusOids = hakijaOidsByHakemusOids, haunVastaanotot = haunVastaanotot),
           Some(timed("personOids from hakemus", 1000)(hakemusRepository.findPersonOids(hakuOid))),
           checkJulkaisuAikaParametri,
-          hakukohdeOid => koulutuksenAlkamiskaudet.get(hakukohdeOid),
+          koulutuksenAlkamiskaudet,
           kausi => Some(timed("kaudenVastaanotot", 1000)({
             virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi)
               .map(_.henkiloOid)
