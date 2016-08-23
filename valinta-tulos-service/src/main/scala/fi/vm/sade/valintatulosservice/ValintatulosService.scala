@@ -80,24 +80,15 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           latestSijoitteluAjo).toSeq,
         vastaanottoKaudella = hakukohdeOid => {
           hakukohdeRecords.find(_.oid == hakukohdeOid) match {
-            case Some(hakukohde) if hakukohde.yhdenPaikanSaantoVoimassa =>
-              val v: Some[(Kausi, Set[String])] = hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(h.henkiloOid, hakukohde.koulutuksenAlkamiskausi)) match {
-                case Some(_) => Some(hakukohde.koulutuksenAlkamiskausi, Set(h.henkiloOid))
-                case None => Some(hakukohde.koulutuksenAlkamiskausi, Set())
-              }
-              v
+            case Some(hakukohde) if hakukohde.yhdenPaikanSaantoVoimassa => {
+              val vastaanotto: Option[VastaanottoRecord] = hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(h.henkiloOid, hakukohde.koulutuksenAlkamiskausi))
+              Some(hakukohde.koulutuksenAlkamiskausi, vastaanotto.map(_.henkiloOid).toSet)
+            }
             case Some(hakukohde) =>
               None
             case None => throw new RuntimeException(s"Hakukohde $hakukohdeOid not found!")
           }
         }
-        /*
-        hakutoiveenKausi = hakukohdeRecordToHakutoiveenKausi(hakukohdeRecords),
-        kaudenVastaanottaneet = kausi => hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(h.henkiloOid, kausi)) match {
-          case Some(_) => Some(Set(h.henkiloOid))
-          case None => Some(Set())
-        }
-        */
       ).toStream.headOption
     } yield hakemus
 
@@ -308,12 +299,13 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       }
       val hakijaPaginationObject = sijoittelutulosService.sijoittelunTuloksetWithoutVastaanottoTieto(hakuOid, sijoitteluajoId, hyvaksytyt, ilmanHyvaksyntaa, vastaanottaneet,
         hakukohdeOid, count, index, haunVastaanototByHakijaOid)
-      val hakukohdes: Map[String, Some[Kausi]] = (hakukohdeRecordService.getHaunHakukohdeRecords(hakuOid) match {
-        case Right(hks) => hks.map(hk => hk.oid -> Some(hk.koulutuksenAlkamiskausi))
+      val hakukohdes: Map[String, Option[Kausi]] = (hakukohdeRecordService.getHaunHakukohdeRecords(hakuOid) match {
+        case Right(hks) => hks.map(hk => hk.oid -> {if(hk.yhdenPaikanSaantoVoimassa) Some(hk.koulutuksenAlkamiskausi) else None})
         case Left(e) => throw e
       }).toMap
-
-      val kaudenVastaanottaneet: Kausi => Set[String] = kausi => virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi).map(_.henkiloOid)
+      val uniqueKaudetInHaku: Set[Kausi] = hakukohdes.values.flatten.toSet
+      val kausiToVastaanotto: Map[Kausi, Set[String]] = uniqueKaudetInHaku.map(kausi => kausi ->
+        virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi).map(_.henkiloOid)).toMap
 
       hakijaPaginationObject.getResults.asScala.foreach { hakijaDto =>
         val hakijaOidFromHakemus = personOidsByHakemusOids(hakijaDto.getHakemusOid)
@@ -321,7 +313,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         val hakijanVastaanotot = haunVastaanototByHakijaOid.get(hakijaDto.getHakijaOid)
         val hakutoiveidenTulokset = hakutoiveidenTuloksetByHakemusOid.getOrElse(hakijaDto.getHakemusOid, throw new IllegalArgumentException(s"Hakemusta ${hakijaDto.getHakemusOid} ei löydy"))
         val yhdenPaikanSannonHuomioiminen = asetaVastaanotettavuusValintarekisterinPerusteella(hakukohdeOid => {
-          throw new RuntimeException("Unsupported method in sijoittelunTulokset call")
+          hakukohdes.get(hakukohdeOid).flatten.flatMap(kausi => Some(kausi, kausiToVastaanotto.get(kausi).map(_.contains(hakijaDto.getHakijaOid)).getOrElse(false)))
         })(hakutoiveidenTulokset, haku, None)
         hakijaDto.getHakutoiveet.asScala.foreach(palautettavaHakutoiveDto =>
           hakijanVastaanotot match {
