@@ -69,7 +69,6 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       h <- hakemusRepository.findHakemus(hakemusOid).right.toOption
       hakukohdes <- hakuService.getHakukohdes(h.toiveet.map(_.oid)).right.toOption
       hakukohdeRecords <- hakukohdeRecordService.getHakukohdeRecords(h.toiveet.map(_.oid)).right.toOption
-    // vastaanottoKaudella: String => Option[(Kausi, Set[String])]
       hakemus <- fetchTulokset(
         haku,
         () => List(h).iterator,
