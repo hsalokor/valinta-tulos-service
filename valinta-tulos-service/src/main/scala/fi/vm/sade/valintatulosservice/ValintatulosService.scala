@@ -139,10 +139,10 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     timed("Fetch hakemusten tulos for haku: " + hakuOid, 1000) (
       for {
         haku <- hakuService.getHaku(hakuOid).right.toOption
-        hakukohdes <- hakuService.getHakukohdesForHaku(hakuOid).right.map(hakukohdes =>
-          hakukohdes.map(hakukohde => hakukohde.oid -> hakukohde).toMap).right.toOption
-        koulutuksenAlkamiskaudet <- hakukohdeRecordService.getHakukohdeRecords(hakukohdes.keys.toSeq).right.map(k =>
-          k.map(alkamiskausi => alkamiskausi.oid -> Some(alkamiskausi.koulutuksenAlkamiskausi)).toMap).right.toOption
+        hakukohdes <- hakuService.getHakukohdeOids(hakuOid).right.toOption
+        koulutuksenAlkamiskaudet <- hakukohdeRecordService.getHakukohteidenKoulutuksenAlkamiskausi(hakukohdes)
+            .right.map(_.toMap)
+          .right.toOption
       } yield {
         fetchTulokset(
           haku,
@@ -150,7 +150,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           hakijaOidsByHakemusOids => sijoittelutulosService.hakemustenTulos(hakuOid, hakijaOidsByHakemusOids = hakijaOidsByHakemusOids, haunVastaanotot = haunVastaanotot),
           Some(timed("personOids from hakemus", 1000)(hakemusRepository.findPersonOids(hakuOid))),
           checkJulkaisuAikaParametri,
-          koulutuksenAlkamiskaudet,
+          hakukohdeOid => koulutuksenAlkamiskaudet.get(hakukohdeOid),
           kausi => Some(timed("kaudenVastaanotot", 1000)({
             virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi)
               .map(_.henkiloOid)
@@ -273,14 +273,6 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         case Right(hks) => hks.map(hk => hk.oid -> Some(hk.koulutuksenAlkamiskausi))
         case Left(e) => throw e
       }
-
-
-      /*
-      val koulutuksenAlkamiskausi = hakukohdeRecordService.getHaunKoulutuksenAlkamiskausi(hakuOid) match {
-        case Right(k) => k
-        case Left(e) => throw e
-      }*/
-
       val kaudenVastaanottaneet: Kausi => Set[String] = kausi => virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi).map(_.henkiloOid)
 
       hakijaPaginationObject.getResults.asScala.foreach { hakijaDto =>
