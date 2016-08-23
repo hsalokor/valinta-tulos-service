@@ -184,10 +184,13 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
   }
 
   def getHakukohdesForHaku(hakuOid: String): Either[Throwable, Seq[Hakukohde]] = {
+    getHakukohdeOids(hakuOid).right.flatMap(getHakukohdes)
+    /*
     val url = s"${appConfig.settings.tarjontaUrl}/rest/v1/hakukohde/search?tila=VALMIS&tila=JULKAISTU&hakuOid=$hakuOid"
     fetch(url) { response =>
       (parse(response) \ "result" \ "tulokset" \ "tulokset" ).extractOpt[Seq[Hakukohde]]
     }.right.flatMap(_.toRight(new IllegalArgumentException(s"No hakukohdes found for haku $hakuOid")))
+    */
   }
 
   def kaikkiJulkaistutHaut: Either[Throwable, List[Haku]] = {

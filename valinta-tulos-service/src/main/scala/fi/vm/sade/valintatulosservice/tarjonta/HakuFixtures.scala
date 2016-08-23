@@ -22,7 +22,7 @@ object HakuFixtures extends HakuService with JsonHakuService {
     this.activeFixture = fixtureName
   }
   override def getHakukohdesForHaku(hakuOid: String): Either[Throwable, Seq[Hakukohde]] = {
-    Left(new RuntimeException(s"Haku $hakuOid not supported"))
+    getHakukohdeOids(hakuOid).right.flatMap(getHakukohdes)
   }
   override def getHaku(oid: String): Either[Throwable, Haku] = {
     getHakuFixture(oid).map(toHaku(_).copy(oid = oid)).toRight(new IllegalArgumentException(s"No haku $oid found"))
