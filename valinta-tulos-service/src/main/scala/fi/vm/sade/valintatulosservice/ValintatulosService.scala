@@ -68,8 +68,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       latestSijoitteluAjo = sijoittelutulosService.findLatestSijoitteluAjoForHaku(hakuOid)
       h <- hakemusRepository.findHakemus(hakemusOid).right.toOption
       hakukohdes <- hakuService.getHakukohdes(h.toiveet.map(_.oid)).right.toOption
-      koulutuksenAlkamiskaudet <- hakukohdeRecordService.getHakukohdeRecords(h.toiveet.map(_.oid)).right.map(k =>
-        k.map(alkamiskausi => alkamiskausi.oid -> Some(alkamiskausi.koulutuksenAlkamiskausi)).toMap).right.toOption
+      hakukohdeRecords <- hakukohdeRecordService.getHakukohdeRecords(h.toiveet.map(_.oid)).right.toOption
       hakemus <- fetchTulokset(
         haku,
         () => List(h).iterator,
@@ -78,7 +77,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           hakijaOidsByHakemusOids.get(hakemusOid),
           vastaanottoaikataulu,
           latestSijoitteluAjo).toSeq,
-        hakutoiveenKausi = koulutuksenAlkamiskaudet,
+        hakutoiveenKausi = hakukohdeRecordToHakutoiveenKausi(hakukohdeRecords),
         kaudenVastaanottaneet = kausi => hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(h.henkiloOid, kausi)) match {
           case Some(_) => Some(Set(h.henkiloOid))
           case None => Some(Set())
@@ -94,7 +93,9 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     }
     hakemustenTulosByHaku(hakuOid, Some(haunVastaanotot), checkJulkaisuAikaParametri)
   }
-
+  private def hakukohdeRecordToHakutoiveenKausi(hakukohdes: Seq[HakukohdeRecord])(oid: String): Option[Kausi] = {
+    hakukohdes.find(_.oid == oid).filter(_.yhdenPaikanSaantoVoimassa).map(_.koulutuksenAlkamiskausi)
+  }
   def haeTilatHakijoille(hakuOid: String, hakukohdeOid: String, valintatapajonoOid: String, hakemusOids: Set[String]): Set[TilaHakijalle] = {
     val hakemukset = hakemusRepository.findHakemuksetByOids(hakemusOids).toSeq
     val uniqueHakukohdeOids = hakemukset.flatMap(_.toiveet.map(_.oid)).toSet.toSeq
@@ -102,12 +103,11 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       case (Right(haku), Right(hakukohdes)) =>
         val vastaanottoaikataulu = sijoittelutulosService.findAikatauluFromOhjausparametritService(hakuOid)
         val latestSijoitteluAjo = sijoittelutulosService.findLatestSijoitteluAjo(hakuOid, Some(hakukohdeOid))
-        val koulutuksenAlkamiskaudet = hakukohdes.map(alkamiskausi => alkamiskausi.oid -> Some(alkamiskausi.koulutuksenAlkamiskausi)).toMap
         val hakemustenTulokset = fetchTulokset(
           haku,
           () => hakemukset.toIterator,
           hakijaOidsByHakemusOids => hakemusOids.flatMap(hakemusOid => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids.get(hakemusOid), vastaanottoaikataulu, latestSijoitteluAjo)).toSeq,
-          hakutoiveenKausi = koulutuksenAlkamiskaudet,
+          hakutoiveenKausi = hakukohdeRecordToHakutoiveenKausi(hakukohdes),
           kaudenVastaanottaneet = kausi => Some(timed("kaudenVastaanotot", 1000)({
             virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi)
               .map(_.henkiloOid)
