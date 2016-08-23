@@ -9,6 +9,25 @@ import scala.util.{Failure, Success, Try}
 class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: HakukohdeRepository, parseLeniently: Boolean) extends Logging {
   private val koulutusTilasToSkipInStrictParsing = List("LUONNOS", "KOPIOITU") // See TarjontaTila in tarjonta-api
 
+  def getHaunHakukohdeRecords(oid: String): Either[Throwable, Seq[HakukohdeRecord]] = {
+    hakuService.getHakukohdeOids(oid) match {
+      case Right(oids) =>
+        sequence(for{oid <- oids.toStream} yield getHakukohdeRecord(oid))
+      case Left(e) => Left(e)
+    }
+  }
+
+  def getHakukohteidenKoulutuksenAlkamiskausi(oids: Seq[String]): Either[Throwable, Seq[(String,Kausi)]] = {
+    val hakukohdes = for{oid <- oids.toStream
+    } yield Try(hakukohdeRepository.findHakukohde(oid)) match {
+      case Success(Some(hakukohde)) => Right(oid -> hakukohde.koulutuksenAlkamiskausi)
+      case Success(None) => fetchAndStoreHakukohdeDetails(oid).right.map(oid -> _.koulutuksenAlkamiskausi)
+      case Failure(e) => Left(e)
+    }
+
+    sequence(hakukohdes)
+  }
+
   def getHaunKoulutuksenAlkamiskausi(oid: String): Either[Throwable, Kausi] = {
     Try(hakukohdeRepository.findHaunArbitraryHakukohde(oid)) match {
       case Success(Some(hakukohde)) => Right(hakukohde.koulutuksenAlkamiskausi)
@@ -16,6 +35,10 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
         .right.flatMap(fetchAndStoreHakukohdeDetails).right.map(_.koulutuksenAlkamiskausi)
       case Failure(e) => Left(e)
     }
+  }
+
+  def getHakukohdeRecords(oids: Seq[String]): Either[Throwable, Seq[HakukohdeRecord]] = {
+    sequence(for{oid <- oids.toStream} yield getHakukohdeRecord(oid))
   }
 
   def getHakukohdeRecord(oid: String): Either[Throwable, HakukohdeRecord] = {
