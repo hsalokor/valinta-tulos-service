@@ -281,6 +281,13 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
          """.as[HakukohdeRecord]).headOption
   }
 
+  override def findHaunHakukohteet(oid: String): Set[HakukohdeRecord] = {
+    runBlocking(sql"""select hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi
+           from hakukohteet
+           where haku_oid = $oid
+         """.as[HakukohdeRecord]).toSet
+  }
+
   override def all: Set[HakukohdeRecord] = {
     runBlocking(
       sql"""select hakukohde_oid, haku_oid, yhden_paikan_saanto_voimassa, kk_tutkintoon_johtava, koulutuksen_alkamiskausi
