@@ -63,6 +63,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   def hakemuksentulos(hakuOid: String, hakemusOid: String): Option[Hakemuksentulos] = {
     val vastaanottoaikataulu = sijoittelutulosService.findAikatauluFromOhjausparametritService(hakuOid)
+
     for {
       haku <- hakuService.getHaku(hakuOid).right.toOption
       latestSijoitteluAjo = sijoittelutulosService.findLatestSijoitteluAjoForHaku(hakuOid)
@@ -83,12 +84,11 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
               val vastaanotto: Option[VastaanottoRecord] = hakijaVastaanottoRepository.runBlocking(hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(h.henkiloOid, hakukohde.koulutuksenAlkamiskausi))
               Some(hakukohde.koulutuksenAlkamiskausi, vastaanotto.map(_.henkiloOid).toSet)
             }
-            case Some(hakukohde) =>
-              None
+            case Some(hakukohde) => None
             case None => throw new RuntimeException(s"Hakukohde $hakukohdeOid not found!")
           }
         }
-      ).toStream.headOption
+      ).toSeq.headOption
     } yield hakemus
 
   }
@@ -99,6 +99,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     }
     hakemustenTulosByHaku(hakuOid, Some(haunVastaanotot), checkJulkaisuAikaParametri)
   }
+
   private def hakukohdeRecordToHakutoiveenKausi(hakukohdes: Seq[HakukohdeRecord])(oid: String): Option[Kausi] = {
     hakukohdes.find(_.oid == oid).filter(_.yhdenPaikanSaantoVoimassa).map(_.koulutuksenAlkamiskausi)
   }
@@ -114,7 +115,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           () => hakemukset.toIterator,
           hakijaOidsByHakemusOids => hakemusOids.flatMap(hakemusOid => sijoittelutulosService.hakemuksenTulos(haku, hakemusOid, hakijaOidsByHakemusOids.get(hakemusOid), vastaanottoaikataulu, latestSijoitteluAjo)).toSeq,
           vastaanottoKaudella = hakukohdeOid => {
-            val v: Option[(Kausi, Set[String])] = hakukohdes.find(_.oid == hakukohdeOid) match {
+            hakukohdes.find(_.oid == hakukohdeOid) match {
               case Some(hakukohde) if(hakukohde.yhdenPaikanSaantoVoimassa) =>
                 val vastaanottaneet: Set[String] = timed("kaudenVastaanotot", 1000)({
                   virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(hakukohde.koulutuksenAlkamiskausi)
@@ -124,7 +125,6 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
               case Some(hakukohde) => None
               case None => throw new RuntimeException(s"Hakukohde $hakukohdeOid is missing")
             }
-            v
           }
         )
         hakemustenTulokset.map { hakemuksenTulos =>
@@ -167,11 +167,10 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
             val hk: Option[Option[Kausi]] = koulutuksenAlkamisKaudet.get(hakukohdeOid)
             val result: Option[(Kausi, Set[String])] = hk match {
               case Some(Some(kausi)) => {
-                val v: Set[String] = timed("kaudenVastaanotot", 1000)({
+                Some(kausi, timed("kaudenVastaanotot", 1000)({
                   virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(kausi)
                     .map(_.henkiloOid)
-                })
-                Some(kausi, v)
+                }))
               }
               case Some(None) => None
               case None => None //throw new RuntimeException(s"Hakukohde $hakukohdeOid is missing")
