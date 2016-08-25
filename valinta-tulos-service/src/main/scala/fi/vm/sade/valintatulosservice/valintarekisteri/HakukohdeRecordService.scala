@@ -76,14 +76,13 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
   private def fetchHakukohdeDetails(oid: String): Either[Throwable, HakukohdeRecord] = {
     for {
       hakukohde <- hakuService.getHakukohde(oid).right
-      haku <- hakuService.getHaku(hakukohde.hakuOid).right
       koulutukset <- sequence(hakukohde.hakukohdeKoulutusOids.toStream.map(hakuService.getKoulutus)).right
-      alkamiskausi <- resolveKoulutuksenAlkamiskausi(hakukohde, koulutukset, haku).right
-    } yield HakukohdeRecord(hakukohde.oid, haku.oid, haku.yhdenPaikanSaanto.voimassa,
+      alkamiskausi <- resolveKoulutuksenAlkamiskausi(hakukohde, koulutukset).right
+    } yield HakukohdeRecord(hakukohde.oid, hakukohde.hakuOid, hakukohde.yhdenPaikanSaanto.voimassa,
       hakukohdeJohtaaKkTutkintoon(hakukohde, koulutukset), alkamiskausi)
   }
 
-  private def resolveKoulutuksenAlkamiskausi(hakukohde: Hakukohde, koulutukset: Seq[Koulutus], haku: Haku): Either[Throwable, Kausi] = {
+  private def resolveKoulutuksenAlkamiskausi(hakukohde: Hakukohde, koulutukset: Seq[Koulutus]): Either[Throwable, Kausi] = {
     def oikeanTilaiset(koulutukset: Seq[Koulutus]): Seq[Koulutus] = koulutukset.filter(k => !koulutusTilasToSkipInStrictParsing.contains(k.tila))
     val errorMessage = s"No unique koulutuksen alkamiskausi in $koulutukset for $hakukohde " +
       s"(koulutukset in correct state: ${oikeanTilaiset(koulutukset)})"
@@ -91,8 +90,12 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
     unique(oikeanTilaiset(koulutukset).map(_.koulutuksenAlkamiskausi)) match {
       case Some(found) => Right(found)
       case None if parseLeniently =>
-        logger.warn(s"$errorMessage. Falling back to koulutuksen alkamiskausi from haku: ${haku.koulutuksenAlkamiskausi}")
-        haku.koulutuksenAlkamiskausi.toRight(new IllegalStateException(s"$errorMessage , and no koulutuksen alkamiskausi on haku $haku"))
+        hakuService.getHaku(hakukohde.hakuOid) match {
+          case Right(haku) =>
+            logger.warn(s"$errorMessage. Falling back to koulutuksen alkamiskausi from haku: ${haku.koulutuksenAlkamiskausi}")
+            haku.koulutuksenAlkamiskausi.toRight(new IllegalStateException(s"$errorMessage , and no koulutuksen alkamiskausi on haku $haku"))
+          case Left(e) => Left(e)
+        }
       case None => Left(new IllegalStateException(errorMessage))
     }
   }
