@@ -511,9 +511,14 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       })
 
     def hyvaksyttyTaiVaralla(tulos: Hakutoiveentulos): Boolean = isHyväksytty(tulos.valintatila) || tulos.valintatila == Valintatila.varalla
-    val t: Map[Option[(Kausi, Boolean)], List[Hakutoiveentulos]] = tulokset.groupBy(tulos => vastaanottoKaudella(tulos.hakukohdeOid))
+    val hakutoiveetGroupedByKausi: Map[Option[(Kausi, Boolean)], List[Hakutoiveentulos]] = tulokset.groupBy(tulos => vastaanottoKaudella(tulos.hakukohdeOid))
 
-    t.flatMap {
+    def hakutoiveetToOriginalOrder(originalHakutoiveet: List[Hakutoiveentulos]): Ordering[Hakutoiveentulos] = {
+      val oids = tulokset.map(_.hakukohdeOid)
+      Ordering.by[Hakutoiveentulos,Int](u => oids.indexOf(u.hakukohdeOid))
+    }
+
+    hakutoiveetGroupedByKausi.flatMap {
       case (Some((kausi, vastaanotto)), kaudenTulokset) =>
         val ehdollinenVastaanottoTallaHakemuksella = kaudenTulokset.exists(x => Vastaanottotila.ehdollisesti_vastaanottanut == x.vastaanottotila)
         val sitovaVastaanottoTallaHakemuksella = kaudenTulokset.exists(x => Vastaanottotila.vastaanottanut == x.vastaanottotila)
@@ -533,7 +538,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           })
         }
       case (None, kaudettomatTulokset) => kaudettomatTulokset
-    }.toList
+    }.toList.sorted(hakutoiveetToOriginalOrder(tulokset))
   }
 
   private def paatteleVastaanottotilaVirkailijaaVarten(hakijaOid: String, hakijanVastaanototHakukohteeseen: List[VastaanottoRecord],
