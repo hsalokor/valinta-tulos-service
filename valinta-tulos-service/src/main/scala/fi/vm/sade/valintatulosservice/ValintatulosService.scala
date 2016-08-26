@@ -68,7 +68,6 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       haku <- hakuService.getHaku(hakuOid).right.toOption
       latestSijoitteluAjo = sijoittelutulosService.findLatestSijoitteluAjoForHaku(hakuOid)
       h <- hakemusRepository.findHakemus(hakemusOid).right.toOption
-      hakukohdes <- hakuService.getHakukohdes(h.toiveet.map(_.oid)).right.toOption
       hakukohdeRecords <- hakukohdeRecordService.getHakukohdeRecords(h.toiveet.map(_.oid)).right.toOption
       hakemus <- fetchTulokset(
         haku,
