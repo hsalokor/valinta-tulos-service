@@ -179,7 +179,10 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
                   getOrElse(throw new RuntimeException(s"Missing vastaanotot for kausi ${kausi} and hakukohde ${hakukohdeOid}")))
               }
               case Some(None) => None
-              case None => None //throw new RuntimeException(s"Hakukohde $hakukohdeOid is missing")
+              case None => {
+                logger.error(s"Hakukohde $hakukohdeOid is missing while getting hakemusten tulos by haku ${hakuOid}")
+                None // throwing exception here would be better. overhaul needed for test fixtures if exception is thrown here
+              }
             }
             result
           }
