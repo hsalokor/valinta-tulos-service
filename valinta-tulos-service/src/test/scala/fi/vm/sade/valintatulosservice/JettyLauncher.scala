@@ -1,11 +1,12 @@
 package fi.vm.sade.valintatulosservice
 
+import fi.vm.sade.utils.tcp.PortChecker
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.webapp.WebAppContext
 
 object JettyLauncher {
   def main(args: Array[String]) {
-    System.setProperty("valintatulos.it.postgres.port", "55432")
+    System.setProperty("valintatulos.it.postgres.port", PortChecker.findFreeLocalPort.toString)
     new JettyLauncher(System.getProperty("valintatulos.port","8097").toInt).start.join
   }
 }
