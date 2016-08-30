@@ -218,7 +218,9 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
       url,
       HttpOptions.connTimeout(30000),
       HttpOptions.readTimeout(120000)
-    ).responseWithHeaders match {
+    ).header("clientSubSystemCode", "valinta-tulos-service")
+      .header("Caller-id", "valinta-tulos-service")
+      .responseWithHeaders match {
       case (200, _, resultString) if parseStatus(resultString).contains("NOT_FOUND") =>
         Left(new IllegalArgumentException(s"GET $url failed with status 200: NOT_FOUND"))
       case (404, _, resultString) =>
