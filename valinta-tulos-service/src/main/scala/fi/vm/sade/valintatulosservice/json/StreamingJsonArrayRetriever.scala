@@ -66,7 +66,7 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
     } else {
       logger.warn(s"Got non-OK response code ${response.code} from $url")
       response.headers.foreach { case (header: String, value: String) =>
-        logger.warn(s"$header: $value")
+        logger.debug(s"$header: $value")
       }
     }
   }
