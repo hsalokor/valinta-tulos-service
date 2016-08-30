@@ -161,9 +161,10 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         hakukohdeOids <- hakuService.getHakukohdeOids(hakuOid).right.toOption
         koulutuksenAlkamisKaudet <- hakukohdeRecordService.getHakukohteidenKoulutuksenAlkamiskausi(hakukohdeOids)
             .right.map(_.toMap).right.toOption
-        vastaanototByKausi <- Right(timed("kaudenVastaanotot", 1000)({
+        vastaanototByKausi = timed("kaudenVastaanotot", 1000)({
           virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(koulutuksenAlkamisKaudet.values.flatten.toSet)
-        })).right.toOption
+            .mapValues(_.map(_.henkiloOid))
+        })
       } yield {
         fetchTulokset(
           haku,
@@ -174,15 +175,12 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           vastaanottoKaudella = hakukohdeOid => {
             val hk: Option[Option[Kausi]] = koulutuksenAlkamisKaudet.get(hakukohdeOid)
             val result: Option[(Kausi, Set[String])] = hk match {
-              case Some(Some(kausi)) => {
-                Some(kausi, vastaanototByKausi.get(kausi).map(_.map(_.henkiloOid)).
-                  getOrElse(throw new RuntimeException(s"Missing vastaanotot for kausi ${kausi} and hakukohde ${hakukohdeOid}")))
-              }
+              case Some(Some(kausi)) =>
+                Some(kausi, vastaanototByKausi.getOrElse(kausi, throw new RuntimeException(s"Missing vastaanotot for kausi $kausi and hakukohde $hakukohdeOid")))
               case Some(None) => None
-              case None => {
-                logger.error(s"Hakukohde $hakukohdeOid is missing while getting hakemusten tulos by haku ${hakuOid}")
+              case None =>
+                logger.error(s"Hakukohde $hakukohdeOid is missing while getting hakemusten tulos by haku $hakuOid")
                 None // throwing exception here would be better. overhaul needed for test fixtures if exception is thrown here
-              }
             }
             result
           }
@@ -193,15 +191,16 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String, hakukohteenVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None, checkJulkaisuAikaParametri: Boolean = true): Option[Iterator[Hakemuksentulos]] = {
     val hakemukset = hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid).toSeq
-    val uniqueHakukohdeOids =hakemukset.flatMap(_.toiveet.map(_.oid)).toSet.toSeq
+    val uniqueHakukohdeOids = hakemukset.flatMap(_.toiveet.map(_.oid)).distinct
     timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakukohdeOid, 1000) (
       for {
         haku <- hakuService.getHaku(hakuOid).right.toOption
         hakukohdes <- hakukohdeRecordService.getHakukohdeRecords(uniqueHakukohdeOids).right.toOption
-        vastaanototByKausi <- Right(timed("kaudenVastaanotot", 1000)({
+        vastaanototByKausi = timed("kaudenVastaanotot", 1000)({
           virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(
             hakukohdes.filter(_.yhdenPaikanSaantoVoimassa).map(_.koulutuksenAlkamiskausi).toSet)
-        })).right.toOption
+            .mapValues(_.map(_.henkiloOid))
+        })
       } yield {
         fetchTulokset(
           haku,
@@ -211,11 +210,10 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           checkJulkaisuAikaParametri,
           vastaanottoKaudella = hakukohdeOid => {
             val result: Option[(Kausi, Set[String])] = hakukohdes.find(_.oid == hakukohdeOid) match {
-              case Some(hakukohde) if(hakukohde.yhdenPaikanSaantoVoimassa) => {
-                Some(hakukohde.koulutuksenAlkamiskausi, vastaanototByKausi.get(hakukohde.koulutuksenAlkamiskausi).map(_.map(_.henkiloOid)).getOrElse(
+              case Some(hakukohde) if hakukohde.yhdenPaikanSaantoVoimassa =>
+                Some(hakukohde.koulutuksenAlkamiskausi, vastaanototByKausi.getOrElse(hakukohde.koulutuksenAlkamiskausi,
                   throw new RuntimeException(s"Missing vastaanotot for kausi ${hakukohde.koulutuksenAlkamiskausi} and hakukohde ${hakukohde.oid}")
                 ))
-              }
               case Some(hakukohde) => None
               case None => throw new RuntimeException(s"Missing hakukohde $hakukohdeOid")
             }
