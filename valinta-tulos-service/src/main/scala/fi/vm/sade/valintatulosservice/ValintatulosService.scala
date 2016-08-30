@@ -159,8 +159,10 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       for {
         haku <- hakuService.getHaku(hakuOid).right.toOption
         hakukohdeOids <- hakuService.getHakukohdeOids(hakuOid).right.toOption
-        koulutuksenAlkamisKaudet <- hakukohdeRecordService.getHakukohteidenKoulutuksenAlkamiskausi(hakukohdeOids)
+        koulutuksenAlkamisKaudet <- timed("haun hakukohteiden koulutuksen alkamiskaudet")(
+          hakukohdeRecordService.getHakukohteidenKoulutuksenAlkamiskausi(hakukohdeOids)
             .right.map(_.toMap).right.toOption
+        )
         vastaanototByKausi = timed("kaudenVastaanotot", 1000)({
           virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(koulutuksenAlkamisKaudet.values.flatten.toSet)
             .mapValues(_.map(_.henkiloOid))
