@@ -367,6 +367,10 @@
             <version>0.10.1</version>
             <exclusions>
                 <exclusion>
+                    <groupId>org.http4s</groupId>
+                    <artifactId>blaze-http_2.11</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>org.scala-lang</groupId>
                     <artifactId>scala-library</artifactId>
                 </exclusion>
@@ -379,6 +383,11 @@
                     <artifactId>http4s-websocket_2.11</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.http4s</groupId>
+            <artifactId>blaze-http_2.11</artifactId>
+            <version>0.10.1</version>
         </dependency>
         <dependency>
             <groupId>org.http4s</groupId>
@@ -457,7 +466,7 @@
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-json4s-native_2.11</artifactId>
-            <version>0.10.0</version>
+            <version>0.10.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.scala-lang</groupId>
