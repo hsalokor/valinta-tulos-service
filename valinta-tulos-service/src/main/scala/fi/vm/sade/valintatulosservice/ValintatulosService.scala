@@ -165,7 +165,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         )
         vastaanototByKausi = timed(s"kausien ${koulutuksenAlkamisKaudet.values.flatten.toSet} vastaanotot", 1000)({
           virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(koulutuksenAlkamisKaudet.values.flatten.toSet)
-            .mapValues(_.map(_.henkiloOid))
+            .map { case (kausi, vastaanotot) => kausi -> vastaanotot.map(_.henkiloOid) }
         })
       } yield {
         fetchTulokset(
@@ -201,7 +201,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
         vastaanototByKausi = timed("kaudenVastaanotot", 1000)({
           virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(
             hakukohdes.filter(_.yhdenPaikanSaantoVoimassa).map(_.koulutuksenAlkamiskausi).toSet)
-            .mapValues(_.map(_.henkiloOid))
+              .map { case (kausi, vastaanotot) => kausi -> vastaanotot.map(_.henkiloOid) }
         })
       } yield {
         fetchTulokset(
