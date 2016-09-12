@@ -191,19 +191,22 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     )
   }
 
-  def hakemustenTulosByHakukohde(hakuOid: String, hakukohdeOid: String, hakukohteenVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None, checkJulkaisuAikaParametri: Boolean = true): Option[Iterator[Hakemuksentulos]] = {
+  def hakemustenTulosByHakukohde(hakuOid: String,
+                                 hakukohdeOid: String,
+                                 hakukohteenVastaanotot: Option[Map[String,Set[VastaanottoRecord]]] = None,
+                                 checkJulkaisuAikaParametri: Boolean = true): Either[Throwable, Iterator[Hakemuksentulos]] = {
     val hakemukset = hakemusRepository.findHakemuksetByHakukohde(hakuOid, hakukohdeOid).toSeq
     val uniqueHakukohdeOids = hakemukset.flatMap(_.toiveet.map(_.oid)).distinct
     timed("Fetch hakemusten tulos for haku: "+ hakuOid + " and hakukohde: " + hakukohdeOid, 1000) (
       for {
-        haku <- hakuService.getHaku(hakuOid).right.toOption
-        hakukohdes <- hakukohdeRecordService.getHakukohdeRecords(uniqueHakukohdeOids).right.toOption
-        vastaanototByKausi = timed("kaudenVastaanotot", 1000)({
+        haku <- hakuService.getHaku(hakuOid).right
+        hakukohdes <- hakukohdeRecordService.getHakukohdeRecords(uniqueHakukohdeOids).right
+      } yield {
+        val vastaanototByKausi = timed("kaudenVastaanotot", 1000)({
           virkailijaVastaanottoRepository.findkoulutuksenAlkamiskaudenVastaanottaneetYhdenPaikanSaadoksenPiirissa(
             hakukohdes.filter(_.yhdenPaikanSaantoVoimassa).map(_.koulutuksenAlkamiskausi).toSet)
-              .map { case (kausi, vastaanotot) => kausi -> vastaanotot.map(_.henkiloOid) }
+            .map { case (kausi, vastaanotot) => kausi -> vastaanotot.map(_.henkiloOid) }
         })
-      } yield {
         fetchTulokset(
           haku,
           () => hakemukset.toIterator,
@@ -237,7 +240,10 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   def findValintaTuloksetForVirkailija(hakuOid: String, hakukohdeOid: String): util.List[Valintatulos] = {
     val haunVastaanotot = virkailijaVastaanottoRepository.findHaunVastaanotot(hakuOid).groupBy(_.henkiloOid)
-    val hakemustenTulokset = hakemustenTulosByHakukohde(hakuOid, hakukohdeOid, Some(haunVastaanotot)).getOrElse(throw new IllegalArgumentException(s"Unknown hakuOid $hakuOid"))
+    val hakemustenTulokset = hakemustenTulosByHakukohde(hakuOid, hakukohdeOid, Some(haunVastaanotot)) match {
+      case Right(x) => x
+      case Left(e) => throw e
+    }
     val valintatulokset: util.List[Valintatulos] = valintatulosDao.loadValintatuloksetForHakukohde(hakukohdeOid)
 
     setValintatuloksetTilat(hakuOid, valintatulokset.asScala, mapHakemustenTuloksetByHakemusOid(hakemustenTulokset), haunVastaanotot)
