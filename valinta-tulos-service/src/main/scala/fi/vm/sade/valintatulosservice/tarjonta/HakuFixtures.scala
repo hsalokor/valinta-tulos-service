@@ -28,7 +28,7 @@ object HakuFixtures extends HakuService with JsonHakuService {
 
   private def getHakuFixture(oid: String): Option[HakuTarjonnassa] = {
     getHakuFixtureAsStream(oid)
-      .map(io.Source.fromInputStream(_).mkString)
+      .map(scala.io.Source.fromInputStream(_).mkString)
       .map { response =>
         (parse(response) \ "result").extract[HakuTarjonnassa]
     }

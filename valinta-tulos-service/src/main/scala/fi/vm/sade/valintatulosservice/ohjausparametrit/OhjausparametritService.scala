@@ -22,7 +22,7 @@ class StubbedOhjausparametritService extends OhjausparametritService {
   def ohjausparametrit(asId: String): Either[Throwable, Option[Ohjausparametrit]] = {
     val fileName = "/fixtures/ohjausparametrit/" + OhjausparametritFixtures.activeFixture + ".json"
     Right(Option(getClass.getResourceAsStream(fileName))
-      .map(io.Source.fromInputStream(_).mkString)
+      .map(scala.io.Source.fromInputStream(_).mkString)
       .map(parse(_).asInstanceOf[JObject])
       .map(OhjausparametritParser.parseOhjausparametrit))
   }

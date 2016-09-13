@@ -117,6 +117,11 @@
                 <version>1.2</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.3.2</version>
+            </dependency>
+            <dependency>
                 <groupId>org.scala-lang.modules</groupId>
                 <artifactId>scala-xml_2.11</artifactId>
                 <version>1.0.5</version>
@@ -127,9 +132,9 @@
                 <version>1.0.4</version>
             </dependency>
             <dependency>
-                <groupId>asm</groupId>
+                <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-                <version>3.3.1</version>
+                <version>5.0.4</version>
             </dependency>
             <dependency>
                 <groupId>javax.validation</groupId>
