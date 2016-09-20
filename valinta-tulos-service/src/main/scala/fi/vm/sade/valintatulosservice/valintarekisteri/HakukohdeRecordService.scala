@@ -10,24 +10,12 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
   private val koulutusTilasToSkipInStrictParsing = List("LUONNOS", "KOPIOITU") // See TarjontaTila in tarjonta-api
 
   def getHaunHakukohdeRecords(oid: String): Either[Throwable, Seq[HakukohdeRecord]] = {
-    hakuService.getHakukohdeOids(oid) match {
-      case Right(oids) =>
-        sequence(for{oid <- oids.toStream} yield getHakukohdeRecord(oid))
-      case Left(e) => Left(e)
-    }
+    hakuService.getHakukohdeOids(oid).right.flatMap(getHakukohdeRecords)
   }
 
-  def getHakukohteidenKoulutuksenAlkamiskausi(oids: Seq[String]): Either[Throwable, Seq[(String,Option[Kausi])]] = {
-    val hakukohdes = for{oid <- oids.toStream
-    } yield Try(hakukohdeRepository.findHakukohde(oid)) match {
-      case Success(Some(hakukohde)) => Right(oid -> {if(hakukohde.yhdenPaikanSaantoVoimassa) Some(hakukohde.koulutuksenAlkamiskausi) else None})
-      case Success(None) => fetchAndStoreHakukohdeDetails(oid).right.map(k => k.oid -> {
-        if(k.yhdenPaikanSaantoVoimassa) Some(k.koulutuksenAlkamiskausi) else None
-      })
-      case Failure(e) => Left(e)
-    }
-
-    sequence(hakukohdes)
+  def getHakukohteidenKoulutuksenAlkamiskausi(oids: Seq[String]): Either[Throwable, Seq[(String, Option[Kausi])]] = {
+    getHakukohdeRecords(oids).right.map(_.map(hakukohde =>
+      (hakukohde.oid, if (hakukohde.yhdenPaikanSaantoVoimassa) Some(hakukohde.koulutuksenAlkamiskausi) else None)))
   }
 
   def getHaunKoulutuksenAlkamiskausi(oid: String): Either[Throwable, Kausi] = {
