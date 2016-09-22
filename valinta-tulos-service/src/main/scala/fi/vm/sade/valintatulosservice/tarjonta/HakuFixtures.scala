@@ -13,7 +13,6 @@ object HakuFixtures extends HakuService with JsonHakuService {
   val korkeakouluErillishaku = "korkeakoulu-erillishaku"
   val toinenAsteYhteishaku = "toinen-aste-yhteishaku"
   val toinenAsteErillishakuEiSijoittelua = "toinen-aste-erillishaku-ei-sijoittelua"
-  val korkeakouluErillishakuEiYhdenPaikanSaantoa = "korkeakoulu-erillishaku-ei-yhden-paikan-saantoa"
 
   private var hakuOids = List(defaultHakuOid)
   private var activeFixture = korkeakouluYhteishaku
@@ -22,9 +21,7 @@ object HakuFixtures extends HakuService with JsonHakuService {
     this.hakuOids = hakuOids
     this.activeFixture = fixtureName
   }
-  override def getHakukohdesForHaku(hakuOid: String): Either[Throwable, Seq[Hakukohde]] = {
-    getHakukohdeOids(hakuOid).right.flatMap(getHakukohdes)
-  }
+
   override def getHaku(oid: String): Either[Throwable, Haku] = {
     getHakuFixture(oid).map(toHaku(_).copy(oid = oid)).toRight(new IllegalArgumentException(s"No haku $oid found"))
   }
@@ -56,19 +53,16 @@ object HakuFixtures extends HakuService with JsonHakuService {
       getHakuFixture(hakuOid).toList.filter {_.julkaistu}.map(toHaku(_).copy(oid = hakuOid))
     })
   }
-  override def getHakukohdes(oids: Seq[String]): Either[Throwable, Seq[Hakukohde]] ={
-    sequence(for{oid <- oids.toStream} yield getHakukohde(oid))
-  }
+
   override def getHakukohde(oid: String): Either[Throwable, Hakukohde] ={
     val hakuOid = hakuOids.head
     // TODO: Saner / more working test data
     if (activeFixture == toinenAsteYhteishaku || activeFixture == toinenAsteErillishakuEiSijoittelua) {
       Right(Hakukohde(oid, hakuOid, List("koulu.tus.oid"), "AMMATILLINEN_PERUSKOULUTUS", "TUTKINTO_OHJELMA",
-        Map("kieli_fi" -> "Lukion ilmaisutaitolinja"), Map("fi" -> "Kallion lukio"), YhdenPaikanSaanto(false, "testihakukohde")))
+        Map("kieli_fi" -> "Lukion ilmaisutaitolinja"), Map("fi" -> "Kallion lukio")))
     } else {
       Right(Hakukohde(oid, hakuOid, List("koulu.tus.oid"), "KORKEAKOULUTUS", "TUTKINTO",
-        Map("kieli_fi" -> "Lukion ilmaisutaitolinja"), Map("fi" -> "Kallion lukio"), YhdenPaikanSaanto(
-          activeFixture != korkeakouluErillishakuEiYhdenPaikanSaantoa, "testihakukohde")))
+        Map("kieli_fi" -> "Lukion ilmaisutaitolinja"), Map("fi" -> "Kallion lukio")))
     }
   }
 
@@ -91,10 +85,4 @@ object HakuFixtures extends HakuService with JsonHakuService {
 
   override def getArbitraryPublishedHakukohdeOid(hakuOid: String): Either[Throwable, String] =
     getHakukohdeOids(hakuOid).right.map(_.head)
-
-  private def sequence[A, B](xs: Stream[Either[B, A]]): Either[B, List[A]] = xs match {
-    case Stream.Empty => Right(Nil)
-    case Left(e)#::_ => Left(e)
-    case Right(x)#::rest => sequence(rest).right.map(x +: _)
-  }
 }

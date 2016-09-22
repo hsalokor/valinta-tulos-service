@@ -28,16 +28,14 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
     val hakuOid = params("hakuOid")
     val hakukohdeOid = params("hakukohdeOid")
 
-    valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid).right.map(
+    Try(valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid).getOrElse(List())).map(
       h => Ok(h.map(t => {
         val hakutoive = t.findHakutoive(hakukohdeOid).map(_._1)
         HakemuksenVastaanottotila(t.hakemusOid, hakutoive.map(_.valintatapajonoOid), hakutoive.map(_.vastaanottotila))
       }).toList)
-    ) match {
-      case Right(x) => x
-      case Left(pae: PriorAcceptanceException) => Forbidden("error" -> pae.getMessage)
-      case Left(e) => throw e
-    }
+    ).recover{
+      case pae:PriorAcceptanceException => Forbidden("error" -> pae.getMessage)
+    }.get
   }
 
   val getValintatuloksetByHakemusSwagger: OperationBuilder = (apiOperation[Unit]("getValintatuloksetByHakemus")
