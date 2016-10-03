@@ -13,7 +13,8 @@ import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelunTulosRestClient, SijoittelutulosService, ValintatulosRepository}
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 import fi.vm.sade.valintatulosservice.valintarekisteri._
-import slick.dbio.{DBIO, SuccessAction}
+import slick.dbio.Effect.All
+import slick.dbio.{NoStream, DBIOAction, DBIO, SuccessAction}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -86,7 +87,6 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   private def tallennaVirkailijanHakukohteenVastaanotot(hakukohdeOid: String, hakuOid: String, uudetVastaanotot: List[VastaanottoEventDto]): List[VastaanottoResult] = {
-    val hakukohdeEither = hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid)
     val hakuEither = hakuService.getHaku(hakuOid)
     val ohjausparametritEither = ohjausparametritService.ohjausparametrit(hakuOid)
     uudetVastaanotot.map(vastaanottoDto => {
@@ -94,15 +94,19 @@ class VastaanottoService(hakuService: HakuService,
       val hakemusOid = vastaanottoDto.hakemusOid
       val vastaanotto = VirkailijanVastaanotto(vastaanottoDto)
       (for {
-        hakukohde <- hakukohdeEither.right
         haku <- hakuEither.right
         ohjausparametrit <- ohjausparametritEither.right
         hakemus <- hakemusRepository.findHakemus(hakemusOid).right
+        hakukohdes <- hakukohdeRecordService.getHakukohdeRecords(hakemus.toiveet.map(_.oid).toSeq).right
+
         hakutoive <- hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanottoDto",
           for {
             sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulosVirkailijana(hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
-            maybeAiempiVastaanottoKaudella <- aiempiVastaanottoKaudella(haku, hakukohde, henkiloOid)
-            hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, maybeAiempiVastaanottoKaudella.map(_.isDefined))(hakemus)
+            maybeAiempiVastaanottoKaudella <- aiempiVastaanottoKaudella(hakukohdes.find(_.oid == hakukohdeOid).get, henkiloOid)
+            hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true,
+              vastaanottoKaudella = hakukohdeOid => {
+                hakukohdes.find(_.oid == hakukohdeOid).filter(_.yhdenPaikanSaantoVoimassa).flatMap(hakukohde => Some(hakukohde.koulutuksenAlkamiskausi, maybeAiempiVastaanottoKaudella.flatten.isDefined))
+              })(hakemus)
             hakutoive <- tarkistaHakutoiveenVastaanotettavuusVirkailijana(hakemuksenTulos, hakukohdeOid, vastaanottoDto, maybeAiempiVastaanottoKaudella).fold(DBIO.failed, DBIO.successful)
             _ <- hakutoive.fold[DBIO[Unit]](DBIO.successful())(_ => hakijaVastaanottoRepository.storeAction(vastaanotto))
           } yield hakutoive).right
@@ -161,19 +165,22 @@ class VastaanottoService(hakuService: HakuService,
   def tarkistaVastaanotettavuus(vastaanotettavaHakemusOid: String, hakukohdeOid: String): Unit = {
     findHakutoive(vastaanotettavaHakemusOid, hakukohdeOid).get
   }
-
   def vastaanotaHakijana(vastaanotto: VastaanottoEvent): Either[Throwable, Unit] = {
     val VastaanottoEvent(henkiloOid, hakemusOid, hakukohdeOid, _, _, _) = vastaanotto
     for {
-      hakukohde <- hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid).right
-      haku <- hakuService.getHaku(hakukohde.hakuOid).right
-      ohjausparametrit <- ohjausparametritService.ohjausparametrit(hakukohde.hakuOid).right
       hakemus <- hakemusRepository.findHakemus(hakemusOid).right
+      hakukohdes <- hakukohdeRecordService.getHakukohdeRecords(hakemus.toiveet.map(_.oid)).right
+      hakukohde <- (hakukohdes.find(_.oid == hakukohdeOid) match { case Some(hk) => Right(hk) case None => Left(new RuntimeException(s"Hakukohde $hakukohdeOid not in hakemus $hakemusOid"))}).right
+      haku <- hakuService.getHaku(hakukohde.hakuOid).right
+      ohjausparametrit <- ohjausparametritService.ohjausparametrit(haku.oid).right
       hakutoive <- hakijaVastaanottoRepository.runAsSerialized(10, Duration(5, TimeUnit.MILLISECONDS), s"Storing vastaanotto $vastaanotto",
         for {
-          sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(hakukohde.hakuOid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
-          maybeAiempiVastaanottoKaudella <- aiempiVastaanottoKaudella(haku, hakukohde, henkiloOid)
-          hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true, maybeAiempiVastaanottoKaudella.map(_.isDefined))(hakemus)
+          sijoittelunTulos <- sijoittelutulosService.latestSijoittelunTulos(haku.oid, henkiloOid, hakemusOid, ohjausparametrit.flatMap(_.vastaanottoaikataulu))
+          maybeAiempiVastaanottoKaudella <- aiempiVastaanottoKaudella(hakukohde, henkiloOid)
+          hakemuksenTulos = valintatulosService.julkaistavaTulos(sijoittelunTulos, haku, ohjausparametrit, true,
+            vastaanottoKaudella = hakukohdeOid => {
+              hakukohdes.find(_.oid == hakukohdeOid).filter(_.yhdenPaikanSaantoVoimassa).flatMap(hakukohde => Some(hakukohde.koulutuksenAlkamiskausi, maybeAiempiVastaanottoKaudella.flatten.isDefined))
+            })(hakemus)
           hakutoive <- tarkistaHakutoiveenVastaanotettavuus(hakemuksenTulos, hakukohdeOid, vastaanotto.action).fold(DBIO.failed, DBIO.successful)
           _ <- hakijaVastaanottoRepository.storeAction(vastaanotto)
         } yield hakutoive).right
@@ -199,11 +206,14 @@ class VastaanottoService(hakuService: HakuService,
       hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
     }
   }
-
-  private def aiempiVastaanottoKaudella(haku: Haku,
-                                        hakukohde: HakukohdeRecord,
+  private def aiempiVastaanottoKausilla(hakukohdes: Seq[HakukohdeRecord],
+                                        henkiloOid: String): Map[Kausi, DBIO[Option[VastaanottoRecord]]] = {
+    hakukohdes.filter(_.yhdenPaikanSaantoVoimassa).map(_.koulutuksenAlkamiskausi).distinct.map(kausi =>
+      kausi -> hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, kausi)).toMap
+  }
+  private def aiempiVastaanottoKaudella(hakukohde: HakukohdeRecord,
                                         henkiloOid: String): DBIO[Option[Option[VastaanottoRecord]]] = {
-    if (haku.yhdenPaikanSaanto.voimassa) {
+    if (hakukohde.yhdenPaikanSaantoVoimassa) {
       hakijaVastaanottoRepository.findYhdenPaikanSaannonPiirissaOlevatVastaanotot(henkiloOid, hakukohde.koulutuksenAlkamiskausi).map(Some(_))
     } else {
       DBIO.successful(None)
