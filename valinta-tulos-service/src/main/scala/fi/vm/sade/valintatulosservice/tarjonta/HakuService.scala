@@ -229,6 +229,8 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
         Try(Right(parse(resultString))).recover {
           case NonFatal(e) => Left(new IllegalStateException(s"Parsing result $resultString of GET $url failed", e))
         }.get
+      case (502, _, _) =>
+        Left(new RuntimeException(s"GET $url failed with status 502"))
       case (responseCode, _, resultString) =>
         Left(new RuntimeException(s"GET $url failed with status $responseCode: $resultString"))
     }).recover {

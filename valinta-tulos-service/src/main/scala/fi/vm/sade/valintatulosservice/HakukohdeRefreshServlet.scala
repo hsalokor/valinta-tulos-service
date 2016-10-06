@@ -58,15 +58,12 @@ class HakukohdeRefreshServlet(hakukohdeRepository: HakukohdeRepository,
           hakukohteet.tasksupport = new ForkJoinTaskSupport(pool)
           logger.info(s"${dryRunMsg}Refreshing ${hakukohteet.size} hakukohdetta")
           hakukohteet.foreach(hakukohde => {
-            val (old, fresh) = if (dryRun) {
+            val updated = if (dryRun) {
               hakukohdeRecordService.refreshHakukohdeRecordDryRun(hakukohde.oid)
             } else {
               hakukohdeRecordService.refreshHakukohdeRecord(hakukohde.oid)
             }
-            fresh.foreach(hakukohdeRecord => {
-              logger.info(s"${dryRunMsg}Updated hakukohde ${old.oid} from $old to $fresh")
-              i.incrementAndGet()
-            })
+            if (updated) { i.incrementAndGet() }
           })
           pool.shutdown()
           pool.awaitTermination(30, TimeUnit.SECONDS)

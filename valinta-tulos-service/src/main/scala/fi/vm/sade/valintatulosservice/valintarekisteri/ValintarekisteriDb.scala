@@ -330,4 +330,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                    or koulutuksen_alkamiskausi <> ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec})"""
     ) == 1
   }
+
+  override def hakukohteessaVastaanottoja(oid: String): Boolean = {
+    runBlocking(sql"""select count(*) from newest_vastaanotot where hakukohde = ${oid}""".as[Int]).head > 0
+  }
 }

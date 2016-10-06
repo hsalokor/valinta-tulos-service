@@ -10,4 +10,5 @@ trait HakukohdeRepository {
   def findHakukohteet(hakukohdeOids: Set[String]): Set[HakukohdeRecord]
   def storeHakukohde(hakukohdeRecord: HakukohdeRecord): Unit
   def updateHakukohde(hakukohdeRecord: HakukohdeRecord): Boolean
+  def hakukohteessaVastaanottoja(oid: String): Boolean
 }

@@ -40,30 +40,35 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
     }
   }
 
-  def refreshHakukohdeRecord(oid: String): (HakukohdeRecord, Option[HakukohdeRecord]) = {
-    val old = hakukohdeRepository.findHakukohde(oid).get
-    fetchHakukohdeDetails(oid) match {
-      case Right(fresh) => if (hakukohdeRepository.updateHakukohde(fresh)) {
-        (old, Some(fresh))
-      } else {
-        (old, None)
-      }
-      case Left(t) if parseLeniently =>
-        logger.warn(s"Error fetching hakukohde ${old.oid} that exists in db", t)
-        (old, None)
-      case Left(t) => throw t
-    }
+  def refreshHakukohdeRecord(oid: String): Boolean = {
+    refreshHakukohdeRecord(oid, (_, fresh) => hakukohdeRepository.updateHakukohde(fresh))
   }
 
-  def refreshHakukohdeRecordDryRun(oid: String): (HakukohdeRecord, Option[HakukohdeRecord]) = {
+  def refreshHakukohdeRecordDryRun(oid: String): Boolean = {
+    refreshHakukohdeRecord(oid, _ != _)
+  }
+
+  private def refreshHakukohdeRecord(oid: String, update: (HakukohdeRecord, HakukohdeRecord) => Boolean): Boolean = {
     val old = hakukohdeRepository.findHakukohde(oid).get
+    val vastaanottoja = hakukohdeRepository.hakukohteessaVastaanottoja(oid)
     fetchHakukohdeDetails(oid) match {
-      case Right(fresh) => if (old == fresh) {
-        (old, None)
-      } else {
-        (old, Some(fresh))
-      }
-      case Left(t) => throw t
+      case Right(fresh) =>
+        if (update(old, fresh)) {
+          if (vastaanottoja) {
+            logger.warn(s"Updated hakukohde from $old to $fresh. Hakukohde had vastaanottos.")
+          } else {
+            logger.info(s"Updated hakukohde from $old to $fresh.")
+          }
+          true
+        } else {
+          false
+        }
+      case Left(t) if vastaanottoja =>
+        logger.error(s"Updating hakukohde $oid failed. Hakukohde had vastaanottos.", t)
+        false
+      case Left(t) =>
+        logger.warn(s"Updating hakukohde $oid failed.", t)
+        false
     }
   }
 
