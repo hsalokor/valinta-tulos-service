@@ -55,6 +55,18 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
     }
   }
 
+  def refreshHakukohdeRecordDryRun(oid: String): (HakukohdeRecord, Option[HakukohdeRecord]) = {
+    val old = hakukohdeRepository.findHakukohde(oid).get
+    fetchHakukohdeDetails(oid) match {
+      case Right(fresh) => if (old == fresh) {
+        (old, None)
+      } else {
+        (old, Some(fresh))
+      }
+      case Left(t) => throw t
+    }
+  }
+
   private def fetchAndStoreHakukohdeDetails(oid: String): Either[Throwable, HakukohdeRecord] = {
     val fresh = fetchHakukohdeDetails(oid)
     fresh.right.foreach(hakukohdeRepository.storeHakukohde)

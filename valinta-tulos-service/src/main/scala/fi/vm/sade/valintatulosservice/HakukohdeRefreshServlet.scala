@@ -42,8 +42,11 @@ class HakukohdeRefreshServlet(hakukohdeRepository: HakukohdeRepository,
 
   val virkistaSwagger = (apiOperation[Unit]("virkistaHakukohteet")
     summary "Virkistä hakukohteiden tiedot"
+    parameter queryParam[Boolean]("dryRun").defaultValue(true).description("Dry run logittaa muuttuneet hakukohteet, mutta ei päivitä kantaa.")
     parameter bodyParam[Set[String]]("hakukohdeOids").description("Virkistettävien hakukohteiden oidit. Huom, tyhjä lista virkistää kaikki!"))
   post("/", operation(virkistaSwagger)) {
+    val dryRun = params.getOrElse("dryrun", "true").toBoolean
+    val dryRunMsg = if (dryRun) "DRYRUN " else ""
     val started = Some(new Date())
     val hakukohdeOids = read[Set[String]](request.body)
     if (running.compareAndSet(None, started)) {
@@ -53,24 +56,28 @@ class HakukohdeRefreshServlet(hakukohdeRepository: HakukohdeRepository,
           val i = new AtomicInteger(0)
           val pool = new ForkJoinPool(4)
           hakukohteet.tasksupport = new ForkJoinTaskSupport(pool)
-          logger.info(s"Refreshing ${hakukohteet.size} hakukohdetta")
+          logger.info(s"${dryRunMsg}Refreshing ${hakukohteet.size} hakukohdetta")
           hakukohteet.foreach(hakukohde => {
-            val (old, fresh) = hakukohdeRecordService.refreshHakukohdeRecord(hakukohde.oid)
+            val (old, fresh) = if (dryRun) {
+              hakukohdeRecordService.refreshHakukohdeRecordDryRun(hakukohde.oid)
+            } else {
+              hakukohdeRecordService.refreshHakukohdeRecord(hakukohde.oid)
+            }
             fresh.foreach(hakukohdeRecord => {
-              logger.info(s"Updated hakukohde ${old.oid} from $old to $fresh")
+              logger.info(s"${dryRunMsg}Updated hakukohde ${old.oid} from $old to $fresh")
               i.incrementAndGet()
             })
           })
           pool.shutdown()
           pool.awaitTermination(30, TimeUnit.SECONDS)
-          logger.info(s"Updated $i hakukohdetta")
+          logger.info(s"${dryRunMsg}Updated $i hakukohdetta")
         } catch {
-          case e: Exception => logger.error("Refreshing hakukohteet failed", e)
+          case e: Exception => logger.error(s"${dryRunMsg}Refreshing hakukohteet failed", e)
         } finally {
           running.compareAndSet(started, None)
         }
       }
-      logger.info("Hakukohde refresh started")
+      logger.info(s"${dryRunMsg}Hakukohde refresh started")
     }
     SeeOther(url(statusController))
   }
