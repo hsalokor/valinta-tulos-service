@@ -18,6 +18,8 @@ import scalaj.http.HttpOptions
 trait HakuService {
   def getHaku(oid: String): Either[Throwable, Haku]
   def getHakukohde(oid: String): Either[Throwable, Hakukohde]
+  def getHakukohdes(oids: Seq[String]): Either[Throwable, Seq[Hakukohde]]
+  def getHakukohdesForHaku(hakuOid: String): Either[Throwable, Seq[Hakukohde]]
   def getKoulutus(koulutusOid: String): Either[Throwable, Koulutus]
   def getHakukohdeOids(hakuOid:String): Either[Throwable, Seq[String]]
   def getArbitraryPublishedHakukohdeOid(oid: String): Either[Throwable, String]
@@ -44,7 +46,8 @@ case class Hakuaika(hakuaikaId: String, alkuPvm: Option[Long], loppuPvm: Option[
 
 case class Hakukohde(oid: String, hakuOid: String, hakukohdeKoulutusOids: List[String],
                      koulutusAsteTyyppi: String, koulutusmoduuliTyyppi: String,
-                     hakukohteenNimet: Map[String, String], tarjoajaNimet: Map[String, String])
+                     hakukohteenNimet: Map[String, String], tarjoajaNimet: Map[String, String],
+                     yhdenPaikanSaanto: YhdenPaikanSaanto)
 
 case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, koulutusKoodi: Option[Koodi]) {
   def johtaaTutkintoon: Boolean = {
@@ -110,7 +113,9 @@ class CachedHakuService(wrappedService: HakuService) extends HakuService {
 
   override def getHaku(oid: String): Either[Throwable, Haku] = byOid(oid)
   override def getHakukohde(oid: String): Either[Throwable, Hakukohde] = wrappedService.getHakukohde(oid)
+  override def getHakukohdes(oids: Seq[String]): Either[Throwable, Seq[Hakukohde]] = wrappedService.getHakukohdes(oids)
   override def getHakukohdeOids(hakuOid:String): Either[Throwable, Seq[String]] = wrappedService.getHakukohdeOids(hakuOid)
+  override def getHakukohdesForHaku(hakuOid: String): Either[Throwable, Seq[Hakukohde]] = wrappedService.getHakukohdesForHaku(hakuOid)
   override def getArbitraryPublishedHakukohdeOid(oid: String): Either[Throwable, String] = wrappedService.getArbitraryPublishedHakukohdeOid(oid)
 
   def kaikkiJulkaistutHaut: Either[Throwable, List[Haku]] = all()
@@ -164,7 +169,9 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
       (parse(response) \ "result" \ "tulokset" \ "tulokset" \ "oid" ).extractOpt[String]
     }.right.flatMap(_.toRight(new IllegalArgumentException(s"No hakukohde found for haku $hakuOid")))
   }
-
+  def getHakukohdes(oids: Seq[String]): Either[Throwable, List[Hakukohde]] = {
+    sequence(for{oid <- oids.toStream} yield getHakukohde(oid))
+  }
   def getHakukohde(hakukohdeOid: String): Either[Throwable, Hakukohde] = {
     val hakukohdeUrl = s"${appConfig.settings.tarjontaUrl}/rest/v1/hakukohde/$hakukohdeOid"
     fetch(hakukohdeUrl) { response =>
@@ -174,6 +181,16 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
       case e: IllegalStateException => new IllegalStateException(s"Parsing hakukohde $hakukohdeOid failed", e)
       case e: Exception => new RuntimeException(s"Failed to get hakukohde $hakukohdeOid", e)
     }
+  }
+
+  def getHakukohdesForHaku(hakuOid: String): Either[Throwable, Seq[Hakukohde]] = {
+    getHakukohdeOids(hakuOid).right.flatMap(getHakukohdes)
+    /*
+    val url = s"${appConfig.settings.tarjontaUrl}/rest/v1/hakukohde/search?tila=VALMIS&tila=JULKAISTU&hakuOid=$hakuOid"
+    fetch(url) { response =>
+      (parse(response) \ "result" \ "tulokset" \ "tulokset" ).extractOpt[Seq[Hakukohde]]
+    }.right.flatMap(_.toRight(new IllegalArgumentException(s"No hakukohdes found for haku $hakuOid")))
+    */
   }
 
   def kaikkiJulkaistutHaut: Either[Throwable, List[Haku]] = {
@@ -201,7 +218,9 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
       url,
       HttpOptions.connTimeout(30000),
       HttpOptions.readTimeout(120000)
-    ).responseWithHeaders match {
+    ).header("clientSubSystemCode", "valinta-tulos-service")
+      .header("Caller-id", "valinta-tulos-service")
+      .responseWithHeaders match {
       case (200, _, resultString) if parseStatus(resultString).contains("NOT_FOUND") =>
         Left(new IllegalArgumentException(s"GET $url failed with status 200: NOT_FOUND"))
       case (404, _, resultString) =>
@@ -210,10 +229,17 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
         Try(Right(parse(resultString))).recover {
           case NonFatal(e) => Left(new IllegalStateException(s"Parsing result $resultString of GET $url failed", e))
         }.get
+      case (502, _, _) =>
+        Left(new RuntimeException(s"GET $url failed with status 502"))
       case (responseCode, _, resultString) =>
         Left(new RuntimeException(s"GET $url failed with status $responseCode: $resultString"))
     }).recover {
       case NonFatal(e) => Left(new RuntimeException(s"GET $url failed", e))
     }.get
+  }
+  private def sequence[A, B](xs: Stream[Either[B, A]]): Either[B, List[A]] = xs match {
+    case Stream.Empty => Right(Nil)
+    case Left(e)#::_ => Left(e)
+    case Right(x)#::rest => sequence(rest).right.map(x +: _)
   }
 }

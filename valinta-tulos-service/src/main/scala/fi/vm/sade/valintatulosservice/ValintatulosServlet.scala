@@ -64,7 +64,7 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
   get("/:hakuOid/hakukohde/:hakukohdeOid", operation(getHakukohteenHakemuksetSwagger)) {
     val hakuOid = params("hakuOid")
     val hakukohdeOid = params("hakukohdeOid")
-    serveStreamingResults({ valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid) })
+    serveStreamingResults({ valintatulosService.hakemustenTulosByHakukohde(hakuOid, hakukohdeOid).right.toOption })
   }
 
   lazy val getHakukohteenHakemuksetSwagger: OperationBuilder = (apiOperation[Unit]("getHakukohteenHakemukset")
