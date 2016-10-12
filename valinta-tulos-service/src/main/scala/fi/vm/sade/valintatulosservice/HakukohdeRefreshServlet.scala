@@ -42,7 +42,7 @@ class HakukohdeRefreshServlet(hakukohdeRepository: HakukohdeRepository,
 
   val virkistaSwagger = (apiOperation[Unit]("virkistaHakukohteet")
     summary "Virkistä hakukohteiden tiedot"
-    parameter queryParam[Boolean]("dryRun").defaultValue(true).description("Dry run logittaa muuttuneet hakukohteet, mutta ei päivitä kantaa.")
+    parameter queryParam[Boolean]("dryrun").defaultValue(true).description("Dry run logittaa muuttuneet hakukohteet, mutta ei päivitä kantaa.")
     parameter bodyParam[Set[String]]("hakukohdeOids").description("Virkistettävien hakukohteiden oidit. Huom, tyhjä lista virkistää kaikki!"))
   post("/", operation(virkistaSwagger)) {
     val dryRun = params.getOrElse("dryrun", "true").toBoolean
