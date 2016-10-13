@@ -18,7 +18,7 @@ import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
 
-class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with HakijaVastaanottoRepository
+class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with HakijaVastaanottoRepository with SijoitteluRepository
   with HakukohdeRepository with VirkailijaVastaanottoRepository with Logging {
   val user = if (dbConfig.hasPath("user")) dbConfig.getString("user") else null
   val password = if (dbConfig.hasPath("password")) dbConfig.getString("password") else null
@@ -322,5 +322,13 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                    or kk_tutkintoon_johtava <> ${hakukohdeRecord.kktutkintoonJohtava}
                    or koulutuksen_alkamiskausi <> ${hakukohdeRecord.koulutuksenAlkamiskausi.toKausiSpec})"""
     ) == 1
+  }
+
+  override def storeSijoitteluAjo(sijoitteluajo:Sijoitteluajo): Unit = {
+    runBlocking(
+      sqlu"""insert into sijoitteluajo (id, hakuOid, "start", "end")
+             values (${sijoitteluajo.sijoitteluajoId}, ${sijoitteluajo.hakuOid},
+                     ${new java.sql.Timestamp(sijoitteluajo.startMils)},
+                     ${new java.sql.Timestamp(sijoitteluajo.endMils)})""")
   }
 }

@@ -44,7 +44,7 @@ class ScalatraBootstrap extends LifeCycle {
       appConfig.sijoitteluContext.valintatulosRepository, valintarekisteriDb)
     lazy val valintatulosCollection = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
     lazy val mailPoller = new MailPoller(valintatulosCollection, valintatulosService, valintarekisteriDb, hakuService, appConfig.ohjausparametritService, limit = 100)
-
+    lazy val sijoitteluService = new SijoitteluService(valintarekisteriDb)
 
 
     val migrationMode = System.getProperty("valinta-rekisteri-migration-mode")
@@ -60,6 +60,7 @@ class ScalatraBootstrap extends LifeCycle {
       context.mount(new EmailStatusServlet(mailPoller, valintatulosCollection, new MailDecorator(new HakemusRepository(), valintatulosCollection, hakuService)), "/vastaanottoposti")
       context.mount(new EnsikertalaisuusServlet(valintarekisteriDb, appConfig.settings.valintaRekisteriEnsikertalaisuusMaxPersonOids), "/ensikertalaisuus")
       context.mount(new HakijanVastaanottoServlet(vastaanottoService), "/vastaanotto")
+      context.mount(new SijoitteluServlet(sijoitteluService), "/sijoittelu")
 
       val securityFilter = appConfig.securityContext.securityFilter
       context.addFilter("cas", securityFilter)
