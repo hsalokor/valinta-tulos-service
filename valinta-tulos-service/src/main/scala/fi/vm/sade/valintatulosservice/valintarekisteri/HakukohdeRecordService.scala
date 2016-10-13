@@ -7,7 +7,7 @@ import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService, Hakukohde, Ko
 import scala.util.{Failure, Success, Try}
 
 class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: HakukohdeRepository, parseLeniently: Boolean) extends Logging {
-  private val koulutusTilasToSkipInStrictParsing = List("LUONNOS", "KOPIOITU") // See TarjontaTila in tarjonta-api
+  private val koulutusTilasToSkipInStrictParsing = List("POISTETTU") // See TarjontaTila in tarjonta-api
 
   def getHaunHakukohdeRecords(oid: String): Either[Throwable, Seq[HakukohdeRecord]] = {
     hakuService.getHakukohdeOids(oid).right.flatMap(getHakukohdeRecords)
