@@ -314,6 +314,8 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       c.ilmoittaja mustEqual henkiloOid
       c.timestamp.before(new Date()) must beTrue
     }
+
+
   }
 
   override protected def before: Unit = {
