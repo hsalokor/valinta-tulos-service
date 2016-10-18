@@ -326,7 +326,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def storeSijoitteluAjo(sijoitteluajo:Sijoitteluajo): Unit = {
     runBlocking(
-      sqlu"""insert into sijoitteluajo (id, hakuOid, "start", "end")
+      sqlu"""insert into sijoitteluajot (id, hakuOid, "start", "end")
              values (${sijoitteluajo.sijoitteluajoId}, ${sijoitteluajo.hakuOid},
                      ${new java.sql.Timestamp(sijoitteluajo.startMils)},
                      ${new java.sql.Timestamp(sijoitteluajo.endMils)})""")
