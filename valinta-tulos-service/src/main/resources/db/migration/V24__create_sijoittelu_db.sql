@@ -22,7 +22,7 @@ create table sijoitteluajonHakukohteet (
 alter table sijoitteluajonHakukohteet owner to oph;
 
 create table valintatapajonot(
-  oid character varying not null,
+  oid character varying not null primary key,
   sijoitteluajonHakukohdeId bigint not null references sijoitteluajonHakukohteet(id),
   nimi character varying not null,
   prioriteetti integer,
@@ -37,7 +37,7 @@ create table valintatapajonot(
   hyvaksytty integer,
   varalla integer,
   alinHyvaksyttyPistemaara character varying,
-  PRIMARY KEY (oid, sijoitteluajonHakukohdeId)
+  unique (oid, sijoitteluajonHakukohdeId)
 );
 alter table valintatapajonot owner to oph;
 
@@ -54,14 +54,13 @@ create table jonosijat (
   sukunimi character varying not null,
   prioriteetti integer,
   jonosija integer,
--- onkoMuuttunutViimeSijoittelussa boolean,
+  onkoMuuttunutViimeSijoittelussa boolean,
   pisteet integer,
   tasasijaJonosija integer,
 -- edellinenTila character varying,
   hyvaksyttyHarkinnanvaraisesti boolean,
   hyvaksyttyHakijaryhmasta boolean,
   siirtynytToisestaValintatapajonosta boolean,
-  julkaistavissa boolean not null default false,
   unique(valintatapajonoOid, hakemusOid),
   constraint jonosijat_vaintatapajonot_fk foreign key (valintatapajonoOid, sijoitteluajonHakukohdeId) references valintatapajonot(oid, sijoitteluajonHakukohdeId)
 );
@@ -77,33 +76,39 @@ create type valinnantila as enum (
   'Peruutettu'
 );
 
-create sequence deleted_valinnantilat_id start 1;
-alter sequence deleted_valinnantilat_id owner to oph;
+create sequence deleted_valinnantulokset_id start 1;
+alter sequence deleted_valinnantulokset_id owner to oph;
 
-create table deleted_valinnantilat(
-  id bigint primary key default nextval('deleted_valinnantilat_id'),
+create table deleted_valinnantulokset(
+  id bigint primary key default nextval('deleted_valinnantulokset_id'),
   poistaja character varying not null,
   selite character varying not null,
   "timestamp" timestamp with time zone not null default now()
 );
-alter table deleted_valinnantilat owner to oph;
+alter table deleted_valinnantulokset owner to oph;
 
-create sequence valinnantilat_id start 1;
-alter sequence valinnantilat_id owner to oph;
+create sequence valinnantulokset_id start 1;
+alter sequence valinnantulokset_id owner to oph;
 
-create table valinnantilat(
-  id bigint PRIMARY KEY default nextval('valinnantilat_id'),
+create table valinnantulokset(
+  id bigint PRIMARY KEY default nextval('valinnantulokset_id'),
+  hakukohdeOid character varying not null references hakukohteet(hakukohde_oid),
+  valintatapajonoOid character varying not null references valintatapajonot(oid),
+  hakemusOid character varying not null,
+  sijoitteluajoId bigint not null references sijoitteluajot(id),
   jonosijaId bigint not null constraint tilat_jonosijat_fk references jonosijat(id),
   tila valinnantila not null,
+  julkaistavissa boolean not null default false,
   ilmoittaja character varying not null,
   selite character varying not null,
   "timestamp" timestamp with time zone not null default now(),
-  deleted bigint constraint vt_deleted_valinnantilat_fk references deleted_valinnantilat(id)
+  tilanViimeisinMuutos timestamp with time zone not null,
+  deleted bigint constraint vt_deleted_valinnantulokset_fk references deleted_valinnantulokset(id)
 );
-alter table valinnantilat owner to oph;
+alter table valinnantulokset owner to oph;
 
 create table pistetiedot (
-  jonosijaId bigint not null,
+  jonosijaId bigint not null constraint pistetiedot_jonosijat_fk references jonosijat(id),
   tunniste character varying not null,
   arvo character varying,
   laskennallinenArvo character varying,
