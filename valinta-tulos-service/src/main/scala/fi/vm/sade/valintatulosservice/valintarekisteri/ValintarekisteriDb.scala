@@ -19,7 +19,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
-
 class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with HakijaVastaanottoRepository with SijoitteluRepository
   with HakukohdeRepository with VirkailijaVastaanottoRepository with Logging {
   val user = if (dbConfig.hasPath("user")) dbConfig.getString("user") else null

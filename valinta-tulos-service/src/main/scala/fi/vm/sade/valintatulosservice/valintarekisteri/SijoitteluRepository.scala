@@ -7,7 +7,7 @@ import fi.vm.sade.valintatulosservice.domain.{HakijaRecord, SijoitteluWrapper, S
 
 trait SijoitteluRepository {
   val db: Database
-  def storeSijoitteluAjo(sijoitteluajo:Sijoitteluajo): Unit
+  def storeSijoitteluajo(sijoitteluajo:Sijoitteluajo): Unit
   def getHakija(hakemusOid: String, sijoitteluajoOid: Int): HakijaRecord
   def storeSijoitteluajo(sijoitteluajo:SijoitteluAjo): Unit
   def storeSijoittelu(sijoittelu:SijoitteluWrapper)
