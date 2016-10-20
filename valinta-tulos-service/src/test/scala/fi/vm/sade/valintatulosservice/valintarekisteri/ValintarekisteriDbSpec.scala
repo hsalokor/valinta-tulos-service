@@ -315,7 +315,15 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
       c.timestamp.before(new Date()) must beTrue
     }
 
-
+    "get hakiija" in {
+      val now = new java.sql.Timestamp(1)
+      singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
+        sqlu"""insert into sijoitteluajot values (1, ${hakuOid}, ${now}, ${now}, FALSE, FALSE)""",
+        sqlu"""insert into sijoitteluajonhakukohteet values (1, 1, ${hakukohdeOid}, '123123', FALSE)""",
+        sqlu"""insert into valintatapajonot (oid, sijoitteluajonHakukohdeId, nimi) values ('5.5.555.555', 1, 'asd')""",
+        sqlu"""insert into jonosijat (valintatapajonoOid, sijoitteluajonHakukohdeId, hakemusOid, hakijaOid, etunimi, sukunimi) values ('5.5.555.555', 1, '12345', '54321', 'Teppo', 'The Great')"""))
+      singleConnectionValintarekisteriDb.getHakija("12345", 1).etunimi mustEqual "Teppo"
+    }
   }
 
   override protected def before: Unit = {
@@ -385,5 +393,5 @@ class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfter
     r.get.action must beEqualTo(VastaanotaSitovasti)
   }
 
-  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
+//  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))  Ei tarvii tehdä?
 }
