@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
-import org.scalatra.swagger.{SwaggerSupport, ResponseMessage}
+import org.scalatra.swagger.{ResponseMessage, SwaggerSupport}
 
 trait VtsSwaggerBase { this: SwaggerSupport =>
   case class ErrorResponse(error: String)

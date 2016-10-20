@@ -5,8 +5,8 @@ import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.vastaanottomeili._
 import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
-import org.scalatra.swagger.{Swagger, SwaggerSupport}
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
+import org.scalatra.swagger.{Swagger, SwaggerSupport}
 
 class EmailStatusServlet(mailPoller: MailPoller, valintatulosCollection: ValintatulosMongoCollection, mailDecorator: MailDecorator)(implicit val swagger: Swagger) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
 

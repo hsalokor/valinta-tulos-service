@@ -1,25 +1,20 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
+import java.sql.Timestamp
 import java.util.Date
 import java.util.concurrent.TimeUnit
-import java.sql.Timestamp
 
 import com.typesafe.config.{Config, ConfigValueFactory}
-import fi.vm.sade.sijoittelu.domain.{Valintatapajono, Hakukohde, HakukohdeItem, SijoitteluAjo}
-import fi.vm.sade.sijoittelu.tulos.dto.{HakijaryhmaDTO, HakukohdeDTO, ValintatapajonoDTO}
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
+import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatapajono}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.ConflictingAcceptancesException
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus._
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
-import slick.driver.PostgresDriver
 import slick.driver.PostgresDriver.api.{Database, _}
 import slick.jdbc.{GetResult, TransactionIsolation}
-import slick.profile.SqlAction
 
-import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
@@ -39,6 +34,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   private implicit val getHakukohdeResult = GetResult(r =>
     HakukohdeRecord(r.nextString(), r.nextString(), r.nextBoolean(), r.nextBoolean(), Kausi(r.nextString())))
   private implicit val getHakijaResult = GetResult(r => HakijaRecord(r.<<, r.<<, r.<<, r.<<))
+  private implicit val getHakutoiveResult = GetResult(r => HakutoiveRecord(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  private implicit val getPistetiedotResult = GetResult(r => PistetietoRecord(r.<<, r.<<, r.<<, r.<<, r.<<))
 
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
@@ -426,12 +423,31 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             and sijoitteluajonhakukohteet.hakukohdeOid = ${hakukohdeOid}""".as[Valintatapajono])
   }
 
-  override def getHakija(hakemusOid: String, sijoitteluajoOid: Int): HakijaRecord = {
+  override def getHakija(hakemusOid: String, sijoitteluajoId: Int): HakijaRecord = {
     runBlocking(
       sql"""select j.etunimi, j.sukunimi, j.hakemusOid, j.hakijaOid
             from jonosijat as j
             left join valintatapajonot as v on v.oid = j.valintatapajonoOid
             left join sijoitteluajonhakukohteet as sh on sh.id = v.sijoitteluajonHakukohdeId
-            where j.hakemusoid = ${hakemusOid} and sh.sijoitteluajoid = ${sijoitteluajoOid}""".as[HakijaRecord]).head
+            where j.hakemusoid = ${hakemusOid} and sh.sijoitteluajoid = ${sijoitteluajoId}""".as[HakijaRecord]).head
   }
+
+  override def getHakutoiveet(hakemusOid: String, sijoitteluajoId: Int): List[HakutoiveRecord] = {
+    runBlocking(
+      sql"""select j.id, j.prioriteetti, vt.hakukohdeOid, sh.tarjoajaOid, vt.tila, sh.kaikkiJonotSijoiteltu
+            from jonosijat as j
+            left join valinnantulokset as vt on vt.jonosijaId = j.id
+            left join valintatapajonot as v on v.oid = j.valintatapajonoOid
+            left join sijoitteluajonhakukohteet as sh on sh.id = v.sijoitteluajonHakukohdeId
+            where j.hakemusOid = ${hakemusOid} and sh.sijoitteluajoId = ${sijoitteluajoId}""".as[HakutoiveRecord]).toList
+  }
+
+  override def getPistetiedot(jonosijaIds: List[Int]): List[PistetietoRecord] = {
+    val inParameter = jonosijaIds.map(id => s"'$id'").mkString(",")
+    runBlocking(
+      sql"""select *
+            from pistetiedot
+            where jonosijaId in (#${inParameter})""".as[PistetietoRecord]).toList
+  }
+
 }

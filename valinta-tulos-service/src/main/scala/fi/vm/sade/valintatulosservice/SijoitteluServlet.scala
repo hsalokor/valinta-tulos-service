@@ -1,12 +1,11 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.sijoittelu.tulos.dto.HakukohdeDTO
-import org.json4s.jackson.Serialization._
-import org.scalatra.{NotImplemented, Ok}
-import org.scalatra.swagger._
-import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
+import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import org.json4s.jackson.Serialization._
+import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
+import org.scalatra.swagger._
+import org.scalatra.{NotImplemented, Ok}
 
 class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
 

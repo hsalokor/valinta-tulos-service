@@ -3,11 +3,11 @@ package fi.vm.sade.valintatulosservice
 import java.text.ParseException
 
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.json.{StreamingFailureException, JsonFormats}
+import fi.vm.sade.valintatulosservice.json.{JsonFormats, StreamingFailureException}
 import org.json4s.MappingException
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.swagger.SwaggerSupport
-import org.scalatra.{Post, InternalServerError, BadRequest, ScalatraServlet}
+import org.scalatra.{BadRequest, InternalServerError, Post, ScalatraServlet}
 
 trait VtsServletBase extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats with SwaggerSupport {
   private val maxBodyLengthToLog = 500000
