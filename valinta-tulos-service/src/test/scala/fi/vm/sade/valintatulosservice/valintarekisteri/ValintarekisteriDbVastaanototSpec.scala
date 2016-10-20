@@ -17,7 +17,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 @RunWith(classOf[JUnitRunner])
-class ValintarekisteriDbSpec extends Specification with ITSetup with BeforeAfterExample {
+class ValintarekisteriDbVastaanototSpec extends Specification with ITSetup with BeforeAfterExample {
   sequential
   private val henkiloOid = "1.2.246.562.24.00000000001"
   private val hakemusOid = "1.2.246.562.99.00000000001"

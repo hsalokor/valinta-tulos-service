@@ -1,11 +1,11 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
+import java.sql.Timestamp
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
-import fi.vm.sade.sijoittelu.tulos.dto.{HakijaryhmaDTO, HakukohdeDTO, ValintatapajonoDTO}
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
+import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatapajono}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.ConflictingAcceptancesException
 import fi.vm.sade.valintatulosservice.domain._
@@ -342,12 +342,94 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     runBlocking(sql"""select count(*) from newest_vastaanotot where hakukohde = ${oid}""".as[Int]).head > 0
   }
   
-  override def storeSijoitteluAjo(sijoitteluajo: Sijoitteluajo): Unit = {
+  override def storeSijoitteluajo(sijoitteluajo:SijoitteluAjo): Unit = {
+    runBlocking(insertSijoitteluajo(sijoitteluajo))
+  }
+
+  override def storeSijoittelu(sijoittelu: SijoitteluWrapper) = {
+    runBlocking(insertSijoitteluajo(sijoittelu.sijoitteluajo).andThen(
+        DBIO.sequence(sijoittelu.hakukohteet.map(storeSijoittelunHakukohde))
+      )
+    )
+  }
+
+  import scala.collection.JavaConverters._
+
+  def storeSijoittelunHakukohde(hakukohde: Hakukohde) = {
+    insertHakukohde(hakukohde).andThen(selectLatestHakukohdeId).flatMap(id =>
+      DBIO.sequence(hakukohde.getValintatapajonot.asScala.map(insertValintatapajono(id.get, _)).toList)
+    )
+  }
+
+  private def insertSijoitteluajo(sijoitteluajo:SijoitteluAjo) = {
+    val SijoitteluajoWrapper(sijoitteluajoId, hakuOid, startMils, endMils) = SijoitteluajoWrapper(sijoitteluajo)
+    sqlu"""insert into sijoitteluajot (id, hakuOid, "start", "end")
+             values (${sijoitteluajoId}, ${hakuOid},${new Timestamp(startMils)},${new Timestamp(endMils)})"""
+  }
+
+  private def insertHakukohde(hakukohde:Hakukohde) = {
+    val SijoitteluajonHakukohdeWrapper(sijoitteluajoId, oid, tarjoajaOid, kaikkiJonotSijoiteltu) = SijoitteluajonHakukohdeWrapper(hakukohde)
+    sqlu"""insert into sijoitteluajonhakukohteet (sijoitteluajoid, hakukohdeoid, tarjoajaoid, kaikkijonotsijoiteltu)
+             values (${sijoitteluajoId}, ${oid}, ${tarjoajaOid}, ${kaikkiJonotSijoiteltu})"""
+  }
+
+  private def selectLatestHakukohdeId() = {
+    sql"""select currval('sijoitteluajonHakukohteet_id')""".as[Long].headOption
+  }
+
+  private def insertValintatapajono(hakukohdeId:Long, valintatapajono:Valintatapajono) = {
+    val SijoitteluajonValintatapajonoWrapper(oid, nimi, prioriteetti, aloituspaikat, alkuperaisetAloituspaikat,
+      eiVarasijatayttoa, kaikkiEhdonTayttavatHyvaksytaan, poissaOlevaTaytto, varasijat, varasijaTayttoPaivat,
+      varasijojaKaytetaanAlkaen, varasijojaTaytetaanAsti, hyvaksytty, varalla, alinHyvaksyttyPistemaara, valintaesitysHyvaksytty) = SijoitteluajonValintatapajonoWrapper(valintatapajono)
+
+    val varasijojaKaytetaanAlkaenTs:Option[Timestamp] = varasijojaKaytetaanAlkaen.flatMap(d => Option(new Timestamp(d.getTime)))
+
+    sqlu"""insert into valintatapajonot (oid, sijoitteluajonhakukohdeid, nimi, prioriteetti, aloituspaikat,
+           alkuperaisetaloituspaikat, kaikkiehdontayttavathyvaksytaan, poissaolevataytto, eivarasijatayttoa,
+           varasijat, varasijatayttopaivat, varasijojataytetaanasti, hyvaksytty, varalla, alinhyvaksyttypistemaara)
+           values (${oid}, ${hakukohdeId}, ${nimi}, ${prioriteetti}, ${aloituspaikat},
+           ${alkuperaisetAloituspaikat}, ${kaikkiEhdonTayttavatHyvaksytaan},
+           ${poissaOlevaTaytto}, ${eiVarasijatayttoa}, ${varasijat}, ${varasijaTayttoPaivat},
+           ${varasijojaKaytetaanAlkaenTs},
+           ${hyvaksytty}, ${varalla}, ${alinHyvaksyttyPistemaara})"""
+  }
+
+  private implicit val getSijoitteluajoResult = GetResult(r => {
+    SijoitteluajoWrapper(r.nextLong, r.nextString, r.nextTimestamp.getTime, r.nextTimestamp.getTime).sijoitteluajo
+  })
+
+  def findSijoitteluajo(sijoitteluajoId:Long): Option[SijoitteluAjo] = {
     runBlocking(
-      sqlu"""insert into sijoitteluajot (id, hakuOid, "start", "end")
-             values (${sijoitteluajo.sijoitteluajoId}, ${sijoitteluajo.hakuOid},
-                     ${new java.sql.Timestamp(sijoitteluajo.startMils)},
-                     ${new java.sql.Timestamp(sijoitteluajo.endMils)})""")
+      sql"""select id, hakuOid, "start", "end"
+            from sijoitteluajot
+            where id = ${sijoitteluajoId}""".as[SijoitteluAjo]).headOption
+  }
+
+  private implicit val getSijoitteluajonHakukohdeResult = GetResult(r => {
+    SijoitteluajonHakukohdeWrapper(r.nextLong, r.nextString, r.nextString, r.nextBoolean).hakukohde
+  })
+
+  def findSijoitteluajonHakukohteet(sijoitteluajoId:Long): Seq[Hakukohde] = {
+    runBlocking(
+      sql"""select sijoitteluajoId, hakukohdeOid as oid, tarjoajaOid, kaikkiJonotSijoiteltu
+            from sijoitteluajonhakukohteet
+            where sijoitteluajoId = ${sijoitteluajoId}""".as[Hakukohde])
+  }
+
+  private implicit val getSijoitteluajonValintatapajonoResult = GetResult(r => {
+    SijoitteluajonValintatapajonoWrapper(r.nextString, r.nextString, r.nextInt, r.nextInt, r.nextIntOption, r.nextBoolean,
+      r.nextBoolean, r.nextBoolean, r.nextInt, r.nextInt, None, r.nextDateOption,
+      r.nextIntOption, r.nextIntOption, r.nextBigDecimalOption, None).valintatapajono
+  })
+
+  def findHakukohteenValintatapajonot(hakukohdeOid:String): Seq[Valintatapajono] = {
+    runBlocking(
+      sql"""select oid, nimi, prioriteetti, aloituspaikat, alkuperaisetaloituspaikat, eivarasijatayttoa,
+            kaikkiehdontayttavathyvaksytaan, poissaolevataytto,
+            varasijat, varasijatayttopaivat, varasijojataytetaanasti, hyvaksytty, varalla, alinhyvaksyttypistemaara
+            from valintatapajonot
+            inner join sijoitteluajonhakukohteet on sijoitteluajonhakukohteet.id = valintatapajonot.sijoitteluajonhakukohdeid
+            and sijoitteluajonhakukohteet.hakukohdeOid = ${hakukohdeOid}""".as[Valintatapajono])
   }
 
   def getHakija(hakemusOid: String, sijoitteluajoOid: Int): HakijaRecord = {
