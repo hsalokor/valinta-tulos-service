@@ -1,7 +1,7 @@
 package fi.vm.sade.security
 
+import fi.vm.sade.security.ldap.{DirectoryClient, LdapClient, LdapConfig}
 import fi.vm.sade.utils.cas.CasClient
-import fi.vm.sade.security.ldap.{LdapConfig, LdapClient, DirectoryClient}
 import org.scalatra.ScalatraFilter
 
 trait SecurityContext {

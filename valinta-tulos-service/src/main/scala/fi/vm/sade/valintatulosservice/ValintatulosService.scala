@@ -19,7 +19,6 @@ import org.apache.commons.lang3.StringUtils
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
-import scala.util.{Failure, Success, Try}
 
 private object HakemustenTulosHakuLock
 

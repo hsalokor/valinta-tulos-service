@@ -33,6 +33,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   private implicit val getHakukohdeResult = GetResult(r =>
     HakukohdeRecord(r.nextString(), r.nextString(), r.nextBoolean(), r.nextBoolean(), Kausi(r.nextString())))
   private implicit val getHakijaResult = GetResult(r => HakijaRecord(r.<<, r.<<, r.<<, r.<<))
+  private implicit val getHakutoiveResult = GetResult(r => HakutoiveRecord(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  private implicit val getPistetiedotResult = GetResult(r => PistetietoRecord(r.<<, r.<<, r.<<, r.<<, r.<<))
 
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
@@ -431,12 +433,31 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             and sijoitteluajonhakukohteet.hakukohdeOid = ${hakukohdeOid}""".as[Valintatapajono])
   }
 
-  def getHakija(hakemusOid: String, sijoitteluajoOid: Int): HakijaRecord = {
+  override def getHakija(hakemusOid: String, sijoitteluajoId: Int): HakijaRecord = {
     runBlocking(
       sql"""select j.etunimi, j.sukunimi, j.hakemusOid, j.hakijaOid
             from jonosijat as j
             left join valintatapajonot as v on v.oid = j.valintatapajonoOid
             left join sijoitteluajonhakukohteet as sh on sh.id = v.sijoitteluajonHakukohdeId
-            where j.hakemusoid = ${hakemusOid} and sh.sijoitteluajoid = ${sijoitteluajoOid}""".as[HakijaRecord]).head
+            where j.hakemusoid = ${hakemusOid} and sh.sijoitteluajoid = ${sijoitteluajoId}""".as[HakijaRecord]).head
   }
+
+  override def getHakutoiveet(hakemusOid: String, sijoitteluajoId: Int): List[HakutoiveRecord] = {
+    runBlocking(
+      sql"""select j.id, j.prioriteetti, vt.hakukohdeOid, sh.tarjoajaOid, vt.tila, sh.kaikkiJonotSijoiteltu
+            from jonosijat as j
+            left join valinnantulokset as vt on vt.jonosijaId = j.id
+            left join valintatapajonot as v on v.oid = j.valintatapajonoOid
+            left join sijoitteluajonhakukohteet as sh on sh.id = v.sijoitteluajonHakukohdeId
+            where j.hakemusOid = ${hakemusOid} and sh.sijoitteluajoId = ${sijoitteluajoId}""".as[HakutoiveRecord]).toList
+  }
+
+  override def getPistetiedot(jonosijaIds: List[Int]): List[PistetietoRecord] = {
+    val inParameter = jonosijaIds.map(id => s"'$id'").mkString(",")
+    runBlocking(
+      sql"""select *
+            from pistetiedot
+            where jonosijaId in (#${inParameter})""".as[PistetietoRecord]).toList
+  }
+
 }

@@ -1,8 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.valintatulosservice.domain.{HakijanVastaanottoAction, Vastaanottotila, VirkailijanVastaanottoAction}
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
-import fi.vm.sade.valintatulosservice.valintarekisteri.VastaanottoRecord
+import fi.vm.sade.valintatulosservice.domain.{HakijanVastaanottoAction, VirkailijanVastaanottoAction}
 import org.json4s.JsonAST.{JField, JString, JValue}
 import org.json4s.jackson.compactJson
 import org.json4s.{CustomSerializer, Formats, JObject, MappingException}
