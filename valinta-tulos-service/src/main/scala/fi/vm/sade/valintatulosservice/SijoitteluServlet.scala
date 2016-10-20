@@ -1,11 +1,11 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.valintatulosservice.domain.Sijoitteluajo
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import org.json4s.jackson.Serialization._
 import org.scalatra.{NotImplemented, Ok}
 import org.scalatra.swagger._
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
+import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
 
 class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
 
@@ -15,9 +15,10 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
 
   lazy val postSijoitteluajoSwagger: OperationBuilder = (apiOperation[Unit]("postSijoitteluajoSwagger")
     summary "Tallentaa sijoitteluajon"
-    parameter bodyParam[Sijoitteluajo]("sijoitteluajo").description("Sijoitteluajon data"))
+    parameter bodyParam[SijoitteluAjo]("sijoitteluajo").description("Sijoitteluajon data"))
   post("/sijoitteluajo", operation(postSijoitteluajoSwagger)) {
-    val sijoitteluajo = read[Sijoitteluajo](request.body)
+    val hakuOid = params("hakuOid")
+    val sijoitteluajo = read[SijoitteluAjo](request.body)
     Ok(sijoitteluService.luoSijoitteluajo(sijoitteluajo))
   }
 

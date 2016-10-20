@@ -1,9 +1,11 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
+import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
+import fi.vm.sade.valintatulosservice.domain.SijoitteluWrapper
 import slick.driver.PostgresDriver.backend.Database
-import fi.vm.sade.valintatulosservice.domain.Sijoitteluajo
 
 trait SijoitteluRepository {
   val db: Database
-  def storeSijoitteluAjo(sijoitteluajo:Sijoitteluajo): Unit
+  def storeSijoitteluajo(sijoitteluajo:SijoitteluAjo): Unit
+  def storeSijoittelu(sijoittelu:SijoitteluWrapper)
 }
