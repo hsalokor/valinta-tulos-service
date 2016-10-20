@@ -315,7 +315,15 @@ class ValintarekisteriDbVastaanototSpec extends Specification with ITSetup with 
       c.timestamp.before(new Date()) must beTrue
     }
 
-
+    "get hakiija" in {
+      val now = new java.sql.Timestamp(1)
+      singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
+        sqlu"""insert into sijoitteluajot values (111, ${hakuOid}, ${now}, ${now}, FALSE, FALSE)""",
+        sqlu"""insert into sijoitteluajonhakukohteet values (222, 111, ${hakukohdeOid}, '123123', FALSE)""",
+        sqlu"""insert into valintatapajonot (oid, sijoitteluajonHakukohdeId, nimi) values ('5.5.555.555', 222, 'asd')""",
+        sqlu"""insert into jonosijat (valintatapajonoOid, sijoitteluajonHakukohdeId, hakemusOid, hakijaOid, etunimi, sukunimi) values ('5.5.555.555', 222, '12345', '54321', 'Teppo', 'The Great')"""))
+      singleConnectionValintarekisteriDb.getHakija("12345", 111).etunimi mustEqual "Teppo"
+    }
   }
 
   override protected def before: Unit = {

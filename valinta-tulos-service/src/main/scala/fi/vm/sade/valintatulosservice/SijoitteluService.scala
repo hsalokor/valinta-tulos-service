@@ -9,4 +9,5 @@ class SijoitteluService(sijoitteluRepository:SijoitteluRepository) extends Loggi
 
   def luoSijoitteluajo(sijoitteluajo:SijoitteluAjo) = sijoitteluRepository.storeSijoitteluajo(sijoitteluajo)
 
+//  def getHakemusBySijoitteluajo(hakuOid:String, sijoitteluajoOid:String, hakemusOid:String) = sijoitteluRepository.getHakemusBySijoitteluajo(hakuOid, sijoitteluajoOid, hakemusOid)
 }

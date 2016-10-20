@@ -5,7 +5,12 @@ import java.util.concurrent.TimeUnit
 import java.sql.Timestamp
 
 import com.typesafe.config.{Config, ConfigValueFactory}
+<<<<<<< HEAD
 import fi.vm.sade.sijoittelu.domain.{Valintatapajono, Hakukohde, HakukohdeItem, SijoitteluAjo}
+=======
+import fi.vm.sade.sijoittelu.tulos.dto.{HakijaryhmaDTO, HakukohdeDTO, ValintatapajonoDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
+>>>>>>> 893d28993ae673b5eec7ef6ba64bfb636cf66313
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.ConflictingAcceptancesException
 import fi.vm.sade.valintatulosservice.domain._
@@ -36,6 +41,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     r.nextString(), VastaanottoAction(r.nextString()), r.nextString(), r.nextTimestamp()))
   private implicit val getHakukohdeResult = GetResult(r =>
     HakukohdeRecord(r.nextString(), r.nextString(), r.nextBoolean(), r.nextBoolean(), Kausi(r.nextString())))
+  private implicit val getHakijaResult = GetResult(r => HakijaRecord(r.<<, r.<<, r.<<, r.<<))
 
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
@@ -55,6 +61,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             where all_vastaanotot.koulutuksen_alkamiskausi >= ${koulutuksenAlkamisKausi.toKausiSpec}""".as[Option[java.sql.Timestamp]])
     Ensikertalaisuus(personOid, d.head)
   }
+
   override def findVastaanottoHistoryHaussa(henkiloOid: String, hakuOid: String): Set[VastaanottoRecord] = {
     runBlocking(
       sql"""select henkilo, haku_oid, hakukohde, action, ilmoittaja, "timestamp"
@@ -70,6 +77,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
                     join henkiloviitteet on vastaanotot.henkilo = henkiloviitteet.person_oid and henkiloviitteet.linked_oid = ${henkiloOid}) as t
             order by id""".as[VastaanottoRecord]).toSet
   }
+
   override def findVastaanottoHistory(personOid: String): VastaanottoHistoria = {
     val newList = runBlocking(
       sql"""select haku_oid, hakukohde, "action", "timestamp"
@@ -201,7 +209,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def store(vastaanottoEvent: VastaanottoEvent, vastaanottoDate: Date) = {
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, action, ilmoittaja, selite) = vastaanottoEvent
-    runBlocking(sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, selite, timestamp)
+    runBlocking(
+      sqlu"""insert into vastaanotot (hakukohde, henkilo, action, ilmoittaja, selite, timestamp)
               values ($hakukohdeOid, $henkiloOid, ${action.toString}::vastaanotto_action, $ilmoittaja, $selite, ${new java.sql.Timestamp(vastaanottoDate.getTime)})""")
   }
 
@@ -258,7 +267,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   private def kumoaVastaanottotapahtumatAction(vastaanottoEvent: VastaanottoEvent): DBIO[Unit] = {
     val VastaanottoEvent(henkiloOid, _, hakukohdeOid, _, ilmoittaja, selite) = vastaanottoEvent
     val insertDelete = sqlu"""insert into deleted_vastaanotot (poistaja, selite) values ($ilmoittaja, $selite)"""
-    val updateVastaanotto = sqlu"""update vastaanotot set deleted = currval('deleted_vastaanotot_id')
+    val updateVastaanotto =
+      sqlu"""update vastaanotot set deleted = currval('deleted_vastaanotot_id')
                                        where (vastaanotot.henkilo = $henkiloOid
                                               or vastaanotot.henkilo in (select linked_oid from henkiloviitteet where person_oid = $henkiloOid))
                                            and vastaanotot.hakukohde = $hakukohdeOid
@@ -417,5 +427,14 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             from valintatapajonot
             inner join sijoitteluajonhakukohteet on sijoitteluajonhakukohteet.id = valintatapajonot.sijoitteluajonhakukohdeid
             and sijoitteluajonhakukohteet.hakukohdeOid = ${hakukohdeOid}""".as[Valintatapajono])
+  }
+
+  override def getHakija(hakemusOid: String, sijoitteluajoOid: Int): HakijaRecord = {
+    runBlocking(
+      sql"""select j.etunimi, j.sukunimi, j.hakemusOid, j.hakijaOid
+            from jonosijat as j
+            left join valintatapajonot as v on v.oid = j.valintatapajonoOid
+            left join sijoitteluajonhakukohteet as sh on sh.id = v.sijoitteluajonHakukohdeId
+            where j.hakemusoid = ${hakemusOid} and sh.sijoitteluajoid = ${sijoitteluajoOid}""".as[HakijaRecord]).head
   }
 }
