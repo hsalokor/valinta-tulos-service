@@ -5,12 +5,9 @@ import java.util.concurrent.TimeUnit
 import java.sql.Timestamp
 
 import com.typesafe.config.{Config, ConfigValueFactory}
-<<<<<<< HEAD
 import fi.vm.sade.sijoittelu.domain.{Valintatapajono, Hakukohde, HakukohdeItem, SijoitteluAjo}
-=======
 import fi.vm.sade.sijoittelu.tulos.dto.{HakijaryhmaDTO, HakukohdeDTO, ValintatapajonoDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
->>>>>>> 893d28993ae673b5eec7ef6ba64bfb636cf66313
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.ConflictingAcceptancesException
 import fi.vm.sade.valintatulosservice.domain._
