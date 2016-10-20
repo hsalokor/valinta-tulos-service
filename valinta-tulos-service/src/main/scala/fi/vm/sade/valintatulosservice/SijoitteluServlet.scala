@@ -18,7 +18,6 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
     summary "Tallentaa sijoitteluajon"
     parameter bodyParam[SijoitteluAjo]("sijoitteluajo").description("Sijoitteluajon data"))
   post("/sijoitteluajo", operation(postSijoitteluajoSwagger)) {
-    val hakuOid = params("hakuOid")
     val sijoitteluajo = read[SijoitteluAjo](request.body)
     Ok(sijoitteluService.luoSijoitteluajo(sijoitteluajo))
   }
