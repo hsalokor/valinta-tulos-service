@@ -15,17 +15,24 @@ create table sijoitteluajonHakukohteet (
   id bigint primary key default nextval('sijoitteluajonHakukohteet_id'),
   sijoitteluajoId bigint not null references sijoitteluajot(id),
   hakukohdeOid character varying not null references hakukohteet(hakukohde_oid),
-  tarjoajaOid character varying not null, --TODO tähän vain hakukohteet-tauluun? Tarvitaanko, voiko muuttua?
+  tarjoajaOid character varying not null,
   kaikkiJonotSijoiteltu boolean not null,
   unique(sijoitteluajoId, hakukohdeOid)
 );
 alter table sijoitteluajonHakukohteet owner to oph;
+
+create type tasasijasaanto as enum (
+  'Arvonta',
+  'Ylitaytto',
+  'Alitaytto'
+);
 
 create table valintatapajonot(
   oid character varying not null primary key,
   sijoitteluajonHakukohdeId bigint not null references sijoitteluajonHakukohteet(id),
   nimi character varying not null,
   prioriteetti integer,
+  tasasijasaanto tasasijasaanto not null default 'Arvonta',
   aloituspaikat integer,
   alkuperaisetAloituspaikat integer,
   kaikkiEhdonTayttavatHyvaksytaan boolean,
@@ -33,10 +40,13 @@ create table valintatapajonot(
   eiVarasijatayttoa boolean,
   varasijat integer not null default 0,
   varasijaTayttoPaivat integer not null default 0,
-  varasijojaTaytetaanAsti boolean,
+  varasijojaKaytetaanAlkaen timestamp with time zone,
+  varasijojaTaytetaanAsti timestamp with time zone,
+  tayttojono character varying,
   hyvaksytty integer,
   varalla integer,
   alinHyvaksyttyPistemaara character varying,
+  valintaesitysHyvaksytty boolean,
   unique (oid, sijoitteluajonHakukohdeId)
 );
 alter table valintatapajonot owner to oph;
@@ -54,6 +64,7 @@ create table jonosijat (
   sukunimi character varying not null,
   prioriteetti integer,
   jonosija integer,
+  varasijanNumero integer,
   onkoMuuttunutViimeSijoittelussa boolean,
   pisteet integer,
   tasasijaJonosija integer,
@@ -74,6 +85,21 @@ create type valinnantila as enum (
   'Hyvaksytty',
   'Perunut',
   'Peruutettu'
+);
+
+create type valinnantilanTarkenne as enum (
+  'peruuntunutHyvaksyttyYlemmalleHakutoiveelle',
+  'peruuntunutAloituspaikatTaynna',
+  'peruuntunutHyvaksyttyToisessaJonossa',
+  'hyvaksyttyVarasijalta',
+  'peruuntunutEiVastaanottanutMaaraaikana',
+  'peruuntunutVastaanottanutToisenPaikan',
+  'peruuntunutEiMahduVarasijojenMaaraan',
+  'peruuntunutHakukierrosPaattynyt',
+  'peruuntunutEiVarasijatayttoa',
+  'hyvaksyttyTayttojonoSaannolla',
+  'hylattyHakijaryhmaanKuulumattomana',
+  'peruuntunutVastaanottanutToisenPaikanYhdenSaannonPaikanPiirissa'
 );
 
 create sequence deleted_valinnantulokset_id start 1;
@@ -98,7 +124,12 @@ create table valinnantulokset(
   sijoitteluajoId bigint not null references sijoitteluajot(id),
   jonosijaId bigint not null constraint tilat_jonosijat_fk references jonosijat(id),
   tila valinnantila not null,
+  tarkenne valinnantilanTarkenne,
+  tarkenteenLisatieto character varying,
   julkaistavissa boolean not null default false,
+  ehdollisestiHyvaksyttavissa boolean not null default false,
+  hyvaksyttyVarasijalta boolean not null default false,
+  hyvaksyPeruuntunut boolean not null default false,
   ilmoittaja character varying not null,
   selite character varying not null,
   "timestamp" timestamp with time zone not null default now(),

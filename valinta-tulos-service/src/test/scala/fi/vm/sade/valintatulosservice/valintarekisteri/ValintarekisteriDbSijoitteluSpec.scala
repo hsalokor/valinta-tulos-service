@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
 import fi.vm.sade.sijoittelu.domain.{Valintatapajono, Hakukohde, SijoitteluAjo}
+import fi.vm.sade.valintatulosservice.domain.Tasasijasaanto
 import fi.vm.sade.valintatulosservice.ITSetup
 import fi.vm.sade.valintatulosservice.domain.{SijoitteluajonValintatapajonoWrapper, SijoitteluWrapper, SijoitteluajonHakukohdeWrapper, SijoitteluajoWrapper}
 import org.json4s.{CustomSerializer, DefaultFormats}
@@ -27,8 +28,13 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
   }, {
     case x:Long => JObject(List(JField("$numberLong",JString("" + x))))
   }))
+  class TasasijasaantoSerializer extends CustomSerializer[Tasasijasaanto](format => ({
+    case JString(tasasijaValue) => Tasasijasaanto.getTasasijasaanto(fi.vm.sade.sijoittelu.domain.Tasasijasaanto.valueOf(tasasijaValue))
+  }, {
+    case x:Tasasijasaanto => JString(x.tasasijasaanto.toString)
+  }))
 
-  implicit val formats = DefaultFormats ++ List(new NumberLongSerializer)
+  implicit val formats = DefaultFormats ++ List(new NumberLongSerializer, new TasasijasaantoSerializer)
 
   step(appConfig.start)
   step(ValintarekisteriTools.deleteSijoitteluajot(singleConnectionValintarekisteriDb))
