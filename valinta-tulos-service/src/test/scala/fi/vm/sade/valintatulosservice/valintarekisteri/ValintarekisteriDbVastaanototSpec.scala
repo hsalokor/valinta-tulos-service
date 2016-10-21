@@ -328,7 +328,7 @@ class ValintarekisteriDbVastaanototSpec extends Specification with ITSetup with 
     "get hakijan hakutoiveet" in {
       val now = new java.sql.Timestamp(1)
       singleConnectionValintarekisteriDb.runBlocking(
-        sqlu"""insert into valinnantulokset values (1, ${hakukohdeOid}, '5.5.555.555', '12345', 111, 333, 'Varalla', TRUE, 'Ilmoittaja', 'Selite', ${now}, ${now}, NULL)"""
+        sqlu"""insert into valinnantulokset values (1, ${hakukohdeOid}, '5.5.555.555', '12345', 111, 333, 'Varalla', null, null, TRUE, false, false, false, 'Ilmoittaja', 'Selite', ${now}, ${now}, NULL)"""
       )
       val res = singleConnectionValintarekisteriDb.getHakutoiveet("12345", 111)
       res.size mustEqual 1

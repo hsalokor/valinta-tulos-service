@@ -369,19 +369,20 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   private def insertValintatapajono(hakukohdeId:Long, valintatapajono:Valintatapajono) = {
-    val SijoitteluajonValintatapajonoWrapper(oid, nimi, prioriteetti, aloituspaikat, alkuperaisetAloituspaikat,
+    val SijoitteluajonValintatapajonoWrapper(oid, nimi, prioriteetti, tasasijasaanto, aloituspaikat, alkuperaisetAloituspaikat,
       eiVarasijatayttoa, kaikkiEhdonTayttavatHyvaksytaan, poissaOlevaTaytto, varasijat, varasijaTayttoPaivat,
-      varasijojaKaytetaanAlkaen, varasijojaTaytetaanAsti, hyvaksytty, varalla, alinHyvaksyttyPistemaara, valintaesitysHyvaksytty) = SijoitteluajonValintatapajonoWrapper(valintatapajono)
+      varasijojaKaytetaanAlkaen, varasijojaTaytetaanAsti, tayttojono, hyvaksytty, varalla, alinHyvaksyttyPistemaara, valintaesitysHyvaksytty) = SijoitteluajonValintatapajonoWrapper(valintatapajono)
 
     val varasijojaKaytetaanAlkaenTs:Option[Timestamp] = varasijojaKaytetaanAlkaen.flatMap(d => Option(new Timestamp(d.getTime)))
+    val varasijojaTaytetaanAstiTs:Option[Timestamp] = varasijojaTaytetaanAsti.flatMap(d => Option(new Timestamp(d.getTime)))
 
-    sqlu"""insert into valintatapajonot (oid, sijoitteluajonhakukohdeid, nimi, prioriteetti, aloituspaikat,
+    sqlu"""insert into valintatapajonot (oid, sijoitteluajonhakukohdeid, nimi, prioriteetti, tasasijasaanto, aloituspaikat,
            alkuperaisetaloituspaikat, kaikkiehdontayttavathyvaksytaan, poissaolevataytto, eivarasijatayttoa,
-           varasijat, varasijatayttopaivat, varasijojataytetaanasti, hyvaksytty, varalla, alinhyvaksyttypistemaara)
-           values (${oid}, ${hakukohdeId}, ${nimi}, ${prioriteetti}, ${aloituspaikat},
+           varasijat, varasijatayttopaivat, varasijojaKaytetaanAlkaen, varasijojataytetaanasti, tayttojono, hyvaksytty, varalla, alinhyvaksyttypistemaara)
+           values (${oid}, ${hakukohdeId}, ${nimi}, ${prioriteetti}, ${tasasijasaanto.toString}::tasasijasaanto, ${aloituspaikat},
            ${alkuperaisetAloituspaikat}, ${kaikkiEhdonTayttavatHyvaksytaan},
            ${poissaOlevaTaytto}, ${eiVarasijatayttoa}, ${varasijat}, ${varasijaTayttoPaivat},
-           ${varasijojaKaytetaanAlkaenTs},
+           ${varasijojaKaytetaanAlkaenTs}, ${varasijojaTaytetaanAstiTs}, ${tayttojono},
            ${hyvaksytty}, ${varalla}, ${alinHyvaksyttyPistemaara})"""
   }
 
@@ -408,16 +409,17 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   private implicit val getSijoitteluajonValintatapajonoResult = GetResult(r => {
-    SijoitteluajonValintatapajonoWrapper(r.nextString, r.nextString, r.nextInt, r.nextInt, r.nextIntOption, r.nextBoolean,
-      r.nextBoolean, r.nextBoolean, r.nextInt, r.nextInt, None, r.nextDateOption,
+    SijoitteluajonValintatapajonoWrapper(r.nextString, r.nextString, r.nextInt, Tasasijasaanto(r.nextString()), r.nextInt, r.nextIntOption, r.nextBoolean,
+      r.nextBoolean, r.nextBoolean, r.nextInt, r.nextInt, r.nextDateOption, r.nextDateOption, r.nextStringOption(),
       r.nextIntOption, r.nextIntOption, r.nextBigDecimalOption, None).valintatapajono
   })
 
   def findHakukohteenValintatapajonot(hakukohdeOid:String): Seq[Valintatapajono] = {
     runBlocking(
-      sql"""select oid, nimi, prioriteetti, aloituspaikat, alkuperaisetaloituspaikat, eivarasijatayttoa,
+      sql"""select oid, nimi, prioriteetti, tasasijasaanto, aloituspaikat, alkuperaisetaloituspaikat, eivarasijatayttoa,
             kaikkiehdontayttavathyvaksytaan, poissaolevataytto,
-            varasijat, varasijatayttopaivat, varasijojataytetaanasti, hyvaksytty, varalla, alinhyvaksyttypistemaara
+            varasijat, varasijatayttopaivat, varasijojakaytetaanalkaen, varasijojataytetaanasti, tayttojono,
+            hyvaksytty, varalla, alinhyvaksyttypistemaara
             from valintatapajonot
             inner join sijoitteluajonhakukohteet on sijoitteluajonhakukohteet.id = valintatapajonot.sijoitteluajonhakukohdeid
             and sijoitteluajonhakukohteet.hakukohdeOid = ${hakukohdeOid}""".as[Valintatapajono])
