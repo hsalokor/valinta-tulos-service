@@ -2,8 +2,10 @@ package fi.vm.sade.valintatulosservice.domain
 
 import java.util.Date
 
-import fi.vm.sade.sijoittelu.domain.{Valintatapajono, Valintatulos, Hakukohde, SijoitteluAjo}
+import fi.vm.sade.sijoittelu.domain.{Valintatapajono, Valintatulos, Hakukohde, SijoitteluAjo, Hakemus => SijoitteluHakemus}
 import fi.vm.sade.sijoittelu.domain.{Tasasijasaanto => SijoitteluTasasijasaanto}
+import java.lang.{Integer => javaInt, Boolean => javaBoolean, String => javaString}
+import java.math.{BigDecimal => javaBigDecimal}
 
 case class SijoitteluWrapper(sijoitteluajo:SijoitteluAjo, hakukohteet:List[Hakukohde], valintatulokset:List[Valintatulos])
 
@@ -119,22 +121,7 @@ case class SijoitteluajonValintatapajonoWrapper(
   }
 }
 
-object SijoitteluajonValintatapajonoWrapper {
-  type javaInt = java.lang.Integer
-  type javaBigDecimal = java.math.BigDecimal
-  type javaBoolean = java.lang.Boolean
-  type javaString = java.lang.String
-
-  def int(x:javaInt) = x.toInt
-  def boolean(x:javaBoolean) = x.booleanValue
-  def bigDecimal(x:javaBigDecimal) = BigDecimal(x)
-  def string(x:javaString) = x
-
-  private def convert[javaType,scalaType](javaObject:javaType, f:javaType => scalaType):Option[scalaType] = javaObject match {
-    case null => None //Avoid NullPointerException raised by type conversion when creating scala option with java object
-    case x => Some(f(x))
-  }
-
+object SijoitteluajonValintatapajonoWrapper extends OptionConverter {
   def apply(valintatapajono:Valintatapajono): SijoitteluajonValintatapajonoWrapper = {
     SijoitteluajonValintatapajonoWrapper(
       valintatapajono.getOid(),
@@ -156,5 +143,71 @@ object SijoitteluajonValintatapajonoWrapper {
       convert[javaBigDecimal,BigDecimal](valintatapajono.getAlinHyvaksyttyPistemaara(), bigDecimal),
       convert[javaBoolean,Boolean](valintatapajono.getValintaesitysHyvaksytty(), boolean)
     )
+  }
+}
+
+case class SijoitteluajonJonosijaWrapper(
+  hakemusOid:String,
+  hakijaOid:String,
+  etunimi:String,
+  sukunimi:String,
+  prioriteetti:Int,
+  jonosija:Int,
+  varasijanNumero:Option[Int],
+  onkoMuuttunutViimeSijoittelussa:Option[Boolean],
+  pisteet:Option[BigDecimal],
+  tasasijaJonosija:Option[Int],
+  hyvaksyttyHarkinnanvaraisesti:Option[Boolean],
+  hyvaksyttyHakijaryhmasta:Option[Boolean],
+  siirtynytToisestaValintatapajonosta:Option[Boolean] ) {
+
+  val hakemus:SijoitteluHakemus = {
+    val hakemus = new SijoitteluHakemus
+    hakemus.setHakemusOid(hakemusOid)
+    hakemus.setHakijaOid(hakijaOid)
+    hakemus.setEtunimi(etunimi)
+    hakemus.setSukunimi(sukunimi)
+    hakemus.setPrioriteetti(prioriteetti)
+    hakemus.setJonosija(jonosija)
+    varasijanNumero.foreach(hakemus.setVarasijanNumero(_))
+    onkoMuuttunutViimeSijoittelussa.foreach(hakemus.setOnkoMuuttunutViimeSijoittelussa(_))
+    pisteet.foreach(p => hakemus.setPisteet(p.bigDecimal))
+    tasasijaJonosija.foreach(hakemus.setTasasijaJonosija(_))
+    hyvaksyttyHarkinnanvaraisesti.foreach(hakemus.setHyvaksyttyHarkinnanvaraisesti(_))
+    hyvaksyttyHakijaryhmasta.foreach(hakemus.setHyvaksyttyHakijaryhmasta(_))
+    siirtynytToisestaValintatapajonosta.foreach(hakemus.setSiirtynytToisestaValintatapajonosta(_))
+    hakemus
+  }
+}
+
+object SijoitteluajonJonosijaWrapper extends OptionConverter {
+  def apply(hakemus:SijoitteluHakemus):SijoitteluajonJonosijaWrapper = {
+    SijoitteluajonJonosijaWrapper(
+      hakemus.getHakemusOid,
+      hakemus.getHakijaOid,
+      hakemus.getEtunimi,
+      hakemus.getSukunimi,
+      hakemus.getPrioriteetti,
+      hakemus.getJonosija,
+      convert[javaInt,Int](hakemus.getVarasijanNumero,int),
+      convert[javaBoolean,Boolean](hakemus.isOnkoMuuttunutViimeSijoittelussa,boolean),
+      convert[javaBigDecimal,BigDecimal](hakemus.getPisteet, bigDecimal),
+      convert[javaInt,Int](hakemus.getTasasijaJonosija,int),
+      convert[javaBoolean,Boolean](hakemus.isHyvaksyttyHarkinnanvaraisesti,boolean),
+      convert[javaBoolean,Boolean](hakemus.isHyvaksyttyHakijaryhmasta,boolean),
+      convert[javaBoolean,Boolean](hakemus.getSiirtynytToisestaValintatapajonosta,boolean)
+    )
+  }
+}
+
+trait OptionConverter {
+  def int(x:javaInt) = x.toInt
+  def boolean(x:javaBoolean) = x.booleanValue
+  def bigDecimal(x:javaBigDecimal) = BigDecimal(x)
+  def string(x:javaString) = x
+
+  def convert[javaType,scalaType](javaObject:javaType, f:javaType => scalaType):Option[scalaType] = javaObject match {
+    case null => None //Avoid NullPointerException raised by type conversion when creating scala option with java object
+    case x => Some(f(x))
   }
 }

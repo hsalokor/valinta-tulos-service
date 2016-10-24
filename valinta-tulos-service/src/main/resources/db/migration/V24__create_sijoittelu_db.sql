@@ -45,7 +45,7 @@ create table valintatapajonot(
   tayttojono character varying,
   hyvaksytty integer,
   varalla integer,
-  alinHyvaksyttyPistemaara character varying,
+  alinHyvaksyttyPistemaara numeric,
   valintaesitysHyvaksytty boolean,
   unique (oid, sijoitteluajonHakukohdeId)
 );
@@ -62,11 +62,11 @@ create table jonosijat (
   hakijaOid character varying not null,
   etunimi character varying not null,
   sukunimi character varying not null,
-  prioriteetti integer,
-  jonosija integer,
+  prioriteetti integer not null,
+  jonosija integer not null,
   varasijanNumero integer,
   onkoMuuttunutViimeSijoittelussa boolean,
-  pisteet integer,
+  pisteet numeric,
   tasasijaJonosija integer,
 -- edellinenTila character varying,
   hyvaksyttyHarkinnanvaraisesti boolean,

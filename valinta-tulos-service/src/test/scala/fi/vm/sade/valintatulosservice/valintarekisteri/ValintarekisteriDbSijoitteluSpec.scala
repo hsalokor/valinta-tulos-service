@@ -1,9 +1,8 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
-import fi.vm.sade.sijoittelu.domain.{Valintatapajono, Hakukohde, SijoitteluAjo}
-import fi.vm.sade.valintatulosservice.domain.Tasasijasaanto
+import fi.vm.sade.sijoittelu.domain.{Valintatapajono, Hakukohde, SijoitteluAjo, Hakemus => SijoitteluHakemus}
+import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ITSetup
-import fi.vm.sade.valintatulosservice.domain.{SijoitteluajonValintatapajonoWrapper, SijoitteluWrapper, SijoitteluajonHakukohdeWrapper, SijoitteluajoWrapper}
 import org.json4s.{CustomSerializer, DefaultFormats}
 import org.json4s.JsonAST._
 import org.json4s.jackson.JsonMethods._
@@ -14,6 +13,7 @@ import org.specs2.specification.BeforeAfterExample
 import org.springframework.core.io.ClassPathResource
 import slick.dbio.DBIOAction
 import slick.driver.PostgresDriver.api._
+import slick.jdbc.GetResult
 
 import scala.collection.generic.SeqFactory
 
@@ -43,34 +43,40 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
     "store sijoitteluajo" in {
       val sijoitteluajo = createSijoitteluajo()
       singleConnectionValintarekisteriDb.storeSijoitteluajo(sijoitteluajo)
-      val stored: Option[SijoitteluAjo] = singleConnectionValintarekisteriDb.findSijoitteluajo(sijoitteluajo.getSijoitteluajoId)
+      val stored: Option[SijoitteluAjo] = findSijoitteluajo(sijoitteluajo.getSijoitteluajoId)
       stored.isDefined must beTrue
       SijoitteluajoWrapper(stored.get) mustEqual SijoitteluajoWrapper(sijoitteluajo)
     }
     "store sijoitteluajo fixture" in {
       val wrapper = loadSijoitteluFromFixture("hyvaksytty-korkeakoulu-erillishaku")
       singleConnectionValintarekisteriDb.storeSijoitteluajo(wrapper.sijoitteluajo)
-      val stored: Option[SijoitteluAjo] = singleConnectionValintarekisteriDb.findSijoitteluajo(wrapper.sijoitteluajo.getSijoitteluajoId)
+      val stored: Option[SijoitteluAjo] = findSijoitteluajo(wrapper.sijoitteluajo.getSijoitteluajoId)
       stored.isDefined must beTrue
       SijoitteluajoWrapper(stored.get) mustEqual SijoitteluajoWrapper(wrapper.sijoitteluajo)
     }
     "store sijoitteluajoWrapper fixture" in {
       val wrapper = loadSijoitteluFromFixture("hyvaksytty-korkeakoulu-erillishaku")
       singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)
-      val stored: Option[SijoitteluAjo] = singleConnectionValintarekisteriDb.findSijoitteluajo(wrapper.sijoitteluajo.getSijoitteluajoId)
+      val stored: Option[SijoitteluAjo] = findSijoitteluajo(wrapper.sijoitteluajo.getSijoitteluajoId)
       stored.isDefined must beTrue
       SijoitteluajoWrapper(stored.get) mustEqual SijoitteluajoWrapper(wrapper.sijoitteluajo)
-      val storedHakukohteet: Seq[Hakukohde] = singleConnectionValintarekisteriDb.findSijoitteluajonHakukohteet(stored.get.getSijoitteluajoId)
+      val storedHakukohteet: Seq[Hakukohde] = findSijoitteluajonHakukohteet(stored.get.getSijoitteluajoId)
       wrapper.hakukohteet.foreach(hakukohde => {
         val storedHakukohde = storedHakukohteet.find(_.getOid.equals(hakukohde.getOid))
         storedHakukohde.isDefined must beTrue
         SijoitteluajonHakukohdeWrapper(hakukohde) mustEqual SijoitteluajonHakukohdeWrapper(storedHakukohde.get)
-        val storedValintatapajonot = singleConnectionValintarekisteriDb.findHakukohteenValintatapajonot(hakukohde.getOid)
+        val storedValintatapajonot = findHakukohteenValintatapajonot(hakukohde.getOid)
         import scala.collection.JavaConverters._
         hakukohde.getValintatapajonot.asScala.toList.foreach(valintatapajono => {
           val storedValintatapajono = storedValintatapajonot.find(_.getOid.equals(valintatapajono.getOid))
           storedValintatapajono.isDefined must beTrue
           SijoitteluajonValintatapajonoWrapper(valintatapajono) mustEqual SijoitteluajonValintatapajonoWrapper(storedValintatapajono.get)
+          val storedJonosijat = findValintatapajononJonosijat(valintatapajono.getOid)
+          valintatapajono.getHakemukset.asScala.toList.foreach(hakemus => {
+            val storedJonosija = storedJonosijat.find(_.getHakemusOid.equals(hakemus.getHakemusOid))
+            storedJonosija.isDefined must beTrue
+            SijoitteluajonJonosijaWrapper(hakemus) mustEqual SijoitteluajonJonosijaWrapper(storedJonosija.get)
+          })
         })
         storedValintatapajonot.length mustEqual hakukohde.getValintatapajonot.size
       })
@@ -93,7 +99,12 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
       val hakukohde = hakukohdeJson.extract[SijoitteluajonHakukohdeWrapper].hakukohde
       hakukohde.setValintatapajonot({
         val JArray(valintatapajonot) = (hakukohdeJson \ "valintatapajonot")
-        valintatapajonot.map(_.extract[SijoitteluajonValintatapajonoWrapper].valintatapajono).asJava
+        valintatapajonot.map(valintatapajono => {
+          val valintatapajonoExt = valintatapajono.extract[SijoitteluajonValintatapajonoWrapper].valintatapajono
+          val JArray(hakemukset) = (valintatapajono \ "hakemukset")
+          valintatapajonoExt.setHakemukset(hakemukset.map(h => h.extract[SijoitteluajonJonosijaWrapper].hakemus).asJava)
+          valintatapajonoExt
+        }).asJava
       })
       hakukohde
     })
@@ -111,6 +122,59 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
 
   def createSijoitteluajo(): SijoitteluAjo = {
     SijoitteluajoWrapper(now, hakuOid, now-1000, now).sijoitteluajo
+  }
+
+  private implicit val getSijoitteluajoResult = GetResult(r => {
+    SijoitteluajoWrapper(r.nextLong, r.nextString, r.nextTimestamp.getTime, r.nextTimestamp.getTime).sijoitteluajo
+  })
+
+  def findSijoitteluajo(sijoitteluajoId:Long): Option[SijoitteluAjo] = {
+    singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select id, hakuOid, "start", "end"
+            from sijoitteluajot
+            where id = ${sijoitteluajoId}""".as[SijoitteluAjo]).headOption
+  }
+
+  private implicit val getSijoitteluajonHakukohdeResult = GetResult(r => {
+    SijoitteluajonHakukohdeWrapper(r.nextLong, r.nextString, r.nextString, r.nextBoolean).hakukohde
+  })
+
+  def findSijoitteluajonHakukohteet(sijoitteluajoId:Long): Seq[Hakukohde] = {
+    singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select sijoitteluajoId, hakukohdeOid as oid, tarjoajaOid, kaikkiJonotSijoiteltu
+            from sijoitteluajonhakukohteet
+            where sijoitteluajoId = ${sijoitteluajoId}""".as[Hakukohde])
+  }
+
+  private implicit val getSijoitteluajonValintatapajonoResult = GetResult(r => {
+    SijoitteluajonValintatapajonoWrapper(r.nextString, r.nextString, r.nextInt, Tasasijasaanto(r.nextString()), r.nextInt, r.nextIntOption, r.nextBoolean,
+      r.nextBoolean, r.nextBoolean, r.nextInt, r.nextInt, r.nextDateOption, r.nextDateOption, r.nextStringOption(),
+      r.nextIntOption, r.nextIntOption, r.nextBigDecimalOption, None).valintatapajono
+  })
+
+  def findHakukohteenValintatapajonot(hakukohdeOid:String): Seq[Valintatapajono] = {
+    singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select oid, nimi, prioriteetti, tasasijasaanto, aloituspaikat, alkuperaisetaloituspaikat, eivarasijatayttoa,
+            kaikkiehdontayttavathyvaksytaan, poissaolevataytto,
+            varasijat, varasijatayttopaivat, varasijojakaytetaanalkaen, varasijojataytetaanasti, tayttojono,
+            hyvaksytty, varalla, alinhyvaksyttypistemaara
+            from valintatapajonot
+            inner join sijoitteluajonhakukohteet on sijoitteluajonhakukohteet.id = valintatapajonot.sijoitteluajonhakukohdeid
+            and sijoitteluajonhakukohteet.hakukohdeOid = ${hakukohdeOid}""".as[Valintatapajono])
+  }
+
+  private implicit val getSijoitteluajonJonosijaResult = GetResult(r => {
+    SijoitteluajonJonosijaWrapper(r.nextString, r.nextString, r.nextString, r.nextString, r.nextInt, r.nextInt,
+      r.nextIntOption, r.nextBooleanOption, r.nextBigDecimalOption, r.nextIntOption, r.nextBooleanOption,
+      r.nextBooleanOption, r.nextBooleanOption).hakemus
+  })
+
+  def findValintatapajononJonosijat(valintatapajonoOid:String): Seq[SijoitteluHakemus] = {
+    singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select hakemusoid, hakijaoid, etunimi, sukunimi, prioriteetti, jonosija, varasijannumero, onkomuuttunutviimesijoittelussa,
+            pisteet, tasasijajonosija, hyvaksyttyharkinnanvaraisesti, hyvaksyttyhakijaryhmasta, siirtynyttoisestavalintatapajonosta
+            from jonosijat where valintatapajonooid = ${valintatapajonoOid}
+         """.as[SijoitteluHakemus])
   }
 
   override protected def before: Unit = {
