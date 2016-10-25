@@ -69,8 +69,7 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
     val hakuOid = params("hakuOid")
     val sijoitteluajoOid = params("sijoitteluajoOid")
     val hakemusOid = params("hakemusOid")
-    // TODO Ok(sijoitteluService.getHakemusBySijoitteluajo(hakuOid, sijoitteluajoOid, hakemusOid))
-    NotImplemented()
+    Ok(sijoitteluService.getHakemusBySijoitteluajo(hakuOid, sijoitteluajoOid, hakemusOid))
   }
 
   lazy val getHakukohdeBySijoitteluajoSwagger: OperationBuilder = (apiOperation[Unit]("getHakukohdeBySijoitteluajoSwagger")

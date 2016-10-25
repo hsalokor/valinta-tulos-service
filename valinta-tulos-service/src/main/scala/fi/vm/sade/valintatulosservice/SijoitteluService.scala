@@ -12,9 +12,13 @@ class SijoitteluService(sijoitteluRepository:SijoitteluRepository) extends Loggi
 
   def luoSijoitteluajo(sijoitteluajo:SijoitteluAjo) = sijoitteluRepository.storeSijoitteluajo(sijoitteluajo)
 
-  def getHakemusBySijoitteluajo(hakuOid:String, sijoitteluajoId:Int, hakemusOid:String): HakijaDTO = {
-    val hakija = sijoitteluRepository.getHakija(hakemusOid, sijoitteluajoId)
-    val hakutoiveet = sijoitteluRepository.getHakutoiveet(hakemusOid, sijoitteluajoId)
+  def getHakemusBySijoitteluajo(hakuOid:String, sijoitteluajoId:String, hakemusOid:String): HakijaDTO = {
+    var latestId = Sijoittelu.parseSijoitteluajoId(sijoitteluajoId)
+    if (sijoitteluajoId.equalsIgnoreCase("latest")) {
+      latestId = sijoitteluRepository.getLatestSijoitteluajoId(hakuOid)
+    }
+    val hakija = sijoitteluRepository.getHakija(hakemusOid, latestId)
+    val hakutoiveet = sijoitteluRepository.getHakutoiveet(hakemusOid, latestId)
     val jonosijaIds = hakutoiveet.map(h => h.jonosijaId)
     val pistetiedot = sijoitteluRepository.getPistetiedot(jonosijaIds)
 
