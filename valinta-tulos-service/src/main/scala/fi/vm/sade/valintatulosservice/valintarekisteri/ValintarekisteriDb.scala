@@ -5,18 +5,16 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
-import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus, Valintatulos, Hakukohde, SijoitteluAjo, Valintatapajono}
+import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatapajono, Hakemus => SijoitteluHakemus}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.ConflictingAcceptancesException
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus._
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
-import slick.dbio
 import slick.driver.PostgresDriver.api.{Database, _}
 import slick.jdbc.{GetResult, TransactionIsolation}
 
-import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
@@ -414,6 +412,15 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
            ${jonosija}, ${varasijanNumero}, ${onkoMuuttunutViimeSijoittelussa}, ${pisteet}, ${tasasijaJonosija},
            ${hyvaksyttyHarkinnanvaraisesti},
            ${hyvaksyttyHakijaryhmasta}, ${siirtynytToisestaValintatapajonosta})"""
+  }
+
+  override def getLatestSijoitteluajoId(hakuOid:String): Int = {
+    runBlocking(
+      sql"""select id
+            from sijoitteluajot
+            where hakuOid = ${hakuOid}
+            order by id desc
+            limit 1""".as[Int]).head
   }
 
   override def getHakija(hakemusOid: String, sijoitteluajoId: Int): HakijaRecord = {

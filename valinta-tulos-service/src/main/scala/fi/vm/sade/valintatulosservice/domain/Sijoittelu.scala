@@ -43,4 +43,12 @@ object Sijoittelu {
     pistetietoDTO.setTunniste(pistetieto.tunniste)
     return pistetietoDTO
   }
+
+  def parseSijoitteluajoId(sijoitteluajoId:String): Int = {
+    try {
+      sijoitteluajoId.toInt
+    } catch {
+      case e: NumberFormatException => throw new NumberFormatException(s"Väärän tyyppinen sijoitteuajon ID: $sijoitteluajoId")
+    }
+  }
 }
