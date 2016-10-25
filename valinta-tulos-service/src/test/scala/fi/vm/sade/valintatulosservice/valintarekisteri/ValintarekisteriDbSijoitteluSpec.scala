@@ -1,6 +1,8 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
-import fi.vm.sade.sijoittelu.domain.{Valintatapajono, Hakukohde, SijoitteluAjo, Hakemus => SijoitteluHakemus}
+import java.sql.Timestamp
+
+import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatapajono, Hakemus => SijoitteluHakemus}
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ITSetup
 import org.json4s.{CustomSerializer, DefaultFormats}
@@ -35,6 +37,7 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
   private val henkiloOidC = "1.2.246.562.24.0000000000c"
 
   val now = System.currentTimeMillis
+  val nowDatetime = new Timestamp(1)
 
   class NumberLongSerializer extends CustomSerializer[Long](format => ( {
     case JObject(List(JField("$numberLong",JString(longValue)))) => longValue.toLong
@@ -97,15 +100,12 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
     }
 
     "get hakiija" in {
-      storeSijoitteluAjot()
-      storeSijoitteluajonHakukohteet()
-      storeValintatapajonot()
-      storeJonosijat()
+      storeHakijaData()
       singleConnectionValintarekisteriDb.getHakija("12345", 111).etunimi mustEqual "Teppo"
     }
 
     "get hakijan hakutoiveet" in {
-      storeValinnantulokset()
+      storeHakijaData()
       val res = singleConnectionValintarekisteriDb.getHakutoiveet("12345", 111)
       res.size mustEqual 1
       res.head.hakutoive mustEqual 9999
@@ -113,13 +113,14 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
     }
 
     "get hakijan pistetiedot" in {
-      storePistetiedot()
+      storeHakijaData()
       val res = singleConnectionValintarekisteriDb.getPistetiedot(List(333))
       res.size mustEqual 3
       res.head.arvo mustEqual "Arvo1"
     }
 
     "get latest sijoitteluajoid for haku" in {
+      storeHakijaData()
       val res = singleConnectionValintarekisteriDb.getLatestSijoitteluajoId(hakuOid)
       res mustEqual 222
     }
@@ -220,8 +221,8 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
 
   private def storeSijoitteluAjot() = {
     singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
-      sqlu"""insert into sijoitteluajot (id, hakuOid, start, "end", erillissijoittelu, valisijoittelu) values (111, ${hakuOid}, ${now}, ${now}, FALSE, FALSE)""",
-      sqlu"""insert into sijoitteluajot (id, hakuOid, start, "end", erillissijoittelu, valisijoittelu) values (222, ${hakuOid}, ${now}, ${now}, FALSE, FALSE)"""))
+      sqlu"""insert into sijoitteluajot (id, hakuOid, start, "end", erillissijoittelu, valisijoittelu) values (111, ${hakuOid}, ${nowDatetime}, ${nowDatetime}, FALSE, FALSE)""",
+      sqlu"""insert into sijoitteluajot (id, hakuOid, start, "end", erillissijoittelu, valisijoittelu) values (222, ${hakuOid}, ${nowDatetime}, ${nowDatetime}, FALSE, FALSE)"""))
   }
 
   private def storeSijoitteluajonHakukohteet() = {
@@ -242,7 +243,7 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
 
   private def storeValinnantulokset() = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sqlu"""insert into valinnantulokset values (1, ${hakukohdeOid}, '5.5.555.555', '12345', 111, 333, 'Varalla', null, null, TRUE, false, false, false, 'Ilmoittaja', 'Selite', ${now}, ${now}, NULL)"""
+      sqlu"""insert into valinnantulokset values (1, ${hakukohdeOid}, '5.5.555.555', '12345', 111, 333, 'Varalla', null, null, TRUE, false, false, false, 'Ilmoittaja', 'Selite', ${nowDatetime}, ${nowDatetime}, NULL)"""
     )
   }
 
@@ -253,12 +254,30 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
       sqlu"""insert into pistetiedot values (333, 'Tunniste', 'Arvo3', 'Laskennallinen Arvo 3', 'Osallistuminen 3')"""))
   }
 
+  private def storeHakukohteet() = {
+    singleConnectionValintarekisteriDb.runBlocking(DBIOAction.seq(
+      sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
+             values ($hakukohdeOid, $hakuOid, true, true, '2015K')""",
+      sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
+             values ($otherHakukohdeOid, $otherHakuOid, true, true, '2015S')""",
+      sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
+             values ($otherHakukohdeOidForHakuOid, $hakuOid, true, true, '2015K')"""))
+  }
+
+  private def storeHakijaData() = {
+    storeHakukohteet()
+    storeSijoitteluAjot()
+    storeSijoitteluajonHakukohteet()
+    storeValintatapajonot()
+    storeJonosijat()
+    storeValinnantulokset()
+    storePistetiedot()
+  }
+
   override protected def before: Unit = {
-    ValintarekisteriTools.deleteSijoitteluajot(singleConnectionValintarekisteriDb)
     ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb)
   }
   override protected def after: Unit = {
-    ValintarekisteriTools.deleteSijoitteluajot(singleConnectionValintarekisteriDb)
     ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb)
   }
 }
