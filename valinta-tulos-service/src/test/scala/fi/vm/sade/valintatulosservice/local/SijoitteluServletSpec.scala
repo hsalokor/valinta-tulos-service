@@ -16,4 +16,14 @@ class SijoitteluServletSpec extends ServletSpecification {
       }
     }
   }
+
+  "GET /sijoittelu/:hakuOid/sijoitteluajo/:sijoitteluajoOid/hakemus/:hakemusOid" should {
+    "Hakee sijoittelun hakemuksen" in {
+      useFixture("hyvaksytty-kesken-julkaistavissa.json")
+      get("sijoittelu/1.2.246.562.29.173465377510/sijoitteluajo/1409055160622/hakemus/1.2.246.562.11.00000877688") {
+        status must_== 200
+        body must_== ""
+      }
+    }
+  }
 }

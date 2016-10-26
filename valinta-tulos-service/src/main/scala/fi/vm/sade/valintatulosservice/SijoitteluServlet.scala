@@ -32,7 +32,7 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
   lazy val getSijoitteluajoByHakuOidSwagger: OperationBuilder = (apiOperation[Unit]("getSijoitteluajoByHakuOidSwagger")
     summary "Hakee sijoittelun tiedot haulle. Pääasiallinen kaytto sijoitteluajojen tunnisteiden hakuun."
     parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste"))
-  get("/sijoittelu/:hakuOid", operation(getSijoitteluajoByHakuOidSwagger)) {
+  get("/:hakuOid", operation(getSijoitteluajoByHakuOidSwagger)) {
     val hakuOid = params("hakuOid")
     //TODO Ok(sijoitteluService.getSijoitteluajoByHakuOid(hakuOid))
     NotImplemented()
@@ -42,7 +42,7 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
     summary "Hakee sijoitteluajon tiedot. Pääsiallinen kaytto sijoitteluun osallistuvien hakukohteiden hakemiseen."
     parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste") //TODO tarpeeton?
     parameter pathParam[String]("sijoitteluajoOid").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana."))
-  get("/sijoittelu/:hakuOid/sijoitteluajo/:sijoitteluajoOid", operation(getSijoitteluajoSwagger)) {
+  get("/:hakuOid/sijoitteluajo/:sijoitteluajoOid", operation(getSijoitteluajoSwagger)) {
     val hakuOid = params("hakuOid")
     val sijoitteluajoOid = params("sijoitteluajoOid")
     //TODO Ok(sijoitteluService.getSijoitteluajo(hakuOid, sijoitteluajoOid))
@@ -53,7 +53,7 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
     summary "Sivutettu listaus hakemuksien/hakijoiden listaukseen. Yksityiskohtainen listaus kaikista hakutoiveista ja niiden valintatapajonoista."
     parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste")
     parameter pathParam[String]("sijoitteluajoOid").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana."))
-  get("/sijoittelu/:hakuOid/sijoitteluajo/:sijoitteluajoOid/hakemukset", operation(getHakemusetBySijoitteluajoSwagger)) {
+  get("/:hakuOid/sijoitteluajo/:sijoitteluajoOid/hakemukset", operation(getHakemusetBySijoitteluajoSwagger)) {
     val hakuOid = params("hakuOid")
     val sijoitteluajoOid = params("sijoitteluajoOid")
     //TODO Ok(sijoitteluService.getHakemuksetBySijoitteluajo(hakuOid, sijoitteluajoOid))
@@ -65,7 +65,7 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
     parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste")
     parameter pathParam[String]("sijoitteluajoOid").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana.")
     parameter pathParam[String]("hakemusOid").description("Hakemuksen yksilöllinen tunniste"))
-  get("/sijoittelu/:hakuOid/sijoitteluajo/:sijoitteluajoOid/hakemus/:hakemusOid", operation(getHakemusBySijoitteluajoSwagger)) {
+  get("/:hakuOid/sijoitteluajo/:sijoitteluajoOid/hakemus/:hakemusOid", operation(getHakemusBySijoitteluajoSwagger)) {
     val hakuOid = params("hakuOid")
     val sijoitteluajoOid = params("sijoitteluajoOid")
     val hakemusOid = params("hakemusOid")
@@ -77,7 +77,7 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
     parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste")
     parameter pathParam[String]("sijoitteluajoOid").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana.")
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen yksilöllinen tunniste"))
-  get("/sijoittelu/:hakuOid/sijoitteluajo/:sijoitteluajoOid/hakukohde/:hakukohdeOid", operation(getHakukohdeBySijoitteluajoSwagger)) {
+  get("/:hakuOid/sijoitteluajo/:sijoitteluajoOid/hakukohde/:hakukohdeOid", operation(getHakukohdeBySijoitteluajoSwagger)) {
     val hakuOid = params("hakuOid")
     val sijoitteluajoOid = params("sijoitteluajoOid")
     val hakukohdeOid = params("hakukohdeOid")
@@ -102,7 +102,7 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
 //  lazy val getSijoitteluajoHyvaksytytSwagger: OperationBuilder = (apiOperation[Unit]("getSijoitteluajoHyvaksytytSwagger")
 //    summary "Sivutettu listaus hakemuksien/hakijoiden listaukseen. Yksityiskohtainen listaus kaikista hakutoiveista ja niiden valintatapajonoista."
 //    parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste"))
-//  get("/sijoittelu/:hakuOid/hyvaksytyt", operation(getSijoitteluajoHyvaksytytSwagger)) {
+//  get("/:hakuOid/hyvaksytyt", operation(getSijoitteluajoHyvaksytytSwagger)) {
 //    val hakuOid = params("hakuOid")
 //    //TODO Ok(sijoitteluService.getSijoitteluajoHyvaksytyt(hakuOid))
 //    NotImplemented()
@@ -112,7 +112,7 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
 //    summary "Sivutettu listaus hakemuksien/hakijoiden listaukseen. Yksityiskohtainen listaus kaikista hakutoiveista ja niiden valintatapajonoista hakukohteen perusteella."
 //    parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste")
 //    parameter pathParam[String]("hakukohdeOid").description("Hakukohteen yksilöllinen tunniste"))
-//  get("/sijoittelu/:hakuOid/hyvaksytyt/hakukohde/:hakukohdeOid", operation(getSijoitteluajoHyvaksytytByHakukohdeSwagger)) {
+//  get("/:hakuOid/hyvaksytyt/hakukohde/:hakukohdeOid", operation(getSijoitteluajoHyvaksytytByHakukohdeSwagger)) {
 //    val hakuOid = params("hakuOid")
 //    val hakukohdeOid = params("hakukohdeOid")
 //    //TODO Ok(sijoitteluService.getSijoitteluajoHyvaksytytByHakukohde(hakuOid, hakukohdeOid))
@@ -124,7 +124,7 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
 //    parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste")
 //    parameter pathParam[String]("sijoitteluajoOid").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana.")
 //    parameter pathParam[String]("hakukohdeOid").description("Hakukohteen yksilöllinen tunniste"))
-//  get("/sijoittelu/:hakuOid/sjoitteluajo/:sijoitteluajoOid/hakukohdedto/:hakukohdeOid", operation(getHakukohdeDtoBySijoitteluajoSwagger)) {
+//  get("/:hakuOid/sjoitteluajo/:sijoitteluajoOid/hakukohdedto/:hakukohdeOid", operation(getHakukohdeDtoBySijoitteluajoSwagger)) {
 //    val hakuOid = params("hakuOid")
 //    val sijoitteluajoOid = params("sijoitteluajoOid")
 //    val hakukohdeOid = params("hakukohdeOid")
@@ -136,7 +136,7 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
 //    summary "Kertoo jos valintatapajono on sijoittelun käytössä."
 //    parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste")
 //    parameter pathParam[String]("valintatapajonoOid").description("Valintatapajonon yksilöllinen tunniste"))
-//  get("/sijoittelu/:hakuOid/valintatapajono-in-use/:valintatapajonoOid", operation(valintatapajonoIsInSijoitteluSwagger)) {
+//  get("/:hakuOid/valintatapajono-in-use/:valintatapajonoOid", operation(valintatapajonoIsInSijoitteluSwagger)) {
 //    val hakuOid = params("hakuOid")
 //    val valintatapajonoOid = params("valintatapajonoOid")
 //    //TODO Ok(sijoitteluService.valintatapajonoIsInSijoittelu(hakuOid, valintatapajonoOid))
