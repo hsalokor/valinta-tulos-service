@@ -404,25 +404,25 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
            ${hyvaksyttyHakijaryhmasta}, ${siirtynytToisestaValintatapajonosta})"""
   }
 
-  override def getLatestSijoitteluajoId(hakuOid:String): Int = {
+  override def getLatestSijoitteluajoId(hakuOid:String): Option[Long] = {
     runBlocking(
       sql"""select id
             from sijoitteluajot
             where hakuOid = ${hakuOid}
             order by id desc
-            limit 1""".as[Int]).head
+            limit 1""".as[Long]).headOption
   }
 
-  override def getHakija(hakemusOid: String, sijoitteluajoId: Int): HakijaRecord = {
+  override def getHakija(hakemusOid: String, sijoitteluajoId: Long): Option[HakijaRecord] = {
     runBlocking(
       sql"""select j.etunimi, j.sukunimi, j.hakemusOid, j.hakijaOid
             from jonosijat as j
             left join valintatapajonot as v on v.oid = j.valintatapajonoOid
             left join sijoitteluajonhakukohteet as sh on sh.id = v.sijoitteluajonHakukohdeId
-            where j.hakemusoid = ${hakemusOid} and sh.sijoitteluajoid = ${sijoitteluajoId}""".as[HakijaRecord]).head
+            where j.hakemusoid = ${hakemusOid} and sh.sijoitteluajoid = ${sijoitteluajoId}""".as[HakijaRecord]).headOption
   }
 
-  override def getHakutoiveet(hakemusOid: String, sijoitteluajoId: Int): List[HakutoiveRecord] = {
+  override def getHakutoiveet(hakemusOid: String, sijoitteluajoId: Long): List[HakutoiveRecord] = {
     runBlocking(
       sql"""select j.id, j.prioriteetti, vt.hakukohdeOid, sh.tarjoajaOid, vt.tila, sh.kaikkiJonotSijoiteltu
             from jonosijat as j

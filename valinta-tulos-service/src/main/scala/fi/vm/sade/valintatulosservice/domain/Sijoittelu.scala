@@ -44,9 +44,9 @@ object Sijoittelu {
     return pistetietoDTO
   }
 
-  def parseSijoitteluajoId(sijoitteluajoId:String): Int = {
+  def parseSijoitteluajoId(sijoitteluajoId:String): Long = {
     try {
-      sijoitteluajoId.toInt
+      sijoitteluajoId.toLong
     } catch {
       case e: NumberFormatException => throw new NumberFormatException(s"Väärän tyyppinen sijoitteuajon ID: $sijoitteluajoId")
     }

@@ -101,7 +101,7 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
 
     "get hakiija" in {
       storeHakijaData()
-      singleConnectionValintarekisteriDb.getHakija("12345", 111).etunimi mustEqual "Teppo"
+      singleConnectionValintarekisteriDb.getHakija("12345", 111).get.etunimi mustEqual "Teppo"
     }
 
     "get hakijan hakutoiveet" in {
@@ -121,8 +121,7 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
 
     "get latest sijoitteluajoid for haku" in {
       storeHakijaData()
-      val res = singleConnectionValintarekisteriDb.getLatestSijoitteluajoId(hakuOid)
-      res mustEqual 222
+      singleConnectionValintarekisteriDb.getLatestSijoitteluajoId(hakuOid).get mustEqual 222
     }
   }
 

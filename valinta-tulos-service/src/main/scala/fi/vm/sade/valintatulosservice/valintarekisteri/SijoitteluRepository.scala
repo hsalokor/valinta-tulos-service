@@ -9,8 +9,8 @@ trait SijoitteluRepository {
   val db: Database
   def storeSijoitteluajo(sijoitteluajo:SijoitteluAjo): Unit
   def storeSijoittelu(sijoittelu:SijoitteluWrapper)
-  def getLatestSijoitteluajoId(hakuOid:String): Int
-  def getHakija(hakemusOid:String, sijoitteluajoId:Int): HakijaRecord
-  def getHakutoiveet(hakemusOid:String, sijoitteluajoId:Int): List[HakutoiveRecord]
+  def getLatestSijoitteluajoId(hakuOid:String): Option[Long]
+  def getHakija(hakemusOid:String, sijoitteluajoId:Long): Option[HakijaRecord]
+  def getHakutoiveet(hakemusOid:String, sijoitteluajoId:Long): List[HakutoiveRecord]
   def getPistetiedot(jonosijaIds:List[Int]): List[PistetietoRecord]
 }
