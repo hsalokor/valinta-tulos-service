@@ -5,18 +5,16 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
-import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus, Valintatulos, Hakukohde, SijoitteluAjo, Valintatapajono}
+import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatapajono, Hakemus => SijoitteluHakemus, Valintatulos}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.ConflictingAcceptancesException
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus._
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
-import slick.dbio
 import slick.driver.PostgresDriver.api.{Database, _}
 import slick.jdbc.{GetResult, TransactionIsolation}
 
-import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
@@ -474,16 +472,25 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
            values (${hakijaOid}, ${hakukohdeOid}, ${ilmoittautumistila.get.toString}::ilmoittautumistila, ${ilmoittaja}, ${selite})"""
   }
 
-  override def getHakija(hakemusOid: String, sijoitteluajoId: Int): HakijaRecord = {
+  override def getLatestSijoitteluajoId(hakuOid:String): Option[Long] = {
+    runBlocking(
+      sql"""select id
+            from sijoitteluajot
+            where hakuOid = ${hakuOid}
+            order by id desc
+            limit 1""".as[Long]).headOption
+  }
+
+  override def getHakija(hakemusOid: String, sijoitteluajoId: Long): Option[HakijaRecord] = {
     runBlocking(
       sql"""select j.etunimi, j.sukunimi, j.hakemusOid, j.hakijaOid
             from jonosijat as j
             left join valintatapajonot as v on v.oid = j.valintatapajonoOid
             left join sijoitteluajonhakukohteet as sh on sh.id = v.sijoitteluajonHakukohdeId
-            where j.hakemusoid = ${hakemusOid} and sh.sijoitteluajoid = ${sijoitteluajoId}""".as[HakijaRecord]).head
+            where j.hakemusoid = ${hakemusOid} and sh.sijoitteluajoid = ${sijoitteluajoId}""".as[HakijaRecord]).headOption
   }
 
-  override def getHakutoiveet(hakemusOid: String, sijoitteluajoId: Int): List[HakutoiveRecord] = {
+  override def getHakutoiveet(hakemusOid: String, sijoitteluajoId: Long): List[HakutoiveRecord] = {
     runBlocking(
       sql"""select j.id, j.prioriteetti, vt.hakukohdeOid, sh.tarjoajaOid, vt.tila, sh.kaikkiJonotSijoiteltu
             from jonosijat as j

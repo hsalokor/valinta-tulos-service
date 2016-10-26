@@ -12,9 +12,20 @@ class SijoitteluService(sijoitteluRepository:SijoitteluRepository) extends Loggi
 
   def luoSijoitteluajo(sijoitteluajo:SijoitteluAjo) = sijoitteluRepository.storeSijoitteluajo(sijoitteluajo)
 
-  def getHakemusBySijoitteluajo(hakuOid:String, sijoitteluajoId:Int, hakemusOid:String): HakijaDTO = {
-    val hakija = sijoitteluRepository.getHakija(hakemusOid, sijoitteluajoId)
-    val hakutoiveet = sijoitteluRepository.getHakutoiveet(hakemusOid, sijoitteluajoId)
+  def getHakemusBySijoitteluajo(hakuOid:String, sijoitteluajoId:String, hakemusOid:String): HakijaDTO = {
+    var latestId = Sijoittelu.parseSijoitteluajoId(sijoitteluajoId)
+    if (sijoitteluajoId.equalsIgnoreCase("latest")) {
+      sijoitteluRepository.getLatestSijoitteluajoId(hakuOid) match {
+        case Some(i) => latestId = i
+        case None => throw new IllegalArgumentException(s"Yhtään sijoitteluajoa ei löytynyt haulle $hakuOid")
+      }
+    }
+    val hakija = sijoitteluRepository.getHakija(hakemusOid, latestId) match {
+      case Some(h) => h
+      case None => throw new IllegalArgumentException(s"Hakijaa ei löytynyt hakemukselle $hakemusOid, sijoitteluajoid: $latestId")
+    }
+
+    val hakutoiveet = sijoitteluRepository.getHakutoiveet(hakemusOid, latestId)
     val jonosijaIds = hakutoiveet.map(h => h.jonosijaId)
     val pistetiedot = sijoitteluRepository.getPistetiedot(jonosijaIds)
 

@@ -11,6 +11,7 @@ object ValintarekisteriTools {
   def deleteAll(db: ValintarekisteriDb): Unit = {
     db.runBlocking(DBIO.seq(
       deleteFromVastaanotot,
+      sqlu"delete from ilmoittautumiset",
       sqlu"delete from pistetiedot",
       sqlu"delete from valinnantulokset",
       sqlu"delete from jonosijat",
