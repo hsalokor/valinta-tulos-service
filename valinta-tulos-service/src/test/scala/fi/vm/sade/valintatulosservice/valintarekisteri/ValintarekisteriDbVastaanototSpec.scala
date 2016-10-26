@@ -321,7 +321,7 @@ class ValintarekisteriDbVastaanototSpec extends Specification with ITSetup with 
         sqlu"""insert into sijoitteluajot values (111, ${hakuOid}, ${now}, ${now}, FALSE, FALSE)""",
         sqlu"""insert into sijoitteluajonhakukohteet values (222, 111, ${hakukohdeOid}, '123123', FALSE)""",
         sqlu"""insert into valintatapajonot (oid, sijoitteluajonHakukohdeId, nimi) values ('5.5.555.555', 222, 'asd')""",
-        sqlu"""insert into jonosijat (id, valintatapajonoOid, sijoitteluajonHakukohdeId, hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti) values (333, '5.5.555.555', 222, '12345', '54321', 'Teppo', 'The Great', 9999)"""))
+        sqlu"""insert into jonosijat (id, valintatapajonoOid, sijoitteluajonHakukohdeId, hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija) values (333, '5.5.555.555', 222, '12345', '54321', 'Teppo', 'The Great', 9999, 1)"""))
       singleConnectionValintarekisteriDb.getHakija("12345", 111).etunimi mustEqual "Teppo"
     }
 

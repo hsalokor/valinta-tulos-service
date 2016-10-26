@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
-import fi.vm.sade.sijoittelu.domain.{Valintatapajono, Hakukohde, SijoitteluAjo, Hakemus => SijoitteluHakemus}
+import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus, Valintatulos, Valintatapajono, Hakukohde, SijoitteluAjo}
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ITSetup
 import org.json4s.{CustomSerializer, DefaultFormats}
@@ -33,8 +33,13 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
   }, {
     case x:Tasasijasaanto => JString(x.tasasijasaanto.toString)
   }))
+  class ValinnantilaSerializer extends CustomSerializer[Valinnantila](format => ({
+    case JString(tilaValue) => Valinnantila.getValinnantila(fi.vm.sade.sijoittelu.domain.HakemuksenTila.valueOf(tilaValue))
+  },{
+    case x:Valinnantila => JString(x.valinnantila.toString)
+  }))
 
-  implicit val formats = DefaultFormats ++ List(new NumberLongSerializer, new TasasijasaantoSerializer)
+  implicit val formats = DefaultFormats ++ List(new NumberLongSerializer, new TasasijasaantoSerializer, new ValinnantilaSerializer)
 
   step(appConfig.start)
   step(ValintarekisteriTools.deleteSijoitteluajot(singleConnectionValintarekisteriDb))
@@ -75,7 +80,7 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
           valintatapajono.getHakemukset.asScala.toList.foreach(hakemus => {
             val storedJonosija = storedJonosijat.find(_.getHakemusOid.equals(hakemus.getHakemusOid))
             storedJonosija.isDefined must beTrue
-            SijoitteluajonJonosijaWrapper(hakemus) mustEqual SijoitteluajonJonosijaWrapper(storedJonosija.get)
+            SijoitteluajonHakemusWrapper(hakemus) mustEqual SijoitteluajonHakemusWrapper(storedJonosija.get)
           })
         })
         storedValintatapajonot.length mustEqual hakukohde.getValintatapajonot.size
@@ -102,14 +107,17 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
         valintatapajonot.map(valintatapajono => {
           val valintatapajonoExt = valintatapajono.extract[SijoitteluajonValintatapajonoWrapper].valintatapajono
           val JArray(hakemukset) = (valintatapajono \ "hakemukset")
-          valintatapajonoExt.setHakemukset(hakemukset.map(h => h.extract[SijoitteluajonJonosijaWrapper].hakemus).asJava)
+          valintatapajonoExt.setHakemukset(hakemukset.map(h => h.extract[SijoitteluajonHakemusWrapper].hakemus).asJava)
           valintatapajonoExt
         }).asJava
       })
       hakukohde
     })
 
-    val wrapper:SijoitteluWrapper = SijoitteluWrapper(sijoitteluajo, hakukohteet, List())
+    val JArray(jsonValintatulokset) = (json \ "Valintatulos")
+    val valintatulokset:List[Valintatulos] = jsonValintatulokset.map(_.extract[SijoitteluajonValinnantulosWrapper].valintatulos)
+
+    val wrapper:SijoitteluWrapper = SijoitteluWrapper(sijoitteluajo, hakukohteet, valintatulokset)
     hakukohteet.foreach(h => insertHakukohde(h.getOid))
     wrapper
   }
@@ -164,16 +172,19 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
   }
 
   private implicit val getSijoitteluajonJonosijaResult = GetResult(r => {
-    SijoitteluajonJonosijaWrapper(r.nextString, r.nextString, r.nextString, r.nextString, r.nextInt, r.nextInt,
+    SijoitteluajonHakemusWrapper(r.nextString, r.nextString, r.nextString, r.nextString, r.nextInt, r.nextInt,
       r.nextIntOption, r.nextBooleanOption, r.nextBigDecimalOption, r.nextIntOption, r.nextBooleanOption,
-      r.nextBooleanOption, r.nextBooleanOption).hakemus
+      r.nextBooleanOption, r.nextBooleanOption, Valinnantila(r.nextString), r.nextStringOption().map(ValinnantilanTarkenne(_))).hakemus
   })
 
   def findValintatapajononJonosijat(valintatapajonoOid:String): Seq[SijoitteluHakemus] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select hakemusoid, hakijaoid, etunimi, sukunimi, prioriteetti, jonosija, varasijannumero, onkomuuttunutviimesijoittelussa,
-            pisteet, tasasijajonosija, hyvaksyttyharkinnanvaraisesti, hyvaksyttyhakijaryhmasta, siirtynyttoisestavalintatapajonosta
-            from jonosijat where valintatapajonooid = ${valintatapajonoOid}
+      sql"""select j.hakemusoid, j.hakijaoid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijannumero, j.onkomuuttunutviimesijoittelussa,
+            j.pisteet, j.tasasijajonosija, j.hyvaksyttyharkinnanvaraisesti, j.hyvaksyttyhakijaryhmasta, j.siirtynyttoisestavalintatapajonosta,
+            v.tila, v.tarkenne
+            from jonosijat j
+            left join valinnantulokset v on j.valintatapajonoOid = v.valintatapajonoOid and j.hakemusOid = v.hakemusOid
+            where j.valintatapajonooid = ${valintatapajonoOid}
          """.as[SijoitteluHakemus])
   }
 
