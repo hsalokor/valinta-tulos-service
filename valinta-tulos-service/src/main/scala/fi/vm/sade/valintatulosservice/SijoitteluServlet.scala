@@ -41,60 +41,59 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
   lazy val getSijoitteluajoSwagger: OperationBuilder = (apiOperation[Unit]("getSijoitteluajoSwagger")
     summary "Hakee sijoitteluajon tiedot. Pääsiallinen kaytto sijoitteluun osallistuvien hakukohteiden hakemiseen."
     parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste") //TODO tarpeeton?
-    parameter pathParam[String]("sijoitteluajoOid").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana."))
-  get("/:hakuOid/sijoitteluajo/:sijoitteluajoOid", operation(getSijoitteluajoSwagger)) {
+    parameter pathParam[String]("sijoitteluajoId").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana."))
+  get("/:hakuOid/sijoitteluajo/:sijoitteluajoId", operation(getSijoitteluajoSwagger)) {
     val hakuOid = params("hakuOid")
-    val sijoitteluajoOid = params("sijoitteluajoOid")
-    //TODO Ok(sijoitteluService.getSijoitteluajo(hakuOid, sijoitteluajoOid))
-    NotImplemented()
+    val sijoitteluajoId = params("sijoitteluajoId")
+    Ok(sijoitteluService.getSijoitteluajo(hakuOid, sijoitteluajoId))
   }
 
   lazy val getHakemusetBySijoitteluajoSwagger: OperationBuilder = (apiOperation[Unit]("getHakemusetBySijoitteluajoSwagger")
     summary "Sivutettu listaus hakemuksien/hakijoiden listaukseen. Yksityiskohtainen listaus kaikista hakutoiveista ja niiden valintatapajonoista."
     parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste")
-    parameter pathParam[String]("sijoitteluajoOid").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana."))
-  get("/:hakuOid/sijoitteluajo/:sijoitteluajoOid/hakemukset", operation(getHakemusetBySijoitteluajoSwagger)) {
+    parameter pathParam[String]("sijoitteluajoId").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana."))
+  get("/:hakuOid/sijoitteluajo/:sijoitteluajoId/hakemukset", operation(getHakemusetBySijoitteluajoSwagger)) {
     val hakuOid = params("hakuOid")
-    val sijoitteluajoOid = params("sijoitteluajoOid")
-    //TODO Ok(sijoitteluService.getHakemuksetBySijoitteluajo(hakuOid, sijoitteluajoOid))
+    val sijoitteluajoId = params("sijoitteluajoId")
+    //TODO Ok(sijoitteluService.getHakemuksetBySijoitteluajo(hakuOid, sijoitteluajoId))
     NotImplemented()
   }
 
   lazy val getHakemusBySijoitteluajoSwagger: OperationBuilder = (apiOperation[Unit]("getHakemusBySijoitteluajoSwagger")
     summary "Nayttaa yksittaisen hakemuksen kaikki hakutoiveet ja tiedot kaikista valintatapajonoista."
     parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste")
-    parameter pathParam[String]("sijoitteluajoOid").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana.")
+    parameter pathParam[String]("sijoitteluajoId").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana.")
     parameter pathParam[String]("hakemusOid").description("Hakemuksen yksilöllinen tunniste"))
-  get("/:hakuOid/sijoitteluajo/:sijoitteluajoOid/hakemus/:hakemusOid", operation(getHakemusBySijoitteluajoSwagger)) {
+  get("/:hakuOid/sijoitteluajo/:sijoitteluajoId/hakemus/:hakemusOid", operation(getHakemusBySijoitteluajoSwagger)) {
     val hakuOid = params("hakuOid")
-    val sijoitteluajoOid = params("sijoitteluajoOid")
+    val sijoitteluajoId = params("sijoitteluajoId")
     val hakemusOid = params("hakemusOid")
-    Ok(sijoitteluService.getHakemusBySijoitteluajo(hakuOid, sijoitteluajoOid, hakemusOid))
+    Ok(sijoitteluService.getHakemusBySijoitteluajo(hakuOid, sijoitteluajoId, hakemusOid))
   }
 
   lazy val getHakukohdeBySijoitteluajoSwagger: OperationBuilder = (apiOperation[Unit]("getHakukohdeBySijoitteluajoSwagger")
     summary "Hakee hakukohteen tiedot tietyssa sijoitteluajossa."
     parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste")
-    parameter pathParam[String]("sijoitteluajoOid").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana.")
+    parameter pathParam[String]("sijoitteluajoId").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana.")
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen yksilöllinen tunniste"))
-  get("/:hakuOid/sijoitteluajo/:sijoitteluajoOid/hakukohde/:hakukohdeOid", operation(getHakukohdeBySijoitteluajoSwagger)) {
+  get("/:hakuOid/sijoitteluajo/:sijoitteluajoId/hakukohde/:hakukohdeOid", operation(getHakukohdeBySijoitteluajoSwagger)) {
     val hakuOid = params("hakuOid")
-    val sijoitteluajoOid = params("sijoitteluajoOid")
+    val sijoitteluajoId = params("sijoitteluajoId")
     val hakukohdeOid = params("hakukohdeOid")
-    // TODO Ok(sijoitteluService.getHakukohdeBySijoitteluajo(hakuOid, sijoitteluajoOid, hakukohdeOid))
+    // TODO Ok(sijoitteluService.getHakukohdeBySijoitteluajo(hakuOid, sijoitteluajoId, hakukohdeOid))
     NotImplemented()
   }
 
   lazy val getHakukohdeErillissijoitteluSwagger: OperationBuilder = (apiOperation[Unit]("getHakukohdeErillissijoitteluSwagger")
     summary "Hakee hakukohteen erillissijoittelun tiedot tietyssa sijoitteluajossa."
     parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste")
-    parameter pathParam[String]("sijoitteluajoOid").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana.")
+    parameter pathParam[String]("sijoitteluajoId").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana.")
     parameter pathParam[String]("hakukohdeOid").description("Hakukohteen yksilöllinen tunniste"))
   get("/erillissijoittelu/:hakuOid/sijoitteluajo/:sijoitteluajoId/hakukohde/:hakukohdeOid", operation(getHakukohdeErillissijoitteluSwagger)) {
     val hakuOid = params("hakuOid")
-    val sijoitteluajoOid = params("sijoitteluajoOid")
+    val sijoitteluajoId = params("sijoitteluajoId")
     val hakukohdeOid = params("hakukohdeOid")
-    //TODO Ok(sijoitteluService.getHakukohdeErillissijoittelu(hakuOid, sijoitteluajoOid, hakukohdeOid))
+    //TODO Ok(sijoitteluService.getHakukohdeErillissijoittelu(hakuOid, sijoitteluajoId, hakukohdeOid))
     NotImplemented()
   }
 
@@ -122,13 +121,13 @@ class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swag
 //  lazy val getHakukohdeDtoBySijoitteluajoSwagger: OperationBuilder = (apiOperation[Unit]("getHakukohdeDtoBySijoitteluajoSwagger")
 //    summary "Hakee hakukohteen tiedot tietyssa sijoitteluajossa."
 //    parameter pathParam[String]("hakuOid").description("Haun yksilöllinen tunniste")
-//    parameter pathParam[String]("sijoitteluajoOid").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana.")
+//    parameter pathParam[String]("sijoitteluajoId").description("Sijoitteluajon yksilöllinen tunniste, tai 'latest' avainsana.")
 //    parameter pathParam[String]("hakukohdeOid").description("Hakukohteen yksilöllinen tunniste"))
-//  get("/:hakuOid/sjoitteluajo/:sijoitteluajoOid/hakukohdedto/:hakukohdeOid", operation(getHakukohdeDtoBySijoitteluajoSwagger)) {
+//  get("/:hakuOid/sjoitteluajo/:sijoitteluajoId/hakukohdedto/:hakukohdeOid", operation(getHakukohdeDtoBySijoitteluajoSwagger)) {
 //    val hakuOid = params("hakuOid")
-//    val sijoitteluajoOid = params("sijoitteluajoOid")
+//    val sijoitteluajoId = params("sijoitteluajoId")
 //    val hakukohdeOid = params("hakukohdeOid")
-//    //TODO Ok(sijoitteluService.getHakukohdeDtoBySijoitteluajo(hakuOid, sijoitteluajoOid, hakukohdeOid))
+//    //TODO Ok(sijoitteluService.getHakukohdeDtoBySijoitteluajo(hakuOid, sijoitteluajoId, hakukohdeOid))
 //    NotImplemented()
 //  }
 

@@ -2,6 +2,9 @@ package fi.vm.sade.valintatulosservice.valintarekisteri
 
 import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus, Valintatulos, Valintatapajono, Hakukohde, SijoitteluAjo, Pistetieto, Hakijaryhma}
 import java.sql.Timestamp
+import java.util
+
+import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatapajono, Hakemus => SijoitteluHakemus}
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ITSetup
 import org.json4s.{CustomSerializer, DefaultFormats}
@@ -170,6 +173,23 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
       storeHakijaData()
       singleConnectionValintarekisteriDb.getLatestSijoitteluajoId(hakuOid).get mustEqual 222
     }
+
+    "get sijoitteluajo" in {
+      storeHakijaData()
+      singleConnectionValintarekisteriDb.getSijoitteluajo(hakuOid, 111).get.sijoitteluajoId mustEqual 111
+    }
+
+    "get sijoitteluajon hakukohteet" in {
+      storeHakijaData()
+      val res = singleConnectionValintarekisteriDb.getSijoitteluajoHakukohteet(222).get
+      res.map(r => r.oid) mustEqual List(hakukohdeOid, otherHakukohdeOid)
+    }
+
+    "get valintatapajonot for sijoitteluajo" in {
+      storeHakijaData()
+      val res = singleConnectionValintarekisteriDb.getValintatapajonot(222).get
+      res.map(r => r.oid) mustEqual List("5.5.555.556", "5.5.555.557")
+    }
   }
 
   def loadSijoitteluFromFixture(fixture:String):SijoitteluWrapper = {
@@ -327,12 +347,15 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
   private def storeSijoitteluajonHakukohteet() = {
     singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
       sqlu"""insert into sijoitteluajon_hakukohteet values (51, 111, ${hakukohdeOid}, '123123', FALSE)""",
-      sqlu"""insert into sijoitteluajon_hakukohteet values (52, 222, ${hakukohdeOid}, '123123', FALSE)"""))
+      sqlu"""insert into sijoitteluajon_hakukohteet values (52, 222, ${hakukohdeOid}, '123123', FALSE)""",
+      sqlu"""insert into sijoitteluajon_hakukohteet values (53, 222, ${otherHakukohdeOid}, '123123', FALSE)"""))
   }
 
   private def storeValintatapajonot() = {
-    singleConnectionValintarekisteriDb.runBlocking(
-      sqlu"""insert into valintatapajonot (oid, sijoitteluajon_hakukohde_id, nimi) values ('5.5.555.555', 51, 'asd')""")
+    singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
+      sqlu"""insert into valintatapajonot (oid, sijoitteluajon_hakukohde_id, nimi) values ('5.5.555.555', 51, 'asd')""",
+      sqlu"""insert into valintatapajonot (oid, sijoitteluajon_hakukohde_id, nimi) values ('5.5.555.556', 52, 'asd')""",
+      sqlu"""insert into valintatapajonot (oid, sijoitteluajon_hakukohde_id, nimi) values ('5.5.555.557', 52, 'asd')"""))
   }
 
   private def storeJonosijat() = {
