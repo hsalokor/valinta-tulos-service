@@ -314,6 +314,37 @@ class ValintarekisteriDbVastaanototSpec extends Specification with ITSetup with 
       c.ilmoittaja mustEqual henkiloOid
       c.timestamp.before(new Date()) must beTrue
     }
+
+    "get hakiija" in {
+      val now = new java.sql.Timestamp(1)
+      singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
+        sqlu"""insert into sijoitteluajot values (111, ${hakuOid}, ${now}, ${now}, FALSE, FALSE)""",
+        sqlu"""insert into sijoitteluajonhakukohteet values (222, 111, ${hakukohdeOid}, '123123', FALSE)""",
+        sqlu"""insert into valintatapajonot (oid, sijoitteluajonHakukohdeId, nimi) values ('5.5.555.555', 222, 'asd')""",
+        sqlu"""insert into jonosijat (id, valintatapajonoOid, sijoitteluajonHakukohdeId, hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija) values (333, '5.5.555.555', 222, '12345', '54321', 'Teppo', 'The Great', 9999, 1)"""))
+      singleConnectionValintarekisteriDb.getHakija("12345", 111).etunimi mustEqual "Teppo"
+    }
+
+    "get hakijan hakutoiveet" in {
+      val now = new java.sql.Timestamp(1)
+      singleConnectionValintarekisteriDb.runBlocking(
+        sqlu"""insert into valinnantulokset values (1, ${hakukohdeOid}, '5.5.555.555', '12345', 111, 333, 'Varalla', null, null, TRUE, false, false, false, 'Ilmoittaja', 'Selite', ${now}, ${now}, NULL)"""
+      )
+      val res = singleConnectionValintarekisteriDb.getHakutoiveet("12345", 111)
+      res.size mustEqual 1
+      res.head.hakutoive mustEqual 9999
+      res.head.jonosijaId mustEqual 333
+    }
+
+    "get hakijan pistetiedot" in {
+      singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
+        sqlu"""insert into pistetiedot values (333, 'Tunniste', 'Arvo1', 'Laskennallinen Arvo 1', 'Osallistuminen 1')""",
+        sqlu"""insert into pistetiedot values (333, 'Tunniste', 'Arvo2', 'Laskennallinen Arvo 2', 'Osallistuminen 2')""",
+        sqlu"""insert into pistetiedot values (333, 'Tunniste', 'Arvo3', 'Laskennallinen Arvo 3', 'Osallistuminen 3')"""))
+      val res = singleConnectionValintarekisteriDb.getPistetiedot(List(333))
+      res.size mustEqual 3
+      res.head.arvo mustEqual "Arvo1"
+    }
   }
 
   override protected def before: Unit = {

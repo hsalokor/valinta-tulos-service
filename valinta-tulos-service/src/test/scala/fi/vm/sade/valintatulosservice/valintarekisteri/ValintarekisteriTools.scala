@@ -28,6 +28,8 @@ object ValintarekisteriTools {
 
   def deleteSijoitteluajot(db: ValintarekisteriDb): Unit = {
     db.runBlocking(DBIO.seq(
+      sqlu"delete from ilmoittautumiset",
+      sqlu"delete from valinnantulokset",
       sqlu"delete from jonosijat",
       sqlu"delete from valintatapajonot",
       sqlu"delete from sijoitteluajonhakukohteet",

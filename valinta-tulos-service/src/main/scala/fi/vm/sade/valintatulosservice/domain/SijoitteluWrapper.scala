@@ -2,8 +2,7 @@ package fi.vm.sade.valintatulosservice.domain
 
 import java.util.Date
 
-import fi.vm.sade.sijoittelu.domain.{Valintatapajono, Valintatulos, Hakukohde, SijoitteluAjo, Hakemus => SijoitteluHakemus}
-import fi.vm.sade.sijoittelu.domain.{Tasasijasaanto => SijoitteluTasasijasaanto}
+import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus, Tasasijasaanto => SijoitteluTasasijasaanto, _}
 import java.lang.{Integer => javaInt, Boolean => javaBoolean, String => javaString}
 import java.math.{BigDecimal => javaBigDecimal}
 
@@ -73,7 +72,6 @@ object Tasasijasaanto {
     case SijoitteluTasasijasaanto.ALITAYTTO => Alitaytto
     case SijoitteluTasasijasaanto.YLITAYTTO => Ylitaytto
     case null => Arvonta
-    case x => throw new IllegalArgumentException(s"Tasasijasaanto ${x} ei ole sallittu")
   }
 }
 
@@ -146,7 +144,165 @@ object SijoitteluajonValintatapajonoWrapper extends OptionConverter {
   }
 }
 
-case class SijoitteluajonJonosijaWrapper(
+sealed trait Valinnantila {
+  def valinnantila:HakemuksenTila
+}
+
+case object Hylatty extends Valinnantila {
+  val valinnantila = HakemuksenTila.HYLATTY
+}
+
+case object Varalla extends Valinnantila {
+  val valinnantila = HakemuksenTila.VARALLA
+}
+
+case object Peruuntunut extends Valinnantila {
+  val valinnantila = HakemuksenTila.PERUUNTUNUT
+}
+
+case object Perunut extends Valinnantila {
+  val valinnantila = HakemuksenTila.PERUNUT
+}
+
+case object Peruutettu extends Valinnantila {
+  val valinnantila = HakemuksenTila.PERUUTETTU
+}
+
+case object Hyvaksytty extends Valinnantila {
+  val valinnantila = HakemuksenTila.HYVAKSYTTY
+}
+
+case object VarasijaltaHyvaksytty extends Valinnantila {
+  val valinnantila = HakemuksenTila.VARASIJALTA_HYVAKSYTTY
+}
+
+object Valinnantila {
+  private val valueMapping = Map(
+    "Hylatty" -> Hylatty,
+    "Varalla" -> Varalla,
+    "Peruuntunut" -> Peruuntunut,
+    "VarasijaltaHyvaksytty" -> VarasijaltaHyvaksytty,
+    "Hyvaksytty" -> Hyvaksytty,
+    "Perunut" -> Perunut,
+    "Peruutettu" -> Peruutettu)
+  val values: List[String] = valueMapping.keysIterator.toList
+  def apply(value: String): Valinnantila = valueMapping.getOrElse(value, {
+    throw new IllegalArgumentException(s"Unknown valinnantila '$value', expected one of $values")
+  })
+  def getValinnantila(valinnantila:HakemuksenTila) = valinnantila match {
+    case HakemuksenTila.HYLATTY => Hylatty
+    case HakemuksenTila.HYVAKSYTTY => Hyvaksytty
+    case HakemuksenTila.PERUNUT => Perunut
+    case HakemuksenTila.PERUUNTUNUT => Peruuntunut
+    case HakemuksenTila.PERUUTETTU => Peruutettu
+    case HakemuksenTila.VARALLA => Varalla
+    case HakemuksenTila.VARASIJALTA_HYVAKSYTTY => VarasijaltaHyvaksytty
+    case null => throw new IllegalArgumentException(s"Valinnantila null ei ole sallittu")
+  }
+}
+
+sealed trait ValinnantilanTarkenne {
+  def valinnantilanTarkenne:Map[String,String]
+}
+
+case object PeruuntunutHyvaksyttyYlemmalleHakutoiveelle extends ValinnantilanTarkenne {
+  val valinnantilanTarkenne = Map("FI" -> "Peruuntunut, hyväksytty ylemmälle hakutoiveelle",
+    "SV" -> "Annullerad, godkänt till ansökningsmål med högre prioritet",
+    "EN" -> "Cancelled, accepted for a study place with higher priority")
+}
+case object PeruuntunutAloituspaikatTaynna extends ValinnantilanTarkenne {
+  val valinnantilanTarkenne = Map("FI" -> "Peruuntunut, aloituspaikat täynnä",
+    "SV" -> "Annullerad, nybörjarplatser fyllda",
+    "EN" -> "Cancelled, study places are filled")
+}
+case object PeruuntunutHyvaksyttyToisessaJonossa extends ValinnantilanTarkenne {
+  val valinnantilanTarkenne = Map("FI" -> "Peruuntunut, hyväksytty toisessa valintatapajonossa",
+    "SV" -> "Annullerad, godkänd i en annan urvalsmetodskö",
+    "EN" -> "Cancelled, accepted in another selection method queue")
+}
+case object HyvaksyttyVarasijalta extends ValinnantilanTarkenne {
+  val valinnantilanTarkenne = Map("FI" -> "Varasijalta hyväksytty",
+    "SV" -> "Godkänd från reservplats",
+    "EN" -> "Accepted from a reserve place")
+}
+case object PeruuntunutEiVastaanottanutMaaraaikana extends ValinnantilanTarkenne {
+  val valinnantilanTarkenne = Map("FI" -> "Peruuntunut, ei vastaanottanut määräaikana",
+    "SV" -> "Annullerad, har inte tagit emot platsen inom utsatt tid",
+    "EN" -> "Cancelled, has not confirmed the study place within the deadline")
+}
+case object PeruuntunutVastaanottanutToisenPaikan extends ValinnantilanTarkenne {
+  val valinnantilanTarkenne = Map("FI" -> "Peruuntunut, ottanut vastaan toisen opiskelupaikan",
+    "SV" -> "Annullerad, ottanut vastaan toisen opiskelupaikan",
+    "EN" -> "Cancelled, ottanut vastaan toisen opiskelupaikan")
+}
+case object PeruuntunutEiMahduVarasijojenMaaraan extends ValinnantilanTarkenne {
+  val valinnantilanTarkenne = Map("FI" -> "Peruuntunut, varasija ei mahdu käsiteltävien varasijojen määrään",
+    "SV" -> "Annullerad, reservplatsen ryms inte med i antalet reservplatser",
+    "EN" -> "Cancelled, the reserve place does not fit into the amount of processed reserve places")
+}
+case object PeruuntunutHakukierrosPaattynyt extends ValinnantilanTarkenne {
+  val valinnantilanTarkenne = Map("FI" -> "Peruuntunut, varasijatäyttö päättynyt",
+    "SV" -> "Annullerad, besättning av reservplatser har upphört",
+    "EN" -> "Cancelled, reserve place selection has ended")
+}
+case object PeruuntunutEiVarasijatayttoa extends ValinnantilanTarkenne {
+  val valinnantilanTarkenne = Map("FI" -> "Peruuntunut, varasijatäyttö päättynyt",
+    "SV" -> "Annullerad, besättning av reservplatser har upphört",
+    "EN" -> "Cancelled, reserve place selection has ended")
+}
+case object HyvaksyttyTayttojonoSaannolla extends ValinnantilanTarkenne {
+  val valinnantilanTarkenne = Map("FI" -> "Hyväksytty täyttöjonosäännöllä valintatapajonosta: ",
+    "SV" -> "Godkänd med köpåfyllningsregel från urvalsmetodskö: ",
+    "EN" -> "Accepted from selection method queue: ")
+}
+case object HylattyHakijaryhmaanKuulumattomana extends ValinnantilanTarkenne {
+  val valinnantilanTarkenne = Map("FI" -> "Hylätty, ei kuulu hakijaryhmään: ",
+    "SV" -> "Annullerad, hör inte till gruppen för sökande: ",
+    "EN" -> "Cancelled, is not included in the applicant group: ")
+}
+case object PeruuntunutVastaanottanutToisenPaikanYhdenSaannonPaikanPiirissa extends ValinnantilanTarkenne {
+  val valinnantilanTarkenne = Map("FI" -> "Peruuntunut, vastaanottanut toisen korkeakoulupaikan",
+    "SV" -> "Annullerad, tagit emot en annan högskoleplats",
+    "EN" -> "Cancelled, accepted another higher education study place")
+}
+
+object ValinnantilanTarkenne {
+  private val valueMapping = Map(
+    "peruuntunutHyvaksyttyYlemmalleHakutoiveelle" -> PeruuntunutHyvaksyttyYlemmalleHakutoiveelle,
+    "peruuntunutAloituspaikatTaynna" -> PeruuntunutAloituspaikatTaynna,
+    "peruuntunutHyvaksyttyToisessaJonossa" -> PeruuntunutHyvaksyttyToisessaJonossa,
+    "hyvaksyttyVarasijalta" -> HyvaksyttyVarasijalta,
+    "peruuntunutEiVastaanottanutMaaraaikana" -> PeruuntunutEiVastaanottanutMaaraaikana,
+    "peruuntunutVastaanottanutToisenPaikan" -> PeruuntunutVastaanottanutToisenPaikan,
+    "peruuntunutEiMahduVarasijojenMaaraan" -> PeruuntunutEiMahduVarasijojenMaaraan,
+    "peruuntunutHakukierrosPaattynyt" -> PeruuntunutHakukierrosPaattynyt,
+    "peruuntunutEiVarasijatayttoa" -> PeruuntunutEiVarasijatayttoa,
+    "hyvaksyttyTayttojonoSaannolla" -> HyvaksyttyTayttojonoSaannolla,
+    "hylattyHakijaryhmaanKuulumattomana" -> HylattyHakijaryhmaanKuulumattomana,
+    "peruuntunutVastaanottanutToisenPaikanYhdenSaannonPaikanPiirissa" -> PeruuntunutVastaanottanutToisenPaikanYhdenSaannonPaikanPiirissa
+  )
+  val values: List[String] = valueMapping.keysIterator.toList
+  def apply(value: String): ValinnantilanTarkenne = valueMapping.getOrElse(value, {
+    throw new IllegalArgumentException(s"Unknown valinnantilan tarkenne '$value', expected one of $values")
+  })
+  def getValinnantilanTarkenne(tilanKuvaus:Map[String,String]) = tilanKuvaus.get("FI") match {
+    case Some("Peruuntunut, hyväksytty ylemmälle hakutoiveelle") => Some(PeruuntunutHyvaksyttyYlemmalleHakutoiveelle)
+    case Some("Peruuntunut, aloituspaikat täynnä") => Some(PeruuntunutAloituspaikatTaynna)
+    case Some("Peruuntunut, hyväksytty toisessa valintatapajonossa") => Some(PeruuntunutHyvaksyttyToisessaJonossa)
+    case Some("Varasijalta hyväksytty") => Some(HyvaksyttyVarasijalta)
+    case Some("Peruuntunut, ei vastaanottanut määräaikana") => Some(PeruuntunutEiVastaanottanutMaaraaikana)
+    case Some("Peruuntunut, ottanut vastaan toisen opiskelupaikan") => Some(PeruuntunutVastaanottanutToisenPaikan)
+    case Some("Peruuntunut, varasija ei mahdu käsiteltävien varasijojen määrään") => Some(PeruuntunutEiMahduVarasijojenMaaraan)
+    case Some("Peruuntunut, varasijatäyttö päättynyt") => Some(PeruuntunutHakukierrosPaattynyt)
+    case Some("Peruuntunut, ei varasijatäyttöä") => Some(PeruuntunutEiVarasijatayttoa)
+    case Some(x) if x.startsWith("Hyväksytty täyttöjonosäännöllä valintatapajonosta:") => Some(HyvaksyttyTayttojonoSaannolla)
+    case Some(x) if x.startsWith("Hylätty, ei kuulu hakijaryhmään:") => Some(HylattyHakijaryhmaanKuulumattomana)
+    case Some("Peruuntunut, vastaanottanut toisen korkeakoulupaikan") => Some(PeruuntunutVastaanottanutToisenPaikanYhdenSaannonPaikanPiirissa)
+    case _ => None
+  }
+}
+
+case class SijoitteluajonHakemusWrapper(
   hakemusOid:String,
   hakijaOid:String,
   etunimi:String,
@@ -159,7 +315,11 @@ case class SijoitteluajonJonosijaWrapper(
   tasasijaJonosija:Option[Int],
   hyvaksyttyHarkinnanvaraisesti:Option[Boolean],
   hyvaksyttyHakijaryhmasta:Option[Boolean],
-  siirtynytToisestaValintatapajonosta:Option[Boolean] ) {
+  siirtynytToisestaValintatapajonosta:Option[Boolean],
+  tila:Valinnantila,
+  valinnanTilanTarkenne:Option[ValinnantilanTarkenne]) {
+
+  import scala.collection.JavaConverters._
 
   val hakemus:SijoitteluHakemus = {
     val hakemus = new SijoitteluHakemus
@@ -176,13 +336,16 @@ case class SijoitteluajonJonosijaWrapper(
     hyvaksyttyHarkinnanvaraisesti.foreach(hakemus.setHyvaksyttyHarkinnanvaraisesti(_))
     hyvaksyttyHakijaryhmasta.foreach(hakemus.setHyvaksyttyHakijaryhmasta(_))
     siirtynytToisestaValintatapajonosta.foreach(hakemus.setSiirtynytToisestaValintatapajonosta(_))
+    hakemus.setTila(tila.valinnantila)
+    valinnanTilanTarkenne.foreach(tarkenne => hakemus.setTilanKuvaukset(tarkenne.valinnantilanTarkenne.asJava))
     hakemus
   }
 }
 
-object SijoitteluajonJonosijaWrapper extends OptionConverter {
-  def apply(hakemus:SijoitteluHakemus):SijoitteluajonJonosijaWrapper = {
-    SijoitteluajonJonosijaWrapper(
+object SijoitteluajonHakemusWrapper extends OptionConverter {
+  import scala.collection.JavaConverters._
+  def apply(hakemus:SijoitteluHakemus):SijoitteluajonHakemusWrapper = {
+    SijoitteluajonHakemusWrapper(
       hakemus.getHakemusOid,
       hakemus.getHakijaOid,
       hakemus.getEtunimi,
@@ -195,7 +358,112 @@ object SijoitteluajonJonosijaWrapper extends OptionConverter {
       convert[javaInt,Int](hakemus.getTasasijaJonosija,int),
       convert[javaBoolean,Boolean](hakemus.isHyvaksyttyHarkinnanvaraisesti,boolean),
       convert[javaBoolean,Boolean](hakemus.isHyvaksyttyHakijaryhmasta,boolean),
-      convert[javaBoolean,Boolean](hakemus.getSiirtynytToisestaValintatapajonosta,boolean)
+      convert[javaBoolean,Boolean](hakemus.getSiirtynytToisestaValintatapajonosta,boolean),
+      Valinnantila.getValinnantila(hakemus.getTila),
+      ValinnantilanTarkenne.getValinnantilanTarkenne(hakemus.getTilanKuvaukset.asScala.toMap)
+    )
+  }
+}
+
+sealed trait SijoitteluajonIlmoittautumistila {
+  def ilmoittautumistila:IlmoittautumisTila
+}
+
+case object EiTehty extends SijoitteluajonIlmoittautumistila {
+  val ilmoittautumistila = IlmoittautumisTila.EI_TEHTY
+}
+
+case object LasnaKokoLukuvuosi extends SijoitteluajonIlmoittautumistila {
+  val ilmoittautumistila = IlmoittautumisTila.LASNA_KOKO_LUKUVUOSI
+}
+
+case object PoissaKokoLukuvuosi extends SijoitteluajonIlmoittautumistila {
+  val ilmoittautumistila = IlmoittautumisTila.POISSA_KOKO_LUKUVUOSI
+}
+
+case object EiIlmoittautunut extends SijoitteluajonIlmoittautumistila {
+  val ilmoittautumistila = IlmoittautumisTila.EI_ILMOITTAUTUNUT
+}
+
+case object LasnaSyksy extends SijoitteluajonIlmoittautumistila {
+  val ilmoittautumistila = IlmoittautumisTila.LASNA_SYKSY
+}
+
+case object PoissaSyksy extends SijoitteluajonIlmoittautumistila {
+  val ilmoittautumistila = IlmoittautumisTila.POISSA_SYKSY
+}
+
+case object Lasna extends SijoitteluajonIlmoittautumistila {
+  val ilmoittautumistila = IlmoittautumisTila.LASNA
+}
+
+case object Poissa extends SijoitteluajonIlmoittautumistila {
+  val ilmoittautumistila = IlmoittautumisTila.POISSA
+}
+
+object SijoitteluajonIlmoittautumistila {
+  private val valueMapping = Map(
+    "EiTehty" -> EiTehty,
+    "LasnaKokoLukuvuosi" -> LasnaKokoLukuvuosi,
+    "PoissaKokoLukuvuosi" -> PoissaKokoLukuvuosi,
+    "EiIlmoittautunut" -> EiIlmoittautunut,
+    "LasnaSyksy" -> LasnaSyksy,
+    "PoissaSyksy" -> PoissaSyksy,
+    "Lasna" -> Lasna,
+    "Poissa" -> Poissa)
+  val values: List[String] = valueMapping.keysIterator.toList
+  def apply(value: String): SijoitteluajonIlmoittautumistila = valueMapping.getOrElse(value, {
+    throw new IllegalArgumentException(s"Unknown ilmoittautumistila '$value', expected one of $values")
+  })
+  def getIlmoittautumistila(ilmoittautumistila: IlmoittautumisTila) = ilmoittautumistila match {
+    case IlmoittautumisTila.EI_TEHTY => EiTehty
+    case IlmoittautumisTila.LASNA_KOKO_LUKUVUOSI => LasnaKokoLukuvuosi
+    case IlmoittautumisTila.POISSA_KOKO_LUKUVUOSI => PoissaKokoLukuvuosi
+    case IlmoittautumisTila.EI_ILMOITTAUTUNUT => EiIlmoittautunut
+    case IlmoittautumisTila.LASNA_SYKSY => LasnaSyksy
+    case IlmoittautumisTila.POISSA_SYKSY => PoissaSyksy
+    case IlmoittautumisTila.LASNA => Lasna
+    case IlmoittautumisTila.POISSA => Poissa
+    case null => EiTehty
+  }
+}
+
+case class SijoitteluajonValinnantulosWrapper(
+  valintatapajonoOid:String,
+  hakemusOid:String,
+  hakukohdeOid:String,
+  ehdollisestiHyvaksyttavissa:Boolean = false,
+  julkaistavissa:Boolean = false,
+  hyvaksyttyVarasijalta:Boolean = false,
+  hyvaksyPeruuntunut:Boolean = false,
+  ilmoittautumistila:Option[SijoitteluajonIlmoittautumistila]
+) {
+  val valintatulos:Valintatulos = {
+    val valintatulos = new Valintatulos()
+    valintatulos.setValintatapajonoOid(valintatapajonoOid, "")
+    valintatulos.setHakemusOid(hakemusOid, "")
+    valintatulos.setHakukohdeOid(hakukohdeOid, "")
+    valintatulos.setEhdollisestiHyvaksyttavissa(ehdollisestiHyvaksyttavissa, "", "");
+    valintatulos.setJulkaistavissa(julkaistavissa, "")
+    valintatulos.setHyvaksyttyVarasijalta(hyvaksyttyVarasijalta, "")
+    valintatulos.setHyvaksyPeruuntunut(hyvaksyPeruuntunut, "")
+    ilmoittautumistila.foreach(ilmoittautumistila => valintatulos.setIlmoittautumisTila(ilmoittautumistila.ilmoittautumistila, ""))
+    valintatulos
+  }
+}
+
+object SijoitteluajonValinnantulosWrapper extends OptionConverter {
+  def apply(valintatulos:Valintatulos):SijoitteluajonValinnantulosWrapper = {
+    SijoitteluajonValinnantulosWrapper(
+      valintatulos.getValintatapajonoOid,
+      valintatulos.getHakemusOid,
+      valintatulos.getHakukohdeOid,
+      valintatulos.getEhdollisestiHyvaksyttavissa,
+      valintatulos.getJulkaistavissa,
+      valintatulos.getHyvaksyttyVarasijalta,
+      valintatulos.getHyvaksyPeruuntunut,
+      convert[IlmoittautumisTila,SijoitteluajonIlmoittautumistila](valintatulos.getIlmoittautumisTila,
+        SijoitteluajonIlmoittautumistila.getIlmoittautumistila)
     )
   }
 }

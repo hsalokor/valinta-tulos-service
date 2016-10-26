@@ -349,23 +349,56 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def storeSijoittelu(sijoittelu: SijoitteluWrapper) = {
     runBlocking(insertSijoitteluajo(sijoittelu.sijoitteluajo).andThen(
-        DBIO.sequence(sijoittelu.hakukohteet.map(storeSijoittelunHakukohde))
+        DBIO.sequence(sijoittelu.hakukohteet.map(hakukohde =>
+          storeSijoittelunHakukohde(sijoittelu.sijoitteluajo.getSijoitteluajoId, hakukohde,
+            sijoittelu.valintatulokset.filter(vt => vt.getHakukohdeOid == hakukohde.getOid))
+        ))
       )
     )
   }
 
   import scala.collection.JavaConverters._
 
-  def storeSijoittelunHakukohde(hakukohde: Hakukohde) = {
+  def storeSijoittelunHakukohde(sijoitteluajoId:Long, hakukohde: Hakukohde, valintatulokset: List[Valintatulos]) = {
     insertHakukohde(hakukohde).flatMap(id =>
-      DBIO.sequence(hakukohde.getValintatapajonot.asScala.map(storeSijoittelunValintatapajono(id.get, _)).toList)
+      DBIO.sequence(hakukohde.getValintatapajonot.asScala.map(valintatapajono =>
+        storeSijoittelunValintatapajono(id.get, hakukohde.getOid, sijoitteluajoId, valintatapajono,
+          valintatulokset.filter(_.getValintatapajonoOid == valintatapajono.getOid))
+      ).toList)
     )
   }
 
-  def storeSijoittelunValintatapajono(hakukohdeId:Long, valintatapajono:Valintatapajono) = {
+  def storeSijoittelunValintatapajono(hakukohdeId:Long, hakukohdeOid:String, sijoitteluajoId:Long, valintatapajono:Valintatapajono, valintatulokset: List[Valintatulos]) = {
     insertValintatapajono(hakukohdeId, valintatapajono).andThen(
-      DBIO.sequence(valintatapajono.getHakemukset.asScala.map(insertJonosija(valintatapajono.getOid, hakukohdeId, _)).toList)
-    )
+      DBIO.sequence(valintatapajono.getHakemukset.asScala.map(hakemus =>
+        storeSijoittelunJonosija(hakukohdeId, hakukohdeOid, sijoitteluajoId, valintatapajono.getOid, hakemus,
+          valintatulokset.find(_.getHakemusOid == hakemus.getHakemusOid)
+      )).toList
+    ))
+  }
+
+  def storeSijoittelunJonosija(hakukohdeId:Long, hakukohdeOid:String, sijoitteluajoId:Long, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos]) = {
+    if(valintatulos.isDefined) {
+      insertJonosija(valintatapajonoOid, hakukohdeId, hakemus).flatMap(jonosijaId => {
+        DBIO.seq(
+          insertValinnantulos(sijoitteluajoId, jonosijaId.get, valintatulos.get, hakemus),
+          insertIlmoittautuminen(valintatulos.get, hakemus.getHakijaOid)
+        )
+      })
+    } else {
+      insertJonosija(valintatapajonoOid, hakukohdeId, hakemus).flatMap(jonosijaId => {
+        insertValinnantulos(sijoitteluajoId, jonosijaId.get, SijoitteluajonValinnantulosWrapper(
+                                                                                                            valintatapajonoOid,
+          hakemus.getHakemusOid,
+                                                                                                            hakukohdeOid,
+                                                                                                            false,
+                                                                                                            false,
+                                                                                                            false,
+                                                                                                            false,
+          None
+                                                                                                          ).valintatulos, hakemus)
+      })
+    }
   }
 
   private def insertSijoitteluajo(sijoitteluajo:SijoitteluAjo) = {
@@ -400,18 +433,53 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   private def insertJonosija(valintatapajonoOid:String, hakukohdeId:Long, hakemus:SijoitteluHakemus) = {
-    val SijoitteluajonJonosijaWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
+    val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
       onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti,
-      hyvaksyttyHakijaryhmasta, siirtynytToisestaValintatapajonosta )
-      = SijoitteluajonJonosijaWrapper(hakemus)
+      hyvaksyttyHakijaryhmasta, siirtynytToisestaValintatapajonosta, _, _)
+      = SijoitteluajonHakemusWrapper(hakemus)
 
-    sqlu"""insert into jonosijat (valintatapajonooid, sijoitteluajonhakukohdeid, hakemusoid, hakijaoid, etunimi, sukunimi, prioriteetti,
+    sql"""insert into jonosijat (valintatapajonooid, sijoitteluajonhakukohdeid, hakemusoid, hakijaoid, etunimi, sukunimi, prioriteetti,
            jonosija, varasijanNumero, onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti,
            hyvaksyttyHakijaryhmasta, siirtynytToisestaValintatapajonosta)
            values (${valintatapajonoOid}, ${hakukohdeId}, ${hakemusOid}, ${hakijaOid}, ${etunimi}, ${sukunimi}, ${prioriteetti},
            ${jonosija}, ${varasijanNumero}, ${onkoMuuttunutViimeSijoittelussa}, ${pisteet}, ${tasasijaJonosija},
            ${hyvaksyttyHarkinnanvaraisesti},
-           ${hyvaksyttyHakijaryhmasta}, ${siirtynytToisestaValintatapajonosta})"""
+           ${hyvaksyttyHakijaryhmasta}, ${siirtynytToisestaValintatapajonosta}) RETURNING id""".as[Long].headOption
+  }
+
+  private def insertValinnantulos(sijoitteluajoId:Long, jonosijaId:Long, valintatulos:Valintatulos, hakemus:SijoitteluHakemus) = {
+    val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
+      onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti,
+      hyvaksyttyHakijaryhmasta, siirtynytToisestaValintatapajonosta, valinnanTila, valinnanTilanTarkenne)
+      = SijoitteluajonHakemusWrapper(hakemus)
+    val SijoitteluajonValinnantulosWrapper(valintatapajonoOid, _, hakukohdeOid, ehdollisestiHyvaksyttavissa,
+      julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, ilmoittautumistila)
+      = SijoitteluajonValinnantulosWrapper(valintatulos)
+
+    val tarkenteenLisatieto:String = null
+    val ilmoittaja = "TODO"
+    val selite = "TODO"
+    val tilanViimeisinMuutos = new java.sql.Timestamp(System.currentTimeMillis())
+    val valinnantilanTarkenneString:Option[String] = valinnanTilanTarkenne.flatMap(x => Some(x.toString))
+
+    sqlu"""insert into valinnantulokset (hakukohdeOid, valintatapajonoOid, hakemusOid, sijoitteluajoId, jonosijaId,
+           tila, tarkenne, tarkenteenLisatieto, julkaistavissa, ehdollisestiHyvaksyttavissa, hyvaksyttyVarasijalta,
+           hyvaksyPeruuntunut, ilmoittaja, selite, tilanViimeisinMuutos)
+           values (${hakukohdeOid}, ${valintatapajonoOid}, ${hakemusOid}, ${sijoitteluajoId}, ${jonosijaId},
+           ${valinnanTila.toString}::valinnantila, ${valinnantilanTarkenneString}::valinnantilanTarkenne,
+           ${tarkenteenLisatieto}, ${julkaistavissa}, ${ehdollisestiHyvaksyttavissa}, ${hyvaksyttyVarasijalta},
+           ${hyvaksyPeruuntunut}, ${ilmoittaja}, ${selite}, ${tilanViimeisinMuutos})"""
+  }
+
+  private def insertIlmoittautuminen(valintatulos:Valintatulos, hakijaOid:String) = {
+    val SijoitteluajonValinnantulosWrapper(_, _, hakukohdeOid, _, _, _, _, ilmoittautumistila)
+    = SijoitteluajonValinnantulosWrapper(valintatulos)
+
+    val ilmoittaja = "TODO"
+    val selite = "TODO"
+
+    sqlu"""insert into ilmoittautumiset (henkilo, hakukohde, tila, ilmoittaja, selite)
+           values (${hakijaOid}, ${hakukohdeOid}, ${ilmoittautumistila.get.toString}::ilmoittautumistila, ${ilmoittaja}, ${selite})"""
   }
 
   override def getLatestSijoitteluajoId(hakuOid:String): Option[Long] = {
