@@ -1,11 +1,13 @@
 package fi.vm.sade.valintatulosservice.domain
 
-import fi.vm.sade.sijoittelu.tulos.dto.PistetietoDTO
+import fi.vm.sade.sijoittelu.tulos.dto.{HakukohdeDTO, PistetietoDTO, SijoitteluajoDTO, ValintatapajonoDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
+import fi.vm.sade.valintatulosservice.valintarekisteri.SijoitteluRepository
+import org.http4s.DateTime
 
 import scala.collection.JavaConverters._
 
-case class Sijoitteluajo(sijoitteluajoId:Long, hakuOid:String, startMils:Long, endMils:Long)
+case class SijoitteluajoRecord(sijoitteluajoId:Long, hakuOid:String, startMils:Long, endMils:Long)
 
 case class HakijaRecord(etunimi:String, sukunimi:String, hakemusOid:String, hakijaOid:String)
 
@@ -13,7 +15,15 @@ case class HakutoiveRecord(jonosijaId:Int, hakutoive:Int, hakukohdeOid:String, t
 
 case class PistetietoRecord(jonosijaId:Int, tunniste:String, arvo:String, laskennallinenArvo:String, osallistuminen:String)
 
-object Sijoittelu {
+case class SijoittelunHakukohdeRecord(sijoitteluajoId:Long, oid:String, tarjoajaOid:String, kaikkiJonotsijoiteltu:Boolean, ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet:BigDecimal)
+
+case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String, prioriteetti:Int, aloituspaikat:Int,
+                                 alkuperaisetAloituspaikat:Int, alinHyvaksyttyPistemaara:BigDecimal, eiVarasijatayttoa:Boolean,
+                                 kaikkiEhdonTayttavatHyvaksytaan:Boolean, poissaOlevaTaytto:Boolean, valintaesitysHyvaksytty:Boolean,
+                                 hakeneet:Int, hyvaksytty:Int, varalla:Int, varasijat:Int, varasijanTayttoPaivat:Int,
+                                 varasijojaKaytetaanAlkaen:java.sql.Date, varasijojaKaytetaanAsti:java.sql.Date, tayttoJono:String)
+
+class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
   def hakijaRecordToDTO(hakija:HakijaRecord): HakijaDTO = {
     val hakijaDTO = new HakijaDTO
     hakijaDTO.setHakijaOid(hakija.hakijaOid)
@@ -44,11 +54,61 @@ object Sijoittelu {
     return pistetietoDTO
   }
 
-  def parseSijoitteluajoId(sijoitteluajoId:String): Long = {
-    try {
-      sijoitteluajoId.toLong
-    } catch {
-      case e: NumberFormatException => throw new NumberFormatException(s"Väärän tyyppinen sijoitteuajon ID: $sijoitteluajoId")
+  def sijoitteluajoRecordToDto(sijoitteluajo:SijoitteluajoRecord): SijoitteluajoDTO = {
+    val sijoitteluajoDTO = new SijoitteluajoDTO
+    sijoitteluajoDTO.setSijoitteluajoId(sijoitteluajo.sijoitteluajoId)
+    sijoitteluajoDTO.setHakuOid(sijoitteluajo.hakuOid)
+    sijoitteluajoDTO.setStartMils(sijoitteluajo.startMils)
+    sijoitteluajoDTO.setEndMils(sijoitteluajo.endMils)
+    sijoitteluajoDTO
+  }
+
+  def sijoittelunHakukohdeRecordToDTO(hakukohde:SijoittelunHakukohdeRecord): HakukohdeDTO = {
+    val hakukohdeDTO = new HakukohdeDTO
+    hakukohdeDTO.setSijoitteluajoId(hakukohde.sijoitteluajoId)
+    hakukohdeDTO.setOid(hakukohde.oid)
+    hakukohdeDTO.setTarjoajaOid(hakukohde.tarjoajaOid)
+    hakukohdeDTO.setKaikkiJonotSijoiteltu(hakukohde.kaikkiJonotsijoiteltu)
+    hakukohdeDTO.setEnsikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet(hakukohde.ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet.bigDecimal)
+    hakukohdeDTO
+  }
+
+  def valintatapajonoRecordToDTO(jono:ValintatapajonoRecord): ValintatapajonoDTO = {
+    val jonoDTO = new ValintatapajonoDTO
+    jonoDTO.setTasasijasaanto(jono.tasasijasaanto.asInstanceOf)
+    jonoDTO.setOid(jono.oid)
+    jonoDTO.setNimi(jono.nimi)
+    jonoDTO.setPrioriteetti(jono.prioriteetti)
+    jonoDTO.setAloituspaikat(jono.aloituspaikat)
+    jonoDTO.setAlkuperaisetAloituspaikat(jono.alkuperaisetAloituspaikat)
+    jonoDTO.setAlinHyvaksyttyPistemaara(jono.alinHyvaksyttyPistemaara.bigDecimal)
+    jonoDTO.setEiVarasijatayttoa(jono.eiVarasijatayttoa)
+    jonoDTO.setKaikkiEhdonTayttavatHyvaksytaan(jono.kaikkiEhdonTayttavatHyvaksytaan)
+    jonoDTO.setPoissaOlevaTaytto(jono.poissaOlevaTaytto)
+    jonoDTO.setValintaesitysHyvaksytty(jono.valintaesitysHyvaksytty)
+    jonoDTO.setHakeneet(jono.hakeneet)
+    jonoDTO.setHyvaksytty(jono.hyvaksytty)
+    jonoDTO.setVaralla(jono.varalla)
+    jonoDTO.setVarasijat(jono.varasijat)
+    jonoDTO.setVarasijaTayttoPaivat(jono.varasijanTayttoPaivat)
+    jonoDTO.setVarasijojaKaytetaanAlkaen(jono.varasijojaKaytetaanAlkaen.asInstanceOf)
+    jonoDTO.setVarasijojaTaytetaanAsti(jono.varasijojaKaytetaanAsti.asInstanceOf)
+    jonoDTO.setTayttojono(jono.tayttoJono)
+    jonoDTO
+  }
+
+  def getLatestSijoitteluajoId(sijoitteluajoId:String, hakuOid:String): Long = {
+    if (sijoitteluajoId.equalsIgnoreCase("latest")) {
+      sijoitteluRepository.getLatestSijoitteluajoId(hakuOid) match {
+        case Some(i) => i
+        case None => throw new IllegalArgumentException(s"Yhtään sijoitteluajoa ei löytynyt haulle $hakuOid")
+      }
+    } else {
+      try {
+        sijoitteluajoId.toLong
+      } catch {
+        case e: NumberFormatException => throw new NumberFormatException(s"Väärän tyyppinen sijoitteuajon ID: $sijoitteluajoId")
+      }
     }
   }
 }

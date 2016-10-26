@@ -35,7 +35,11 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   private implicit val getHakijaResult = GetResult(r => HakijaRecord(r.<<, r.<<, r.<<, r.<<))
   private implicit val getHakutoiveResult = GetResult(r => HakutoiveRecord(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
   private implicit val getPistetiedotResult = GetResult(r => PistetietoRecord(r.<<, r.<<, r.<<, r.<<, r.<<))
-
+  private implicit val getSijoitteluajoResult = GetResult(r => SijoitteluajoRecord(r.<<, r.<<,
+    r.nextTimestamp().getTime, r.nextTimestamp().getTime))
+  private implicit val getSijoitteluajoHakukohteetResult = GetResult(r => SijoittelunHakukohdeRecord(r.<<, r.<<, r.<<, r.<<, r.<<))
+  private implicit val getValintatapajonotResult = GetResult(r => ValintatapajonoRecord(r.<<, r.<<, r.<<, r.<<,
+    r.<<, r.<<, r.<<, r.<<, r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<<, r.<<))
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
     val d = runBlocking(
@@ -517,6 +521,37 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             where haku_oid = ${hakuOid}
             order by id desc
             limit 1""".as[Long]).headOption
+  }
+
+  override def getSijoitteluajo(hakuOid: String, sijoitteluajoId: Long): Option[SijoitteluajoRecord] = {
+    runBlocking(
+      sql"""select id, haku_oid, start, sijoitteluajot.end
+            from sijoitteluajot
+            where id = ${sijoitteluajoId} and haku_oid = ${hakuOid}""".as[SijoitteluajoRecord]).headOption
+  }
+
+  override def getSijoitteluajoHakukohteet(sijoitteluajoId: Long): Option[List[SijoittelunHakukohdeRecord]] = {
+    // If there are perf problems it's in this subquery!
+    Option(runBlocking(
+      sql"""select sh.sijoitteluajo_id, h.hakukohde_oid, sh.tarjoaja_oid, sh.kaikki_jonot_sijoiteltu,
+              (select min(hr.alin_hyvaksytty_pistemaara)
+               from hakijaryhmat as hr
+               left join sijoitteluajon_hakukohteet as sh on sh.id = hr.sijoitteluajon_hakukohde_id
+               where sh.sijoitteluajo_id = ${sijoitteluajoId}) as ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet
+            from hakukohteet as h
+            left join sijoitteluajon_hakukohteet as sh on h.hakukohde_oid = sh.hakukohde_oid
+            where sh.sijoitteluajo_id = ${sijoitteluajoId}""".as[SijoittelunHakukohdeRecord]).toList)
+  }
+
+  override def getValintatapajonot(sijoitteluajoId: Long): Option[List[ValintatapajonoRecord]] = {
+    Option(runBlocking(
+      sql"""select v.tasasijasaanto, v.oid, v.nimi, v.prioriteetti, v.aloituspaikat, v.alkuperaiset_aloituspaikat,
+            v.alin_hyvaksytty_pistemaara, v.ei_varasijatayttoa, v.kaikki_ehdon_tayttavat_hyvaksytaan, v.poissaoleva_taytto,
+            v.valintaesitys_hyvaksytty, (v.hyvaksytty + v.varalla) as hakeneet, v.hyvaksytty, v.varalla, v.varasijat,
+            v.varasijatayttopaivat, v.varasijoja_kaytetaan_alkaen, v.varasijoja_taytetaan_asti, v.tayttojono
+            from valintatapajonot as v
+            left join sijoitteluajon_hakukohteet as sh on sh.id = v.sijoitteluajon_hakukohde_id
+            where sh.sijoitteluajo_id = ${sijoitteluajoId}""".as[ValintatapajonoRecord]).toList)
   }
 
   override def getHakija(hakemusOid: String, sijoitteluajoId: Long): Option[HakijaRecord] = {
