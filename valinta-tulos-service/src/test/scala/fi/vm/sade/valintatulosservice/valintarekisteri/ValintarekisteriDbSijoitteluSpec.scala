@@ -57,7 +57,7 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
   implicit val formats = DefaultFormats ++ List(new NumberLongSerializer, new TasasijasaantoSerializer, new ValinnantilaSerializer)
 
   step(appConfig.start)
-  step(ValintarekisteriTools.deleteSijoitteluajot(singleConnectionValintarekisteriDb))
+  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
 
   "ValintarekisteriDb" should {
     "store sijoitteluajo" in {
@@ -232,7 +232,7 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
 
   def findSijoitteluajo(sijoitteluajoId:Long): Option[SijoitteluAjo] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select id, hakuOid, "start", "end"
+      sql"""select id, haku_oid, "start", "end"
             from sijoitteluajot
             where id = ${sijoitteluajoId}""".as[SijoitteluAjo]).headOption
   }
@@ -243,9 +243,9 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
 
   def findSijoitteluajonHakukohteet(sijoitteluajoId:Long): Seq[Hakukohde] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select sijoitteluajoId, hakukohdeOid as oid, tarjoajaOid, kaikkiJonotSijoiteltu
-            from sijoitteluajonhakukohteet
-            where sijoitteluajoId = ${sijoitteluajoId}""".as[Hakukohde])
+      sql"""select sijoitteluajo_id, hakukohde_oid as oid, tarjoaja_oid, kaikki_jonot_sijoiteltu
+            from sijoitteluajon_hakukohteet
+            where sijoitteluajo_id = ${sijoitteluajoId}""".as[Hakukohde])
   }
 
   private implicit val getSijoitteluajonValintatapajonoResult = GetResult(r => {
@@ -256,13 +256,13 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
 
   def findHakukohteenValintatapajonot(hakukohdeOid:String): Seq[Valintatapajono] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select oid, nimi, prioriteetti, tasasijasaanto, aloituspaikat, alkuperaisetaloituspaikat, eivarasijatayttoa,
-            kaikkiehdontayttavathyvaksytaan, poissaolevataytto,
-            varasijat, varasijatayttopaivat, varasijojakaytetaanalkaen, varasijojataytetaanasti, tayttojono,
-            hyvaksytty, varalla, alinhyvaksyttypistemaara
+      sql"""select oid, nimi, prioriteetti, tasasijasaanto, aloituspaikat, alkuperaiset_aloituspaikat, ei_varasijatayttoa,
+            kaikki_ehdon_tayttavat_hyvaksytaan, poissaoleva_taytto,
+            varasijat, varasijatayttopaivat, varasijoja_kaytetaan_alkaen, varasijoja_taytetaan_asti, tayttojono,
+            hyvaksytty, varalla, alin_hyvaksytty_pistemaara
             from valintatapajonot
-            inner join sijoitteluajonhakukohteet on sijoitteluajonhakukohteet.id = valintatapajonot.sijoitteluajonhakukohdeid
-            and sijoitteluajonhakukohteet.hakukohdeOid = ${hakukohdeOid}""".as[Valintatapajono])
+            inner join sijoitteluajon_hakukohteet sh on sh.id = valintatapajonot.sijoitteluajon_hakukohde_id
+            and sh.hakukohde_oid = ${hakukohdeOid}""".as[Valintatapajono])
   }
 
   private implicit val getSijoitteluajonHakijaryhmaResult = GetResult(r => {
@@ -273,18 +273,18 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
 
   def findHakukohteenHakijaryhmat(hakukohdeOid:String): Seq[Hakijaryhma] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select h.oid, h.nimi, h.prioriteetti, h.paikat, h.kiintio, h.kaytaKaikki,
-            h.tarkkaKiintio, h.kaytetaanRyhmaanKuuluvia, h.alinHyvaksyttyPistemaara
+      sql"""select h.oid, h.nimi, h.prioriteetti, h.paikat, h.kiintio, h.kayta_kaikki,
+            h.tarkka_kiintio, h.kaytetaan_ryhmaan_kuuluvia, h.alin_hyvaksytty_pistemaara
             from hakijaryhmat h
-            inner join sijoitteluajonHakukohteet sh on sh.id = h.sijoitteluajonHakukohdeId
-            where sh.hakukohdeOid = ${hakukohdeOid}""".as[Hakijaryhma]
+            inner join sijoitteluajon_hakukohteet sh on sh.id = h.sijoitteluajon_hakukohde_id
+            where sh.hakukohde_oid = ${hakukohdeOid}""".as[Hakijaryhma]
     )
   }
 
   def findHakijaryhmanHakemukset(hakijaryhmaOid:String): Seq[String] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select hh.hakemusOid from hakijaryhmanhakemukset hh
-            inner join hakijaryhmat h ON hh.hakijaryhmaid = h.id
+      sql"""select hh.hakemus_oid from hakijaryhman_hakemukset hh
+            inner join hakijaryhmat h ON hh.hakijaryhma_id = h.id
             where h.oid = ${hakijaryhmaOid}""".as[String]
     )
   }
@@ -297,12 +297,12 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
 
   def findValintatapajononJonosijat(valintatapajonoOid:String): Seq[SijoitteluHakemus] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select j.hakemusoid, j.hakijaoid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijannumero, j.onkomuuttunutviimesijoittelussa,
-            j.pisteet, j.tasasijajonosija, j.hyvaksyttyharkinnanvaraisesti, j.hyvaksyttyhakijaryhmasta, j.siirtynyttoisestavalintatapajonosta,
+      sql"""select j.hakemus_oid, j.hakija_oid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijan_numero, j.onko_muuttunut_viime_sijoittelussa,
+            j.pisteet, j.tasasijajonosija, j.hyvaksytty_harkinnanvaraisesti, j.hyvaksytty_hakijaryhmasta, j.siirtynyt_toisesta_valintatapajonosta,
             v.tila, v.tarkenne
             from jonosijat j
-            left join valinnantulokset v on j.valintatapajonoOid = v.valintatapajonoOid and j.hakemusOid = v.hakemusOid
-            where j.valintatapajonooid = ${valintatapajonoOid}
+            left join valinnantulokset v on j.valintatapajono_oid = v.valintatapajono_oid and j.hakemus_oid = v.hakemus_oid
+            where j.valintatapajono_oid = ${valintatapajonoOid}
          """.as[SijoitteluHakemus])
   }
 
@@ -312,32 +312,32 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
 
   def findHakemuksenPistetiedot(hakemusOid:String): Seq[Pistetieto] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select p.tunniste, p.arvo, p.laskennallinenarvo, p.osallistuminen
+      sql"""select p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen
             from pistetiedot p
-            inner join jonosijat j on j.id = p.jonosijaId
-            where j.hakemusOid = ${hakemusOid}""".as[Pistetieto])
+            inner join jonosijat j on j.id = p.jonosija_id
+            where j.hakemus_oid = ${hakemusOid}""".as[Pistetieto])
   }
 
   private def storeSijoitteluAjot() = {
     singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
-      sqlu"""insert into sijoitteluajot (id, hakuOid, start, "end", erillissijoittelu, valisijoittelu) values (111, ${hakuOid}, ${nowDatetime}, ${nowDatetime}, FALSE, FALSE)""",
-      sqlu"""insert into sijoitteluajot (id, hakuOid, start, "end", erillissijoittelu, valisijoittelu) values (222, ${hakuOid}, ${nowDatetime}, ${nowDatetime}, FALSE, FALSE)"""))
+      sqlu"""insert into sijoitteluajot (id, haku_oid, start, "end", erillissijoittelu, valisijoittelu) values (111, ${hakuOid}, ${nowDatetime}, ${nowDatetime}, FALSE, FALSE)""",
+      sqlu"""insert into sijoitteluajot (id, haku_oid, start, "end", erillissijoittelu, valisijoittelu) values (222, ${hakuOid}, ${nowDatetime}, ${nowDatetime}, FALSE, FALSE)"""))
   }
 
   private def storeSijoitteluajonHakukohteet() = {
     singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
-      sqlu"""insert into sijoitteluajonhakukohteet values (51, 111, ${hakukohdeOid}, '123123', FALSE)""",
-      sqlu"""insert into sijoitteluajonhakukohteet values (52, 222, ${hakukohdeOid}, '123123', FALSE)"""))
+      sqlu"""insert into sijoitteluajon_hakukohteet values (51, 111, ${hakukohdeOid}, '123123', FALSE)""",
+      sqlu"""insert into sijoitteluajon_hakukohteet values (52, 222, ${hakukohdeOid}, '123123', FALSE)"""))
   }
 
   private def storeValintatapajonot() = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sqlu"""insert into valintatapajonot (oid, sijoitteluajonHakukohdeId, nimi) values ('5.5.555.555', 51, 'asd')""")
+      sqlu"""insert into valintatapajonot (oid, sijoitteluajon_hakukohde_id, nimi) values ('5.5.555.555', 51, 'asd')""")
   }
 
   private def storeJonosijat() = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sqlu"""insert into jonosijat (id, valintatapajonoOid, sijoitteluajonHakukohdeId, hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija) values (333, '5.5.555.555', 51, '12345', '54321', 'Teppo', 'The Great', 9999, 1)""")
+      sqlu"""insert into jonosijat (id, valintatapajono_oid, sijoitteluajon_hakukohde_id, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti, jonosija) values (333, '5.5.555.555', 51, '12345', '54321', 'Teppo', 'The Great', 9999, 1)""")
   }
 
   private def storeValinnantulokset() = {
