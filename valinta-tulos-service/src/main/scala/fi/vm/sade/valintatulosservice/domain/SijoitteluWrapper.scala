@@ -504,9 +504,11 @@ case class SijoitteluajonHakijaryhmaWrapper(
   kaytaKaikki:Option[Boolean],
   tarkkaKiintio:Option[Boolean],
   kaytetaanRyhmaanKuuluvia:Option[Boolean],
-  alinHyvaksyttyPistemaara:Option[BigDecimal]
+  alinHyvaksyttyPistemaara:Option[BigDecimal],
+  hakemusOid:List[String]
 ) {
   val hakijaryhma:Hakijaryhma = {
+    import scala.collection.JavaConverters._
     val hakijaryhma = new Hakijaryhma()
     hakijaryhma.setOid(oid)
     hakijaryhma.setNimi(nimi)
@@ -517,6 +519,7 @@ case class SijoitteluajonHakijaryhmaWrapper(
     tarkkaKiintio.foreach(hakijaryhma.setTarkkaKiintio(_))
     kaytetaanRyhmaanKuuluvia.foreach(hakijaryhma.setKaytetaanRyhmaanKuuluvia(_))
     alinHyvaksyttyPistemaara.foreach(pistemaara => hakijaryhma.setAlinHyvaksyttyPistemaara(pistemaara.bigDecimal))
+    hakijaryhma.getHakemusOid.addAll(hakemusOid.asJava)
     hakijaryhma
   }
 }
@@ -533,7 +536,8 @@ object SijoitteluajonHakijaryhmaWrapper extends OptionConverter {
       convert[javaBoolean,Boolean](hakijaryhma.isKaytaKaikki, boolean),
       convert[javaBoolean,Boolean](hakijaryhma.isTarkkaKiintio, boolean),
       convert[javaBoolean,Boolean](hakijaryhma.isKaytetaanRyhmaanKuuluvia, boolean),
-      convert[javaBigDecimal,BigDecimal](hakijaryhma.getAlinHyvaksyttyPistemaara, bigDecimal)
+      convert[javaBigDecimal,BigDecimal](hakijaryhma.getAlinHyvaksyttyPistemaara, bigDecimal),
+      hakijaryhma.getHakemusOid.asScala.toList
     )
   }
 }

@@ -139,6 +139,7 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
         hakukohde.getHakijaryhmat.asScala.toList.foreach(hakijaryhma => {
           val storedHakijaryhma = storedHakijaryhmat.find(_.getOid.equals(hakijaryhma.getOid))
           storedHakijaryhma.isDefined must beTrue
+          storedHakijaryhma.get.getHakemusOid.addAll(findHakijaryhmanHakemukset(hakijaryhma.getOid).asJava)
           SijoitteluajonHakijaryhmaWrapper(hakijaryhma) mustEqual SijoitteluajonHakijaryhmaWrapper(storedHakijaryhma.get)
         })
         storedValintatapajonot.length mustEqual hakukohde.getValintatapajonot.size
@@ -267,7 +268,7 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
   private implicit val getSijoitteluajonHakijaryhmaResult = GetResult(r => {
     SijoitteluajonHakijaryhmaWrapper(r.nextString, r.nextString,
       r.nextIntOption(), r.nextIntOption, r.nextIntOption, r.nextBooleanOption,
-      r.nextBooleanOption, r.nextBooleanOption, r.nextBigDecimalOption).hakijaryhma
+      r.nextBooleanOption, r.nextBooleanOption, r.nextBigDecimalOption, List()).hakijaryhma
   })
 
   def findHakukohteenHakijaryhmat(hakukohdeOid:String): Seq[Hakijaryhma] = {
@@ -277,6 +278,14 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
             from hakijaryhmat h
             inner join sijoitteluajonHakukohteet sh on sh.id = h.sijoitteluajonHakukohdeId
             where sh.hakukohdeOid = ${hakukohdeOid}""".as[Hakijaryhma]
+    )
+  }
+
+  def findHakijaryhmanHakemukset(hakijaryhmaOid:String): Seq[String] = {
+    singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select hh.hakemusOid from hakijaryhmanhakemukset hh
+            inner join hakijaryhmat h ON hh.hakijaryhmaid = h.id
+            where h.oid = ${hakijaryhmaOid}""".as[String]
     )
   }
 

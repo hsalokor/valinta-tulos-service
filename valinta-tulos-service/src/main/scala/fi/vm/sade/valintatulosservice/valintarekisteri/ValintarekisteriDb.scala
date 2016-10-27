@@ -355,7 +355,13 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
         hakukohde.getValintatapajonot.asScala.map(valintatapajono =>
           storeSijoittelunValintatapajono(id.get, hakukohde.getOid, sijoitteluajoId, valintatapajono,
             valintatulokset.filter(_.getValintatapajonoOid == valintatapajono.getOid))).toList ++
-        hakukohde.getHakijaryhmat.asScala.map(hakijaryhma => insertHakijaryhma(id.get, hakijaryhma)).toList)
+        hakukohde.getHakijaryhmat.asScala.map(hakijaryhma => storeSijoittelunHakijaryhma(id.get, hakijaryhma)).toList)
+    )
+  }
+
+  def storeSijoittelunHakijaryhma(valintatapajonoId:Long, hakijaryhma: Hakijaryhma) = {
+    insertHakijaryhma(valintatapajonoId, hakijaryhma).flatMap(hakijaryhmaId =>
+      DBIO.sequence(hakijaryhma.getHakemusOid.asScala.map(hakemusOid => insertHakijaryhmanHakemus(hakijaryhmaId.get, hakemusOid)).toList)
     )
   }
 
@@ -479,13 +485,19 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   private def insertHakijaryhma(sijoitteluajonHakukohdeId:Long, hakijaryhma:Hakijaryhma) = {
     val SijoitteluajonHakijaryhmaWrapper(oid, nimi, prioriteetti, paikat, kiintio,
-      kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara)
+      kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara, _)
     = SijoitteluajonHakijaryhmaWrapper(hakijaryhma)
 
-    sqlu"""insert into hakijaryhmat (oid, sijoitteluajonHakukohdeId, nimi, prioriteetti, paikat,
+    sql"""insert into hakijaryhmat (oid, sijoitteluajonHakukohdeId, nimi, prioriteetti, paikat,
            kiintio, kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara)
            values (${oid}, ${sijoitteluajonHakukohdeId}, ${nimi}, ${prioriteetti}, ${paikat},
-           ${kiintio}, ${kaytaKaikki}, ${tarkkaKiintio}, ${kaytetaanRyhmaanKuuluvia}, ${alinHyvaksyttyPistemaara})"""
+           ${kiintio}, ${kaytaKaikki}, ${tarkkaKiintio}, ${kaytetaanRyhmaanKuuluvia},
+           ${alinHyvaksyttyPistemaara})
+           RETURNING id""".as[Long].headOption
+  }
+
+  private def insertHakijaryhmanHakemus(hakijaryhmaId:Long, hakemusOid:String) = {
+    sqlu"""insert into hakijaryhmanHakemukset (hakijaryhmaId, hakemusOid) values (${hakijaryhmaId}, ${hakemusOid})"""
   }
 
   override def getLatestSijoitteluajoId(hakuOid:String): Option[Long] = {
