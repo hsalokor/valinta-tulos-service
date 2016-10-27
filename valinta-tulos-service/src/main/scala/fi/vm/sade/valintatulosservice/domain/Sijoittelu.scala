@@ -1,11 +1,12 @@
 package fi.vm.sade.valintatulosservice.domain
 
-import fi.vm.sade.sijoittelu.tulos.dto.{HakukohdeDTO, PistetietoDTO, SijoitteluajoDTO, ValintatapajonoDTO}
+import fi.vm.sade.sijoittelu.tulos.dto._
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 import fi.vm.sade.valintatulosservice.valintarekisteri.SijoitteluRepository
 import org.http4s.DateTime
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.HashMap
 
 case class SijoitteluajoRecord(sijoitteluajoId:Long, hakuOid:String, startMils:Long, endMils:Long)
 
@@ -22,6 +23,14 @@ case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String,
                                  kaikkiEhdonTayttavatHyvaksytaan:Boolean, poissaOlevaTaytto:Boolean, valintaesitysHyvaksytty:Boolean,
                                  hakeneet:Int, hyvaksytty:Int, varalla:Int, varasijat:Int, varasijanTayttoPaivat:Int,
                                  varasijojaKaytetaanAlkaen:java.sql.Date, varasijojaKaytetaanAsti:java.sql.Date, tayttoJono:String)
+
+case class HakemusRecord(hakijaOid:String, hakemusOid:String, pisteet:BigDecimal, etunimi:String, sukunimi:String,
+                         prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila,
+                         tarkenne:String, tarkenteenLisatieto:String, hyvaksyttyHarkinnanvaraisesti:Boolean,
+                         varasijaNumero:Int, onkoMuuttunutviimesijoittelusta:Boolean, hyvaksyttyHakijaRyhmasta:Boolean,
+                         hakijaryhmaOid:String, siirtynytToisestaValintatapaJonosta:Boolean, valintatapajonoOid:String)
+
+case class TilaHistoriaRecord(tila:String, poistaja:String, selite:String, luotu:java.sql.Date)
 
 class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
   def hakijaRecordToDTO(hakija:HakijaRecord): HakijaDTO = {
@@ -95,6 +104,35 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     jonoDTO.setVarasijojaTaytetaanAsti(jono.varasijojaKaytetaanAsti.asInstanceOf)
     jonoDTO.setTayttojono(jono.tayttoJono)
     jonoDTO
+  }
+
+  def hakemusRecordToDTO(hakemus:HakemusRecord): HakemusDTO = {
+    val hakemusDTO = new HakemusDTO
+    hakemusDTO.setHakijaOid(hakemus.hakijaOid)
+    hakemusDTO.setHakemusOid(hakemus.hakemusOid)
+    hakemusDTO.setPisteet(hakemus.pisteet.bigDecimal)
+    hakemusDTO.setEtunimi(hakemus.etunimi)
+    hakemusDTO.setSukunimi(hakemus.sukunimi)
+    hakemusDTO.setPrioriteetti(hakemus.prioriteetti)
+    hakemusDTO.setJonosija(hakemus.jonosija)
+    hakemusDTO.setTasasijaJonosija(hakemus.tasasijaJonosija)
+    hakemusDTO.setTila(hakemus.tila.valinnantila.asInstanceOf)
+    hakemusDTO.setTilanKuvaukset(ValinnantilanTarkenne.getValinnantilanTarkenne(Map[String, String](hakemus.tarkenne -> hakemus.tarkenteenLisatieto)).get.valinnantilanTarkenne.asJava)
+    hakemusDTO.setHyvaksyttyHarkinnanvaraisesti(hakemus.hyvaksyttyHarkinnanvaraisesti)
+    hakemusDTO.setVarasijanNumero(hakemus.varasijaNumero)
+    hakemusDTO.setOnkoMuuttunutViimeSijoittelussa(hakemus.onkoMuuttunutviimesijoittelusta)
+    hakemusDTO.setHyvaksyttyHakijaryhmasta(hakemus.hyvaksyttyHakijaRyhmasta)
+    hakemusDTO.setHakijaryhmaOid(hakemus.hakijaryhmaOid)
+    hakemusDTO.setSiirtynytToisestaValintatapajonosta(hakemus.siirtynytToisestaValintatapaJonosta)
+    hakemusDTO.setValintatapajonoOid(hakemus.valintatapajonoOid)
+    hakemusDTO
+  }
+
+  def tilaHistoriaRecordToDTO(tila:TilaHistoriaRecord): TilaHistoriaDTO = {
+    val tilaDTO = new TilaHistoriaDTO
+    tilaDTO.setLuotu(tila.luotu)
+    tilaDTO.setTila(tila.tila)
+    tilaDTO
   }
 
   def getLatestSijoitteluajoId(sijoitteluajoId:String, hakuOid:String): Long = {

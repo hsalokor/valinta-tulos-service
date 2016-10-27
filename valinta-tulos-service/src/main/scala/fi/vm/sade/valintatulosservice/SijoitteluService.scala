@@ -2,8 +2,9 @@ package fi.vm.sade.valintatulosservice
 
 import java.util
 
-import fi.vm.sade.sijoittelu.domain.{HakukohdeItem, SijoitteluAjo}
-import fi.vm.sade.sijoittelu.tulos.dto.SijoitteluajoDTO
+import collection.JavaConverters._
+import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
+import fi.vm.sade.sijoittelu.tulos.dto.{SijoitteluajoDTO, ValintatapajonoDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain.SijoitteluUtil
@@ -21,12 +22,22 @@ class SijoitteluService(sijoitteluRepository:SijoitteluRepository, sijoitteluUti
     }
     val hakukohdeDTOs = sijoitteluRepository.getSijoitteluajoHakukohteet(latestId) match {
       case Some(hakukohteet) => hakukohteet.map(h => sijoitteluUtil.sijoittelunHakukohdeRecordToDTO(h))
-      case None => new util.ArrayList()
+      case None => List()
     }
     val valintatapajonoDTOs = sijoitteluRepository.getValintatapajonot(latestId) match {
       case Some(valintatapajonot) => valintatapajonot.map(v => sijoitteluUtil.valintatapajonoRecordToDTO(v))
-      case None => new util.ArrayList()
+      case None => List()
     }
+    val valintatapajonoOids = valintatapajonoDTOs.map(v => v.getOid)
+    val valintatapajononHakemukset = sijoitteluRepository.getHakemuksetForValintatapajonos(valintatapajonoOids) match {
+      case Some(hakemukset) => hakemukset.map(h => sijoitteluUtil.hakemusRecordToDTO(h))
+      case None => List()
+    }
+
+    valintatapajononHakemukset.map(h => {
+      val tilahistoria = sijoitteluRepository.getHakemuksenTilahistoria(h.getValintatapajonoOid,h.getHakemusOid)
+      h.setTilaHistoria(tilahistoria.map(h => sijoitteluUtil.tilaHistoriaRecordToDTO(h)).asJava)
+    })
     sijoitteluAjoDTO
   }
 
