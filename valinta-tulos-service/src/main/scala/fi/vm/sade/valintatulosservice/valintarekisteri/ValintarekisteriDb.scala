@@ -40,6 +40,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   private implicit val getSijoitteluajoHakukohteetResult = GetResult(r => SijoittelunHakukohdeRecord(r.<<, r.<<, r.<<, r.<<, r.<<))
   private implicit val getValintatapajonotResult = GetResult(r => ValintatapajonoRecord(r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<<, r.<<))
+  private implicit val getHakemuksetForValintatapajonosResult = GetResult(r => HakemusRecord(r.<<, r.<<, r.<<, r.<<,
+    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<<))
+  private implicit val getHakemuksenTilahistoriaResult = GetResult(r => TilaHistoriaRecord(r.<<, r.<<, r.<<, r.<<))
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
     val d = runBlocking(
@@ -554,6 +557,28 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
             where sh.sijoitteluajo_id = ${sijoitteluajoId}""".as[ValintatapajonoRecord]).toList)
   }
 
+  override def getHakemuksetForValintatapajonos(valintatapajonoOids: List[String]): Option[List[HakemusRecord]] = {
+    val inParameter = valintatapajonoOids.map(oid => s"'$oid'").mkString(",")
+    Option(runBlocking(
+      sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
+            j.tasasijajonosija, v.tila, v.tarkenne, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
+            j.onko_muuttunut_viime_sijoittelussa, j.hyvaksytty_hakijaryhmasta, hh.hakijaryhma_id,
+            j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
+            from jonosijat as j
+            inner join valinnantulokset as v on v.jonosija_id = j.id and v.hakemus_oid = j.hakemus_oid
+            inner join hakijaryhman_hakemukset as hh on j.hakemus_oid = hh.hakemus_oid
+            where j.valintatapajono_oid in (#${inParameter}) and v.deleted is null""".as[HakemusRecord]).toList)
+  }
+
+  override def getHakemuksenTilahistoria(valintatapajonoOid:String, hakemusOid: String): List[TilaHistoriaRecord] = {
+    runBlocking(
+      sql"""select v.tila, dv.poistaja, dv.selite, dv.timestamp
+            from valinnantulokset as v
+            left join deleted_valinnantulokset as dv on v.deleted = dv.id
+            where v.valintatapajono_oid = ${valintatapajonoOid} and v.hakemus_oid = ${hakemusOid} and v.deleted is not null
+            order by dv.timestamp desc""".as[TilaHistoriaRecord]).toList
+  }
+
   override def getHakija(hakemusOid: String, sijoitteluajoId: Long): Option[HakijaRecord] = {
     runBlocking(
       sql"""select j.etunimi, j.sukunimi, j.hakemus_oid, j.hakija_oid
@@ -567,7 +592,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     runBlocking(
       sql"""select j.id, j.prioriteetti, vt.hakukohde_oid, sh.tarjoaja_oid, vt.tila, sh.kaikki_jonot_sijoiteltu
             from jonosijat as j
-            left join valinnantulokset as vt on vt.jonosija_id = j.id
+            left join valinnantulokset as vt on vt.jonosija_id = j.id and vt.hakemus_oid = j.hakemus_oid
             left join valintatapajonot as v on v.oid = j.valintatapajono_oid
             left join sijoitteluajon_hakukohteet as sh on sh.id = v.sijoitteluajon_hakukohde_id
             where j.hakemus_oid = ${hakemusOid} and sh.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakutoiveRecord]).toList
