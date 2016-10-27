@@ -5,7 +5,7 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
-import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatapajono, Hakemus => SijoitteluHakemus}
+import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatapajono, Hakemus => SijoitteluHakemus, _}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.ConflictingAcceptancesException
 import fi.vm.sade.valintatulosservice.domain._
@@ -361,10 +361,11 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   def storeSijoittelunHakukohde(sijoitteluajoId:Long, hakukohde: Hakukohde, valintatulokset: List[Valintatulos]) = {
     insertHakukohde(hakukohde).flatMap(id =>
-      DBIO.sequence(hakukohde.getValintatapajonot.asScala.map(valintatapajono =>
-        storeSijoittelunValintatapajono(id.get, hakukohde.getOid, sijoitteluajoId, valintatapajono,
-          valintatulokset.filter(_.getValintatapajonoOid == valintatapajono.getOid))
-      ).toList)
+      DBIO.sequence(
+        hakukohde.getValintatapajonot.asScala.map(valintatapajono =>
+          storeSijoittelunValintatapajono(id.get, hakukohde.getOid, sijoitteluajoId, valintatapajono,
+            valintatulokset.filter(_.getValintatapajonoOid == valintatapajono.getOid))).toList ++
+        hakukohde.getHakijaryhmat.asScala.map(hakijaryhma => insertHakijaryhma(id.get, hakijaryhma)).toList)
     )
   }
 
@@ -380,23 +381,19 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   def storeSijoittelunJonosija(hakukohdeId:Long, hakukohdeOid:String, sijoitteluajoId:Long, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos]) = {
     if(valintatulos.isDefined) {
       insertJonosija(valintatapajonoOid, hakukohdeId, hakemus).flatMap(jonosijaId => {
-        DBIO.seq(
-          insertValinnantulos(sijoitteluajoId, jonosijaId.get, valintatulos.get, hakemus),
-          insertIlmoittautuminen(valintatulos.get, hakemus.getHakijaOid)
+        DBIO.sequence(
+          List(insertValinnantulos(sijoitteluajoId, jonosijaId.get, valintatulos.get, hakemus),
+          insertIlmoittautuminen(valintatulos.get, hakemus.getHakijaOid)) ++
+          hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(jonosijaId.get, pistetieto)).toList
         )
       })
     } else {
       insertJonosija(valintatapajonoOid, hakukohdeId, hakemus).flatMap(jonosijaId => {
-        insertValinnantulos(sijoitteluajoId, jonosijaId.get, SijoitteluajonValinnantulosWrapper(
-                                                                                                            valintatapajonoOid,
-          hakemus.getHakemusOid,
-                                                                                                            hakukohdeOid,
-                                                                                                            false,
-                                                                                                            false,
-                                                                                                            false,
-                                                                                                            false,
-          None
-                                                                                                          ).valintatulos, hakemus)
+        DBIO.sequence(
+          List(insertValinnantulos(sijoitteluajoId, jonosijaId.get, SijoitteluajonValinnantulosWrapper(
+            valintatapajonoOid, hakemus.getHakemusOid, hakukohdeOid, false, false, false, false, None).valintatulos, hakemus)) ++
+            hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(jonosijaId.get, pistetieto)).toList
+        )
       })
     }
   }
@@ -480,6 +477,25 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
     sqlu"""insert into ilmoittautumiset (henkilo, hakukohde, tila, ilmoittaja, selite)
            values (${hakijaOid}, ${hakukohdeOid}, ${ilmoittautumistila.get.toString}::ilmoittautumistila, ${ilmoittaja}, ${selite})"""
+  }
+
+  private def insertPistetieto(jonosijaId:Long, pistetieto: Pistetieto) = {
+    val SijoitteluajonPistetietoWrapper(tunniste, arvo, laskennallinenArvo, osallistuminen)
+    = SijoitteluajonPistetietoWrapper(pistetieto)
+
+    sqlu"""insert into pistetiedot (jonosijaId, tunniste, arvo, laskennallinenArvo, osallistuminen)
+           values (${jonosijaId}, ${tunniste}, ${arvo}, ${laskennallinenArvo}, ${osallistuminen})"""
+  }
+
+  private def insertHakijaryhma(sijoitteluajonHakukohdeId:Long, hakijaryhma:Hakijaryhma) = {
+    val SijoitteluajonHakijaryhmaWrapper(oid, nimi, prioriteetti, paikat, kiintio,
+      kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara)
+    = SijoitteluajonHakijaryhmaWrapper(hakijaryhma)
+
+    sqlu"""insert into hakijaryhmat (oid, sijoitteluajonHakukohdeId, nimi, prioriteetti, paikat,
+           kiintio, kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara)
+           values (${oid}, ${sijoitteluajonHakukohdeId}, ${nimi}, ${prioriteetti}, ${paikat},
+           ${kiintio}, ${kaytaKaikki}, ${tarkkaKiintio}, ${kaytetaanRyhmaanKuuluvia}, ${alinHyvaksyttyPistemaara})"""
   }
 
   override def getLatestSijoitteluajoId(hakuOid:String): Option[Long] = {

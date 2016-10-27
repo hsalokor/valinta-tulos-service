@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.valintarekisteri
 
 import java.sql.Timestamp
 
-import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatapajono, Valintatulos, Hakemus => SijoitteluHakemus}
+import fi.vm.sade.sijoittelu.domain.{Hakijaryhma, Hakukohde, Pistetieto, SijoitteluAjo, Valintatapajono, Valintatulos, Hakemus => SijoitteluHakemus}
 import fi.vm.sade.valintatulosservice.ITSetup
 import fi.vm.sade.valintatulosservice.domain._
 import org.json4s.JsonAST._
@@ -101,7 +101,49 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
       })
       storedHakukohteet.length mustEqual wrapper.hakukohteet.length
     }
+    "store sijoitteluajoWrapper fixture with hakijaryhmä and pistetiedot" in {
+      val wrapper = loadSijoitteluFromFixture("valintatapajono_hakijaryhma_pistetiedot")
+      singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)
+      val stored: Option[SijoitteluAjo] = findSijoitteluajo(wrapper.sijoitteluajo.getSijoitteluajoId)
+      stored.isDefined must beTrue
+      SijoitteluajoWrapper(stored.get) mustEqual SijoitteluajoWrapper(wrapper.sijoitteluajo)
+      val storedHakukohteet: Seq[Hakukohde] = findSijoitteluajonHakukohteet(stored.get.getSijoitteluajoId)
+      wrapper.hakukohteet.foreach(hakukohde => {
+        val storedHakukohde = storedHakukohteet.find(_.getOid.equals(hakukohde.getOid))
+        storedHakukohde.isDefined must beTrue
+        SijoitteluajonHakukohdeWrapper(hakukohde) mustEqual SijoitteluajonHakukohdeWrapper(storedHakukohde.get)
+        val storedValintatapajonot = findHakukohteenValintatapajonot(hakukohde.getOid)
+        import scala.collection.JavaConverters._
+        hakukohde.getValintatapajonot.asScala.toList.foreach(valintatapajono => {
+          val storedValintatapajono = storedValintatapajonot.find(_.getOid.equals(valintatapajono.getOid))
+          storedValintatapajono.isDefined must beTrue
+          SijoitteluajonValintatapajonoWrapper(valintatapajono) mustEqual SijoitteluajonValintatapajonoWrapper(storedValintatapajono.get)
+          val storedJonosijat = findValintatapajononJonosijat(valintatapajono.getOid)
+          valintatapajono.getHakemukset.asScala.toList.foreach(hakemus => {
+            val storedJonosija = storedJonosijat.find(_.getHakemusOid.equals(hakemus.getHakemusOid))
+            storedJonosija.isDefined must beTrue
+            SijoitteluajonHakemusWrapper(hakemus) mustEqual SijoitteluajonHakemusWrapper(storedJonosija.get)
 
+            val storedPistetiedot = findHakemuksenPistetiedot(hakemus.getHakemusOid)
+            hakemus.getPistetiedot.size mustEqual storedPistetiedot.size
+            hakemus.getPistetiedot.asScala.foreach(pistetieto => {
+              val storedPistetieto = storedPistetiedot.find(_.getTunniste.equals(pistetieto.getTunniste))
+              storedPistetieto.isDefined must beTrue
+              SijoitteluajonPistetietoWrapper(pistetieto) mustEqual SijoitteluajonPistetietoWrapper(storedPistetieto.get)
+            })
+          })
+        })
+        val storedHakijaryhmat = findHakukohteenHakijaryhmat(hakukohde.getOid)
+        storedHakijaryhmat.length mustEqual hakukohde.getHakijaryhmat.size
+        hakukohde.getHakijaryhmat.asScala.toList.foreach(hakijaryhma => {
+          val storedHakijaryhma = storedHakijaryhmat.find(_.getOid.equals(hakijaryhma.getOid))
+          storedHakijaryhma.isDefined must beTrue
+          SijoitteluajonHakijaryhmaWrapper(hakijaryhma) mustEqual SijoitteluajonHakijaryhmaWrapper(storedHakijaryhma.get)
+        })
+        storedValintatapajonot.length mustEqual hakukohde.getValintatapajonot.size
+      })
+      storedHakukohteet.length mustEqual wrapper.hakukohteet.length
+    }
     "get hakiija" in {
       storeHakijaData()
       singleConnectionValintarekisteriDb.getHakija("12345", 111).get.etunimi mustEqual "Teppo"
@@ -146,10 +188,21 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
         valintatapajonot.map(valintatapajono => {
           val valintatapajonoExt = valintatapajono.extract[SijoitteluajonValintatapajonoWrapper].valintatapajono
           val JArray(hakemukset) = (valintatapajono \ "hakemukset")
-          valintatapajonoExt.setHakemukset(hakemukset.map(h => h.extract[SijoitteluajonHakemusWrapper].hakemus).asJava)
+          valintatapajonoExt.setHakemukset(hakemukset.map(hakemus => {
+            val hakemusExt = hakemus.extract[SijoitteluajonHakemusWrapper].hakemus
+            (hakemus \ "pistetiedot") match {
+              case JArray(pistetiedot) => hakemusExt.setPistetiedot(pistetiedot.map(pistetieto => pistetieto.extract[SijoitteluajonPistetietoWrapper].pistetieto).asJava)
+              case _ =>
+            }
+            hakemusExt
+          }).asJava)
           valintatapajonoExt
         }).asJava
       })
+      (hakukohdeJson \ "hakijaryhmat") match {
+        case JArray(hakijaryhmat) => hakukohde.setHakijaryhmat(hakijaryhmat.map(hakijaryhma => hakijaryhma.extract[SijoitteluajonHakijaryhmaWrapper].hakijaryhma).asJava)
+        case _ =>
+      }
       hakukohde
     })
 
@@ -210,6 +263,22 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
             and sijoitteluajonhakukohteet.hakukohdeOid = ${hakukohdeOid}""".as[Valintatapajono])
   }
 
+  private implicit val getSijoitteluajonHakijaryhmaResult = GetResult(r => {
+    SijoitteluajonHakijaryhmaWrapper(r.nextString, r.nextString,
+      r.nextIntOption(), r.nextIntOption, r.nextIntOption, r.nextBooleanOption,
+      r.nextBooleanOption, r.nextBooleanOption, r.nextBigDecimalOption).hakijaryhma
+  })
+
+  def findHakukohteenHakijaryhmat(hakukohdeOid:String): Seq[Hakijaryhma] = {
+    singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select h.oid, h.nimi, h.prioriteetti, h.paikat, h.kiintio, h.kaytaKaikki,
+            h.tarkkaKiintio, h.kaytetaanRyhmaanKuuluvia, h.alinHyvaksyttyPistemaara
+            from hakijaryhmat h
+            inner join sijoitteluajonHakukohteet sh on sh.id = h.sijoitteluajonHakukohdeId
+            where sh.hakukohdeOid = ${hakukohdeOid}""".as[Hakijaryhma]
+    )
+  }
+
   private implicit val getSijoitteluajonJonosijaResult = GetResult(r => {
     SijoitteluajonHakemusWrapper(r.nextString, r.nextString, r.nextString, r.nextString, r.nextInt, r.nextInt,
       r.nextIntOption, r.nextBooleanOption, r.nextBigDecimalOption, r.nextIntOption, r.nextBooleanOption,
@@ -225,6 +294,18 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
             left join valinnantulokset v on j.valintatapajonoOid = v.valintatapajonoOid and j.hakemusOid = v.hakemusOid
             where j.valintatapajonooid = ${valintatapajonoOid}
          """.as[SijoitteluHakemus])
+  }
+
+  private implicit val getSijoitteluajonPistetietoResult = GetResult(r => {
+    SijoitteluajonPistetietoWrapper(r.nextString, r.nextStringOption, r.nextStringOption, r.nextStringOption).pistetieto
+  })
+
+  def findHakemuksenPistetiedot(hakemusOid:String): Seq[Pistetieto] = {
+    singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select p.tunniste, p.arvo, p.laskennallinenarvo, p.osallistuminen
+            from pistetiedot p
+            inner join jonosijat j on j.id = p.jonosijaId
+            where j.hakemusOid = ${hakemusOid}""".as[Pistetieto])
   }
 
   private def storeSijoitteluAjot() = {
