@@ -448,4 +448,6 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
   override protected def after: Unit = {
     ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb)
   }
+
+  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
 }
