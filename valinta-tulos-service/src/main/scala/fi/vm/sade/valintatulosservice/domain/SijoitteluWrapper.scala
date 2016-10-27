@@ -468,6 +468,76 @@ object SijoitteluajonValinnantulosWrapper extends OptionConverter {
   }
 }
 
+case class SijoitteluajonPistetietoWrapper(
+  tunniste:String,
+  arvo:Option[String],
+  laskennallinenArvo:Option[String],
+  osallistuminen:Option[String]
+) {
+  val pistetieto:Pistetieto = {
+    val pistetieto = new Pistetieto()
+    pistetieto.setTunniste(tunniste)
+    arvo.foreach(pistetieto.setArvo(_))
+    laskennallinenArvo.foreach(pistetieto.setLaskennallinenArvo(_))
+    osallistuminen.foreach(pistetieto.setOsallistuminen(_))
+    pistetieto
+  }
+}
+
+object SijoitteluajonPistetietoWrapper extends OptionConverter {
+  def apply(pistetieto:Pistetieto):SijoitteluajonPistetietoWrapper = {
+    SijoitteluajonPistetietoWrapper(
+      pistetieto.getTunniste,
+      convert[javaString,String](pistetieto.getArvo, string),
+      convert[javaString,String](pistetieto.getLaskennallinenArvo,string),
+      convert[javaString,String](pistetieto.getOsallistuminen,string)
+    )
+  }
+}
+
+case class SijoitteluajonHakijaryhmaWrapper(
+  oid:String,
+  nimi:String,
+  prioriteetti:Option[Int],
+  paikat:Option[Int],
+  kiintio:Option[Int],
+  kaytaKaikki:Option[Boolean],
+  tarkkaKiintio:Option[Boolean],
+  kaytetaanRyhmaanKuuluvia:Option[Boolean],
+  alinHyvaksyttyPistemaara:Option[BigDecimal]
+) {
+  val hakijaryhma:Hakijaryhma = {
+    val hakijaryhma = new Hakijaryhma()
+    hakijaryhma.setOid(oid)
+    hakijaryhma.setNimi(nimi)
+    prioriteetti.foreach(hakijaryhma.setPrioriteetti(_))
+    paikat.foreach(hakijaryhma.setPaikat(_))
+    kiintio.foreach(hakijaryhma.setKiintio(_))
+    kaytaKaikki.foreach(hakijaryhma.setKaytaKaikki(_))
+    tarkkaKiintio.foreach(hakijaryhma.setTarkkaKiintio(_))
+    kaytetaanRyhmaanKuuluvia.foreach(hakijaryhma.setKaytetaanRyhmaanKuuluvia(_))
+    alinHyvaksyttyPistemaara.foreach(pistemaara => hakijaryhma.setAlinHyvaksyttyPistemaara(pistemaara.bigDecimal))
+    hakijaryhma
+  }
+}
+
+object SijoitteluajonHakijaryhmaWrapper extends OptionConverter {
+  import scala.collection.JavaConverters._
+  def apply(hakijaryhma:Hakijaryhma):SijoitteluajonHakijaryhmaWrapper = {
+    SijoitteluajonHakijaryhmaWrapper(
+      hakijaryhma.getOid,
+      hakijaryhma.getNimi,
+      convert[javaInt,Int](hakijaryhma.getPrioriteetti, int),
+      convert[javaInt,Int](hakijaryhma.getPaikat, int),
+      convert[javaInt,Int](hakijaryhma.getKiintio, int),
+      convert[javaBoolean,Boolean](hakijaryhma.isKaytaKaikki, boolean),
+      convert[javaBoolean,Boolean](hakijaryhma.isTarkkaKiintio, boolean),
+      convert[javaBoolean,Boolean](hakijaryhma.isKaytetaanRyhmaanKuuluvia, boolean),
+      convert[javaBigDecimal,BigDecimal](hakijaryhma.getAlinHyvaksyttyPistemaara, bigDecimal)
+    )
+  }
+}
+
 trait OptionConverter {
   def int(x:javaInt) = x.toInt
   def boolean(x:javaBoolean) = x.booleanValue
