@@ -11,14 +11,14 @@ object ValintarekisteriTools {
   def deleteAll(db: ValintarekisteriDb): Unit = {
     db.runBlocking(DBIO.seq(
       deleteFromVastaanotot,
-      sqlu"delete from hakijaryhmanhakemukset",
+      sqlu"delete from hakijaryhman_hakemukset",
       sqlu"delete from hakijaryhmat",
       sqlu"delete from ilmoittautumiset",
       sqlu"delete from pistetiedot",
       sqlu"delete from valinnantulokset",
       sqlu"delete from jonosijat",
       sqlu"delete from valintatapajonot",
-      sqlu"delete from sijoitteluajonhakukohteet",
+      sqlu"delete from sijoitteluajon_hakukohteet",
       sqlu"delete from hakukohteet",
       sqlu"delete from sijoitteluajot",
       sqlu"delete from vanhat_vastaanotot"
@@ -29,7 +29,7 @@ object ValintarekisteriTools {
     db.runBlocking(deleteFromVastaanotot)
   }
 
-  def deleteSijoitteluajot(db: ValintarekisteriDb): Unit = {
+  /*def deleteSijoitteluajot(db: ValintarekisteriDb): Unit = {
     db.runBlocking(DBIO.seq(
       sqlu"delete from ilmoittautumiset",
       sqlu"delete from valinnantulokset",
@@ -38,5 +38,5 @@ object ValintarekisteriTools {
       sqlu"delete from sijoitteluajonhakukohteet",
       sqlu"delete from sijoitteluajot"
     ).transactionally)
-  }
+  }*/
 }

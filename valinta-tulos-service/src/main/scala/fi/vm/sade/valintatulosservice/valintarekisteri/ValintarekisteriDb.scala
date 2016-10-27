@@ -406,13 +406,13 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   private def insertSijoitteluajo(sijoitteluajo:SijoitteluAjo) = {
     val SijoitteluajoWrapper(sijoitteluajoId, hakuOid, startMils, endMils) = SijoitteluajoWrapper(sijoitteluajo)
-    sqlu"""insert into sijoitteluajot (id, hakuOid, "start", "end")
+    sqlu"""insert into sijoitteluajot (id, haku_oid, "start", "end")
              values (${sijoitteluajoId}, ${hakuOid},${new Timestamp(startMils)},${new Timestamp(endMils)})"""
   }
 
   private def insertHakukohde(hakukohde:Hakukohde) = {
     val SijoitteluajonHakukohdeWrapper(sijoitteluajoId, oid, tarjoajaOid, kaikkiJonotSijoiteltu) = SijoitteluajonHakukohdeWrapper(hakukohde)
-    sql"""insert into sijoitteluajonhakukohteet (sijoitteluajoid, hakukohdeoid, tarjoajaoid, kaikkijonotsijoiteltu)
+    sql"""insert into sijoitteluajon_hakukohteet (sijoitteluajo_id, hakukohde_oid, tarjoaja_oid, kaikki_jonot_sijoiteltu)
              values (${sijoitteluajoId}, ${oid}, ${tarjoajaOid}, ${kaikkiJonotSijoiteltu}) RETURNING id""".as[Long].headOption
   }
 
@@ -425,9 +425,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     val varasijojaKaytetaanAlkaenTs:Option[Timestamp] = varasijojaKaytetaanAlkaen.flatMap(d => Option(new Timestamp(d.getTime)))
     val varasijojaTaytetaanAstiTs:Option[Timestamp] = varasijojaTaytetaanAsti.flatMap(d => Option(new Timestamp(d.getTime)))
 
-    sqlu"""insert into valintatapajonot (oid, sijoitteluajonhakukohdeid, nimi, prioriteetti, tasasijasaanto, aloituspaikat,
-           alkuperaisetaloituspaikat, kaikkiehdontayttavathyvaksytaan, poissaolevataytto, eivarasijatayttoa,
-           varasijat, varasijatayttopaivat, varasijojaKaytetaanAlkaen, varasijojataytetaanasti, tayttojono, hyvaksytty, varalla, alinhyvaksyttypistemaara)
+    sqlu"""insert into valintatapajonot (oid, sijoitteluajon_hakukohde_id, nimi, prioriteetti, tasasijasaanto, aloituspaikat,
+           alkuperaiset_aloituspaikat, kaikki_ehdon_tayttavat_hyvaksytaan, poissaoleva_taytto, ei_varasijatayttoa,
+           varasijat, varasijatayttopaivat, varasijoja_kaytetaan_alkaen, varasijoja_taytetaan_asti, tayttojono, hyvaksytty, varalla, alin_hyvaksytty_pistemaara)
            values (${oid}, ${hakukohdeId}, ${nimi}, ${prioriteetti}, ${tasasijasaanto.toString}::tasasijasaanto, ${aloituspaikat},
            ${alkuperaisetAloituspaikat}, ${kaikkiEhdonTayttavatHyvaksytaan},
            ${poissaOlevaTaytto}, ${eiVarasijatayttoa}, ${varasijat}, ${varasijaTayttoPaivat},
@@ -441,9 +441,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
       hyvaksyttyHakijaryhmasta, siirtynytToisestaValintatapajonosta, _, _)
       = SijoitteluajonHakemusWrapper(hakemus)
 
-    sql"""insert into jonosijat (valintatapajonooid, sijoitteluajonhakukohdeid, hakemusoid, hakijaoid, etunimi, sukunimi, prioriteetti,
-           jonosija, varasijanNumero, onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti,
-           hyvaksyttyHakijaryhmasta, siirtynytToisestaValintatapajonosta)
+    sql"""insert into jonosijat (valintatapajono_oid, sijoitteluajon_hakukohde_id, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
+           jonosija, varasijan_numero, onko_muuttunut_viime_sijoittelussa, pisteet, tasasijajonosija, hyvaksytty_harkinnanvaraisesti,
+           hyvaksytty_hakijaryhmasta, siirtynyt_toisesta_valintatapajonosta)
            values (${valintatapajonoOid}, ${hakukohdeId}, ${hakemusOid}, ${hakijaOid}, ${etunimi}, ${sukunimi}, ${prioriteetti},
            ${jonosija}, ${varasijanNumero}, ${onkoMuuttunutViimeSijoittelussa}, ${pisteet}, ${tasasijaJonosija},
            ${hyvaksyttyHarkinnanvaraisesti},
@@ -465,9 +465,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     val tilanViimeisinMuutos = new java.sql.Timestamp(System.currentTimeMillis())
     val valinnantilanTarkenneString:Option[String] = valinnanTilanTarkenne.flatMap(x => Some(x.toString))
 
-    sqlu"""insert into valinnantulokset (hakukohdeOid, valintatapajonoOid, hakemusOid, sijoitteluajoId, jonosijaId,
-           tila, tarkenne, tarkenteenLisatieto, julkaistavissa, ehdollisestiHyvaksyttavissa, hyvaksyttyVarasijalta,
-           hyvaksyPeruuntunut, ilmoittaja, selite, tilanViimeisinMuutos)
+    sqlu"""insert into valinnantulokset (hakukohde_oid, valintatapajono_oid, hakemus_oid, sijoitteluajo_id, jonosija_id,
+           tila, tarkenne, tarkenteen_lisatieto, julkaistavissa, ehdollisesti_hyvaksyttavissa, hyvaksytty_varasijalta,
+           hyvaksy_peruuntunut, ilmoittaja, selite, tilan_viimeisin_muutos)
            values (${hakukohdeOid}, ${valintatapajonoOid}, ${hakemusOid}, ${sijoitteluajoId}, ${jonosijaId},
            ${valinnanTila.toString}::valinnantila, ${valinnantilanTarkenneString}::valinnantilanTarkenne,
            ${tarkenteenLisatieto}, ${julkaistavissa}, ${ehdollisestiHyvaksyttavissa}, ${hyvaksyttyVarasijalta},
@@ -489,7 +489,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     val SijoitteluajonPistetietoWrapper(tunniste, arvo, laskennallinenArvo, osallistuminen)
     = SijoitteluajonPistetietoWrapper(pistetieto)
 
-    sqlu"""insert into pistetiedot (jonosijaId, tunniste, arvo, laskennallinenArvo, osallistuminen)
+    sqlu"""insert into pistetiedot (jonosija_id, tunniste, arvo, laskennallinen_arvo, osallistuminen)
            values (${jonosijaId}, ${tunniste}, ${arvo}, ${laskennallinenArvo}, ${osallistuminen})"""
   }
 
@@ -498,8 +498,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
       kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara, _)
     = SijoitteluajonHakijaryhmaWrapper(hakijaryhma)
 
-    sql"""insert into hakijaryhmat (oid, sijoitteluajonHakukohdeId, nimi, prioriteetti, paikat,
-           kiintio, kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara)
+    sql"""insert into hakijaryhmat (oid, sijoitteluajon_hakukohde_id, nimi, prioriteetti, paikat,
+           kiintio, kayta_kaikki, tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, alin_hyvaksytty_pistemaara)
            values (${oid}, ${sijoitteluajonHakukohdeId}, ${nimi}, ${prioriteetti}, ${paikat},
            ${kiintio}, ${kaytaKaikki}, ${tarkkaKiintio}, ${kaytetaanRyhmaanKuuluvia},
            ${alinHyvaksyttyPistemaara})
@@ -507,35 +507,35 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
   private def insertHakijaryhmanHakemus(hakijaryhmaId:Long, hakemusOid:String) = {
-    sqlu"""insert into hakijaryhmanHakemukset (hakijaryhmaId, hakemusOid) values (${hakijaryhmaId}, ${hakemusOid})"""
+    sqlu"""insert into hakijaryhman_hakemukset (hakijaryhma_id, hakemus_oid) values (${hakijaryhmaId}, ${hakemusOid})"""
   }
 
   override def getLatestSijoitteluajoId(hakuOid:String): Option[Long] = {
     runBlocking(
       sql"""select id
             from sijoitteluajot
-            where hakuOid = ${hakuOid}
+            where haku_oid = ${hakuOid}
             order by id desc
             limit 1""".as[Long]).headOption
   }
 
   override def getHakija(hakemusOid: String, sijoitteluajoId: Long): Option[HakijaRecord] = {
     runBlocking(
-      sql"""select j.etunimi, j.sukunimi, j.hakemusOid, j.hakijaOid
+      sql"""select j.etunimi, j.sukunimi, j.hakemus_oid, j.hakija_oid
             from jonosijat as j
-            left join valintatapajonot as v on v.oid = j.valintatapajonoOid
-            left join sijoitteluajonhakukohteet as sh on sh.id = v.sijoitteluajonHakukohdeId
-            where j.hakemusoid = ${hakemusOid} and sh.sijoitteluajoid = ${sijoitteluajoId}""".as[HakijaRecord]).headOption
+            left join valintatapajonot as v on v.oid = j.valintatapajono_oid
+            left join sijoitteluajon_hakukohteet as sh on sh.id = v.sijoitteluajon_hakukohde_id
+            where j.hakemus_oid = ${hakemusOid} and sh.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakijaRecord]).headOption
   }
 
   override def getHakutoiveet(hakemusOid: String, sijoitteluajoId: Long): List[HakutoiveRecord] = {
     runBlocking(
-      sql"""select j.id, j.prioriteetti, vt.hakukohdeOid, sh.tarjoajaOid, vt.tila, sh.kaikkiJonotSijoiteltu
+      sql"""select j.id, j.prioriteetti, vt.hakukohde_oid, sh.tarjoaja_oid, vt.tila, sh.kaikki_jonot_sijoiteltu
             from jonosijat as j
-            left join valinnantulokset as vt on vt.jonosijaId = j.id
-            left join valintatapajonot as v on v.oid = j.valintatapajonoOid
-            left join sijoitteluajonhakukohteet as sh on sh.id = v.sijoitteluajonHakukohdeId
-            where j.hakemusOid = ${hakemusOid} and sh.sijoitteluajoId = ${sijoitteluajoId}""".as[HakutoiveRecord]).toList
+            left join valinnantulokset as vt on vt.jonosija_id = j.id
+            left join valintatapajonot as v on v.oid = j.valintatapajono_oid
+            left join sijoitteluajon_hakukohteet as sh on sh.id = v.sijoitteluajon_hakukohde_id
+            where j.hakemus_oid = ${hakemusOid} and sh.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakutoiveRecord]).toList
   }
 
   override def getPistetiedot(jonosijaIds: List[Int]): List[PistetietoRecord] = {
@@ -543,7 +543,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
     runBlocking(
       sql"""select *
             from pistetiedot
-            where jonosijaId in (#${inParameter})""".as[PistetietoRecord]).toList
+            where jonosija_id in (#${inParameter})""".as[PistetietoRecord]).toList
   }
 
 }
