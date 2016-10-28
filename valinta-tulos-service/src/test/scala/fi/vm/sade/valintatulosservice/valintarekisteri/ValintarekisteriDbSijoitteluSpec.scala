@@ -204,6 +204,16 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
       res.size mustEqual 3
     }
 
+    "get hakijaryhmat" in {
+      storeHakijaData()
+      singleConnectionValintarekisteriDb.getHakijaryhmat(222).size mustEqual 2
+    }
+
+    "get hakijaryhman hakemukset" in {
+      storeHakijaData()
+      singleConnectionValintarekisteriDb.getHakijaryhmanHakemukset(1).size mustEqual 3
+    }
+
   }
 
   def loadSijoitteluFromFixture(fixture:String):SijoitteluWrapper = {
@@ -408,14 +418,17 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
   }
 
   private def storeHakijaryhmat() = {
-    singleConnectionValintarekisteriDb.runBlocking(
-      sqlu"""insert into hakijaryhmat (id, oid, sijoitteluajon_hakukohde_id, nimi) values (1, '77777', 52, 'Testiryhma')""")
+    singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
+      sqlu"""insert into hakijaryhmat (id, oid, sijoitteluajon_hakukohde_id, nimi) values (1, '77777', 52, 'Testiryhma')""",
+      sqlu"""insert into hakijaryhmat (id, oid, sijoitteluajon_hakukohde_id, nimi) values (2, '88888', 51, 'Testiryhma')"""))
   }
 
   private def storeHakijaryhmanHakemukset() = {
     singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
       sqlu"""insert into hakijaryhman_hakemukset (hakijaryhma_id, hakemus_oid) values (1, '12340')""",
       sqlu"""insert into hakijaryhman_hakemukset (hakijaryhma_id, hakemus_oid) values (1, '12346')""",
+      sqlu"""insert into hakijaryhman_hakemukset (hakijaryhma_id, hakemus_oid) values (2, '12346')""",
+      sqlu"""insert into hakijaryhman_hakemukset (hakijaryhma_id, hakemus_oid) values (2, '12347')""",
       sqlu"""insert into hakijaryhman_hakemukset (hakijaryhma_id, hakemus_oid) values (1, '12347')"""))
   }
 
