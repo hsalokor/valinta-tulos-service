@@ -29,15 +29,34 @@ class SijoitteluService(sijoitteluRepository:SijoitteluRepository, sijoitteluUti
       case None => List()
     }
     val valintatapajonoOids = valintatapajonoDTOs.map(v => v.getOid)
-    val valintatapajononHakemukset = sijoitteluRepository.getHakemuksetForValintatapajonos(valintatapajonoOids) match {
+    val valintatapajononHakemuksDTOs = sijoitteluRepository.getHakemuksetForValintatapajonos(valintatapajonoOids) match {
       case Some(hakemukset) => hakemukset.map(h => sijoitteluUtil.hakemusRecordToDTO(h))
       case None => List()
     }
 
-    valintatapajononHakemukset.map(h => {
+    valintatapajononHakemuksDTOs.map(h => {
       val tilahistoria = sijoitteluRepository.getHakemuksenTilahistoria(h.getValintatapajonoOid,h.getHakemusOid)
       h.setTilaHistoria(tilahistoria.map(h => sijoitteluUtil.tilaHistoriaRecordToDTO(h)).asJava)
     })
+
+    valintatapajonoDTOs.map(v => {
+      v.setHakemukset(valintatapajononHakemuksDTOs.filter(vh => vh.getValintatapajonoOid == v.getOid).asJava)
+    })
+
+    val hakijaRyhmat = sijoitteluRepository.getHakijaryhmat(latestId)
+    val hakijaryhmaDTOs = hakijaRyhmat.map(hr => {
+      val hakijaryhmanHakemukset = sijoitteluRepository.getHakijaryhmanHakemukset(hr.id)
+      val hakijaryhmaDTO = sijoitteluUtil.hakijaryhmaRecordToDTO(hr)
+      hakijaryhmaDTO.setHakemusOid(hakijaryhmanHakemukset.asJava)
+      hakijaryhmaDTO
+    })
+
+    hakukohdeDTOs.map(h => {
+      // TODO miten mäpätään valintatapajonot hakukohteille?
+      h.setHakijaryhmat(hakijaryhmaDTOs.filter(hr => hr.getHakukohdeOid == h.getOid).asJava)
+    })
+
+    sijoitteluAjoDTO.setHakukohteet(hakukohdeDTOs.asJava)
     sijoitteluAjoDTO
   }
 

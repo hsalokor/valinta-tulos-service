@@ -32,6 +32,10 @@ case class HakemusRecord(hakijaOid:String, hakemusOid:String, pisteet:BigDecimal
 
 case class TilaHistoriaRecord(tila:String, poistaja:String, selite:String, luotu:java.sql.Date)
 
+case class HakijaryhmaRecord(id:Long, prioriteetti:Int, paikat:Int, oid:String, nimi:String, hakukohdeOid:String, kiintio:Int,
+                       kaytaKaikki:Boolean, tarkkaKiintio:Boolean, kaytetaanRyhmaanKuuluvia:Boolean,
+                       valintatapajonoOid:String)
+
 class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
   def hakijaRecordToDTO(hakija:HakijaRecord): HakijaDTO = {
     val hakijaDTO = new HakijaDTO
@@ -133,6 +137,21 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     tilaDTO.setLuotu(tila.luotu)
     tilaDTO.setTila(tila.tila)
     tilaDTO
+  }
+
+  def hakijaryhmaRecordToDTO(hakijaRyhma:HakijaryhmaRecord): HakijaryhmaDTO = {
+    val ryhmaDTO = new HakijaryhmaDTO
+    ryhmaDTO.setPrioriteetti(hakijaRyhma.prioriteetti)
+    ryhmaDTO.setPaikat(hakijaRyhma.paikat)
+    ryhmaDTO.setOid(hakijaRyhma.oid)
+    ryhmaDTO.setNimi(hakijaRyhma.nimi)
+    ryhmaDTO.setHakukohdeOid(hakijaRyhma.hakukohdeOid)
+    ryhmaDTO.setKiintio(hakijaRyhma.kiintio)
+    ryhmaDTO.setKaytaKaikki(hakijaRyhma.kaytaKaikki)
+    ryhmaDTO.setTarkkaKiintio(hakijaRyhma.tarkkaKiintio)
+    ryhmaDTO.setKaytetaanRyhmaanKuuluvia(hakijaRyhma.kaytetaanRyhmaanKuuluvia)
+    ryhmaDTO.setValintatapajonoOid(hakijaRyhma.valintatapajonoOid)
+    ryhmaDTO
   }
 
   def getLatestSijoitteluajoId(sijoitteluajoId:String, hakuOid:String): Long = {
