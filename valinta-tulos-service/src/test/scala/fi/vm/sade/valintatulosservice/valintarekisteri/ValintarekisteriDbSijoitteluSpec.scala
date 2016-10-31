@@ -148,6 +148,8 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
     }
     "get hakiija" in {
       storeHakijaData()
+//      val wrapper = loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/")
+//      singleConnectionValintarekisteriDb.storeSijoitteluajo(wrapper.sijoitteluajo)
       val res = singleConnectionValintarekisteriDb.getHakija("12340", 222).get
       res.etunimi mustEqual "Perttu"
     }
@@ -217,9 +219,9 @@ class ValintarekisteriDbSijoitteluSpec extends Specification with ITSetup with B
 
   }
 
-  def loadSijoitteluFromFixture(fixture:String):SijoitteluWrapper = {
+  def loadSijoitteluFromFixture(fixture: String, path: String = "sijoittelu/"):SijoitteluWrapper = {
     val json = parse(scala.io.Source.fromInputStream(
-      new ClassPathResource("fixtures/sijoittelu/" + fixture + ".json").getInputStream).mkString)
+      new ClassPathResource("fixtures/" + path + fixture + ".json").getInputStream).mkString)
 
     val JArray(sijoittelut) = ( json \ "Sijoittelu" )
     val JArray(sijoitteluajot) = ( sijoittelut(0) \ "sijoitteluajot" )
