@@ -11,8 +11,6 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.Scope
 
-import scala.util.Success
-
 @RunWith(classOf[JUnitRunner])
 class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with MockitoStubs with CalledMatchers {
 

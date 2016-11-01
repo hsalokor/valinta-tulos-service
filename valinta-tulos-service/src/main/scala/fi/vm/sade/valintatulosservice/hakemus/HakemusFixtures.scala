@@ -1,23 +1,11 @@
 package fi.vm.sade.valintatulosservice.hakemus
 
-import java.io.{File, FileInputStream}
-import java.util.HashMap
-
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.`type`.MapType
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.mongodb._
-import com.mongodb.util.JSON
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
-import fi.vm.sade.utils.Timer
 import fi.vm.sade.utils.config.MongoConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.Hakutoive
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import org.bson.types.ObjectId
-import org.fusesource.scalate.TemplateEngine
-import org.fusesource.scalate.support.{URLTemplateSource, FileTemplateSource}
-import org.springframework.core.io.{ClassPathResource, Resource}
 
 class HakemusFixtures(config: MongoConfig) {
   lazy val db = MongoFactory.createDB(config)

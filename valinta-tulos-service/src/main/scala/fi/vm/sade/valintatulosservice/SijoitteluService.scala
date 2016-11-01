@@ -2,13 +2,14 @@ package fi.vm.sade.valintatulosservice
 
 import java.util
 
-import collection.JavaConverters._
 import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
-import fi.vm.sade.sijoittelu.tulos.dto.{SijoitteluajoDTO, ValintatapajonoDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.SijoitteluajoDTO
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.domain.SijoitteluUtil
 import fi.vm.sade.valintatulosservice.valintarekisteri.SijoitteluRepository
+
+import scala.collection.JavaConverters._
 
 class SijoitteluService(sijoitteluRepository:SijoitteluRepository, sijoitteluUtil: SijoitteluUtil) extends Logging {
 

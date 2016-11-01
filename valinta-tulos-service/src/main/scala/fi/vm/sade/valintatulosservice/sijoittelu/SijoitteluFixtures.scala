@@ -1,6 +1,5 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.SECONDS
 
 import com.mongodb.DB

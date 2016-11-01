@@ -3,9 +3,9 @@ package fi.vm.sade.valintatulosservice.ensikertalaisuus
 import java.util.Date
 
 import org.json4s.Extraction._
-import org.json4s.{Formats, CustomSerializer}
 import org.json4s.JsonAST._
 import org.json4s.JsonDSL._
+import org.json4s.{CustomSerializer, Formats}
 
 class EnsikertalaisuusSerializer extends CustomSerializer[Ensikertalaisuus]((formats: Formats) => (
   {

@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.domain
 
 import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila
 import fi.vm.sade.valintatulosservice.VastaanottoEventDto
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.{ehdollisesti_vastaanottanut, Vastaanottotila}
+import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.valintarekisteri.VastaanottoEvent
 
 @Deprecated //Used by old Vastaanotto API

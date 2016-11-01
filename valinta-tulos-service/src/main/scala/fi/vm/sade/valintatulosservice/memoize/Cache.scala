@@ -1,7 +1,8 @@
 package fi.vm.sade.valintatulosservice.memoize
 
-import com.google.common.cache.{Cache => GuavaCache, CacheBuilder}
 import java.util.concurrent.{Callable, TimeUnit}
+
+import com.google.common.cache.{CacheBuilder, Cache => GuavaCache}
 
 sealed trait Caching[K , V] {
   def get(k: K): Option[V]

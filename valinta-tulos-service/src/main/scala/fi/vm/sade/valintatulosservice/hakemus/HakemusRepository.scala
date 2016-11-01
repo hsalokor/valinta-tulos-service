@@ -1,8 +1,8 @@
 package fi.vm.sade.valintatulosservice.hakemus
 
-import fi.vm.sade.utils.slf4j.Logging
-import com.mongodb.casbah.{Imports, commons}
 import com.mongodb.casbah.Imports._
+import com.mongodb.casbah.{Imports, commons}
+import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.{Hakemus, Hakutoive, Henkilotiedot}
 import fi.vm.sade.valintatulosservice.hakemus.DatabaseKeys.tarjoajaIdKeyPostfix

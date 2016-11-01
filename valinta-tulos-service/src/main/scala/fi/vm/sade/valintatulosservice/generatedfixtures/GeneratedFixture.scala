@@ -9,8 +9,7 @@ import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixture, HakemusFixtures, 
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtureCreator
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
-import org.mongodb.morphia.{AdvancedDatastore, Datastore}
-import shapeless.ops.nat.Min
+import org.mongodb.morphia.AdvancedDatastore
 
 import scala.collection.immutable.Iterable
 

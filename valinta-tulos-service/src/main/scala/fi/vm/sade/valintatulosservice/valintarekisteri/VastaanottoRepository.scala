@@ -3,10 +3,10 @@ package fi.vm.sade.valintatulosservice.valintarekisteri
 import java.util.concurrent.TimeUnit
 
 import slick.dbio._
+import slick.driver.PostgresDriver.backend.Database
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import slick.driver.PostgresDriver.backend.Database
 
 trait VastaanottoRepository {
   val db: Database
