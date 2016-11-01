@@ -1,8 +1,8 @@
-package fi.vm.sade.valintatulosservice.domain
+package fi.vm.sade.valintatulosservice.valintarekisteri.domain
 
 import fi.vm.sade.sijoittelu.tulos.dto._
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
-import fi.vm.sade.valintatulosservice.valintarekisteri.SijoitteluRepository
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.SijoitteluRepository
 
 import scala.collection.JavaConverters._
 

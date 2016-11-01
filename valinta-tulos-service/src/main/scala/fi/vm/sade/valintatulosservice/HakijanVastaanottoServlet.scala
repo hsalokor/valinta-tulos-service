@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakijanVastaanottoAction, HakijanVastaanotto}
 import org.json4s._
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._

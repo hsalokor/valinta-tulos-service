@@ -4,6 +4,7 @@ import fi.vm.sade.security.mock.MockSecurityContext
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila
 import org.joda.time.DateTime
 import org.json4s.JValue
 import org.json4s.jackson.Serialization

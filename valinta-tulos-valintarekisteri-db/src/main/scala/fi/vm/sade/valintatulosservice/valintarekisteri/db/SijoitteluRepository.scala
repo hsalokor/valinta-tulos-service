@@ -1,7 +1,7 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
+package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
 import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
-import fi.vm.sade.valintatulosservice.domain.{HakijaRecord, HakutoiveRecord, PistetietoRecord, SijoitteluWrapper, _}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import slick.driver.PostgresDriver.backend.Database
 
 trait SijoitteluRepository {

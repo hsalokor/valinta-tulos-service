@@ -6,7 +6,7 @@ import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
-import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriDb
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
 
 trait ITSetup {
   implicit val appConfig = new AppConfig.IT

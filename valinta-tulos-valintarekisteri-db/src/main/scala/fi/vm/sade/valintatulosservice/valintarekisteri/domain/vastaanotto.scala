@@ -1,9 +1,8 @@
-package fi.vm.sade.valintatulosservice.domain
+package fi.vm.sade.valintatulosservice.valintarekisteri.domain
 
 import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila
-import fi.vm.sade.valintatulosservice.VastaanottoEventDto
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
-import fi.vm.sade.valintatulosservice.valintarekisteri.VastaanottoEvent
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila.Vastaanottotila
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.VastaanottoEvent
 
 @Deprecated //Used by old Vastaanotto API
 case class Vastaanotto(hakukohdeOid: String, tila: Vastaanottotila, muokkaaja: String, selite: String)

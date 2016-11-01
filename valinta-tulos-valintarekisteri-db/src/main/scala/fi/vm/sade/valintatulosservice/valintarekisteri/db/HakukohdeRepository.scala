@@ -1,6 +1,6 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
+package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
-import fi.vm.sade.valintatulosservice.domain.HakukohdeRecord
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.HakukohdeRecord
 
 trait HakukohdeRepository {
   def findHakukohde(oid: String): Option[HakukohdeRecord]

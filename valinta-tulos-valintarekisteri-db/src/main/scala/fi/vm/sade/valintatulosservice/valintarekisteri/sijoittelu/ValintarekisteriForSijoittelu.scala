@@ -1,17 +1,33 @@
-package fi.vm.sade.valintatulosservice
+package fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu
 
 import java.util
 
+import com.typesafe.config.ConfigFactory
 import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
 import fi.vm.sade.sijoittelu.tulos.dto.SijoitteluajoDTO
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakutoiveDTO, HakijaDTO}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.domain.SijoitteluUtil
-import fi.vm.sade.valintatulosservice.valintarekisteri.SijoitteluRepository
-
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.SijoitteluRepository
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.SijoitteluUtil
 import scala.collection.JavaConverters._
 
-class SijoitteluService(sijoitteluRepository:SijoitteluRepository, sijoitteluUtil: SijoitteluUtil) extends Logging {
+class ValintarekisteriForSijoittelu() extends Logging {
+
+  lazy val sijoitteluRepository:SijoitteluRepository = {
+    val config: ApplicationSettings = ApplicationSettingsParser.parse(ConfigFactory.load())
+    val entrySet = config.valintaRekisteriDbConfig.entrySet().iterator()
+    println("=====================")
+    while(entrySet.hasNext){
+      val entry = entrySet.next()
+      print(entry.getKey + "=")
+      println(entry.getValue)
+    }
+    println("=====================")
+    new ValintarekisteriDb(config.valintaRekisteriDbConfig)
+  }
+
+  lazy val sijoitteluUtil = new SijoitteluUtil(sijoitteluRepository)
 
   def luoSijoitteluajo(sijoitteluajo:SijoitteluAjo) = sijoitteluRepository.storeSijoitteluajo(sijoitteluajo)
 
@@ -84,4 +100,5 @@ class SijoitteluService(sijoitteluRepository:SijoitteluRepository, sijoitteluUti
     hakijaDTO.setHakutoiveet(hakutoiveetDTOs.asInstanceOf[util.SortedSet[HakutoiveDTO]])
     return hakijaDTO
   }
+
 }

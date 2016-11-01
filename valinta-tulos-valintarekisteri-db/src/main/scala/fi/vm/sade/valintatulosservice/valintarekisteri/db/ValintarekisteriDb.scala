@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
+package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
 import java.sql.Timestamp
 import java.util.Date
@@ -7,9 +7,7 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.config.{Config, ConfigValueFactory}
 import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatapajono, Hakemus => SijoitteluHakemus, _}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.ConflictingAcceptancesException
-import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.ensikertalaisuus._
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
 import slick.driver.PostgresDriver.api.{Database, _}
@@ -358,11 +356,11 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def storeSijoittelu(sijoittelu: SijoitteluWrapper) = {
     runBlocking(insertSijoitteluajo(sijoittelu.sijoitteluajo).andThen(
-        DBIO.sequence(sijoittelu.hakukohteet.map(hakukohde =>
-          storeSijoittelunHakukohde(sijoittelu.sijoitteluajo.getSijoitteluajoId, hakukohde,
-            sijoittelu.valintatulokset.filter(vt => vt.getHakukohdeOid == hakukohde.getOid))
-        ))
-      )
+      DBIO.sequence(sijoittelu.hakukohteet.map(hakukohde =>
+        storeSijoittelunHakukohde(sijoittelu.sijoitteluajo.getSijoitteluajoId, hakukohde,
+          sijoittelu.valintatulokset.filter(vt => vt.getHakukohdeOid == hakukohde.getOid))
+      ))
+    )
     )
   }
 
@@ -374,7 +372,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
         hakukohde.getValintatapajonot.asScala.map(valintatapajono =>
           storeSijoittelunValintatapajono(id.get, hakukohde.getOid, sijoitteluajoId, valintatapajono,
             valintatulokset.filter(_.getValintatapajonoOid == valintatapajono.getOid))).toList ++
-        hakukohde.getHakijaryhmat.asScala.map(hakijaryhma => storeSijoittelunHakijaryhma(id.get, hakijaryhma)).toList)
+          hakukohde.getHakijaryhmat.asScala.map(hakijaryhma => storeSijoittelunHakijaryhma(id.get, hakijaryhma)).toList)
     )
   }
 
@@ -389,8 +387,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
       DBIO.sequence(valintatapajono.getHakemukset.asScala.map(hakemus =>
         storeSijoittelunJonosija(hakukohdeId, hakukohdeOid, sijoitteluajoId, valintatapajono.getOid, hakemus,
           valintatulokset.find(_.getHakemusOid == hakemus.getHakemusOid)
-      )).toList
-    ))
+        )).toList
+      ))
   }
 
   def storeSijoittelunJonosija(hakukohdeId:Long, hakukohdeOid:String, sijoitteluajoId:Long, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos]) = {
@@ -398,8 +396,8 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
       insertJonosija(valintatapajonoOid, hakukohdeId, hakemus).flatMap(jonosijaId => {
         DBIO.sequence(
           List(insertValinnantulos(sijoitteluajoId, jonosijaId.get, valintatulos.get, hakemus),
-          insertIlmoittautuminen(valintatulos.get, hakemus.getHakijaOid)) ++
-          hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(jonosijaId.get, pistetieto)).toList
+            insertIlmoittautuminen(valintatulos.get, hakemus.getHakijaOid)) ++
+            hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(jonosijaId.get, pistetieto)).toList
         )
       })
     } else {
@@ -427,9 +425,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   private def insertValintatapajono(hakukohdeId:Long, valintatapajono:Valintatapajono) = {
     val SijoitteluajonValintatapajonoWrapper(oid, nimi, prioriteetti, tasasijasaanto, aloituspaikat, alkuperaisetAloituspaikat,
-      eiVarasijatayttoa, kaikkiEhdonTayttavatHyvaksytaan, poissaOlevaTaytto, varasijat, varasijaTayttoPaivat,
-      varasijojaKaytetaanAlkaen, varasijojaTaytetaanAsti, tayttojono, hyvaksytty, varalla, alinHyvaksyttyPistemaara, valintaesitysHyvaksytty)
-      = SijoitteluajonValintatapajonoWrapper(valintatapajono)
+    eiVarasijatayttoa, kaikkiEhdonTayttavatHyvaksytaan, poissaOlevaTaytto, varasijat, varasijaTayttoPaivat,
+    varasijojaKaytetaanAlkaen, varasijojaTaytetaanAsti, tayttojono, hyvaksytty, varalla, alinHyvaksyttyPistemaara, valintaesitysHyvaksytty)
+    = SijoitteluajonValintatapajonoWrapper(valintatapajono)
 
     val varasijojaKaytetaanAlkaenTs:Option[Timestamp] = varasijojaKaytetaanAlkaen.flatMap(d => Option(new Timestamp(d.getTime)))
     val varasijojaTaytetaanAstiTs:Option[Timestamp] = varasijojaTaytetaanAsti.flatMap(d => Option(new Timestamp(d.getTime)))
@@ -446,9 +444,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   private def insertJonosija(valintatapajonoOid:String, hakukohdeId:Long, hakemus:SijoitteluHakemus) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
-      onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti,
-      hyvaksyttyHakijaryhmasta, siirtynytToisestaValintatapajonosta, _, _)
-      = SijoitteluajonHakemusWrapper(hakemus)
+    onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti,
+    hyvaksyttyHakijaryhmasta, siirtynytToisestaValintatapajonosta, _, _)
+    = SijoitteluajonHakemusWrapper(hakemus)
 
     sql"""insert into jonosijat (valintatapajono_oid, sijoitteluajon_hakukohde_id, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
            jonosija, varasijan_numero, onko_muuttunut_viime_sijoittelussa, pisteet, tasasijajonosija, hyvaksytty_harkinnanvaraisesti,
@@ -461,12 +459,12 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   private def insertValinnantulos(sijoitteluajoId:Long, jonosijaId:Long, valintatulos:Valintatulos, hakemus:SijoitteluHakemus) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
-      onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti,
-      hyvaksyttyHakijaryhmasta, siirtynytToisestaValintatapajonosta, valinnanTila, valinnanTilanTarkenne)
-      = SijoitteluajonHakemusWrapper(hakemus)
+    onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti,
+    hyvaksyttyHakijaryhmasta, siirtynytToisestaValintatapajonosta, valinnanTila, valinnanTilanTarkenne)
+    = SijoitteluajonHakemusWrapper(hakemus)
     val SijoitteluajonValinnantulosWrapper(valintatapajonoOid, _, hakukohdeOid, ehdollisestiHyvaksyttavissa,
-      julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, ilmoittautumistila)
-      = SijoitteluajonValinnantulosWrapper(valintatulos)
+    julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, ilmoittautumistila)
+    = SijoitteluajonValinnantulosWrapper(valintatulos)
 
     val tarkenteenLisatieto:String = null
     val ilmoittaja = "TODO"
@@ -504,7 +502,7 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   private def insertHakijaryhma(sijoitteluajonHakukohdeId:Long, hakijaryhma:Hakijaryhma) = {
     val SijoitteluajonHakijaryhmaWrapper(oid, nimi, prioriteetti, paikat, kiintio,
-      kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara, _)
+    kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara, _)
     = SijoitteluajonHakijaryhmaWrapper(hakijaryhma)
 
     sql"""insert into hakijaryhmat (oid, sijoitteluajon_hakukohde_id, nimi, prioriteetti, paikat,
@@ -626,3 +624,41 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   }
 
 }
+
+
+
+/*import java.sql.Timestamp
+import java.util.concurrent.TimeUnit
+
+import com.typesafe.config.{ConfigValueFactory, Config}
+import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
+import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.SijoitteluajoWrapper
+//import org.flywaydb.core.Flyway
+import slick.dbio._
+import slick.driver.PostgresDriver.api.{Database, _}
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
+class ValintarekisteriDb(dbConfig: Config) extends SijoitteluRepository with Logging {
+  val user = if (dbConfig.hasPath("user")) dbConfig.getString("user") else null
+  val password = if (dbConfig.hasPath("password")) dbConfig.getString("password") else null
+  logger.info(s"Database configuration: ${dbConfig.withValue("password", ConfigValueFactory.fromAnyRef("***"))}")
+  //val flyway = new Flyway()
+  //flyway.setDataSource(dbConfig.getString("url"), user, password)
+  //flyway.migrate()
+  override val db = Database.forConfig("", dbConfig)
+
+  def runBlocking[R](operations: slick.dbio.DBIO[R], timeout: Duration = Duration(20, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
+
+  override def storeSijoitteluajo(sijoitteluajo:SijoitteluAjo): Unit = {
+    runBlocking(insertSijoitteluajo(sijoitteluajo))
+  }
+
+  private def insertSijoitteluajo(sijoitteluajo:SijoitteluAjo) = {
+    val SijoitteluajoWrapper(sijoitteluajoId, hakuOid, startMils, endMils) = SijoitteluajoWrapper(sijoitteluajo)
+    sqlu"""insert into sijoitteluajot (id, haku_oid, "start", "end")
+             values (${sijoitteluajoId}, ${hakuOid},${new Timestamp(startMils)},${new Timestamp(endMils)})"""
+  }
+}*/

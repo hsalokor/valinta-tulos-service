@@ -1,7 +1,8 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.valintatulosservice.ServletSpecification
-import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Valintatila, Vastaanottotila}
+import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Valintatila}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila
 import org.json4s.jackson.Serialization
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner

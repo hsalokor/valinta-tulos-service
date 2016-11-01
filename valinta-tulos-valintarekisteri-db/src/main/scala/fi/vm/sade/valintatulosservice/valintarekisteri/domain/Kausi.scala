@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.domain
+package fi.vm.sade.valintatulosservice.valintarekisteri.domain
 
 sealed trait Kausi {
   def year: Int

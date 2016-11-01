@@ -1,25 +1,24 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import org.json4s.jackson.Serialization._
+import fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu.ValintarekisteriForSijoittelu
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 import org.scalatra.{NotImplemented, Ok}
 
-class SijoitteluServlet(sijoitteluService: SijoitteluService) (implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
+class SijoitteluServlet(sijoitteluService: ValintarekisteriForSijoittelu)(implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
 
   override val applicationName = Some("sijoittelu")
 
   override protected def applicationDescription: String = "Sijoittelun REST API"
 
-  lazy val postSijoitteluajoSwagger: OperationBuilder = (apiOperation[Unit]("postSijoitteluajoSwagger")
+  /*lazy val postSijoitteluajoSwagger: OperationBuilder = (apiOperation[Unit]("postSijoitteluajoSwagger")
     summary "Tallentaa sijoitteluajon"
     parameter bodyParam[SijoitteluAjo]("sijoitteluajo").description("Sijoitteluajon data"))
   post("/sijoitteluajo", operation(postSijoitteluajoSwagger)) {
-    val sijoitteluajo = read[SijoitteluAjo](request.body)
-    Ok(sijoitteluService.luoSijoitteluajo(sijoitteluajo))
-  }
+    val sijoitteluajo = read[SijoitteluajoWrapper](request.body)
+    Ok(sijoitteluService.luoSijoitteluajo(sijoitteluajo.sijoitteluajo))
+  }*/
 
   lazy val getSijoitteluajoMaxIntervalSwagger: OperationBuilder = (apiOperation[Unit]("getSijoitteluajoMaxIntervalSwagger")
     summary "Hakee sijoittelun tiedot haulle. Pääasiallinen kaytto sijoitteluajojen tunnisteiden hakuun.")

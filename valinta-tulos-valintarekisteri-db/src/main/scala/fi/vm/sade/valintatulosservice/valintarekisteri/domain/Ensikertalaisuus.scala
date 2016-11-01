@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.ensikertalaisuus
+package fi.vm.sade.valintatulosservice.valintarekisteri.domain
 
 import java.util.Date
 

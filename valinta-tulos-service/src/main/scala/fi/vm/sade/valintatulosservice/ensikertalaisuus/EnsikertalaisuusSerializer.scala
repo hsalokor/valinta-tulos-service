@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice.ensikertalaisuus
 
 import java.util.Date
 
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{EiEnsikertalainen, Ensikertalainen, Ensikertalaisuus}
 import org.json4s.Extraction._
 import org.json4s.JsonAST._
 import org.json4s.JsonDSL._

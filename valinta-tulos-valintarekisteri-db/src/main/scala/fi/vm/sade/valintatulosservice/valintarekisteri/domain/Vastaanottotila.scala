@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.domain
+package fi.vm.sade.valintatulosservice.valintarekisteri.domain
 
 import fi.vm.sade.sijoittelu.domain.ValintatuloksenTila
 

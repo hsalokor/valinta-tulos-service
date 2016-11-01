@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice.tarjonta
 
-import fi.vm.sade.valintatulosservice.domain.Kausi
 import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, KoodistoService, Relaatiot}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Kausi
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

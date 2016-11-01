@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
+package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
 import java.util.concurrent.TimeUnit
 

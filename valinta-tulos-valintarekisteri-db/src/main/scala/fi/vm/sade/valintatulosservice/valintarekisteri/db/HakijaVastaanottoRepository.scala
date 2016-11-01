@@ -1,8 +1,8 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
+package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
 import java.util.Date
 
-import fi.vm.sade.valintatulosservice.domain.Kausi
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Kausi
 import slick.dbio.DBIO
 import slick.driver.PostgresDriver.backend.Database
 

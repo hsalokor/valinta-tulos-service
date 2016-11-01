@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.domain
+package fi.vm.sade.valintatulosservice.valintarekisteri.domain
 
 import java.lang.{Boolean => javaBoolean, Integer => javaInt, String => javaString}
 import java.math.{BigDecimal => javaBigDecimal}

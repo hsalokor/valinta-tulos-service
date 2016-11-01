@@ -11,6 +11,7 @@
     <modules>
       <module>valinta-tulos-service</module>
       <module>valinta-tulos-henkiloviite-synchronizer</module>
+      <module>valinta-tulos-valintarekisteri-db</module>
     </modules>
 
     <repositories>
