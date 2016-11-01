@@ -5,7 +5,8 @@ import java.util.concurrent.TimeUnit
 
 import fi.vm.sade.valintatulosservice.ITSetup
 import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.ensikertalaisuus.{EiEnsikertalainen, Ensikertalainen}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.VastaanottoRecord
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

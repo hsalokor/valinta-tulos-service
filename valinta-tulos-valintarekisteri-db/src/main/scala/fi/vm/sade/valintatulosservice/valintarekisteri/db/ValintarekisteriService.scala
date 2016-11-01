@@ -1,7 +1,6 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
+package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
-import fi.vm.sade.valintatulosservice.domain.Kausi
-import fi.vm.sade.valintatulosservice.ensikertalaisuus.{Ensikertalaisuus, VastaanottoHistoria}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{Kausi, Ensikertalaisuus, VastaanottoHistoria}
 
 trait ValintarekisteriService {
   def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus

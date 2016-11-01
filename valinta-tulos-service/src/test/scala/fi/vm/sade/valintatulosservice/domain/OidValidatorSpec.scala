@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice.domain
 
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.OidValidator
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

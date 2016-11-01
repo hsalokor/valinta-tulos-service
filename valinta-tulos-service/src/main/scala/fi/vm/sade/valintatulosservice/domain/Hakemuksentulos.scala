@@ -5,7 +5,8 @@ import java.util.Date
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.Valintatila.Valintatila
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila
+import Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
 import fi.vm.sade.valintatulosservice.tarjonta.Haku
 

@@ -1,6 +1,6 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
+package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
-import fi.vm.sade.valintatulosservice.domain.Kausi
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Kausi
 import slick.dbio.DBIO
 
 trait VirkailijaVastaanottoRepository extends VastaanottoRepository {

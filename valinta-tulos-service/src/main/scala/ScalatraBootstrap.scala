@@ -4,14 +4,15 @@ import javax.servlet.{DispatcherType, ServletContext}
 import fi.vm.sade.valintatulosservice._
 import fi.vm.sade.valintatulosservice.config.AppConfig
 import fi.vm.sade.valintatulosservice.config.AppConfig._
-import fi.vm.sade.valintatulosservice.domain.SijoitteluUtil
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.koodisto.KoodistoService
 import fi.vm.sade.valintatulosservice.migraatio.MigraatioServlet
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoittelunTulosRestClient, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
+import fi.vm.sade.valintatulosservice.valintarekisteri.HakukohdeRecordService
+import fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu.ValintarekisteriForSijoittelu
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{MailDecorator, MailPoller, ValintatulosMongoCollection}
 import org.scalatra._
 
@@ -45,7 +46,7 @@ class ScalatraBootstrap extends LifeCycle {
       appConfig.sijoitteluContext.valintatulosRepository, valintarekisteriDb)
     lazy val valintatulosCollection = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
     lazy val mailPoller = new MailPoller(valintatulosCollection, valintatulosService, valintarekisteriDb, hakuService, appConfig.ohjausparametritService, limit = 100)
-    lazy val sijoitteluService = new SijoitteluService(valintarekisteriDb, new SijoitteluUtil(valintarekisteriDb))
+    lazy val sijoitteluService = new ValintarekisteriForSijoittelu()
 
 
     val migrationMode = System.getProperty("valinta-rekisteri-migration-mode")

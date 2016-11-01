@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice.valintarekisteri
 import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatulos, Hakemus => SijoitteluHakemus}
 import fi.vm.sade.valintatulosservice.ITSetup
 import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import org.json4s.JsonAST._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.{CustomSerializer, DefaultFormats}

@@ -3,9 +3,9 @@ package fi.vm.sade.valintatulosservice.tarjonta
 import fi.vm.sade.utils.http.DefaultHttpClient
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
-import fi.vm.sade.valintatulosservice.domain.{Kausi, Kevat, Syksy}
 import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, KoodistoService}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{Syksy, Kevat, Kausi}
 import org.joda.time.DateTime
 import org.json4s.JsonAST.{JInt, JObject, JString}
 import org.json4s.jackson.JsonMethods._

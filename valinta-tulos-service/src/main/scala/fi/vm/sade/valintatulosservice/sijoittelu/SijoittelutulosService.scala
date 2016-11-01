@@ -10,11 +10,12 @@ import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.utils.Timer
 import fi.vm.sade.valintatulosservice.VastaanottoAikarajaMennyt
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
+import Vastaanottotila._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
 import fi.vm.sade.valintatulosservice.tarjonta.Haku
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoRecord}
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.{VastaanottoRecord, HakijaVastaanottoRepository}
 import org.apache.commons.lang.StringUtils
 import org.joda.time.DateTime
 import slick.dbio.DBIO

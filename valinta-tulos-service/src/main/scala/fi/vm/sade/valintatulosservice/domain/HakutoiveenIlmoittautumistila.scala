@@ -5,6 +5,7 @@ import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila.Ilmoittautumisti
 import fi.vm.sade.valintatulosservice.domain.LanguageMap.LanguageMap
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
 import fi.vm.sade.valintatulosservice.tarjonta.Haku
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila
 import org.joda.time.DateTime
 
 case class HakutoiveenIlmoittautumistila(

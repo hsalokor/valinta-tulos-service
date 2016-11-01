@@ -1,8 +1,9 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.domain.{HakukohdeRecord, Kausi}
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService, Hakukohde, Koulutus}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{Kausi, HakukohdeRecord}
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.HakukohdeRepository
 
 import scala.util.{Failure, Success, Try}
 

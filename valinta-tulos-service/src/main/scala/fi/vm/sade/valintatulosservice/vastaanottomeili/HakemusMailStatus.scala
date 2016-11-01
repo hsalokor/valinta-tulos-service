@@ -3,7 +3,8 @@ package fi.vm.sade.valintatulosservice.vastaanottomeili
 import java.util.Date
 
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila
+import Vastaanottotila._
 
 case class HakemusMailStatus(hakijaOid: String, hakemusOid: String, hakukohteet: List[HakukohdeMailStatus], hakuOid: String) {
   def anyMailToBeSent = hakukohteet.find(_.shouldMail).nonEmpty

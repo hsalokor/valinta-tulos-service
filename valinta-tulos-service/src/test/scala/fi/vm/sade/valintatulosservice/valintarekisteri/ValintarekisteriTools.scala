@@ -1,5 +1,6 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
 import slick.driver.PostgresDriver.api._
 
 object ValintarekisteriTools {
@@ -28,15 +29,4 @@ object ValintarekisteriTools {
   def deleteVastaanotot(db: ValintarekisteriDb): Unit = {
     db.runBlocking(deleteFromVastaanotot)
   }
-
-  /*def deleteSijoitteluajot(db: ValintarekisteriDb): Unit = {
-    db.runBlocking(DBIO.seq(
-      sqlu"delete from ilmoittautumiset",
-      sqlu"delete from valinnantulokset",
-      sqlu"delete from jonosijat",
-      sqlu"delete from valintatapajonot",
-      sqlu"delete from sijoitteluajonhakukohteet",
-      sqlu"delete from sijoitteluajot"
-    ).transactionally)
-  }*/
 }

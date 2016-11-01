@@ -6,13 +6,15 @@ import java.util.concurrent.TimeUnit
 
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
+import Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelutulosService, ValintatulosRepository}
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 import fi.vm.sade.valintatulosservice.valintarekisteri._
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.{VastaanottoEvent, VastaanottoRecord, HakijaVastaanottoRepository}
 import slick.dbio.{DBIO, SuccessAction}
 
 import scala.collection.JavaConverters._
@@ -277,9 +279,3 @@ class VastaanottoService(hakuService: HakuService,
   }
 
 }
-
-case class PriorAcceptanceException(aiempiVastaanotto: VastaanottoRecord)
-  extends IllegalArgumentException(s"Löytyi aiempi vastaanotto $aiempiVastaanotto")
-
-case class ConflictingAcceptancesException(personOid: String, conflictingVastaanottos: Seq[VastaanottoRecord], conflictDescription: String)
-  extends IllegalStateException(s"Hakijalla $personOid useita vastaanottoja $conflictDescription: $conflictingVastaanottos")

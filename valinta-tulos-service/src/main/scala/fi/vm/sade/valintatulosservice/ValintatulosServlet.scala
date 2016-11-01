@@ -6,6 +6,7 @@ import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.{JsonFormats, JsonStreamWriter, StreamingFailureException}
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakuaika, YhdenPaikanSaanto}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{PriorAcceptanceException, Kausi}
 import org.joda.time.DateTime
 import org.json4s.Extraction
 import org.scalatra._

@@ -1,8 +1,8 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
+package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
 import java.util.Date
 
-import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 
 case class VastaanottoRecord(henkiloOid: String, hakuOid: String, hakukohdeOid: String, action: VastaanottoAction, ilmoittaja: String, timestamp: Date)
 
