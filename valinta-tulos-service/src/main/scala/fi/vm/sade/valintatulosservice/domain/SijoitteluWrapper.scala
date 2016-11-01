@@ -1,10 +1,10 @@
 package fi.vm.sade.valintatulosservice.domain
 
+import java.lang.{Boolean => javaBoolean, Integer => javaInt, String => javaString}
+import java.math.{BigDecimal => javaBigDecimal}
 import java.util.Date
 
 import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus, Tasasijasaanto => SijoitteluTasasijasaanto, _}
-import java.lang.{Integer => javaInt, Boolean => javaBoolean, String => javaString}
-import java.math.{BigDecimal => javaBigDecimal}
 
 case class SijoitteluWrapper(sijoitteluajo:SijoitteluAjo, hakukohteet:List[Hakukohde], valintatulokset:List[Valintatulos])
 

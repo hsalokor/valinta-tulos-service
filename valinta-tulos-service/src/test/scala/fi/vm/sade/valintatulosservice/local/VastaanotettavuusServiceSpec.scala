@@ -14,7 +14,7 @@ import org.specs2.mock.mockito.{MockitoMatchers, MockitoStubs}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.Scope
-import slick.dbio.{DBIO, DBIOAction, FailureAction, FlatMapAction, SuccessAction}
+import slick.dbio._
 
 import scala.util.{Failure, Success, Try}
 

@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
-import fi.vm.sade.sijoittelu.domain.{Hakukohde, HakukohdeItem, SijoitteluAjo}
+import fi.vm.sade.sijoittelu.domain.{HakukohdeItem, SijoitteluAjo}
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
 import fi.vm.sade.sijoittelu.tulos.dto.{HakukohdeDTO, SijoitteluajoDTO}
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}

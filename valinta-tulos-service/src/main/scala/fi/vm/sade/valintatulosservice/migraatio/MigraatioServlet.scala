@@ -21,8 +21,6 @@ import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.springframework.util.StopWatch
 
 import scala.collection.JavaConverters._
-import scala.util.{Failure, Success}
-import scala.util.control.NonFatal
 
 class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintarekisteriDb: ValintarekisteriDb,
                        hakemusRepository: HakemusRepository, raportointiService: RaportointiService, hakuService: HakuService)

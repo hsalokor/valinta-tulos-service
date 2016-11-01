@@ -7,8 +7,6 @@ import fi.vm.sade.valintatulosservice.domain.{Hakemus, Henkilotiedot}
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 
-import scala.util.{Failure, Success}
-
 class HakukohdeNotFoundException(message: String) extends RuntimeException(message)
 
 class HakuNotFoundException(message: String) extends RuntimeException(message)

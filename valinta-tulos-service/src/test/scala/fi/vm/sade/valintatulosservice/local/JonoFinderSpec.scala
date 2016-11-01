@@ -1,11 +1,12 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.sijoittelu.tulos.dto.HakemuksenTila
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakutoiveenValintatapajonoDTO, HakutoiveDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakutoiveDTO, HakutoiveenValintatapajonoDTO}
 import fi.vm.sade.valintatulosservice.sijoittelu.JonoFinder
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])

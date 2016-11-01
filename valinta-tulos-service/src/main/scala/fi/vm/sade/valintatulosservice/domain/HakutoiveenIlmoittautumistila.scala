@@ -1,7 +1,5 @@
 package fi.vm.sade.valintatulosservice.domain
 
-import java.util.Date
-
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila.Ilmoittautumistila
 import fi.vm.sade.valintatulosservice.domain.LanguageMap.LanguageMap

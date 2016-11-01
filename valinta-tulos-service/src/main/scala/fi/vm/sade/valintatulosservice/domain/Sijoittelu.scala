@@ -3,10 +3,8 @@ package fi.vm.sade.valintatulosservice.domain
 import fi.vm.sade.sijoittelu.tulos.dto._
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 import fi.vm.sade.valintatulosservice.valintarekisteri.SijoitteluRepository
-import org.http4s.DateTime
 
 import scala.collection.JavaConverters._
-import scala.collection.immutable.HashMap
 
 case class SijoitteluajoRecord(sijoitteluajoId:Long, hakuOid:String, startMils:Long, endMils:Long)
 

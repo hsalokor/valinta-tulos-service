@@ -1,13 +1,13 @@
 package fi.vm.sade.valintatulosservice.local
 
-import fi.vm.sade.valintatulosservice.vastaanottomeili.{LahetysKuittaus, Ilmoitus}
+import fi.vm.sade.valintatulosservice.vastaanottomeili.{Ilmoitus, LahetysKuittaus}
 import fi.vm.sade.valintatulosservice.{ServletSpecification, TimeWarp}
+import org.json4s._
 import org.json4s.jackson.Serialization
+import org.json4s.native.JsonMethods._
 import org.junit.runner.RunWith
 import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner
-import org.json4s._
-import org.json4s.native.JsonMethods._
 
 @RunWith(classOf[JUnitRunner])
 class EmailStatusServletSpec extends ServletSpecification with TimeWarp {

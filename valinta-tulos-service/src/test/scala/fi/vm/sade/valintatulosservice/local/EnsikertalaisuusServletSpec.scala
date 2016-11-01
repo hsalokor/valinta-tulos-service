@@ -1,7 +1,6 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.valintatulosservice.ServletSpecification
-import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.{EiEnsikertalainen, Ensikertalainen, Ensikertalaisuus, EnsikertalaisuusServlet}
 import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriTools
 import org.joda.time.{DateTime, DateTimeZone}

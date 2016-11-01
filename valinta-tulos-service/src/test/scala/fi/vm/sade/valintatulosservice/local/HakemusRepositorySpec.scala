@@ -6,8 +6,6 @@ import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixtures, HakemusRepositor
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
-import scala.util.Success
-
 @RunWith(classOf[JUnitRunner])
 class HakemusRepositorySpec extends ITSpecification {
   val repo = new HakemusRepository()

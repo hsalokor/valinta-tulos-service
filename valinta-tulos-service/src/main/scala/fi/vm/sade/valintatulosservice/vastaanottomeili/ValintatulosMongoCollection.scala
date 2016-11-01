@@ -5,7 +5,6 @@ import java.util.Date
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import fi.vm.sade.utils.config.MongoConfig
-import fi.vm.sade.valintatulosservice.domain.{Hakemuksentulos, Hakutoiveentulos}
 import fi.vm.sade.valintatulosservice.json.JsonFormats._
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import org.joda.time.{DateTime, DateTimeUtils}
