@@ -500,9 +500,9 @@
                 }
               ],
               "tilanKuvaukset": {
-                "FI": "Hakija ei osallistunut valintakokeeseen",
-                "SV": "Deltog inte i urvalsprovet",
-                "EN": "Applicant did not participate in the entrance examination"
+                "FI": "Hyväksytty täyttöjonosäännöllä valintatapajonosta: 14538080612623056182813241345174",
+                "SV": "Godkänd med köpåfyllningsregel från urvalsmetodskö: 14538080612623056182813241345174",
+                "EN": "Accepted from selection method queue: 14538080612623056182813241345174"
               },
               "hyvaksyttyHakijaryhmasta": false,
               "siirtynytToisestaValintatapajonosta": false
