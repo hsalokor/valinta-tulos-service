@@ -1,42 +1,20 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
-import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatulos, Hakemus => SijoitteluHakemus}
+import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus}
 import fi.vm.sade.valintatulosservice.ITSetup
-import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
-import org.json4s.JsonAST._
 import org.json4s.jackson.JsonMethods._
-import org.json4s.{CustomSerializer, DefaultFormats}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.springframework.core.io.ClassPathResource
-import slick.dbio.DBIOAction
 import slick.driver.PostgresDriver.api._
+import slick.jdbc.GetResult
 
-import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup {
   sequential
-
-  class NumberLongSerializer extends CustomSerializer[Long](format => ( {
-    case JObject(List(JField("$numberLong",JString(longValue)))) => longValue.toLong
-  }, {
-    case x:Long => JObject(List(JField("$numberLong",JString("" + x))))
-  }))
-  class TasasijasaantoSerializer extends CustomSerializer[Tasasijasaanto](format => ({
-    case JString(tasasijaValue) => Tasasijasaanto.getTasasijasaanto(fi.vm.sade.sijoittelu.domain.Tasasijasaanto.valueOf(tasasijaValue))
-  }, {
-    case x:Tasasijasaanto => JString(x.tasasijasaanto.toString)
-  }))
-  class ValinnantilaSerializer extends CustomSerializer[Valinnantila](format => ({
-    case JString(tilaValue) => Valinnantila.getValinnantila(fi.vm.sade.sijoittelu.domain.HakemuksenTila.valueOf(tilaValue))
-  },{
-    case x:Valinnantila => JString(x.valinnantila.toString)
-  }))
-
-  implicit val formats = DefaultFormats ++ List(new NumberLongSerializer, new TasasijasaantoSerializer, new ValinnantilaSerializer)
 
   step(appConfig.start)
   step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
@@ -102,56 +80,40 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup {
       val hakijaryhmaId = singleConnectionValintarekisteriDb.getHakijaryhmat(1476936450191L).last.id
       singleConnectionValintarekisteriDb.getHakijaryhmanHakemukset(hakijaryhmaId).size mustEqual 14
     }
+
+    "get hakemuksen tilankuvauksen lisatieto" in {
+      val hakemus = getHakemus("1.2.246.562.11.00005808388")
+      hakemus.get.tarkenne mustEqual "peruuntunutHyvaksyttyYlemmalleHakutoiveelle"
+      hakemus.get.tarkenteenLisatieto mustEqual null
+    }
+
+    "get hakemuksen tilankuvauksen tarkenteen lisatiedon tarkenne" in {
+      val hakemus = getHakemus("1.2.246.562.11.00006560353")
+      hakemus.get.tarkenne mustEqual "hyvaksyttyTayttojonoSaannolla"
+      hakemus.get.tarkenteenLisatieto mustEqual "14538080612623056182813241345174"
+    }
+  }
+
+  private implicit val getHakemusResult = GetResult(r => HakemusRecord(r.<<, r.<<, r.<<, r.<<,
+    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+
+  def getHakemus(hakemusOid: String): Option[HakemusRecord] = {
+    singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
+            j.tasasijajonosija, v.tila, v.tarkenne, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
+            j.onko_muuttunut_viime_sijoittelussa, j.hyvaksytty_hakijaryhmasta, hh.hakijaryhma_id,
+            j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
+            from jonosijat as j
+            inner join valinnantulokset as v on v.jonosija_id = j.id and v.hakemus_oid = j.hakemus_oid
+            inner join hakijaryhman_hakemukset as hh on j.hakemus_oid = hh.hakemus_oid
+            where v.hakemus_oid = ${hakemusOid} and deleted is null""".as[HakemusRecord]).headOption
   }
 
   def loadSijoitteluFromFixture(fixture: String, path: String = "sijoittelu/"):SijoitteluWrapper = {
     val json = parse(scala.io.Source.fromInputStream(
       new ClassPathResource("fixtures/" + path + fixture + ".json").getInputStream).mkString)
 
-    val JArray(sijoittelut) = ( json \ "Sijoittelu" )
-    val JArray(sijoitteluajot) = ( sijoittelut(0) \ "sijoitteluajot" )
-    val sijoitteluajo:SijoitteluAjo = sijoitteluajot(0).extract[SijoitteluajoWrapper].sijoitteluajo
-
-    val JArray(jsonHakukohteet) = ( json \ "Hakukohde" )
-    val hakukohteet:List[Hakukohde] = jsonHakukohteet.map(hakukohdeJson => {
-      val hakukohde = hakukohdeJson.extract[SijoitteluajonHakukohdeWrapper].hakukohde
-      hakukohde.setValintatapajonot({
-        val JArray(valintatapajonot) = (hakukohdeJson \ "valintatapajonot")
-        valintatapajonot.map(valintatapajono => {
-          val valintatapajonoExt = valintatapajono.extract[SijoitteluajonValintatapajonoWrapper].valintatapajono
-          val JArray(hakemukset) = (valintatapajono \ "hakemukset")
-          valintatapajonoExt.setHakemukset(hakemukset.map(hakemus => {
-            val hakemusExt = hakemus.extract[SijoitteluajonHakemusWrapper].hakemus
-            (hakemus \ "pistetiedot") match {
-              case JArray(pistetiedot) => hakemusExt.setPistetiedot(pistetiedot.map(pistetieto => pistetieto.extract[SijoitteluajonPistetietoWrapper].pistetieto).asJava)
-              case _ =>
-            }
-            hakemusExt
-          }).asJava)
-          valintatapajonoExt
-        }).asJava
-      })
-      (hakukohdeJson \ "hakijaryhmat") match {
-        case JArray(hakijaryhmat) => hakukohde.setHakijaryhmat(hakijaryhmat.map(hakijaryhma => hakijaryhma.extract[SijoitteluajonHakijaryhmaWrapper].hakijaryhma).asJava)
-        case _ =>
-      }
-      hakukohde
-    })
-
-    val JArray(jsonValintatulokset) = (json \ "Valintatulos")
-    val valintatulokset:List[Valintatulos] = jsonValintatulokset.map(_.extract[SijoitteluajonValinnantulosWrapper].valintatulos)
-
-    val wrapper:SijoitteluWrapper = SijoitteluWrapper(sijoitteluajo, hakukohteet.filter(h => {
-      h.getSijoitteluajoId.equals(sijoitteluajo.getSijoitteluajoId)
-    }), valintatulokset)
-    hakukohteet.foreach(h => insertHakukohde(h.getOid, sijoitteluajo.getHakuOid))
-    wrapper
-  }
-
-  def insertHakukohde(hakukohdeOid:String, hakuOid:String) = {
-    singleConnectionValintarekisteriDb.runBlocking(DBIOAction.seq(
-      sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
-           values ($hakukohdeOid, $hakuOid, true, true, '2015K')"""))
+    ValintarekisteriTools.sijoitteluWrapperFromJson(json, singleConnectionValintarekisteriDb)
   }
 
   step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
