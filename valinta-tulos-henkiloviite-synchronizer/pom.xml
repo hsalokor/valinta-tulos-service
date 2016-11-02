@@ -20,11 +20,6 @@
             <artifactId>scala-library</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.scala-lang.modules</groupId>
-            <artifactId>scala-xml_2.11</artifactId>
-            <version>1.0.5</version>
-        </dependency>
-        <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
             <version>9.3.7.v20160115</version>
@@ -33,29 +28,6 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
             <version>9.3.7.v20160115</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalaz.stream</groupId>
-            <artifactId>scalaz-stream_2.11</artifactId>
-            <version>0.8a</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-core_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-effect_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-concurrent_2.11</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
@@ -69,21 +41,6 @@
                 <exclusion>
                     <groupId>org.scala-lang.modules</groupId>
                     <artifactId>scala-xml_2.11</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-effect_2.11</artifactId>
-            <version>7.2.3</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-core_2.11</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -128,12 +85,8 @@
                     <artifactId>scalaz-core_2.11</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>org.scalaz.stream</groupId>
-                    <artifactId>scalaz-stream_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scodec</groupId>
-                    <artifactId>scodec-bits_2.11</artifactId>
+                    <groupId>org.scalaz</groupId>
+                    <artifactId>scalaz-concurrent_2.11</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -169,10 +122,6 @@
                     <groupId>org.scala-lang</groupId>
                     <artifactId>scala-library</artifactId>
                 </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz.stream</groupId>
-                    <artifactId>scalaz-stream_2.11</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -191,27 +140,13 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>9.4-1201-jdbc41</version>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-access</artifactId>
             <version>1.1.7</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-            <version>1.3</version>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
