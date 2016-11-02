@@ -17,7 +17,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
-class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with HakijaVastaanottoRepository with SijoitteluRepository
+class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends ValintarekisteriService with HakijaVastaanottoRepository with SijoitteluRepository
   with HakukohdeRepository with VirkailijaVastaanottoRepository with Logging {
   val user = if (dbConfig.hasPath("user")) dbConfig.getString("user") else null
   val password = if (dbConfig.hasPath("password")) dbConfig.getString("password") else null
@@ -26,6 +26,10 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
   flyway.setDataSource(dbConfig.getString("url"), user, password)
   flyway.migrate()
   override val db = Database.forConfig("", dbConfig)
+  if(isItProfile) {
+    logger.warn("alter table public.schema_version owner to oph")
+    runBlocking(sqlu"""alter table public.schema_version owner to oph""")
+  }
   private implicit val getVastaanottoResult = GetResult(r => VastaanottoRecord(r.nextString(), r.nextString(),
     r.nextString(), VastaanottoAction(r.nextString()), r.nextString(), r.nextTimestamp()))
   private implicit val getHakukohdeResult = GetResult(r =>
