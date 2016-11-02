@@ -171,10 +171,6 @@
                     <artifactId>specs2-markdown_2.11</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>org.hamcrest</groupId>
-                    <artifactId>hamcrest-core</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>org.scalaz.stream</groupId>
                     <artifactId>scalaz-stream_2.11</artifactId>
                 </exclusion>
@@ -279,25 +275,6 @@
     </dependencies>
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.4.1</version>
-                <configuration>
-                    <rules>
-                        <DependencyConvergence/>
-                    </rules>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>enforce</id>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <phase>validate</phase>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>

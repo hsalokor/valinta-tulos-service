@@ -52,10 +52,6 @@
                     <artifactId>specs2-markdown_2.11</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>org.hamcrest</groupId>
-                    <artifactId>hamcrest-core</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>org.scalaz.stream</groupId>
                     <artifactId>scalaz-stream_2.11</artifactId>
                 </exclusion>
