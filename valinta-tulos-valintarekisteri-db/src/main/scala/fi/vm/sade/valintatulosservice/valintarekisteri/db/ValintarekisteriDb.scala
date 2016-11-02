@@ -460,18 +460,22 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, ilmoittautumistila)
     = SijoitteluajonValinnantulosWrapper(valintatulos)
 
-    val tarkenteenLisatieto:String = null
     val ilmoittaja = "TODO"
     val selite = "TODO"
     val tilanViimeisinMuutos = new java.sql.Timestamp(System.currentTimeMillis())
-    val valinnantilanTarkenneString:Option[String] = valinnanTilanTarkenne.flatMap(x => Some(x.toString))
+    val valinnantilanTarkenneString = valinnanTilanTarkenne.flatMap(x => Some(x.tarkenneString))
+    val valinnantilanTarkenteenLisatieto = valinnanTilanTarkenne match {
+      case Some(HyvaksyttyTayttojonoSaannolla) => valintatulos.getValintatapajonoOid
+      case Some(HylattyHakijaryhmaanKuulumattomana) => hakemus.getHakijaryhmaOid
+      case _ => null
+    }
 
     sqlu"""insert into valinnantulokset (hakukohde_oid, valintatapajono_oid, hakemus_oid, sijoitteluajo_id, jonosija_id,
            tila, tarkenne, tarkenteen_lisatieto, julkaistavissa, ehdollisesti_hyvaksyttavissa, hyvaksytty_varasijalta,
            hyvaksy_peruuntunut, ilmoittaja, selite, tilan_viimeisin_muutos)
            values (${hakukohdeOid}, ${valintatapajonoOid}, ${hakemusOid}, ${sijoitteluajoId}, ${jonosijaId},
            ${valinnanTila.toString}::valinnantila, ${valinnantilanTarkenneString}::valinnantilanTarkenne,
-           ${tarkenteenLisatieto}, ${julkaistavissa}, ${ehdollisestiHyvaksyttavissa}, ${hyvaksyttyVarasijalta},
+           ${valinnantilanTarkenteenLisatieto}, ${julkaistavissa}, ${ehdollisestiHyvaksyttavissa}, ${hyvaksyttyVarasijalta},
            ${hyvaksyPeruuntunut}, ${ilmoittaja}, ${selite}, ${tilanViimeisinMuutos})"""
   }
 
