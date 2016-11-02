@@ -12,20 +12,12 @@ import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.SijoitteluUtil
 import scala.collection.JavaConverters._
 
-class ValintarekisteriForSijoittelu() extends Logging {
+class ValintarekisteriForSijoittelu(sijoitteluRepository:SijoitteluRepository) extends Logging {
 
-  lazy val sijoitteluRepository:SijoitteluRepository = {
+  def this() = this({
     val config: ApplicationSettings = ApplicationSettingsParser.parse(ConfigFactory.load())
-    val entrySet = config.valintaRekisteriDbConfig.entrySet().iterator()
-    println("=====================")
-    while(entrySet.hasNext){
-      val entry = entrySet.next()
-      print(entry.getKey + "=")
-      println(entry.getValue)
-    }
-    println("=====================")
     new ValintarekisteriDb(config.valintaRekisteriDbConfig)
-  }
+  })
 
   lazy val sijoitteluUtil = new SijoitteluUtil(sijoitteluRepository)
 
