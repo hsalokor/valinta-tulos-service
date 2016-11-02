@@ -214,6 +214,20 @@ class MailPollerSpec extends ITSpecification with TimeWarp {
       mailables.map(_.hakemusOid).toSet must_== Set("H1")
     }
 
+    "Meiliä ei lähetetä uudestaan" in {
+      fixture.apply
+      val timestamp = System.currentTimeMillis()
+      withFixedDateTime(timestamp) {
+        val mailables: List[HakemusMailStatus] = poller.pollForMailables()
+        mailables.map(_.hakemusOid).toSet must_== Set("H1")
+        markMailablesSent(mailables);
+        withFixedDateTime(threeDaysLater(timestamp)) {
+          val mailablesAfterSent: List[HakemusMailStatus] = poller.pollForMailables();
+          mailablesAfterSent.size must_== 0;
+        }
+      }
+    }
+
     "Hylätty tulos merkitään käsitellyksi, eikä tarkisteta uudelleen" in {
       fixture.apply
       withFixedDateTime("10.10.2014 0:00") {

@@ -108,8 +108,9 @@ class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatul
   }
 
   private def hakukohdeMailStatusFor(hakemusOid: String, hakutoive: Hakutoiveentulos, uudetVastaanotot: Set[VastaanottoRecord], vanhatVastaanotot: Set[VastaanottoRecord]) = {
+    val alreadySentVastaanottoilmoitus = valintatulosCollection.alreadyMailed(hakemusOid, hakutoive.hakukohdeOid).isDefined
     val (status, reason, message) =
-      if (Vastaanotettavuustila.isVastaanotettavissa(hakutoive.vastaanotettavuustila)) {
+      if (Vastaanotettavuustila.isVastaanotettavissa(hakutoive.vastaanotettavuustila) && !alreadySentVastaanottoilmoitus) {
         (MailStatus.SHOULD_MAIL, Some(MailReason.VASTAANOTTOILMOITUS), "Vastaanotettavissa (" + hakutoive.valintatila + ")")
       } else if (!Valintatila.isHyväksytty(hakutoive.valintatila) && Valintatila.isFinal(hakutoive.valintatila)) {
         (MailStatus.NEVER_MAIL, None, "Ei hyväksytty (" + hakutoive.valintatila + ")")
@@ -129,7 +130,6 @@ class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatul
           if (newestEhdollinenNotVastaanotettuByHakija && atLeastOneOtherEhdollinenVastaanottoCanBeFound) {
             (MailStatus.SHOULD_MAIL, Some(MailReason.EHDOLLISEN_PERIYTYMISEN_ILMOITUS), "Ehdollinen vastaanotto periytynyt")
           } else {
-            val alreadySentVastaanottoilmoitus = valintatulosCollection.alreadyMailed(hakemusOid, hakutoive.hakukohdeOid).isDefined
             if (alreadySentVastaanottoilmoitus) {
               (MailStatus.MAILED, None, "Already mailed")
             } else {
