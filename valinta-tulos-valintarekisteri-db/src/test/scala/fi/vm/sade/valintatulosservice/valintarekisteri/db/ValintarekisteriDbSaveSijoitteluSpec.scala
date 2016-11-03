@@ -115,11 +115,7 @@ class ValintarekisteriDbSaveSijoitteluSpec extends Specification with ITSetup wi
   }
 
   def loadSijoitteluFromFixture(fixture: String, path: String = "sijoittelu/"):SijoitteluWrapper = {
-    val json = parse(getClass.getResourceAsStream("fixtures/" + path + fixture + ".json"))
-
-    /*val json = JsonMethods.parse(scala.io.Source.fromInputStream(
-      new ClassPathResource("fixtures/" + path + fixture + ".json").getInputStream).mkString)*/
-
+    val json = parse(getClass.getClassLoader.getResourceAsStream("fixtures/" + path + fixture + ".json"))
     ValintarekisteriTools.sijoitteluWrapperFromJson(json, singleConnectionValintarekisteriDb)
   }
 
