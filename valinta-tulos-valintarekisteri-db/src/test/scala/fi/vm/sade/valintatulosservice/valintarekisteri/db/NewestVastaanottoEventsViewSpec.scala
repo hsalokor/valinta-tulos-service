@@ -1,6 +1,6 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
+package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
-import fi.vm.sade.valintatulosservice.ITSetup
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ValintarekisteriTools, ITSetup}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{VastaanotaEhdollisesti, VirkailijanVastaanotto}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification

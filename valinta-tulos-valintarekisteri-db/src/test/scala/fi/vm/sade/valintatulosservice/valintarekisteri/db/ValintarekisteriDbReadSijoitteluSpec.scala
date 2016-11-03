@@ -1,15 +1,15 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
+package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
 import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus}
-import fi.vm.sade.valintatulosservice.ITSetup
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ValintarekisteriTools, ITSetup}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
-import org.json4s.jackson.JsonMethods._
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.springframework.core.io.ClassPathResource
 import slick.driver.PostgresDriver.api._
 import slick.jdbc.GetResult
+import org.json4s._
+import org.json4s.native.JsonMethods._
 
 
 @RunWith(classOf[JUnitRunner])
@@ -110,8 +110,14 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup {
   }
 
   def loadSijoitteluFromFixture(fixture: String, path: String = "sijoittelu/"):SijoitteluWrapper = {
+    val json = parse(getClass.getResourceAsStream("fixtures/" + path + fixture + ".json"))
+
+
+    /*val stream : InputStream = getClass.getResourceAsStream("/readme.txt")
+    val lines = scala.io.Source.fromInputStream( stream ).getLines
+
     val json = parse(scala.io.Source.fromInputStream(
-      new ClassPathResource("fixtures/" + path + fixture + ".json").getInputStream).mkString)
+      new ClassPathResource("fixtures/" + path + fixture + ".json").getInputStream).mkString)*/
 
     ValintarekisteriTools.sijoitteluWrapperFromJson(json, singleConnectionValintarekisteriDb)
   }
