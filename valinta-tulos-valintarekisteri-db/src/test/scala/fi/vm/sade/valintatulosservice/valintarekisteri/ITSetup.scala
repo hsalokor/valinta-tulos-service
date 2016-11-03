@@ -12,28 +12,4 @@ trait ITSetup {
 
   lazy val valintarekisteriDbWithPool = new ValintarekisteriDb(dbConfig)
 
-  //lazy val hakemusFixtureImporter = HakemusFixtures()(appConfig)
-
-  //lazy val sijoitteluFixtures = SijoitteluFixtures(appConfig.sijoitteluContext.database, singleConnectionValintarekisteriDb)
-
-  /*def useFixture(fixtureName: String,
-                 extraFixtureNames: List[String] = List(),
-                 ohjausparametritFixture: String = OhjausparametritFixtures.vastaanottoLoppuu2100,
-                 hakemusFixtures: List[String] = HakemusFixtures.defaultFixtures,
-                 hakuFixture: String = HakuFixtures.korkeakouluYhteishaku,
-                 yhdenPaikanSaantoVoimassa: Boolean = false,
-                 kktutkintoonJohtava: Boolean = false,
-                 clearFixturesInitially: Boolean = true
-                ) {
-
-    sijoitteluFixtures.importFixture(fixtureName, clear = clearFixturesInitially, yhdenPaikanSaantoVoimassa = yhdenPaikanSaantoVoimassa, kktutkintoonJohtava = kktutkintoonJohtava)
-    extraFixtureNames.map(fixtureName =>
-      sijoitteluFixtures.importFixture(fixtureName, clear = false, yhdenPaikanSaantoVoimassa = yhdenPaikanSaantoVoimassa, kktutkintoonJohtava = kktutkintoonJohtava)
-    )
-
-    OhjausparametritFixtures.activeFixture = ohjausparametritFixture
-    HakuFixtures.useFixture(hakuFixture)
-    hakemusFixtureImporter.clear
-    hakemusFixtures.foreach(hakemusFixtureImporter.importFixture)
-  }*/
 }
