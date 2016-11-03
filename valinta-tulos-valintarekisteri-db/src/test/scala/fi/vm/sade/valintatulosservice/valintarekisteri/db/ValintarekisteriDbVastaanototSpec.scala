@@ -1,12 +1,10 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
+package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-import fi.vm.sade.valintatulosservice.ITSetup
-import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ValintarekisteriTools, ITSetup}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
-import fi.vm.sade.valintatulosservice.valintarekisteri.db.VastaanottoRecord
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -16,6 +14,8 @@ import slick.driver.PostgresDriver.api._
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 @RunWith(classOf[JUnitRunner])
 class ValintarekisteriDbVastaanototSpec extends Specification with ITSetup with BeforeAfterExample {

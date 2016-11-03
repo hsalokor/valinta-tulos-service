@@ -3,8 +3,8 @@ package fi.vm.sade.valintatulosservice.valintarekisteri
 import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatulos}
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
-import org.json4s.{CustomSerializer, DefaultFormats}
 import org.json4s.JsonAST._
+import org.json4s.{CustomSerializer, DefaultFormats}
 import slick.dbio.DBIOAction
 import slick.driver.PostgresDriver.api._
 
