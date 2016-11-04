@@ -1,5 +1,7 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
+import java.util.Date
+
 import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatulos}
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
@@ -18,6 +20,15 @@ object ValintarekisteriTools {
     case x: Long => JObject(List(JField("$numberLong", JString("" + x))))
   }))
 
+  class DateSerializer extends  CustomSerializer[Date](format => ({
+    case JObject(List(JField("$date", JString(dateValue)))) if (dateValue.endsWith("Z")) =>
+      new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(dateValue)
+    case JObject(List(JField("$date", JString(dateValue)))) =>
+      new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(dateValue)
+  }, {
+    case x: Date => JObject(List(JField("$date", JString("" + x))))
+  }))
+
   class TasasijasaantoSerializer extends CustomSerializer[Tasasijasaanto](format => ( {
     case JString(tasasijaValue) => Tasasijasaanto.getTasasijasaanto(fi.vm.sade.sijoittelu.domain.Tasasijasaanto.valueOf(tasasijaValue))
   }, {
@@ -30,7 +41,7 @@ object ValintarekisteriTools {
     case x: Valinnantila => JString(x.valinnantila.toString)
   }))
 
-  implicit val formats = DefaultFormats ++ List(new NumberLongSerializer, new TasasijasaantoSerializer, new ValinnantilaSerializer)
+  implicit val formats = DefaultFormats ++ List(new NumberLongSerializer, new TasasijasaantoSerializer, new ValinnantilaSerializer, new DateSerializer)
 
   private val deleteFromVastaanotot = DBIO.seq(
     sqlu"delete from vastaanotot",
@@ -52,6 +63,10 @@ object ValintarekisteriTools {
       sqlu"delete from sijoitteluajot",
       sqlu"delete from vanhat_vastaanotot"
       ).transactionally)
+  }
+
+  def dateStringToTimestamp(str:String): Date = {
+    new java.sql.Timestamp(new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(str).getTime)
   }
 
   def deleteVastaanotot(db: ValintarekisteriDb): Unit = {
@@ -94,7 +109,16 @@ object ValintarekisteriTools {
     })
 
     val JArray(jsonValintatulokset) = (json \ "Valintatulos")
-    val valintatulokset: List[Valintatulos] = jsonValintatulokset.map(_.extract[SijoitteluajonValinnantulosWrapper].valintatulos)
+    val valintatulokset: List[Valintatulos] = jsonValintatulokset.map(valintaTulos => {
+      val tulos = valintaTulos.extract[SijoitteluajonValinnantulosWrapper].valintatulos
+      (valintaTulos \ "logEntries") match {
+        case JArray(entries) => {
+          tulos.setOriginalLogEntries(entries.map(e => e.extract[LogEntryWrapper].entry).asJava)
+        }
+        case _ =>
+      }
+      tulos
+    })
 
     val wrapper: SijoitteluWrapper = SijoitteluWrapper(sijoitteluajo, hakukohteet.filter(h => {
       h.getSijoitteluajoId.equals(sijoitteluajo.getSijoitteluajoId)
@@ -102,7 +126,6 @@ object ValintarekisteriTools {
     hakukohteet.foreach(h => insertHakukohde(h.getOid, sijoitteluajo.getHakuOid, testDb))
     wrapper
   }
-
 
   def insertHakukohde(hakukohdeOid:String, hakuOid:String, db: ValintarekisteriDb) = {
     db.runBlocking(DBIOAction.seq(

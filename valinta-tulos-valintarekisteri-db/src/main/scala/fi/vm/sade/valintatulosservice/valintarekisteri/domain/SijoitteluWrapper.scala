@@ -4,8 +4,6 @@ import java.lang.{Boolean => javaBoolean, Integer => javaInt, String => javaStri
 import java.math.{BigDecimal => javaBigDecimal}
 import java.util.Date
 
-import scala.collection.JavaConverters._
-
 import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus, Tasasijasaanto => SijoitteluTasasijasaanto, _}
 
 import scala.collection.JavaConverters._
