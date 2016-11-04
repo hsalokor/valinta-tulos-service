@@ -6,13 +6,16 @@ import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatulos}
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import org.json4s.JsonAST._
+import org.json4s.native.JsonMethods._
 import org.json4s.{CustomSerializer, DefaultFormats}
 import slick.dbio.DBIOAction
 import slick.driver.PostgresDriver.api._
 
 import scala.collection.JavaConverters._
 
-object ValintarekisteriTools {
+trait ValintarekisteriDbTools {
+
+  val singleConnectionValintarekisteriDb:ValintarekisteriDb
 
   class NumberLongSerializer extends CustomSerializer[Long](format => ( {
     case JObject(List(JField("$numberLong", JString(longValue)))) => longValue.toLong
@@ -48,8 +51,8 @@ object ValintarekisteriTools {
     sqlu"delete from deleted_vastaanotot where id <> overriden_vastaanotto_deleted_id()",
     sqlu"delete from henkiloviitteet")
 
-  def deleteAll(db: ValintarekisteriDb): Unit = {
-    db.runBlocking(DBIO.seq(
+  def deleteAll(): Unit = {
+    singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
       deleteFromVastaanotot,
       sqlu"delete from hakijaryhman_hakemukset",
       sqlu"delete from hakijaryhmat",
@@ -69,11 +72,11 @@ object ValintarekisteriTools {
     new java.sql.Timestamp(new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(str).getTime)
   }
 
-  def deleteVastaanotot(db: ValintarekisteriDb): Unit = {
-    db.runBlocking(deleteFromVastaanotot)
+  def deleteVastaanotot(): Unit = {
+    singleConnectionValintarekisteriDb.runBlocking(deleteFromVastaanotot)
   }
 
-  def sijoitteluWrapperFromJson(json: JValue, testDb: ValintarekisteriDb): SijoitteluWrapper = {
+  def sijoitteluWrapperFromJson(json: JValue): SijoitteluWrapper = {
     val JArray(sijoittelut) = (json \ "Sijoittelu")
     val JArray(sijoitteluajot) = (sijoittelut(0) \ "sijoitteluajot")
     val sijoitteluajo: SijoitteluAjo = sijoitteluajot(0).extract[SijoitteluajoWrapper].sijoitteluajo
@@ -123,13 +126,18 @@ object ValintarekisteriTools {
     val wrapper: SijoitteluWrapper = SijoitteluWrapper(sijoitteluajo, hakukohteet.filter(h => {
       h.getSijoitteluajoId.equals(sijoitteluajo.getSijoitteluajoId)
     }), valintatulokset)
-    hakukohteet.foreach(h => insertHakukohde(h.getOid, sijoitteluajo.getHakuOid, testDb))
+    hakukohteet.foreach(h => insertHakukohde(h.getOid, sijoitteluajo.getHakuOid))
     wrapper
   }
 
-  def insertHakukohde(hakukohdeOid:String, hakuOid:String, db: ValintarekisteriDb) = {
-    db.runBlocking(DBIOAction.seq(
+  def insertHakukohde(hakukohdeOid:String, hakuOid:String) = {
+    singleConnectionValintarekisteriDb.runBlocking(DBIOAction.seq(
       sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
            values ($hakukohdeOid, $hakuOid, true, true, '2015K')"""))
   }
+
+  def loadSijoitteluFromFixture(fixture: String, path: String = "sijoittelu/"):SijoitteluWrapper = {
+    val json = parse(getClass.getClassLoader.getResourceAsStream("fixtures/" + path + fixture + ".json"))
+    sijoitteluWrapperFromJson(json)
+}
 }

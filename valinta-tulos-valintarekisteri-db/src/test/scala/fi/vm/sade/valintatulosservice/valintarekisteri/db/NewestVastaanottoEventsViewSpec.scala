@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
-import fi.vm.sade.valintatulosservice.valintarekisteri.{ValintarekisteriTools, ITSetup}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriDbTools}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{VastaanotaEhdollisesti, VirkailijanVastaanotto}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -9,7 +9,7 @@ import org.specs2.specification.BeforeAfterExample
 import slick.driver.PostgresDriver.api._
 
 @RunWith(classOf[JUnitRunner])
-class NewestVastaanottoEventsViewSpec extends Specification with ITSetup with BeforeAfterExample {
+class NewestVastaanottoEventsViewSpec extends Specification with ITSetup with ValintarekisteriDbTools with BeforeAfterExample {
   private val hakukohdeOid = "1.2.246.561.20.00000000001"
   private val hakuOid = "1.2.246.561.29.00000000001"
   private val valintatapajonoOid = "1.2.246.561.20.00000000001"
@@ -21,7 +21,7 @@ class NewestVastaanottoEventsViewSpec extends Specification with ITSetup with Be
 
   sequential
   step(appConfig.start)
-  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
+  step(deleteAll())
   step(singleConnectionValintarekisteriDb.runBlocking(
     sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
            values ($hakukohdeOid, $hakuOid, true, true, '2015K')"""))
@@ -83,10 +83,10 @@ class NewestVastaanottoEventsViewSpec extends Specification with ITSetup with Be
   }
 
   override protected def before: Unit = {
-    ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
+    deleteVastaanotot()
   }
 
   override protected def after: Unit = {
-    ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
+    deleteVastaanotot()
   }
 }

@@ -3,9 +3,8 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.db
 import java.sql.Timestamp
 
 import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus}
-import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriTools}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriDbTools}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
-import org.flywaydb.core.internal.util.scanner.classpath.ClassPathResource
 import org.json4s.native.JsonMethods._
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -15,11 +14,11 @@ import slick.jdbc.GetResult
 
 
 @RunWith(classOf[JUnitRunner])
-class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup {
+class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup with ValintarekisteriDbTools {
   sequential
 
   step(appConfig.start)
-  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
+  step(deleteAll())
   step(singleConnectionValintarekisteriDb.storeSijoittelu(loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/")))
 
   "ValintarekisteriDb" should {
@@ -98,7 +97,7 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup {
     "get hakemuksen muokkaaja, muutos and viimeksiMuokattu" in {
       val hakemus = getHakemusInfo("1.2.246.562.11.00004663595").get
       hakemus.selite mustEqual "testimuutos"
-      hakemus.tilanViimeisinMuutos mustEqual ValintarekisteriTools.dateStringToTimestamp("2016-10-14T12:44:40.151+0000")
+      hakemus.tilanViimeisinMuutos mustEqual dateStringToTimestamp("2016-10-14T12:44:40.151+0000")
     }
   }
 
@@ -128,10 +127,5 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup {
             where hakemus_oid = ${hakemusOid} and deleted is null""".as[HakemusInfoRecord]).headOption
   }
 
-  def loadSijoitteluFromFixture(fixture: String, path: String = "sijoittelu/"):SijoitteluWrapper = {
-    val json = parse(getClass.getClassLoader.getResourceAsStream("fixtures/" + path + fixture + ".json"))
-    ValintarekisteriTools.sijoitteluWrapperFromJson(json, singleConnectionValintarekisteriDb)
-  }
-
-  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
+  step(deleteAll())
 }
