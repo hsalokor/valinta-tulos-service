@@ -5,7 +5,7 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
-import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus, _}
+import fi.vm.sade.sijoittelu.domain.{LogEntry, Hakemus => SijoitteluHakemus, _}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import org.flywaydb.core.Flyway
@@ -398,7 +398,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       insertJonosija(valintatapajonoOid, hakukohdeId, hakemus).flatMap(jonosijaId => {
         DBIO.sequence(
           List(insertValinnantulos(sijoitteluajoId, jonosijaId.get, SijoitteluajonValinnantulosWrapper(
-            valintatapajonoOid, hakemus.getHakemusOid, hakukohdeOid, false, false, false, false, None).valintatulos, hakemus)) ++
+            valintatapajonoOid, hakemus.getHakemusOid, hakukohdeOid, false, false, false, false, None, Option(List())).valintatulos, hakemus)) ++
             hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(jonosijaId.get, pistetieto)).toList
         )
       })
@@ -457,12 +457,16 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     hyvaksyttyHakijaryhmasta, siirtynytToisestaValintatapajonosta, valinnanTila, valinnanTilanTarkenne)
     = SijoitteluajonHakemusWrapper(hakemus)
     val SijoitteluajonValinnantulosWrapper(valintatapajonoOid, _, hakukohdeOid, ehdollisestiHyvaksyttavissa,
-    julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, ilmoittautumistila)
+    julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, ilmoittautumistila, originalLogEntries)
     = SijoitteluajonValinnantulosWrapper(valintatulos)
 
-    val ilmoittaja = "TODO"
-    val selite = "TODO"
-    val tilanViimeisinMuutos = new java.sql.Timestamp(System.currentTimeMillis())
+    val(ilmoittaja, selite, tilanViimeisinMuutos) = valintatulos.getOriginalLogEntries.asScala.filter(e => e.getLuotu != null).sortBy(_.getLuotu).reverse.headOption match {
+      case Some(entry) => (entry.getMuokkaaja, entry.getSelite, entry.getLuotu)
+      case None => {
+        ("System", "", new Date())
+      }
+    }
+
     val valinnantilanTarkenneString = valinnanTilanTarkenne.flatMap(x => Some(x.tarkenneString))
     val valinnantilanTarkenteenLisatieto = valinnanTilanTarkenne match {
       case Some(HyvaksyttyTayttojonoSaannolla) => valintatulos.getValintatapajonoOid
@@ -476,11 +480,11 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            values (${hakukohdeOid}, ${valintatapajonoOid}, ${hakemusOid}, ${sijoitteluajoId}, ${jonosijaId},
            ${valinnanTila.toString}::valinnantila, ${valinnantilanTarkenneString}::valinnantilanTarkenne,
            ${valinnantilanTarkenteenLisatieto}, ${julkaistavissa}, ${ehdollisestiHyvaksyttavissa}, ${hyvaksyttyVarasijalta},
-           ${hyvaksyPeruuntunut}, ${ilmoittaja}, ${selite}, ${tilanViimeisinMuutos})"""
+           ${hyvaksyPeruuntunut}, ${ilmoittaja}, ${selite}, ${new java.sql.Timestamp(tilanViimeisinMuutos.getTime)})"""
   }
 
   private def insertIlmoittautuminen(valintatulos:Valintatulos, hakijaOid:String) = {
-    val SijoitteluajonValinnantulosWrapper(_, _, hakukohdeOid, _, _, _, _, ilmoittautumistila)
+    val SijoitteluajonValinnantulosWrapper(_, _, hakukohdeOid, _, _, _, _, ilmoittautumistila,logEntries)
     = SijoitteluajonValinnantulosWrapper(valintatulos)
 
     val ilmoittaja = "TODO"

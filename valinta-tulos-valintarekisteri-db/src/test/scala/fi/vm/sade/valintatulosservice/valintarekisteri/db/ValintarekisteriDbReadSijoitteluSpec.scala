@@ -1,15 +1,19 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
+import java.sql.Timestamp
+
 import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus}
-import fi.vm.sade.valintatulosservice.valintarekisteri.{ValintarekisteriTools, ITSetup}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriTools}
+import org.flywaydb.core.internal.util.scanner.classpath.ClassPathResource
+import org.json4s.jackson.JsonMethods._
+import org.json4s.native.JsonMethods._
 import org.junit.runner.RunWith
+import org.specs2.Specification
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import slick.driver.PostgresDriver.api._
 import slick.jdbc.GetResult
-import org.json4s._
-import org.json4s.native.JsonMethods._
 
 
 @RunWith(classOf[JUnitRunner])
@@ -82,15 +86,21 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup {
     }
 
     "get hakemuksen tilankuvauksen lisatieto" in {
-      val hakemus = getHakemus("1.2.246.562.11.00005808388")
-      hakemus.get.tarkenne mustEqual "peruuntunutHyvaksyttyYlemmalleHakutoiveelle"
-      hakemus.get.tarkenteenLisatieto mustEqual null
+      val hakemus = getHakemus("1.2.246.562.11.00005808388").get
+      hakemus.tarkenne mustEqual "peruuntunutHyvaksyttyYlemmalleHakutoiveelle"
+      hakemus.tarkenteenLisatieto mustEqual null
     }
 
     "get hakemuksen tilankuvauksen tarkenteen lisatiedon tarkenne" in {
-      val hakemus = getHakemus("1.2.246.562.11.00006560353")
-      hakemus.get.tarkenne mustEqual "hyvaksyttyTayttojonoSaannolla"
-      hakemus.get.tarkenteenLisatieto mustEqual "14538080612623056182813241345174"
+      val hakemus = getHakemus("1.2.246.562.11.00006560353").get
+      hakemus.tarkenne mustEqual "hyvaksyttyTayttojonoSaannolla"
+      hakemus.tarkenteenLisatieto mustEqual "14538080612623056182813241345174"
+    }
+
+    "get hakemuksen muokkaaja, muutos and viimeksiMuokattu" in {
+      val hakemus = getHakemusInfo("1.2.246.562.11.00004663595").get
+      hakemus.selite mustEqual "testimuutos"
+      hakemus.tilanViimeisinMuutos mustEqual ValintarekisteriTools.dateStringToTimestamp("2016-10-14T12:44:40.151+0000")
     }
   }
 
@@ -109,8 +119,20 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup {
             where v.hakemus_oid = ${hakemusOid} and deleted is null""".as[HakemusRecord]).headOption
   }
 
+  case class HakemusInfoRecord(selite:String, ilmoittaja:String, tilanViimeisinMuutos:Timestamp)
+
+  private implicit val getHakemusInfoResult = GetResult(r => HakemusInfoRecord(r.<<, r.<<, r.<<))
+
+  def getHakemusInfo(hakemusOid: String): Option[HakemusInfoRecord] = {
+    singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select selite, ilmoittaja, tilan_viimeisin_muutos
+            from valinnantulokset
+            where hakemus_oid = ${hakemusOid} and deleted is null""".as[HakemusInfoRecord]).headOption
+  }
+
   def loadSijoitteluFromFixture(fixture: String, path: String = "sijoittelu/"):SijoitteluWrapper = {
-    val json = parse(getClass.getClassLoader.getResourceAsStream("fixtures/" + path + fixture + ".json"))
+    val json = parse(scala.io.Source.fromInputStream(
+      new ClassPathResource("fixtures/" + path + fixture + ".json").getInputStream).mkString)
     ValintarekisteriTools.sijoitteluWrapperFromJson(json, singleConnectionValintarekisteriDb)
   }
 
