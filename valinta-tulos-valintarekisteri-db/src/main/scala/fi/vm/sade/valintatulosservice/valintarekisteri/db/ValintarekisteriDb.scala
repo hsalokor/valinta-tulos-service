@@ -5,7 +5,7 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigValueFactory}
-import fi.vm.sade.sijoittelu.domain.{LogEntry, Hakemus => SijoitteluHakemus, _}
+import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus, _}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import org.flywaydb.core.Flyway

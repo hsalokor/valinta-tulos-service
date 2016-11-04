@@ -7321,6 +7321,14 @@
           "muokkaaja": "System",
           "muutos": "julkaistavissa: false -> true",
           "selite": "Massamuokkaus"
+        },
+        {
+          "luotu": {
+            "$date": "2016-10-14T12:44:40.151+0000"
+          },
+          "muokkaaja": "System",
+          "muutos": "testimuutos",
+          "selite": "testimuutos"
         }
       ],
       "mailStatus": {

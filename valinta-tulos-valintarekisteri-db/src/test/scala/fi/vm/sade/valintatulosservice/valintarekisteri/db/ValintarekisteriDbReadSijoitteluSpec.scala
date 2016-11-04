@@ -3,10 +3,9 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.db
 import java.sql.Timestamp
 
 import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus}
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriTools}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import org.flywaydb.core.internal.util.scanner.classpath.ClassPathResource
-import org.json4s.jackson.JsonMethods._
 import org.json4s.native.JsonMethods._
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -130,8 +129,7 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup {
   }
 
   def loadSijoitteluFromFixture(fixture: String, path: String = "sijoittelu/"):SijoitteluWrapper = {
-    val json = parse(scala.io.Source.fromInputStream(
-      new ClassPathResource("fixtures/" + path + fixture + ".json").getInputStream).mkString)
+    val json = parse(getClass.getClassLoader.getResourceAsStream("fixtures/" + path + fixture + ".json"))
     ValintarekisteriTools.sijoitteluWrapperFromJson(json, singleConnectionValintarekisteriDb)
   }
 

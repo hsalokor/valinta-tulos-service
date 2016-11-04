@@ -146,7 +146,7 @@ class ValintarekisteriDbSaveSijoitteluSpec extends Specification with ITSetup wi
 
   private implicit val getSijoitteluajonValintatapajonoResult = GetResult(r => {
     SijoitteluajonValintatapajonoWrapper(r.nextString, r.nextString, r.nextInt, Tasasijasaanto(r.nextString()), r.nextInt, r.nextIntOption, r.nextBoolean,
-      r.nextBoolean, r.nextBoolean, r.nextInt, r.nextInt, r.nextDateOption, r.nextDateOption, r.nextStringOption(),
+      r.nextBoolean, r.nextBoolean, r.nextInt, r.nextInt, r.nextTimestampOption(), r.nextTimestampOption(), r.nextStringOption(),
       r.nextIntOption, r.nextIntOption, r.nextBigDecimalOption, None).valintatapajono
   })
 
