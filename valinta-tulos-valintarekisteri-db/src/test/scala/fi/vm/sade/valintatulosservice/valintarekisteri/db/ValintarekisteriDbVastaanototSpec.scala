@@ -2,8 +2,7 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
 import java.util.Date
 import java.util.concurrent.TimeUnit
-
-import fi.vm.sade.valintatulosservice.valintarekisteri.{ValintarekisteriTools, ITSetup}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriDbTools}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -18,7 +17,7 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @RunWith(classOf[JUnitRunner])
-class ValintarekisteriDbVastaanototSpec extends Specification with ITSetup with BeforeAfterExample {
+class ValintarekisteriDbVastaanototSpec extends Specification with ITSetup with ValintarekisteriDbTools with BeforeAfterExample {
   sequential
   private val henkiloOid = "1.2.246.562.24.00000000001"
   private val hakemusOid = "1.2.246.562.99.00000000001"
@@ -35,7 +34,7 @@ class ValintarekisteriDbVastaanototSpec extends Specification with ITSetup with 
   private val henkiloOidC = "1.2.246.562.24.0000000000c"
 
   step(appConfig.start)
-  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
+  step(deleteAll())
   step(singleConnectionValintarekisteriDb.runBlocking(DBIOAction.seq(
     sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
            values ($hakukohdeOid, $hakuOid, true, true, '2015K')""",
@@ -318,11 +317,11 @@ class ValintarekisteriDbVastaanototSpec extends Specification with ITSetup with 
   }
 
   override protected def before: Unit = {
-    ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
+    deleteVastaanotot()
     singleConnectionValintarekisteriDb.runBlocking(sqlu"""delete from hakukohteet where hakukohde_oid = $refreshedHakukohdeOid""")
   }
   override protected def after: Unit = {
-    ValintarekisteriTools.deleteVastaanotot(singleConnectionValintarekisteriDb)
+    deleteVastaanotot()
     singleConnectionValintarekisteriDb.runBlocking(sqlu"""delete from hakukohteet where hakukohde_oid = $refreshedHakukohdeOid""")
   }
 
@@ -384,5 +383,5 @@ class ValintarekisteriDbVastaanototSpec extends Specification with ITSetup with 
     r.get.action must beEqualTo(VastaanotaSitovasti)
   }
 
-  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
+  step(deleteAll())
 }

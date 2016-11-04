@@ -3,8 +3,8 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.db
 import java.sql.Timestamp
 
 import fi.vm.sade.sijoittelu.domain.{Hakijaryhma, Hakukohde, Pistetieto, SijoitteluAjo, Valintatapajono, Hakemus => SijoitteluHakemus}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriDbTools}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
-import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriTools}
 import org.json4s.native.JsonMethods._
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -14,7 +14,7 @@ import slick.driver.PostgresDriver.api._
 import slick.jdbc.GetResult
 
 @RunWith(classOf[JUnitRunner])
-class ValintarekisteriDbSaveSijoitteluSpec extends Specification with ITSetup with BeforeAfterExample {
+class ValintarekisteriDbSaveSijoitteluSpec extends Specification with ITSetup with ValintarekisteriDbTools with BeforeAfterExample {
   sequential
   private val hakuOid = "1.2.246.561.29.00000000001"
 
@@ -22,7 +22,7 @@ class ValintarekisteriDbSaveSijoitteluSpec extends Specification with ITSetup wi
   val nowDatetime = new Timestamp(1)
 
   step(appConfig.start)
-  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
+  step(deleteAll())
 
   "ValintarekisteriDb" should {
     "store sijoitteluajo" in {
@@ -111,11 +111,6 @@ class ValintarekisteriDbSaveSijoitteluSpec extends Specification with ITSetup wi
       })
       storedHakukohteet.length mustEqual wrapper.hakukohteet.length
     }
-  }
-
-  def loadSijoitteluFromFixture(fixture: String, path: String = "sijoittelu/"):SijoitteluWrapper = {
-    val json = parse(getClass.getClassLoader.getResourceAsStream("fixtures/" + path + fixture + ".json"))
-    ValintarekisteriTools.sijoitteluWrapperFromJson(json, singleConnectionValintarekisteriDb)
   }
 
   def createSijoitteluajo(): SijoitteluAjo = {
@@ -215,11 +210,11 @@ class ValintarekisteriDbSaveSijoitteluSpec extends Specification with ITSetup wi
   }
 
   override protected def before: Unit = {
-    ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb)
+    deleteAll()
   }
   override protected def after: Unit = {
-    ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb)
+    deleteAll()
   }
 
-  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
+  step(deleteAll())
 }
