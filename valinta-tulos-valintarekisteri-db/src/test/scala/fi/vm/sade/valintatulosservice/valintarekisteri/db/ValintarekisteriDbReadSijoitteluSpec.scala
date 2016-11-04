@@ -9,7 +9,6 @@ import org.flywaydb.core.internal.util.scanner.classpath.ClassPathResource
 import org.json4s.jackson.JsonMethods._
 import org.json4s.native.JsonMethods._
 import org.junit.runner.RunWith
-import org.specs2.Specification
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import slick.driver.PostgresDriver.api._
