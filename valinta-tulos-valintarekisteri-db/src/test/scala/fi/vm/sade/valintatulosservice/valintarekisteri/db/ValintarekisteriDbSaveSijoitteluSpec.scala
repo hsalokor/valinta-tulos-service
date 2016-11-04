@@ -2,10 +2,9 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
 import java.sql.Timestamp
 
-import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus, Hakijaryhma, Hakukohde, Pistetieto, SijoitteluAjo, Valintatapajono}
-import fi.vm.sade.valintatulosservice.valintarekisteri.{ValintarekisteriTools, ITSetup}
+import fi.vm.sade.sijoittelu.domain.{Hakijaryhma, Hakukohde, Pistetieto, SijoitteluAjo, Valintatapajono, Hakemus => SijoitteluHakemus}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
-import org.json4s.native.JsonMethods
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriTools}
 import org.json4s.native.JsonMethods._
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification

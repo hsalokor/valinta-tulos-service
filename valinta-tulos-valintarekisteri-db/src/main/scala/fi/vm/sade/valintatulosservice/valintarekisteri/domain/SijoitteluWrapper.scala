@@ -4,7 +4,11 @@ import java.lang.{Boolean => javaBoolean, Integer => javaInt, String => javaStri
 import java.math.{BigDecimal => javaBigDecimal}
 import java.util.Date
 
+import scala.collection.JavaConverters._
+
 import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus, Tasasijasaanto => SijoitteluTasasijasaanto, _}
+
+import scala.collection.JavaConverters._
 
 case class SijoitteluWrapper(sijoitteluajo:SijoitteluAjo, hakukohteet:List[Hakukohde], valintatulokset:List[Valintatulos])
 
@@ -449,7 +453,8 @@ case class SijoitteluajonValinnantulosWrapper(
   julkaistavissa:Boolean = false,
   hyvaksyttyVarasijalta:Boolean = false,
   hyvaksyPeruuntunut:Boolean = false,
-  ilmoittautumistila:Option[SijoitteluajonIlmoittautumistila]
+  ilmoittautumistila:Option[SijoitteluajonIlmoittautumistila],
+  logEntries:Option[List[LogEntry]]
 ) {
   val valintatulos:Valintatulos = {
     val valintatulos = new Valintatulos()
@@ -461,24 +466,43 @@ case class SijoitteluajonValinnantulosWrapper(
     valintatulos.setHyvaksyttyVarasijalta(hyvaksyttyVarasijalta, "")
     valintatulos.setHyvaksyPeruuntunut(hyvaksyPeruuntunut, "")
     ilmoittautumistila.foreach(ilmoittautumistila => valintatulos.setIlmoittautumisTila(ilmoittautumistila.ilmoittautumistila, ""))
+    valintatulos.setOriginalLogEntries(logEntries.getOrElse(List()).asJava)
     valintatulos
   }
 }
 
 object SijoitteluajonValinnantulosWrapper extends OptionConverter {
-  def apply(valintatulos:Valintatulos):SijoitteluajonValinnantulosWrapper = {
-    SijoitteluajonValinnantulosWrapper(
-      valintatulos.getValintatapajonoOid,
-      valintatulos.getHakemusOid,
-      valintatulos.getHakukohdeOid,
-      valintatulos.getEhdollisestiHyvaksyttavissa,
-      valintatulos.getJulkaistavissa,
-      valintatulos.getHyvaksyttyVarasijalta,
-      valintatulos.getHyvaksyPeruuntunut,
-      convert[IlmoittautumisTila,SijoitteluajonIlmoittautumistila](valintatulos.getIlmoittautumisTila,
-        SijoitteluajonIlmoittautumistila.getIlmoittautumistila)
-    )
+  def apply(valintatulos:Valintatulos):SijoitteluajonValinnantulosWrapper = SijoitteluajonValinnantulosWrapper(
+    valintatulos.getValintatapajonoOid,
+    valintatulos.getHakemusOid,
+    valintatulos.getHakukohdeOid,
+    valintatulos.getEhdollisestiHyvaksyttavissa,
+    valintatulos.getJulkaistavissa,
+    valintatulos.getHyvaksyttyVarasijalta,
+    valintatulos.getHyvaksyPeruuntunut,
+    convert[IlmoittautumisTila,SijoitteluajonIlmoittautumistila](valintatulos.getIlmoittautumisTila,
+      SijoitteluajonIlmoittautumistila.getIlmoittautumistila),
+    Option(valintatulos.getOriginalLogEntries.asScala.toList))
+}
+
+case class LogEntryWrapper(luotu:Date, muokkaaja:String, muutos:String, selite:String) {
+  val entry:LogEntry ={
+    val entry = new LogEntry()
+    entry.setLuotu(luotu)
+    entry.setMuokkaaja(muokkaaja)
+    entry.setMuutos(muutos)
+    entry.setSelite(selite)
+    entry
   }
+}
+
+object LogEntryWrapper extends OptionConverter {
+  def apply(entry:LogEntry):LogEntryWrapper = LogEntryWrapper(
+    entry.getLuotu,
+    entry.getMuokkaaja,
+    entry.getMuutos,
+    entry.getSelite
+  )
 }
 
 case class SijoitteluajonPistetietoWrapper(
