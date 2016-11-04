@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.valintatulosservice.ServletSpecification
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
-import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriDbTools
+import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriTools
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{EiEnsikertalainen, Ensikertalainen, Ensikertalaisuus}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.jackson.Serialization._
@@ -27,7 +27,7 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
   val timestamp = new DateTime(2014, 7, 1, 16, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
   val vanha_timestamp = new DateTime(2014, 6, 19, 16, 0, 10, DateTimeZone.forID("Europe/Helsinki"))
 
-  step(ValintarekisteriDbTools.deleteAll(singleConnectionValintarekisteriDb))
+  step(ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb))
   step({
     singleConnectionValintarekisteriDb.runBlocking(DBIOAction.seq(
           sqlu"""insert into hakukohteet (hakukohde_oid, haku_oid, kk_tutkintoon_johtava, yhden_paikan_saanto_voimassa, koulutuksen_alkamiskausi)
@@ -152,5 +152,5 @@ class EnsikertalaisuusServletSpec extends ServletSpecification with After {
     }
   }
 
-  override def after: Unit = ValintarekisteriDbTools.deleteAll(singleConnectionValintarekisteriDb)
+  override def after: Unit = ValintarekisteriTools.deleteAll(singleConnectionValintarekisteriDb)
 }
