@@ -33,115 +33,31 @@
             <groupId>org.scalaz</groupId>
             <artifactId>scalaz-core_2.11</artifactId>
             <version>7.2.3</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang.modules</groupId>
-                    <artifactId>scala-xml_2.11</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
             <artifactId>scalaz-concurrent_2.11</artifactId>
             <version>7.2.3</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-core_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-effect_2.11</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-blaze-client_2.11</artifactId>
             <version>0.13.2a</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang.modules</groupId>
-                    <artifactId>scala-xml_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.log4s</groupId>
-                    <artifactId>log4s_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.http4s</groupId>
-                    <artifactId>http4s-websocket_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-core_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-concurrent_2.11</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-core_2.11</artifactId>
             <version>3.3.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-compiler</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-json4s-native_2.11</artifactId>
             <version>0.13.2a</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scalap</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.json4s</groupId>
-                    <artifactId>json4s-ast_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>fi.vm.sade</groupId>
             <artifactId>scala-cas_2.11</artifactId>
             <version>0.4.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -157,48 +73,12 @@
             <artifactId>specs2-core_2.11</artifactId>
             <version>3.7</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang.modules</groupId>
-                    <artifactId>scala-xml_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.specs2</groupId>
-                    <artifactId>specs2-markdown_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz.stream</groupId>
-                    <artifactId>scalaz-stream_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-core_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-concurrent_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-effect_2.11</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_2.11</artifactId>
             <version>3.7</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
@@ -233,39 +113,11 @@
             <groupId>org.specs2</groupId>
             <artifactId>specs2-common_2.11</artifactId>
             <version>3.7</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-core_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz.stream</groupId>
-                    <artifactId>scalaz-stream_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-concurrent_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-stream_2.11</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-core_2.11</artifactId>
             <version>0.13.2a</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-core_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz</groupId>
-                    <artifactId>scalaz-concurrent_2.11</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
