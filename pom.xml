@@ -9,10 +9,70 @@
     <name>valinta-tulos-service-parent</name>
 
     <modules>
-      <module>valinta-tulos-service</module>
-      <module>valinta-tulos-henkiloviite-synchronizer</module>
-      <module>valinta-tulos-valintarekisteri-db</module>
+        <module>valinta-tulos-service</module>
+        <module>valinta-tulos-henkiloviite-synchronizer</module>
+        <module>valinta-tulos-valintarekisteri-db</module>
     </modules>
+
+    <properties>
+        <apache.httpclient.version>4.5.2</apache.httpclient.version>
+        <casbah_2.11.version>3.1.0</casbah_2.11.version>
+        <commons-io.version>2.4</commons-io.version>
+        <commons-lang.version>2.6</commons-lang.version>
+        <commons-lang3.version>3.3.2</commons-lang3.version>
+        <flyway-core.version>3.2.1</flyway-core.version>
+        <grizzled-slf4j_2.11.version>1.0.2</grizzled-slf4j_2.11.version>
+        <guava.version>15.0</guava.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <http4s_2.11.version>0.13.2a</http4s_2.11.version>
+        <jackson.version>2.8.4</jackson.version>
+        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+        <jetty.version>9.3.7.v20160115</jetty.version>
+        <joda-time.version>2.5</joda-time.version>
+        <json4s_2.11.version>3.3.0</json4s_2.11.version>
+        <junit.version>4.12</junit.version>
+        <logback-access.version>1.1.7</logback-access.version>
+        <mongo-java-driver.version>3.2.1</mongo-java-driver.version>
+        <morphia.version>1.2.1</morphia.version>
+        <postgresql.version>9.4-1201-jdbc41</postgresql.version>
+        <scala-cas_2.11.version>0.4.0-SNAPSHOT</scala-cas_2.11.version>
+        <scala-ldap-client_2.11.version>1.0.0-SNAPSHOT</scala-ldap-client_2.11.version>
+        <scala-library.version>2.11.8</scala-library.version>
+        <scala-logging_2.11.version>3.1.0</scala-logging_2.11.version>
+        <scala-utils_2.11.version>0.3.1-SNAPSHOT</scala-utils_2.11.version>
+        <scala-xml_2.11.version>1.0.5</scala-xml_2.11.version>
+        <scalaj-http_2.11.version>1.1.0</scalaj-http_2.11.version>
+        <scalatra_2.11.version>2.3.0</scalatra_2.11.version>
+        <scalaz-concurrent_2.11.version>7.1.0</scalaz-concurrent_2.11.version>
+        <scalaz-stream_2.11.version>0.7.3a</scalaz-stream_2.11.version>
+        <scalaz_2.11.version>7.2.3</scalaz_2.11.version>
+        <sijoittelu.version>4.0-SNAPSHOT</sijoittelu.version>
+        <slf4j-api.version>1.7.13</slf4j-api.version>
+        <slick_2.11.version>3.1.1</slick_2.11.version>
+        <specs2_2.11.version>3.7</specs2_2.11.version>
+        <spring.version>4.3.2.RELEASE</spring.version>
+        <typesafe.config.version>1.2.1</typesafe.config.version>
+
+        <!-- Old duplicate versions -->
+        <FIXME.http4s_2.11.version>0.10.1</FIXME.http4s_2.11.version>
+        <FIXME.jackson.version>2.8.1</FIXME.jackson.version>
+        <FIXME.jetty.version>9.2.1.v20140609</FIXME.jetty.version>
+        <FIXME.json4s_2.11.version>3.2.10</FIXME.json4s_2.11.version>
+        <FIXME.scala-cas_2.11.version>0.3.2-SNAPSHOT</FIXME.scala-cas_2.11.version>
+        <FIXME.scalaz_2.11.version>7.1.3</FIXME.scalaz_2.11.version>
+        <FIXME.specs2_2.11.version>2.4.16</FIXME.specs2_2.11.version>
+        <FIXME.plugin.maven-surefire-plugin.version>2.13</FIXME.plugin.maven-surefire-plugin.version>
+
+        <enfore.java.version>[1.8,)</enfore.java.version>
+
+        <plugin.exec-maven-plugin.version>1.5.0</plugin.exec-maven-plugin.version>
+        <plugin.maven-assembly-plugin.version>2.6</plugin.maven-assembly-plugin.version>
+        <plugin.maven-enforcer-plugin.version>1.4.1</plugin.maven-enforcer-plugin.version>
+        <plugin.maven-jar-plugin.version>3.0.2</plugin.maven-jar-plugin.version>
+        <plugin.maven-surefire-plugin.version>2.19.1</plugin.maven-surefire-plugin.version>
+        <plugin.maven-war-plugin.version>2.6</plugin.maven-war-plugin.version>
+        <plugin.scala-maven-plugin.version>3.2.1</plugin.scala-maven-plugin.version>
+    </properties>
 
     <repositories>
         <repository>
@@ -39,11 +99,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.4.1</version>
+                <version>${plugin.maven-enforcer-plugin.version}</version>
                 <configuration>
                     <rules>
                         <requireJavaVersion>
-                            <version>[1.8,)</version>
+                            <version>${enfore.java.version}</version>
                         </requireJavaVersion>
                     </rules>
                 </configuration>

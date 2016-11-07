@@ -2,21 +2,6 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
-    <properties>
-        <scala-library.version>2.11.8</scala-library.version>
-        <hamcrest-core.version>1.3</hamcrest-core.version>
-        <slf4j-api.version>1.7.13</slf4j-api.version>
-        <scala-utils_2.11.version>0.3.1-SNAPSHOT</scala-utils_2.11.version>
-        <postgresql.version>9.4-1201-jdbc41</postgresql.version>
-        <commons-io.version>2.4</commons-io.version>
-        <specs2_2.11.version>2.4.16</specs2_2.11.version>
-        <jackson-dataformat-yaml.version>2.8.4</jackson-dataformat-yaml.version>
-        <slick_2.11.version>3.1.1</slick_2.11.version>
-        <flyway-core.version>3.2.1</flyway-core.version>
-        <sijoittelu.version>4.0-SNAPSHOT</sijoittelu.version>
-        <typesafe.config.version>1.2.1</typesafe.config.version>
-        <json4s_2.11.version>3.2.10</json4s_2.11.version>
-    </properties>
     <parent>
         <groupId>fi.vm.sade</groupId>
         <artifactId>valinta-tulos-service-parent</artifactId>
@@ -43,7 +28,7 @@
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
-            <version>${hamcrest-core.version}</version>
+            <version>${hamcrest.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -69,13 +54,13 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2_2.11</artifactId>
-            <version>${specs2_2.11.version}</version>
+            <version>${FIXME.specs2_2.11.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>${jackson-dataformat-yaml.version}</version>
+            <version>${jackson.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -106,12 +91,12 @@
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-jackson_2.11</artifactId>
-            <version>${json4s_2.11.version}</version>
+            <version>${FIXME.json4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-native_2.11</artifactId>
-            <version>${json4s_2.11.version}</version>
+            <version>${FIXME.json4s_2.11.version}</version>
         </dependency>
     </dependencies>
     <build>
@@ -119,7 +104,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>${plugin.scala-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -138,7 +123,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
+                <version>${plugin.maven-surefire-plugin.version}</version>
                 <configuration>
                     <includes>
                         <exclude>**/*Spec.java</exclude>
@@ -153,7 +138,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>${plugin.maven-jar-plugin.version}</version>
                 <configuration>
                     <excludes>
                         <exclude>**/*Spec*</exclude>

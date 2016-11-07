@@ -2,19 +2,6 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
-    <properties>
-        <http4s_2.11.version>0.13.2a</http4s_2.11.version>
-        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-        <jetty-server.version>9.3.7.v20160115</jetty-server.version>
-        <json4s_2.11.version>3.3.0</json4s_2.11.version>
-        <junit.version>4.12</junit.version>
-        <logback-access.version>1.1.7</logback-access.version>
-        <scala-cas_2.11.version>0.4.0-SNAPSHOT</scala-cas_2.11.version>
-        <scala-library.version>2.11.8</scala-library.version>
-        <scalaz_2.11.version>7.2.3</scalaz_2.11.version>
-        <slf4j-api.version>1.7.13</slf4j-api.version>
-        <specs2_2.11.version>3.7</specs2_2.11.version>
-    </properties>
     <parent>
         <groupId>fi.vm.sade</groupId>
         <artifactId>valinta-tulos-service-parent</artifactId>
@@ -36,12 +23,12 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>${jetty-server.version}</version>
+            <version>${jetty.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>${jetty-server.version}</version>
+            <version>${jetty.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
@@ -139,7 +126,7 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-util</artifactId>
-            <version>${jetty-server.version}</version>
+            <version>${jetty.version}</version>
         </dependency>
     </dependencies>
     <build>
@@ -147,7 +134,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>${plugin.scala-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -166,11 +153,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
+                <version>${plugin.maven-surefire-plugin.version}</version>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.6</version>
+                <version>${plugin.maven-assembly-plugin.version}</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -194,7 +181,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.5.0</version>
+                <version>${plugin.exec-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>buildversion properties</id>
@@ -205,7 +192,9 @@
                         <configuration>
                             <executable>${project.basedir}/set_buildversion_properties.sh</executable>
                             <arguments>
-                                <argument>${project.build.outputDirectory}/oph-configuration/valinta-tulos-henkiloviite-synchronizer.properties.template</argument>
+                                <argument>
+                                    ${project.build.outputDirectory}/oph-configuration/valinta-tulos-henkiloviite-synchronizer.properties.template
+                                </argument>
                                 <argument>${project.version}</argument>
                             </arguments>
                         </configuration>

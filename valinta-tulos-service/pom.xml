@@ -1,42 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
-    <properties>
-        <apache.httpclient.version>4.5.2</apache.httpclient.version>
-        <casbah_2.11.version>3.1.0</casbah_2.11.version>
-        <commons-io.version>2.4</commons-io.version>
-        <commons-lang.version>2.6</commons-lang.version>
-        <commons-lang3.version>3.3.2</commons-lang3.version>
-        <grizzled-slf4j_2.11.version>1.0.2</grizzled-slf4j_2.11.version>
-        <guava.version>15.0</guava.version>
-        <http4s_2.11.version>0.10.1</http4s_2.11.version>
-        <jackson.version>2.8.1</jackson.version>
-        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-        <jetty-webapp.version>9.2.1.v20140609</jetty-webapp.version>
-        <joda-time.version>2.5</joda-time.version>
-        <json4s-ext_2.11.version>3.3.0</json4s-ext_2.11.version>
-        <json4s_2.11.version>3.2.10</json4s_2.11.version>
-        <junit.version>4.12</junit.version>
-        <mongo-java-driver.version>3.2.1</mongo-java-driver.version>
-        <morphia.version>1.2.1</morphia.version>
-        <scala-cas_2.11.version>0.3.2-SNAPSHOT</scala-cas_2.11.version>
-        <scala-ldap-client_2.11.version>1.0.0-SNAPSHOT</scala-ldap-client_2.11.version>
-        <scala-library.version>2.11.8</scala-library.version>
-        <scala-logging_2.11.version>3.1.0</scala-logging_2.11.version>
-        <scala-utils_2.11.version>0.3.1-SNAPSHOT</scala-utils_2.11.version>
-        <scala-xml_2.11.version>1.0.5</scala-xml_2.11.version>
-        <scalaj-http_2.11.version>1.1.0</scalaj-http_2.11.version>
-        <scalatra_2.11.version>2.3.0</scalatra_2.11.version>
-        <scalaz-concurrent_2.11.version>7.1.0</scalaz-concurrent_2.11.version>
-        <scalaz-stream_2.11.version>0.7.3a</scalaz-stream_2.11.version>
-        <scalaz_2.11.version>7.1.3</scalaz_2.11.version>
-        <sijoittelu.version>4.0-SNAPSHOT</sijoittelu.version>
-        <slf4j-api.version>1.7.13</slf4j-api.version>
-        <slick_2.11.version>3.1.1</slick_2.11.version>
-        <specs2_2.11.version>2.4.16</specs2_2.11.version>
-        <spring.version>4.3.2.RELEASE</spring.version>
-        <typesafe.config.version>1.2.1</typesafe.config.version>
-    </properties>
     <parent>
         <groupId>fi.vm.sade</groupId>
         <artifactId>valinta-tulos-service-parent</artifactId>
@@ -68,12 +34,12 @@
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-core_2.11</artifactId>
-            <version>${json4s_2.11.version}</version>
+            <version>${FIXME.json4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2_2.11</artifactId>
-            <version>${specs2_2.11.version}</version>
+            <version>${FIXME.specs2_2.11.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -137,7 +103,7 @@
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-blaze-client_2.11</artifactId>
-            <version>${http4s_2.11.version}</version>
+            <version>${FIXME.http4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>fi.vm.sade</groupId>
@@ -147,7 +113,7 @@
         <dependency>
             <groupId>fi.vm.sade</groupId>
             <artifactId>scala-cas_2.11</artifactId>
-            <version>${scala-cas_2.11.version}</version>
+            <version>${FIXME.scala-cas_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.slick</groupId>
@@ -173,12 +139,12 @@
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-json4s-native_2.11</artifactId>
-            <version>${http4s_2.11.version}</version>
+            <version>${FIXME.http4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-native_2.11</artifactId>
-            <version>${json4s_2.11.version}</version>
+            <version>${FIXME.json4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>fi.vm.sade</groupId>
@@ -195,12 +161,12 @@
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-ext_2.11</artifactId>
-            <version>${json4s-ext_2.11.version}</version>
+            <version>${json4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
+            <version>${FIXME.jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mongodb</groupId>
@@ -235,12 +201,12 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>${jetty-webapp.version}</version>
+            <version>${FIXME.jetty.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
             <artifactId>scalaz-core_2.11</artifactId>
-            <version>${scalaz_2.11.version}</version>
+            <version>${FIXME.scalaz_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -265,7 +231,7 @@
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-jackson_2.11</artifactId>
-            <version>${json4s_2.11.version}</version>
+            <version>${FIXME.json4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
@@ -275,17 +241,17 @@
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-core_2.11</artifactId>
-            <version>${http4s_2.11.version}</version>
+            <version>${FIXME.http4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-webapp</artifactId>
-            <version>${jetty-webapp.version}</version>
+            <version>${FIXME.jetty.version}</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-ast_2.11</artifactId>
-            <version>${json4s_2.11.version}</version>
+            <version>${FIXME.json4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
@@ -310,12 +276,12 @@
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-client_2.11</artifactId>
-            <version>${http4s_2.11.version}</version>
+            <version>${FIXME.http4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
+            <version>${FIXME.jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scalaj</groupId>
@@ -360,7 +326,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.13</version>
+                <version>${FIXME.plugin.maven-surefire-plugin.version}</version>
                 <configuration>
                     <includes>
                         <exclude>**/*Spec.java</exclude>
@@ -374,7 +340,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.6</version>
+                <version>${plugin.maven-war-plugin.version}</version>
                 <configuration>
                     <packagingExcludes>WEB-INF/lib//javax.servlet-api-*.jar</packagingExcludes>
                 </configuration>
@@ -382,7 +348,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.5.0</version>
+                <version>${plugin.exec-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>local_jetty</id>
