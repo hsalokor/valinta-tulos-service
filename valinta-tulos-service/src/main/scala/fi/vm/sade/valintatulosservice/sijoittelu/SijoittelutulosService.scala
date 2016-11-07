@@ -13,6 +13,7 @@ import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritService
+import fi.vm.sade.valintatulosservice.sijoittelu.JonoFinder.kaikkiJonotJulkaistu
 import fi.vm.sade.valintatulosservice.tarjonta.Haku
 import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoRecord}
 import org.apache.commons.lang.StringUtils
@@ -169,7 +170,8 @@ class SijoittelutulosService(raportointiService: RaportointiService,
       val virkailijanVastaanotettavuustila = laskeVastaanotettavuustila(valintatila, virkailijanVastaanottotila)
       val virkailijanTilat = HakutoiveenSijoittelunTilaTieto(virkailijanValintatila, virkailijanVastaanottotila, virkailijanVastaanotettavuustila)
 
-      val julkaistavissa = jono.isJulkaistavissa
+      val hyväksyttyJulkaistussaJonossa = valintatila == hyväksytty && jono.isJulkaistavissa
+      val julkaistavissa = hyväksyttyJulkaistussaJonossa || kaikkiJonotJulkaistu(hakutoive)
       val ehdollisestiHyvaksyttavissa = jono.isEhdollisestiHyvaksyttavissa
       val pisteet: Option[BigDecimal] = Option(jono.getPisteet).map((p: java.math.BigDecimal) => new BigDecimal(p))
 
@@ -216,7 +218,8 @@ class SijoittelutulosService(raportointiService: RaportointiService,
       val virkailijanVastaanotettavuustila = laskeVastaanotettavuustila(valintatila, virkailijanVastaanottotila)
       val virkailijanTilat = HakutoiveenSijoittelunTilaTieto(virkailijanValintatila, virkailijanVastaanottotila, virkailijanVastaanotettavuustila)
 
-      val julkaistavissa = jono.isJulkaistavissa
+      val hyväksyttyJulkaistussaJonossa = valintatila == hyväksytty && jono.isJulkaistavissa
+      val julkaistavissa = hyväksyttyJulkaistussaJonossa || kaikkiJonotJulkaistu(hakutoive)
       val ehdollisestiHyvaksyttavissa = jono.isEhdollisestiHyvaksyttavissa
       val pisteet: Option[BigDecimal] = Option(jono.getPisteet).map((p: java.math.BigDecimal) => new BigDecimal(p))
 

@@ -204,7 +204,7 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
           hakutoive.tilanKuvaukset.isEmpty must_== true
         }
 
-        "Valintatulos julkaistaviss ja haun valintatulosten julkaisu paivamaaraa ei ole annettu" in {
+        "Valintatulos julkaistavissa ja haun valintatulosten julkaisu paivamaaraa ei ole annettu" in {
           useFixture("hyvaksytty-kesken-julkaistavissa.json", hakuFixture = hakuFixture)
           checkHakutoiveState(getHakutoive("1.2.246.562.5.72607738902"), Valintatila.hyväksytty, Vastaanottotila.kesken, Vastaanotettavuustila.vastaanotettavissa_sitovasti, true)
         }
@@ -295,6 +295,13 @@ class ValintatulosServiceSpec extends ITSpecification with TimeWarp {
       }
 
       "hylätty" in {
+        "Valintatulos kesken (ei julkaistavissa)" in {
+          useFixture("hylatty-ei-julkaistavissa.json", hakuFixture = hakuFixture)
+          val hakutoive: Hakutoiveentulos = getHakutoive("1.2.246.562.5.72607738902")
+          checkHakutoiveState(hakutoive, Valintatila.kesken, Vastaanottotila.kesken, Vastaanotettavuustila.ei_vastaanotettavissa, false)
+          hakutoive.tilanKuvaukset.isEmpty must_== true
+        }
+
         "jonoja sijoittelematta" in {
           useFixture("hylatty-jonoja-kesken.json", hakuFixture = hakuFixture)
           val hakutoive: Hakutoiveentulos = getHakutoive("1.2.246.562.5.72607738902")
