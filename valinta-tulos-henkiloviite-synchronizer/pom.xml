@@ -2,6 +2,19 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
+    <properties>
+        <http4s_2.11.version>0.13.2a</http4s_2.11.version>
+        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+        <jetty-server.version>9.3.7.v20160115</jetty-server.version>
+        <json4s_2.11.version>3.3.0</json4s_2.11.version>
+        <junit.version>4.12</junit.version>
+        <logback-access.version>1.1.7</logback-access.version>
+        <scala-cas_2.11.version>0.4.0-SNAPSHOT</scala-cas_2.11.version>
+        <scala-library.version>2.11.8</scala-library.version>
+        <scalaz_2.11.version>7.2.3</scalaz_2.11.version>
+        <slf4j-api.version>1.7.13</slf4j-api.version>
+        <specs2_2.11.version>3.7</specs2_2.11.version>
+    </properties>
     <parent>
         <groupId>fi.vm.sade</groupId>
         <artifactId>valinta-tulos-service-parent</artifactId>
@@ -18,115 +31,115 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.11.8</version>
+            <version>${scala-library.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>9.3.7.v20160115</version>
+            <version>${jetty-server.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>9.3.7.v20160115</version>
+            <version>${jetty-server.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
             <artifactId>scalaz-core_2.11</artifactId>
-            <version>7.2.3</version>
+            <version>${scalaz_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
             <artifactId>scalaz-concurrent_2.11</artifactId>
-            <version>7.2.3</version>
+            <version>${scalaz_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-blaze-client_2.11</artifactId>
-            <version>0.13.2a</version>
+            <version>${http4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-core_2.11</artifactId>
-            <version>3.3.0</version>
+            <version>${json4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-json4s-native_2.11</artifactId>
-            <version>0.13.2a</version>
+            <version>${http4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>fi.vm.sade</groupId>
             <artifactId>scala-cas_2.11</artifactId>
-            <version>0.4.0-SNAPSHOT</version>
+            <version>${scala-cas_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.13</version>
+            <version>${slf4j-api.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-access</artifactId>
-            <version>1.1.7</version>
+            <version>${logback-access.version}</version>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-core_2.11</artifactId>
-            <version>3.7</version>
+            <version>${specs2_2.11.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_2.11</artifactId>
-            <version>3.7</version>
+            <version>${specs2_2.11.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-ast_2.11</artifactId>
-            <version>3.3.0</version>
+            <version>${json4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
+            <version>${javax.servlet-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-matcher_2.11</artifactId>
-            <version>3.7</version>
+            <version>${specs2_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-native_2.11</artifactId>
-            <version>3.3.0</version>
+            <version>${json4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-client_2.11</artifactId>
-            <version>0.13.2a</version>
+            <version>${http4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-common_2.11</artifactId>
-            <version>3.7</version>
+            <version>${specs2_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-core_2.11</artifactId>
-            <version>0.13.2a</version>
+            <version>${http4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-util</artifactId>
-            <version>9.3.7.v20160115</version>
+            <version>${jetty-server.version}</version>
         </dependency>
     </dependencies>
     <build>
