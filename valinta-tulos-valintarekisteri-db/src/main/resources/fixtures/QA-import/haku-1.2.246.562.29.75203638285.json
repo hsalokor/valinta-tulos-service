@@ -7362,9 +7362,9 @@
           "luotu": {
             "$date": "2016-10-13T12:44:39.570+0000"
           },
-          "muokkaaja": "System",
+          "muokkaaja": "testi ilmoittaja",
           "muutos": "julkaistavissa: false -> true",
-          "selite": "Massamuokkaus"
+          "selite": "muokkaus testi"
         }
       ],
       "mailStatus": {
