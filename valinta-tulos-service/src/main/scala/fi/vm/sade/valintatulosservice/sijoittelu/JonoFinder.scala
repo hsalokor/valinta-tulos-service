@@ -8,6 +8,13 @@ import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import scala.collection.JavaConversions._
 
 object JonoFinder {
+  def kaikkiJonotJulkaistu(hakutoive: KevytHakutoiveDTO): Boolean = {
+    !hakutoive.getHakutoiveenValintatapajonot.exists(!_.isJulkaistavissa)
+  }
+  def kaikkiJonotJulkaistu(hakutoive: HakutoiveDTO): Boolean = {
+    !hakutoive.getHakutoiveenValintatapajonot.exists(!_.isJulkaistavissa)
+  }
+
   def merkitseväJono(hakutoive: KevytHakutoiveDTO) : Option[KevytHakutoiveenValintatapajonoDTO] = {
     val ordering = Ordering.fromLessThan { (jono1: KevytHakutoiveenValintatapajonoDTO, jono2: KevytHakutoiveenValintatapajonoDTO) =>
       val tila1 = fromHakemuksenTila(jono1.getTila)
