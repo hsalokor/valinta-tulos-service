@@ -472,9 +472,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
     val(ilmoittaja, selite, tilanViimeisinMuutos) = valintatulos.getOriginalLogEntries.asScala.filter(e => e.getLuotu != null).sortBy(_.getLuotu).reverse.headOption match {
       case Some(entry) => (entry.getMuokkaaja, entry.getSelite, entry.getLuotu)
-      case None => {
-        ("System", "", new Date())
-      }
+      case None => ("System", "", new Date())
     }
 
     val valinnantilanTarkenneString = valinnanTilanTarkenne.flatMap(x => Some(x.tarkenneString))
@@ -497,8 +495,10 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     val SijoitteluajonValinnantulosWrapper(_, _, hakukohdeOid, _, _, _, _, ilmoittautumistila,logEntries)
     = SijoitteluajonValinnantulosWrapper(valintatulos)
 
-    val ilmoittaja = "TODO"
-    val selite = "TODO"
+    val(ilmoittaja, selite) = valintatulos.getOriginalLogEntries.asScala.filter(e => e.getLuotu != null).sortBy(_.getLuotu).reverse.headOption match {
+      case Some(entry) => (entry.getMuokkaaja, entry.getSelite)
+      case None => ("System", "")
+    }
 
     sqlu"""insert into ilmoittautumiset (henkilo, hakukohde, tila, ilmoittaja, selite)
            values (${hakijaOid}, ${hakukohdeOid}, ${ilmoittautumistila.get.toString}::ilmoittautumistila, ${ilmoittaja}, ${selite})"""

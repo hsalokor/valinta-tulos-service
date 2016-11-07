@@ -94,10 +94,16 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
       hakemus.tarkenteenLisatieto mustEqual "14538080612623056182813241345174"
     }
 
-    "get hakemuksen muokkaaja, muutos and viimeksiMuokattu" in {
+    "get hakemuksen ilmoittaja, selite and viimeksiMuokattu" in {
       val hakemus = getHakemusInfo("1.2.246.562.11.00004663595").get
       hakemus.selite mustEqual "testimuutos"
       hakemus.tilanViimeisinMuutos mustEqual dateStringToTimestamp("2016-10-14T12:44:40.151+0000")
+    }
+
+    "get ilmoittautumisen ilmoittaja and selite" in {
+      val hakemus = getIlmoittautumistiedot("1.2.246.562.24.33442275509").get
+      hakemus.selite mustEqual "muokkaus testi"
+      hakemus.ilmoittaja mustEqual "testi ilmoittaja"
     }
   }
 
@@ -125,6 +131,17 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
       sql"""select selite, ilmoittaja, tilan_viimeisin_muutos
             from valinnantulokset
             where hakemus_oid = ${hakemusOid} and deleted is null""".as[HakemusInfoRecord]).headOption
+  }
+
+  case class IlmoittautumisRecord(ilmoittaja:String, selite:String)
+
+  private implicit val getIlmoittautumistiedotResult = GetResult(r => IlmoittautumisRecord(r.<<, r.<<))
+
+  def getIlmoittautumistiedot(hakijaOid: String): Option[IlmoittautumisRecord] = {
+    singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select ilmoittaja, selite
+            from ilmoittautumiset
+            where henkilo = ${hakijaOid} and deleted is null""".as[IlmoittautumisRecord]).headOption
   }
 
   step(deleteAll())
