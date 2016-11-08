@@ -96,7 +96,7 @@ trait ValintarekisteriDbTools {
               case _ =>
             }
             (hakemus \ "tilanKuvaukset") match {
-              case org.json4s.JObject(tilanKuvaukset) => hakemusExt.setTilanKuvaukset(tilanKuvaukset.map(x => Map(x._1 -> x._2.extract[String])).flatten.toMap.asJava)
+              case JObject(tilanKuvaukset) => hakemusExt.setTilanKuvaukset(tilanKuvaukset.map(x => Map(x._1 -> x._2.extract[String])).flatten.toMap.asJava)
               case _ =>
             }
             hakemusExt
@@ -115,11 +115,10 @@ trait ValintarekisteriDbTools {
     val valintatulokset: List[Valintatulos] = jsonValintatulokset.map(valintaTulos => {
       val tulos = valintaTulos.extract[SijoitteluajonValinnantulosWrapper].valintatulos
       (valintaTulos \ "logEntries") match {
-        case JArray(entries) => {
-          tulos.setOriginalLogEntries(entries.map(e => e.extract[LogEntryWrapper].entry).asJava)
-        }
+        case JArray(entries) => tulos.setOriginalLogEntries(entries.map(e => e.extract[LogEntryWrapper].entry).asJava)
         case _ =>
       }
+      tulos.setMailStatus((valintaTulos \ "mailStatus").extract[MailStatusWrapper].status)
       tulos
     })
 

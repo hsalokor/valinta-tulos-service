@@ -134,7 +134,11 @@ create table valinnantulokset(
   selite character varying not null,
   "timestamp" timestamp with time zone not null default now(),
   tilan_viimeisin_muutos timestamp with time zone not null,
-  deleted bigint constraint vt_deleted_valinnantulokset_fk references deleted_valinnantulokset(id)
+  deleted bigint constraint vt_deleted_valinnantulokset_fk references deleted_valinnantulokset(id),
+  previous_check timestamp with time zone,
+  sent timestamp with time zone,
+  done timestamp with time zone,
+  message varchar(50)
 );
 alter table valinnantulokset owner to oph;
 

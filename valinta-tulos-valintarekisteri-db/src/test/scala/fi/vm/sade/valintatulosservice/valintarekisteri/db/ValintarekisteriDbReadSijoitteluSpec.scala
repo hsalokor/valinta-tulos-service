@@ -105,6 +105,14 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
       hakemus.selite mustEqual "muokkaus testi"
       hakemus.ilmoittaja mustEqual "testi ilmoittaja"
     }
+
+    "get hakemuksen mailStatus" in {
+      val hakemus = getHakemusInfo("1.2.246.562.11.00005820159").get
+      hakemus.previousCheck mustEqual dateStringToTimestamp("2016-10-30T06:39:44.246+0000")
+      hakemus.sent mustEqual dateStringToTimestamp("2016-10-30T06:44:22.402+0000")
+      hakemus.done mustEqual null
+      hakemus.message mustEqual  "Lähetetty [\"email\"]"
+    }
   }
 
   private implicit val getHakemusResult = GetResult(r => HakemusRecord(r.<<, r.<<, r.<<, r.<<,
@@ -122,13 +130,14 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
             where v.hakemus_oid = ${hakemusOid} and deleted is null""".as[HakemusRecord]).headOption
   }
 
-  case class HakemusInfoRecord(selite:String, ilmoittaja:String, tilanViimeisinMuutos:Timestamp)
+  case class HakemusInfoRecord(selite:String, ilmoittaja:String, tilanViimeisinMuutos:Timestamp, previousCheck:Timestamp,
+                               sent:Timestamp, done:Timestamp, message:String)
 
-  private implicit val getHakemusInfoResult = GetResult(r => HakemusInfoRecord(r.<<, r.<<, r.<<))
+  private implicit val getHakemusInfoResult = GetResult(r => HakemusInfoRecord(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
   def getHakemusInfo(hakemusOid: String): Option[HakemusInfoRecord] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select selite, ilmoittaja, tilan_viimeisin_muutos
+      sql"""select selite, ilmoittaja, tilan_viimeisin_muutos, previous_check, sent, done, message
             from valinnantulokset
             where hakemus_oid = ${hakemusOid} and deleted is null""".as[HakemusInfoRecord]).headOption
   }
