@@ -396,9 +396,11 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       })
     } else {
       insertJonosija(valintatapajonoOid, hakukohdeId, hakemus).flatMap(jonosijaId => {
+        val valintatulos = SijoitteluajonValinnantulosWrapper(
+          valintatapajonoOid, hakemus.getHakemusOid, hakukohdeOid, false, false, false, false, None, Option(List()), null).valintatulos
+        valintatulos.setMailStatus(new ValintatulosMailStatus)
         DBIO.sequence(
-          List(insertValinnantulos(sijoitteluajoId, jonosijaId.get, SijoitteluajonValinnantulosWrapper(
-            valintatapajonoOid, hakemus.getHakemusOid, hakukohdeOid, false, false, false, false, None, Option(List())).valintatulos, hakemus)) ++
+          List(insertValinnantulos(sijoitteluajoId, jonosijaId.get, valintatulos, hakemus)) ++
             hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(jonosijaId.get, pistetieto)).toList
         )
       })
@@ -451,14 +453,20 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            ${hyvaksyttyHakijaryhmasta}, ${siirtynytToisestaValintatapajonosta}) RETURNING id""".as[Long].headOption
   }
 
+  def dateToTimestamp(date:Option[Date]): Timestamp = date match {
+    case Some(d) => new java.sql.Timestamp(d.getTime)
+    case None => null
+  }
+
   private def insertValinnantulos(sijoitteluajoId:Long, jonosijaId:Long, valintatulos:Valintatulos, hakemus:SijoitteluHakemus) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
     onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti,
     hyvaksyttyHakijaryhmasta, siirtynytToisestaValintatapajonosta, valinnanTila, valinnanTilanTarkenne)
     = SijoitteluajonHakemusWrapper(hakemus)
     val SijoitteluajonValinnantulosWrapper(valintatapajonoOid, _, hakukohdeOid, ehdollisestiHyvaksyttavissa,
-    julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, ilmoittautumistila, originalLogEntries)
+    julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, ilmoittautumistila, originalLogEntries, mailStatus)
     = SijoitteluajonValinnantulosWrapper(valintatulos)
+    val MailStatusWrapper(previousCheck, sent, done, message) = MailStatusWrapper(valintatulos.getMailStatus)
 
     val(ilmoittaja, selite, tilanViimeisinMuutos) = valintatulos.getOriginalLogEntries.asScala.filter(e => e.getLuotu != null).sortBy(_.getLuotu).reverse.headOption match {
       case Some(entry) => (entry.getMuokkaaja, entry.getSelite, entry.getLuotu)
@@ -474,15 +482,16 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
     sqlu"""insert into valinnantulokset (hakukohde_oid, valintatapajono_oid, hakemus_oid, sijoitteluajo_id, jonosija_id,
            tila, tarkenne, tarkenteen_lisatieto, julkaistavissa, ehdollisesti_hyvaksyttavissa, hyvaksytty_varasijalta,
-           hyvaksy_peruuntunut, ilmoittaja, selite, tilan_viimeisin_muutos)
+           hyvaksy_peruuntunut, ilmoittaja, selite, tilan_viimeisin_muutos, previous_check, sent, done, message)
            values (${hakukohdeOid}, ${valintatapajonoOid}, ${hakemusOid}, ${sijoitteluajoId}, ${jonosijaId},
            ${valinnanTila.toString}::valinnantila, ${valinnantilanTarkenneString}::valinnantilanTarkenne,
            ${valinnantilanTarkenteenLisatieto}, ${julkaistavissa}, ${ehdollisestiHyvaksyttavissa}, ${hyvaksyttyVarasijalta},
-           ${hyvaksyPeruuntunut}, ${ilmoittaja}, ${selite}, ${new java.sql.Timestamp(tilanViimeisinMuutos.getTime)})"""
+           ${hyvaksyPeruuntunut}, ${ilmoittaja}, ${selite}, ${new java.sql.Timestamp(tilanViimeisinMuutos.getTime)},
+           ${dateToTimestamp(previousCheck)}, ${dateToTimestamp(sent)}, ${dateToTimestamp(done)}, ${message})"""
   }
 
   private def insertIlmoittautuminen(valintatulos:Valintatulos, hakijaOid:String) = {
-    val SijoitteluajonValinnantulosWrapper(_, _, hakukohdeOid, _, _, _, _, ilmoittautumistila,logEntries)
+    val SijoitteluajonValinnantulosWrapper(_, _, hakukohdeOid, _, _, _, _, ilmoittautumistila,logEntries,mailStatus)
     = SijoitteluajonValinnantulosWrapper(valintatulos)
 
     val(ilmoittaja, selite) = valintatulos.getOriginalLogEntries.asScala.filter(e => e.getLuotu != null).sortBy(_.getLuotu).reverse.headOption match {
@@ -626,41 +635,3 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
 }
-
-
-
-/*import java.sql.Timestamp
-import java.util.concurrent.TimeUnit
-
-import com.typesafe.config.{ConfigValueFactory, Config}
-import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
-import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.SijoitteluajoWrapper
-//import org.flywaydb.core.Flyway
-import slick.dbio._
-import slick.driver.PostgresDriver.api.{Database, _}
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-
-class ValintarekisteriDb(dbConfig: Config) extends SijoitteluRepository with Logging {
-  val user = if (dbConfig.hasPath("user")) dbConfig.getString("user") else null
-  val password = if (dbConfig.hasPath("password")) dbConfig.getString("password") else null
-  logger.info(s"Database configuration: ${dbConfig.withValue("password", ConfigValueFactory.fromAnyRef("***"))}")
-  //val flyway = new Flyway()
-  //flyway.setDataSource(dbConfig.getString("url"), user, password)
-  //flyway.migrate()
-  override val db = Database.forConfig("", dbConfig)
-
-  def runBlocking[R](operations: slick.dbio.DBIO[R], timeout: Duration = Duration(20, TimeUnit.SECONDS)) = Await.result(db.run(operations), timeout)
-
-  override def storeSijoitteluajo(sijoitteluajo:SijoitteluAjo): Unit = {
-    runBlocking(insertSijoitteluajo(sijoitteluajo))
-  }
-
-  private def insertSijoitteluajo(sijoitteluajo:SijoitteluAjo) = {
-    val SijoitteluajoWrapper(sijoitteluajoId, hakuOid, startMils, endMils) = SijoitteluajoWrapper(sijoitteluajo)
-    sqlu"""insert into sijoitteluajot (id, haku_oid, "start", "end")
-             values (${sijoitteluajoId}, ${hakuOid},${new Timestamp(startMils)},${new Timestamp(endMils)})"""
-  }
-}*/
