@@ -26,7 +26,7 @@ class MailPollerDb(dbConfig: Config, isItProfile:Boolean = false) extends Vastaa
     runBlocking(sqlu"""alter table public.schema_version owner to oph""")
   }
 
-  private implicit val pollForCandidatesResult = GetResult(r => HakemusIdentifier(r.<<, r.<<, r.<<))
+  private implicit val pollForCandidatesResult = GetResult(r => HakemusIdentifier(r.<<, r.<<, Option(r.nextTimestamp())))
 
   def pollForCandidates(hakuOids: List[String], limit: Int, recheckIntervalHours: Int = (24 * 3),  excludeHakemusOids: Set[String] = Set.empty): Set[HakemusIdentifier] = {
     val hakuOidsIn = hakuOids.map(oid => s"'$oid'").mkString(",")
@@ -58,7 +58,7 @@ class MailPollerDb(dbConfig: Config, isItProfile:Boolean = false) extends Vastaa
     runBlocking(
       sql"""select sent
             from valinnantulokset
-            where hakemus_oid = ${hakemusOid} and hakukohde_oid = ${hakukohdeOid} and sent is not null""".as[java.util.Date]).headOption
+            where hakemus_oid = ${hakemusOid} and hakukohde_oid = ${hakukohdeOid} and sent is not null""".as[Timestamp]).headOption
   }
 
   def markAsSent(mailContents: LahetysKuittaus): Unit = {
