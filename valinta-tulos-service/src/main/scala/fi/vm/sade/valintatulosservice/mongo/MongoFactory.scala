@@ -7,7 +7,7 @@ object MongoFactory {
 
   def createDB(config: MongoConfig) = {
     val client = MongoClient(MongoClientURI(config.url))
-    client.setReadPreference(ReadPreference.SecondaryPreferred)
+    client.setReadPreference(ReadPreference.Primary)
     client(config.dbname)
   }
 
