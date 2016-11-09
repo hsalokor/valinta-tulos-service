@@ -1,6 +1,7 @@
-package fi.vm.sade.valintatulosservice.tarjonta
+package fi.vm.sade.valintatulosservice.valintarekisteri.tarjonta
 
 import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, KoodistoService, Relaatiot}
+import fi.vm.sade.valintatulosservice.tarjonta.Koulutus
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Kausi
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
