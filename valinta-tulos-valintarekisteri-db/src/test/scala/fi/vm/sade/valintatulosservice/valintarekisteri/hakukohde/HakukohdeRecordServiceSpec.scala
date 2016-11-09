@@ -1,10 +1,9 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
+package fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde
 
 import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, KoodistoService, Relaatiot}
 import fi.vm.sade.valintatulosservice.tarjonta._
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{Kausi, HakukohdeRecord}
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.HakukohdeRepository
-import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakukohdeRecord, Kausi}
 import org.junit.runner.RunWith
 import org.specs2.matcher.MustThrownExpectations
 import org.specs2.mock.Mockito
