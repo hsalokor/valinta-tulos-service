@@ -5,11 +5,12 @@ import java.util
 import com.typesafe.config.ConfigFactory
 import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
 import fi.vm.sade.sijoittelu.tulos.dto.SijoitteluajoDTO
-import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakutoiveDTO, HakijaDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.SijoitteluRepository
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.SijoitteluUtil
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{SijoitteluUtil, ValintatapajonoRecord}
+
 import scala.collection.JavaConverters._
 
 class ValintarekisteriForSijoittelu(sijoitteluRepository:SijoitteluRepository) extends Logging {
@@ -33,23 +34,16 @@ class ValintarekisteriForSijoittelu(sijoitteluRepository:SijoitteluRepository) e
       case Some(hakukohteet) => hakukohteet.map(h => sijoitteluUtil.sijoittelunHakukohdeRecordToDTO(h))
       case None => List()
     }
-    val valintatapajonoDTOs = sijoitteluRepository.getValintatapajonot(latestId) match {
-      case Some(valintatapajonot) => valintatapajonot.map(v => sijoitteluUtil.valintatapajonoRecordToDTO(v))
-      case None => List()
-    }
-    val valintatapajonoOids = valintatapajonoDTOs.map(v => v.getOid)
-    val valintatapajononHakemuksDTOs = sijoitteluRepository.getHakemuksetForValintatapajonos(valintatapajonoOids) match {
+    val valintatapajonos = sijoitteluRepository.getValintatapajonot(latestId).getOrElse(List())
+    val valintatapajonoOids = valintatapajonos.map(v => v.oid)
+    val valintatapajononHakemusDTOs = sijoitteluRepository.getHakemuksetForValintatapajonos(valintatapajonoOids) match {
       case Some(hakemukset) => hakemukset.map(h => sijoitteluUtil.hakemusRecordToDTO(h))
       case None => List()
     }
 
-    valintatapajononHakemuksDTOs.map(h => {
+    valintatapajononHakemusDTOs.map(h => {
       val tilahistoria = sijoitteluRepository.getHakemuksenTilahistoria(h.getValintatapajonoOid,h.getHakemusOid)
       h.setTilaHistoria(tilahistoria.map(h => sijoitteluUtil.tilaHistoriaRecordToDTO(h)).asJava)
-    })
-
-    valintatapajonoDTOs.map(v => {
-      v.setHakemukset(valintatapajononHakemuksDTOs.filter(vh => vh.getValintatapajonoOid == v.getOid).asJava)
     })
 
     val hakijaRyhmat = sijoitteluRepository.getHakijaryhmat(latestId)
@@ -61,7 +55,12 @@ class ValintarekisteriForSijoittelu(sijoitteluRepository:SijoitteluRepository) e
     })
 
     hakukohdeDTOs.map(h => {
-      // TODO miten mäpätään valintatapajonot hakukohteille?
+      val hakukohteenValintatapajonoDTOs = valintatapajonos.filter(v => v.hakukohdeOid == h.getOid).map(v => {
+        val valintatapajonoDTO = sijoitteluUtil.valintatapajonoRecordToDTO(v)
+        valintatapajonoDTO.setHakemukset(valintatapajononHakemusDTOs.filter(vh => vh.getValintatapajonoOid == valintatapajonoDTO.getOid).asJava)
+        valintatapajonoDTO
+      }).asJava
+      h.setValintatapajonot(hakukohteenValintatapajonoDTOs)
       h.setHakijaryhmat(hakijaryhmaDTOs.filter(hr => hr.getHakukohdeOid == h.getOid).asJava)
     })
 

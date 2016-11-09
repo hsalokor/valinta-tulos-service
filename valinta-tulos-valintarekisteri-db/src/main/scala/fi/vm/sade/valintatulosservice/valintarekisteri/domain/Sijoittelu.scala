@@ -20,7 +20,7 @@ case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String,
                                  alkuperaisetAloituspaikat:Int, alinHyvaksyttyPistemaara:BigDecimal, eiVarasijatayttoa:Boolean,
                                  kaikkiEhdonTayttavatHyvaksytaan:Boolean, poissaOlevaTaytto:Boolean, valintaesitysHyvaksytty:Boolean,
                                  hakeneet:Int, hyvaksytty:Int, varalla:Int, varasijat:Int, varasijanTayttoPaivat:Int,
-                                 varasijojaKaytetaanAlkaen:java.sql.Date, varasijojaKaytetaanAsti:java.sql.Date, tayttoJono:String)
+                                 varasijojaKaytetaanAlkaen:java.sql.Date, varasijojaKaytetaanAsti:java.sql.Date, tayttoJono:String, hakukohdeOid:String)
 
 case class HakemusRecord(hakijaOid:String, hakemusOid:String, pisteet:BigDecimal, etunimi:String, sukunimi:String,
                          prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila,

@@ -16,6 +16,7 @@ class SijoitteluServletSpec extends ServletSpecification with ValintarekisteriDb
       get("sijoittelu/1.2.246.562.29.75203638285/sijoitteluajo/1476936450191") {
         status must_== 200
         body.isEmpty mustEqual false
+        body.startsWith("{\"sijoitteluajoId\":1476936450191,\"hakuOid\":\"1.2.246.562.29.75203638285\"") mustEqual true
       }
     }
   }
