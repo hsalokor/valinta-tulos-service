@@ -39,25 +39,17 @@
             },
             "oid": "1.2.246.562.5.72607738902",
             "tarjoajaOid": "1.2.246.562.10.591352080610",
+            "kaikkiJonotSijoiteltu": true,
             "valintatapajonot": [
                 {
                     "tasasijasaanto": "YLITAYTTO",
-                    "oid": "14090336922663576781797489829886",
-                    "nimi": "Varsinainen jono",
-                    "prioriteetti": 0,
+                    "oid": "14090336922663576781797489829887",
+                    "nimi": "Toinen jono",
+                    "prioriteetti": 1,
                     "aloituspaikat": 3,
                     "eiVarasijatayttoa": false,
                     "kaikkiEhdonTayttavatHyvaksytaan": false,
                     "poissaOlevaTaytto": false,
-                    "hyvaksytty": 1,
-                    "varalla": 0,
-                    "alinHyvaksyttyPistemaara": 4,
-                    "varasijojaKaytetaanAlkaen": {
-                      "$date": "2014-08-26T16:05:23.943Z"
-                    },
-                    "varasijojaTaytetaanAsti": {
-                      "$date": "2014-08-26T16:05:23.943Z"
-                    },
                     "hakemukset": [
                         {
                             "hakijaOid": "1.2.246.562.24.14229104472",
@@ -68,54 +60,46 @@
                             "jonosija": 1,
                             "pisteet": "4",
                             "tasasijaJonosija": 1,
-                            "tila": "HYVAKSYTTY",
+                            "tila": "HYLATTY",
                             "tilaHistoria": [
                                 {
                                     "luotu": {
                                         "$date": "2014-08-26T15:12:40.623Z"
                                     },
-                                    "tila": "HYVAKSYTTY"
+                                    "tila": "HYLATTY"
                                 }
                             ],
                             "hyvaksyttyHarkinnanvaraisesti": false
                         }
                     ]
                 },
+
                 {
                     "tasasijasaanto": "YLITAYTTO",
                     "oid": "14090336922663576781797489829888",
-                    "nimi": "Varsinainen jono",
-                    "prioriteetti": 0,
+                    "nimi": "Toinen jono",
+                    "prioriteetti": 1,
                     "aloituspaikat": 3,
                     "eiVarasijatayttoa": false,
                     "kaikkiEhdonTayttavatHyvaksytaan": false,
                     "poissaOlevaTaytto": false,
-                    "hyvaksytty": 1,
-                    "varalla": 0,
-                    "alinHyvaksyttyPistemaara": 4,
-                    "varasijojaKaytetaanAlkaen": {
-                        "$date": "2014-08-26T16:05:23.943Z"
-                    },
-                    "varasijojaTaytetaanAsti": {
-                        "$date": "2014-08-26T16:05:23.943Z"
-                    },
                     "hakemukset": [
                         {
                             "hakijaOid": "1.2.246.562.24.14229104472",
                             "hakemusOid": "1.2.246.562.11.00000441369",
                             "etunimi": "Teppo",
                             "sukunimi": "Testaaja",
-                            "prioriteetti": 2,
+                            "prioriteetti": 1,
                             "jonosija": 1,
                             "pisteet": "4",
                             "tasasijaJonosija": 1,
-                            "tila": "PERUUNTUNUT",
+                            "tila": "HYLATTY",
                             "tilaHistoria": [
                                 {
                                     "luotu": {
                                         "$date": "2014-08-26T15:12:40.623Z"
                                     },
-                                    "tila": "PERUUNTUNUT"
+                                    "tila": "HYLATTY"
                                 }
                             ],
                             "hyvaksyttyHarkinnanvaraisesti": false
@@ -131,7 +115,7 @@
                 "$oid": "53fc8613e4b0b0b110900766"
             },
             "className": "fi.vm.sade.sijoittelu.domain.Valintatulos",
-            "valintatapajonoOid": "14090336922663576781797489829886",
+            "valintatapajonoOid": "14090336922663576781797489829887",
             "hakemusOid": "1.2.246.562.11.00000441369",
             "hakukohdeOid": "1.2.246.562.5.72607738902",
             "hakijaOid": "1.2.246.562.24.14229104472",
