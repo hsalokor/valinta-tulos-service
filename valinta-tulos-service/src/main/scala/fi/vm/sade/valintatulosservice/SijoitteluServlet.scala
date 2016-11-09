@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu.ValintarekisteriForSijoittelu
+import fi.vm.sade.valintatulosservice.json.JsonFormats._
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 import org.scalatra.{NotImplemented, Ok}
@@ -44,7 +45,7 @@ class SijoitteluServlet(sijoitteluService: ValintarekisteriForSijoittelu)(implic
   get("/:hakuOid/sijoitteluajo/:sijoitteluajoId", operation(getSijoitteluajoSwagger)) {
     val hakuOid = params("hakuOid")
     val sijoitteluajoId = params("sijoitteluajoId")
-    Ok(sijoitteluService.getSijoitteluajo(hakuOid, sijoitteluajoId))
+    Ok(javaObjectToJsonString(sijoitteluService.getSijoitteluajo(hakuOid, sijoitteluajoId)))
   }
 
   lazy val getHakemusetBySijoitteluajoSwagger: OperationBuilder = (apiOperation[Unit]("getHakemusetBySijoitteluajoSwagger")

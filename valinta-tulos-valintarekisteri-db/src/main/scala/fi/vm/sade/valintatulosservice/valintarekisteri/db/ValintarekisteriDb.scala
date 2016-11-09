@@ -42,7 +42,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     r.nextTimestamp().getTime, r.nextTimestamp().getTime))
   private implicit val getSijoitteluajoHakukohteetResult = GetResult(r => SijoittelunHakukohdeRecord(r.<<, r.<<, r.<<, r.<<, r.<<))
   private implicit val getValintatapajonotResult = GetResult(r => ValintatapajonoRecord(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<, r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<<, r.<<, r.<<))
   private implicit val getHakemuksetForValintatapajonosResult = GetResult(r => HakemusRecord(r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<<))
   private implicit val getHakemuksenTilahistoriaResult = GetResult(r => TilaHistoriaRecord(r.<<, r.<<, r.<<, r.<<))
@@ -562,7 +562,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       sql"""select v.tasasijasaanto, v.oid, v.nimi, v.prioriteetti, v.aloituspaikat, v.alkuperaiset_aloituspaikat,
             v.alin_hyvaksytty_pistemaara, v.ei_varasijatayttoa, v.kaikki_ehdon_tayttavat_hyvaksytaan, v.poissaoleva_taytto,
             v.valintaesitys_hyvaksytty, (v.hyvaksytty + v.varalla) as hakeneet, v.hyvaksytty, v.varalla, v.varasijat,
-            v.varasijatayttopaivat, v.varasijoja_kaytetaan_alkaen, v.varasijoja_taytetaan_asti, v.tayttojono
+            v.varasijatayttopaivat, v.varasijoja_kaytetaan_alkaen, v.varasijoja_taytetaan_asti, v.tayttojono, sh.hakukohde_oid
             from valintatapajonot as v
             left join sijoitteluajon_hakukohteet as sh on sh.id = v.sijoitteluajon_hakukohde_id
             where sh.sijoitteluajo_id = ${sijoitteluajoId}""".as[ValintatapajonoRecord]).toList)
