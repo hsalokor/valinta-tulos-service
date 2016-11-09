@@ -12,6 +12,9 @@ import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{VastaanotaEhdolli
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.{VastaanottoRecord, HakijaVastaanottoRepository}
 
 class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatulosService: ValintatulosService, hakijaVastaanottoRepository: HakijaVastaanottoRepository, hakuService: HakuService, ohjausparameteritService: OhjausparametritService, val limit: Integer) extends Logging {
+
+  // TODO Change from Mongo to Postgres!
+
   def etsiHaut: List[String] = {
     val found = (hakuService.kaikkiJulkaistutHaut match {
       case Right(haut) => haut

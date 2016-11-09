@@ -452,7 +452,8 @@ case class SijoitteluajonValinnantulosWrapper(
   hyvaksyttyVarasijalta:Boolean = false,
   hyvaksyPeruuntunut:Boolean = false,
   ilmoittautumistila:Option[SijoitteluajonIlmoittautumistila],
-  logEntries:Option[List[LogEntry]]
+  logEntries:Option[List[LogEntry]],
+  mailStatus:ValintatulosMailStatus
 ) {
   val valintatulos:Valintatulos = {
     val valintatulos = new Valintatulos()
@@ -465,6 +466,7 @@ case class SijoitteluajonValinnantulosWrapper(
     valintatulos.setHyvaksyPeruuntunut(hyvaksyPeruuntunut, "")
     ilmoittautumistila.foreach(ilmoittautumistila => valintatulos.setIlmoittautumisTila(ilmoittautumistila.ilmoittautumistila, ""))
     valintatulos.setOriginalLogEntries(logEntries.getOrElse(List()).asJava)
+    valintatulos.setMailStatus(mailStatus)
     valintatulos
   }
 }
@@ -480,12 +482,13 @@ object SijoitteluajonValinnantulosWrapper extends OptionConverter {
     valintatulos.getHyvaksyPeruuntunut,
     convert[IlmoittautumisTila,SijoitteluajonIlmoittautumistila](valintatulos.getIlmoittautumisTila,
       SijoitteluajonIlmoittautumistila.getIlmoittautumistila),
-    Option(valintatulos.getOriginalLogEntries.asScala.toList))
+    Option(valintatulos.getOriginalLogEntries.asScala.toList),
+    valintatulos.getMailStatus)
 }
 
 case class LogEntryWrapper(luotu:Date, muokkaaja:String, muutos:String, selite:String) {
-  val entry:LogEntry ={
-    val entry = new LogEntry()
+  val entry:LogEntry = {
+    val entry = new LogEntry
     entry.setLuotu(luotu)
     entry.setMuokkaaja(muokkaaja)
     entry.setMuutos(muutos)
@@ -500,6 +503,26 @@ object LogEntryWrapper extends OptionConverter {
     entry.getMuokkaaja,
     entry.getMuutos,
     entry.getSelite
+  )
+}
+
+case class MailStatusWrapper(previousCheck:Option[Date], sent:Option[Date], done:Option[Date], message:Option[String]) {
+  val status:ValintatulosMailStatus = {
+    val status = new ValintatulosMailStatus
+    status.previousCheck = previousCheck.getOrElse(null)
+    status.sent = sent.getOrElse(null)
+    status.done = done.getOrElse(null)
+    status.message = message.getOrElse(null)
+    status
+  }
+}
+
+object MailStatusWrapper extends OptionConverter {
+  def apply(status:ValintatulosMailStatus):MailStatusWrapper = MailStatusWrapper(
+    Option(status.previousCheck),
+    Option(status.sent),
+    Option(status.done),
+    Option(status.message)
   )
 }
 
