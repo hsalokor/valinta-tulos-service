@@ -74,25 +74,33 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     sijoitteluajoDTO
   }
 
+  import scala.collection.JavaConverters._
+
   def sijoittelunHakukohdeRecordToDTO(hakukohde:SijoittelunHakukohdeRecord): HakukohdeDTO = {
     val hakukohdeDTO = new HakukohdeDTO
     hakukohdeDTO.setSijoitteluajoId(hakukohde.sijoitteluajoId)
     hakukohdeDTO.setOid(hakukohde.oid)
     hakukohdeDTO.setTarjoajaOid(hakukohde.tarjoajaOid)
     hakukohdeDTO.setKaikkiJonotSijoiteltu(hakukohde.kaikkiJonotsijoiteltu)
-    hakukohdeDTO.setEnsikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet(hakukohde.ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet.bigDecimal)
+    hakukohdeDTO.setEnsikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet(hakukohde.ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet match {
+      case i:BigDecimal => i.bigDecimal
+      case _ => null
+     })
     hakukohdeDTO
   }
 
   def valintatapajonoRecordToDTO(jono:ValintatapajonoRecord): ValintatapajonoDTO = {
     val jonoDTO = new ValintatapajonoDTO
-    jonoDTO.setTasasijasaanto(jono.tasasijasaanto.asInstanceOf)
+    jonoDTO.setTasasijasaanto(fi.vm.sade.sijoittelu.tulos.dto.Tasasijasaanto.valueOf(jono.tasasijasaanto.toUpperCase()))
     jonoDTO.setOid(jono.oid)
     jonoDTO.setNimi(jono.nimi)
     jonoDTO.setPrioriteetti(jono.prioriteetti)
     jonoDTO.setAloituspaikat(jono.aloituspaikat)
     jonoDTO.setAlkuperaisetAloituspaikat(jono.alkuperaisetAloituspaikat)
-    jonoDTO.setAlinHyvaksyttyPistemaara(jono.alinHyvaksyttyPistemaara.bigDecimal)
+    jonoDTO.setAlinHyvaksyttyPistemaara(jono.alinHyvaksyttyPistemaara match {
+      case i:BigDecimal => i.bigDecimal
+      case _ => null
+    })
     jonoDTO.setEiVarasijatayttoa(jono.eiVarasijatayttoa)
     jonoDTO.setKaikkiEhdonTayttavatHyvaksytaan(jono.kaikkiEhdonTayttavatHyvaksytaan)
     jonoDTO.setPoissaOlevaTaytto(jono.poissaOlevaTaytto)
@@ -102,8 +110,8 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     jonoDTO.setVaralla(jono.varalla)
     jonoDTO.setVarasijat(jono.varasijat)
     jonoDTO.setVarasijaTayttoPaivat(jono.varasijanTayttoPaivat)
-    jonoDTO.setVarasijojaKaytetaanAlkaen(jono.varasijojaKaytetaanAlkaen.asInstanceOf)
-    jonoDTO.setVarasijojaTaytetaanAsti(jono.varasijojaKaytetaanAsti.asInstanceOf)
+    jonoDTO.setVarasijojaKaytetaanAlkaen(jono.varasijojaKaytetaanAlkaen)
+    jonoDTO.setVarasijojaTaytetaanAsti(jono.varasijojaKaytetaanAsti)
     jonoDTO.setTayttojono(jono.tayttoJono)
     jonoDTO
   }
@@ -112,14 +120,20 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     val hakemusDTO = new HakemusDTO
     hakemusDTO.setHakijaOid(hakemus.hakijaOid)
     hakemusDTO.setHakemusOid(hakemus.hakemusOid)
-    hakemusDTO.setPisteet(hakemus.pisteet.bigDecimal)
+    hakemusDTO.setPisteet(hakemus.pisteet match {
+      case i:BigDecimal => i.bigDecimal
+      case _ => null
+    })
     hakemusDTO.setEtunimi(hakemus.etunimi)
     hakemusDTO.setSukunimi(hakemus.sukunimi)
     hakemusDTO.setPrioriteetti(hakemus.prioriteetti)
     hakemusDTO.setJonosija(hakemus.jonosija)
     hakemusDTO.setTasasijaJonosija(hakemus.tasasijaJonosija)
-    hakemusDTO.setTila(hakemus.tila.valinnantila.asInstanceOf)
-    hakemusDTO.setTilanKuvaukset(ValinnantilanTarkenne.getValinnantilanTarkenne(Map[String, String](hakemus.tarkenne -> hakemus.tarkenteenLisatieto)).get.valinnantilanTarkenne.asJava)
+    hakemusDTO.setTila(HakemuksenTila.valueOf(hakemus.tila.valinnantila.name()))
+    hakemusDTO.setTilanKuvaukset(ValinnantilanTarkenne.getValinnantilanTarkenne(Map[String, String](hakemus.tarkenne -> hakemus.tarkenteenLisatieto)) match {
+      case Some(t) => t.valinnantilanTarkenne.asJava
+      case None => null
+    })
     hakemusDTO.setHyvaksyttyHarkinnanvaraisesti(hakemus.hyvaksyttyHarkinnanvaraisesti)
     hakemusDTO.setVarasijanNumero(hakemus.varasijaNumero)
     hakemusDTO.setOnkoMuuttunutViimeSijoittelussa(hakemus.onkoMuuttunutviimesijoittelusta)

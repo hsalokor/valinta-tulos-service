@@ -138,5 +138,5 @@ trait ValintarekisteriDbTools {
   def loadSijoitteluFromFixture(fixture: String, path: String = "sijoittelu/"):SijoitteluWrapper = {
     val json = parse(getClass.getClassLoader.getResourceAsStream("fixtures/" + path + fixture + ".json"))
     sijoitteluWrapperFromJson(json)
-}
+  }
 }
