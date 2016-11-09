@@ -17,15 +17,15 @@
 #sijoittelu-service.hakukohdeDao.batchSize=300
 
 # KOODISTO
-#koodisto-service.rest.url=https://{{host_virkailija}}/koodisto-service
+koodisto-service.rest.url=https://{{host_virkailija}}/koodisto-service
 
 # HAKEMUKSET
 #hakemus.mongodb.dbname=hakulomake
 #hakemus.mongodb.uri=mongodb://{{mongodb_hakemus_auth}}@{{mongodb_hakemus_host}}:{{mongodb_hakemus_port}}
 
 # TARJONTA
-#tarjonta-service.url=https://{{host_virkailija}}/tarjonta-service
-#valinta-tulos-service.parseleniently.tarjonta={{valintatulosservice_parseleniently_tarjonta}}
+tarjonta-service.url=https://{{host_virkailija}}/tarjonta-service
+valinta-tulos-service.parseleniently.tarjonta={{valintatulosservice_parseleniently_tarjonta}}
 
 # CAS
 #cas.url={{cas_url}}
