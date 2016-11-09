@@ -7,9 +7,9 @@ import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.utils.tcp.PortFromSystemPropertyOrFindFree
 
 object ValintarekisteriAppConfig extends Logging {
-  def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
+  //def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
   private implicit val settingsParser = ValintarekisteriApplicationSettingsParser
-  private val embeddedMongoPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.embeddedmongo.port")
+  //1private val embeddedMongoPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.embeddedmongo.port")
   private val itPostgresPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.it.postgres.port")
 
   class IT extends ExampleTemplatedProps {
