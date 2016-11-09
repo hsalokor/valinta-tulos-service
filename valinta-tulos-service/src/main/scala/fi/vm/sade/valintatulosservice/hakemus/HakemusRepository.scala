@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.hakemus
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.{Imports, commons}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.domain.{Hakemus, Hakutoive, Henkilotiedot}
 import fi.vm.sade.valintatulosservice.hakemus.DatabaseKeys.tarjoajaIdKeyPostfix
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
@@ -28,7 +28,7 @@ object DatabaseKeys {
 }
 
 @deprecated("Should be removed ASAP. Has no idea of indexes. Also has no idea of search structures")
-class HakemusRepository()(implicit appConfig: AppConfig) extends Logging {
+class HakemusRepository()(implicit appConfig: VtsAppConfig) extends Logging {
 
   val application = MongoFactory.createCollection(appConfig.settings.hakemusMongoConfig, "application")
   val fields = MongoDBObject(

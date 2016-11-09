@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.ensikertalaisuus
 
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet._
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{VastaanottoHistoria, Ensikertalaisuus, Kausi}
@@ -11,7 +11,7 @@ import org.json4s.jackson.Serialization.read
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 
-class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService, maxHenkiloOids: Int)(implicit val swagger: Swagger, appConfig: AppConfig)
+class EnsikertalaisuusServlet(valintarekisteriService: ValintarekisteriService, maxHenkiloOids: Int)(implicit val swagger: Swagger, appConfig: VtsAppConfig)
   extends VtsServletBase with EnsikertalaisuusSwagger {
   override implicit val jsonFormats: Formats = EnsikertalaisuusServlet.ensikertalaisuusJsonFormats
 

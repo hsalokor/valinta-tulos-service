@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice.koodisto
 
 import fi.vm.sade.utils.http.DefaultHttpClient.httpGet
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import org.json4s.JsonAST.JObject
 import org.json4s.jackson.JsonMethods._
 import org.json4s.{CustomSerializer, DefaultFormats, Formats}
@@ -35,7 +35,7 @@ class KoodiSerializer extends CustomSerializer[Koodi]((formats: Formats) => {
   }, { case o => ??? })
 })
 
-class KoodistoService(appConfig: AppConfig) {
+class KoodistoService(appConfig: VtsAppConfig) {
   implicit val formats = DefaultFormats ++ List(new KoodiSerializer)
 
   def fetchLatest(uri: KoodiUri): Either[Throwable, Koodi] = {

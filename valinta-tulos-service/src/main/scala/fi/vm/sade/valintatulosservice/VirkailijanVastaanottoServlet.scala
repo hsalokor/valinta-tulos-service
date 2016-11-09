@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{VastaanottoEventDto, PriorAcceptanceException, Vastaanottotila}
 import Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
@@ -14,7 +14,7 @@ import org.scalatra.{Forbidden, Ok}
 
 import scala.util.Try
 
-class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, vastaanottoService: VastaanottoService)(implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
+class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, vastaanottoService: VastaanottoService)(implicit val swagger: Swagger, appConfig: VtsAppConfig) extends VtsServletBase {
 
   override val applicationName = Some("virkailija")
 

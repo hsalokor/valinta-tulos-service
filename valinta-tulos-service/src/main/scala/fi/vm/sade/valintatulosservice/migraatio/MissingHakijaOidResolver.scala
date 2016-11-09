@@ -4,7 +4,7 @@ import java.net.URLEncoder
 
 import fi.vm.sade.utils.cas.{CasAuthenticatingClient, CasParams}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import org.http4s._
 import org.http4s.headers.`Content-Type`
@@ -16,7 +16,7 @@ import org.json4s.native.JsonMethods._
 import scala.util.{Failure, Success, Try}
 import scalaz.concurrent.Task
 
-class MissingHakijaOidResolver(appConfig: AppConfig) extends JsonFormats with Logging {
+class MissingHakijaOidResolver(appConfig: VtsAppConfig) extends JsonFormats with Logging {
   private val hakuClient = createCasClient(appConfig, "/haku-app")
   private val henkiloClient = createCasClient(appConfig, "/authentication-service")
   private val hakuUrlBase = appConfig.settings.config.getString("valinta-tulos-service.haku-app-url") + "/applications/listfull?q="
@@ -111,7 +111,7 @@ class MissingHakijaOidResolver(appConfig: AppConfig) extends JsonFormats with Lo
     Uri.fromString(stringUri).getOrElse(throw new RuntimeException(s"Invalid uri: $stringUri"))
   }
 
-  private def createCasClient(appConfig: AppConfig, targetService: String): CasAuthenticatingClient = {
+  private def createCasClient(appConfig: VtsAppConfig, targetService: String): CasAuthenticatingClient = {
     val params = CasParams(targetService, appConfig.settings.securitySettings.casUsername, appConfig.settings.securitySettings.casPassword)
     new CasAuthenticatingClient(appConfig.securityContext.casClient, params, org.http4s.client.blaze.defaultClient)
   }

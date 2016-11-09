@@ -1,13 +1,13 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu.ValintarekisteriForSijoittelu
 import fi.vm.sade.valintatulosservice.json.JsonFormats._
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 import org.scalatra.{NotImplemented, Ok}
 
-class SijoitteluServlet(sijoitteluService: ValintarekisteriForSijoittelu)(implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
+class SijoitteluServlet(sijoitteluService: ValintarekisteriForSijoittelu)(implicit val swagger: Swagger, appConfig: VtsAppConfig) extends VtsServletBase {
 
   override val applicationName = Some("sijoittelu")
 

@@ -7,7 +7,7 @@ import com.mongodb.casbah.commons.TypeImports.{BasicDBList => _, DBObject => _}
 import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.VtsServletBase
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
@@ -26,7 +26,7 @@ import scala.collection.JavaConverters._
 
 class MigraatioServlet(hakukohdeRecordService: HakukohdeRecordService, valintarekisteriDb: ValintarekisteriDb,
                        hakemusRepository: HakemusRepository, raportointiService: RaportointiService, hakuService: HakuService)
-                      (implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
+                      (implicit val swagger: Swagger, appConfig: VtsAppConfig) extends VtsServletBase {
   override val applicationName = Some("migraatio")
 
   override protected def applicationDescription: String = "Vanhojen vastaanottojen migraatio REST API"
