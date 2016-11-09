@@ -4,6 +4,7 @@ import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, KoodistoService
 import fi.vm.sade.valintatulosservice.tarjonta._
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{Kausi, HakukohdeRecord}
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.HakukohdeRepository
+import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 import org.junit.runner.RunWith
 import org.specs2.matcher.MustThrownExpectations
 import org.specs2.mock.Mockito

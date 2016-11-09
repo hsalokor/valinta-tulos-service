@@ -15,6 +15,7 @@ import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelutulosService, Valint
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
 import fi.vm.sade.valintatulosservice.valintarekisteri._
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.{VastaanottoEvent, VastaanottoRecord, HakijaVastaanottoRepository}
+import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 import slick.dbio.{DBIO, SuccessAction}
 
 import scala.collection.JavaConverters._

@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri.config
+package fi.vm.sade.valintatulosservice.config
 
 import java.io.File
 import java.nio.file.Files

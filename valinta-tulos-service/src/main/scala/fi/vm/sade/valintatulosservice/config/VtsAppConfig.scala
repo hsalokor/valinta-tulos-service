@@ -14,7 +14,6 @@ import fi.vm.sade.utils.tcp.PortFromSystemPropertyOrFindFree
 import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.ohjausparametrit._
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluSpringContext
-import fi.vm.sade.valintatulosservice.valintarekisteri.config.{ApplicationSettings, ITPostgres}
 
 object VtsAppConfig extends Logging {
   def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
@@ -152,7 +151,7 @@ object VtsAppConfig extends Logging {
     def templateAttributesURL: URL
   }
 
-  trait VtsAppConfig {
+  trait VtsAppConfig extends AppConfig {
     lazy val sijoitteluContext = new SijoitteluSpringContext(this, SijoitteluSpringContext.createApplicationContext(this))
 
     def start {}
@@ -162,15 +161,11 @@ object VtsAppConfig extends Logging {
       case _ => CachedRemoteOhjausparametritService(this)
     }
 
-    def settings: VtsApplicationSettings
+    override def settings: VtsApplicationSettings
 
     def properties: Map[String, String] = settings.toProperties
 
     def securityContext: SecurityContext
-  }
-
-  trait StubbedExternalDeps {
-
   }
 
   trait MockSecurity extends VtsAppConfig {
