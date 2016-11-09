@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.hakemus
 import com.mongodb._
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
 import fi.vm.sade.utils.config.MongoConfig
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import org.bson.types.ObjectId
 
@@ -91,7 +91,7 @@ class HakemusFixtures(config: MongoConfig) {
 object HakemusFixtures {
   val defaultFixtures = List("00000878229", "00000441369", "00000441370", "00000441371", "00000878230", "00000878231", "00000878229-SE")
 
-  def apply()(implicit appConfig: AppConfig) = {
+  def apply()(implicit appConfig: VtsAppConfig) = {
     new HakemusFixtures(appConfig.settings.hakemusMongoConfig)
   }
 }

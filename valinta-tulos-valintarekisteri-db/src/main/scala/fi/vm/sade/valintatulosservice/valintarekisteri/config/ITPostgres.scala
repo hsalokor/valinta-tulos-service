@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.config
+package fi.vm.sade.valintatulosservice.valintarekisteri.config
 
 import java.io.File
 import java.nio.file.Files
@@ -9,7 +9,7 @@ import org.apache.commons.io.FileUtils
 
 import scala.sys.process.stringToProcess
 
-class ItPostgres(portChooser: PortChooser) extends Logging {
+class ITPostgres(portChooser: PortChooser) extends Logging {
   val port = portChooser.chosenPort
   val dataDirName = s"valintarekisteri-it-db/$port"
   val dbName = "valintarekisteri"

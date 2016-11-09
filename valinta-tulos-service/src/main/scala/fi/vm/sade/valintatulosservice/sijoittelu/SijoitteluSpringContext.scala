@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 import com.mongodb._
 import fi.vm.sade.sijoittelu.tulos.dao.{HakukohdeDao, SijoitteluDao, ValintatulosDao}
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import org.mongodb.morphia.{Datastore, Morphia}
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationContext
@@ -13,7 +13,7 @@ import org.springframework.core.env.{MapPropertySource, MutablePropertySources}
 
 import scala.collection.JavaConversions._
 
-class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext) {
+class SijoitteluSpringContext(config: VtsAppConfig, context: ApplicationContext) {
   def database = context.getBean(classOf[DB])
 
   lazy val morphiaDs = context.getBean(classOf[Datastore])
@@ -27,7 +27,7 @@ class SijoitteluSpringContext(config: AppConfig, context: ApplicationContext) {
 object SijoitteluSpringContext {
   def check() {}
 
-  def createApplicationContext(configuration: AppConfig): AnnotationConfigApplicationContext = {
+  def createApplicationContext(configuration: VtsAppConfig): AnnotationConfigApplicationContext = {
     val appContext: AnnotationConfigApplicationContext = new AnnotationConfigApplicationContext
     val springConfiguration = new Default
     println("Using spring configuration " + springConfiguration)
@@ -38,7 +38,7 @@ object SijoitteluSpringContext {
     appContext
   }
 
-  private def customPropertiesHack(appContext: AnnotationConfigApplicationContext, configuration: AppConfig) {
+  private def customPropertiesHack(appContext: AnnotationConfigApplicationContext, configuration: VtsAppConfig) {
     val configurer: PropertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer()
     val sources: MutablePropertySources = new MutablePropertySources()
 

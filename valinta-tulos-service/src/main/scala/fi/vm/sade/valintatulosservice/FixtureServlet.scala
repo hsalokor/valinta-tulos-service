@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.generatedfixtures.{GeneratedFixture, SimpleGeneratedHakuFixture}
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
@@ -11,7 +11,7 @@ import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
 import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
 
-class FixtureServlet(valintarekisteriDb: ValintarekisteriDb)(implicit val appConfig: AppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats {
+class FixtureServlet(valintarekisteriDb: ValintarekisteriDb)(implicit val appConfig: VtsAppConfig) extends ScalatraServlet with Logging with JacksonJsonSupport with JsonFormats {
   options("/fixtures/apply") {
     response.addHeader("Access-Control-Allow-Origin", "*")
     response.addHeader("Access-Control-Allow-Methods", "PUT")

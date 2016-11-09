@@ -6,6 +6,7 @@ import java.net.URL
 import fi.vm.sade.utils.config.{ApplicationSettingsLoader, ConfigTemplateProcessor}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.utils.tcp.PortFromSystemPropertyOrFindFree
+import fi.vm.sade.valintatulosservice.valintarekisteri.config.ITPostgres
 import fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu.{ApplicationSettings, ApplicationSettingsParser}
 
 object ITAppConfig extends Logging {

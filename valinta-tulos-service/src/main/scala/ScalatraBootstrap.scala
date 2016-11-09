@@ -2,8 +2,10 @@ import java.util
 import javax.servlet.{DispatcherType, ServletContext}
 
 import fi.vm.sade.valintatulosservice._
-import fi.vm.sade.valintatulosservice.config.AppConfig
-import fi.vm.sade.valintatulosservice.config.AppConfig._
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.{Dev, VtsAppConfig}
+import fi.vm.sade.valintatulosservice.valintarekisteri.config.ValintarekisteriAppConfig
+import ValintarekisteriAppConfig._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.koodisto.KoodistoService
@@ -20,10 +22,10 @@ class ScalatraBootstrap extends LifeCycle {
 
   implicit val swagger = new ValintatulosSwagger
 
-  var globalConfig: Option[AppConfig] = None
+  var globalConfig: Option[VtsAppConfig] = None
 
   override def init(context: ServletContext) {
-    implicit val appConfig: AppConfig = AppConfig.fromOptionalString(Option(context.getAttribute("valintatulos.profile").asInstanceOf[String]))
+    implicit val appConfig: VtsAppConfig = VtsAppConfig.fromOptionalString(Option(context.getAttribute("valintatulos.profile").asInstanceOf[String]))
     globalConfig = Some(appConfig)
     appConfig.start
     if (appConfig.isInstanceOf[IT] || appConfig.isInstanceOf[Dev]) {

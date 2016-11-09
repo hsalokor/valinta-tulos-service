@@ -1,0 +1,155 @@
+package fi.vm.sade.valintatulosservice.valintarekisteri.config
+
+import java.net.URL
+
+import fi.vm.sade.utils.config.{ConfigTemplateProcessor, ApplicationSettingsLoader}
+import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.utils.tcp.PortFromSystemPropertyOrFindFree
+
+
+trait AppConfig extends Logging {
+  implicit val settingsParser:fi.vm.sade.utils.config.ApplicationSettingsParser[Settings]
+
+  def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
+
+  def start {}
+
+  def settings: Settings
+
+  def properties: Map[String, String] = settings.toProperties
+
+  /*def fromOptionalString(profile: Option[String]) = {
+    fromString(profile.getOrElse(getProfileProperty))
+  }
+
+  def fromSystemProperty: AppConfig = {
+    fromString(getProfileProperty)
+  }
+
+  def fromString(profile: String):AppConfig*/
+}
+
+/*abstract class AppConfig extends Logging with AppConfig {
+  def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
+
+  //def start {}
+
+  //def settings: ApplicationSettings
+
+  //def properties: Map[String, String] = settings.toProperties
+
+  def fromOptionalString(profile: Option[String]) = {
+    fromString(profile.getOrElse(getProfileProperty))
+  }
+
+  def fromSystemProperty: AppConfig = {
+    fromString(getProfileProperty)
+  }
+
+  def fromString(profile: String):AppConfig
+}*/
+
+/*trait EmbeddedPostgres extends ExampleTemplatedProps {
+  private val itPostgresPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.it.postgres.port")
+  private lazy val itPostgres = new ITPostgres(itPostgresPortChooser)
+
+  override def start {
+    itPostgres.start()
+  }
+
+  override lazy val settings = loadSettings
+    .withOverride(("valinta-tulos-service.valintarekisteri.ensikertalaisuus.max.henkilo.oids", "100"))
+    .withOverride("valinta-tulos-service.valintarekisteri.db.url", s"jdbc:postgresql://localhost:${itPostgresPortChooser.chosenPort}/valintarekisteri")
+    .withoutPath("valinta-tulos-service.valintarekisteri.db.user")
+    .withoutPath("valinta-tulos-service.valintarekisteri.db.password")
+}*/
+
+/*trait ExternalProps extends AppConfig {
+  def configFile = System.getProperty("user.home") + "/oph-configuration/valinta-tulos-service.properties"
+  lazy val settings = ApplicationSettingsLoader.loadSettings(configFile)
+}
+
+trait ExampleTemplatedProps extends AppConfig with TemplatedProps {
+  def templateAttributesURL = getClass.getResource("/oph-configuration/dev-vars.yml")
+}*/
+
+trait StubbedExternalDeps {}
+
+/*trait TemplatedProps extends AppConfig {
+  logger.info("Using template variables from " + templateAttributesURL)
+  lazy val settings = loadSettings
+  def loadSettings = ConfigTemplateProcessor.createSettings(
+    getClass.getResource("/oph-configuration/valinta-tulos-service-devtest.properties.template"),
+    templateAttributesURL
+  )
+  def templateAttributesURL: URL
+}*/
+
+/*trait LoadTemplatedProps {
+  //logger.info("Using template variables from " + templateAttributesURL)
+  def loadSettings[T](templateAttributesURL: URL)(implicit applicationSettingsParser : fi.vm.sade.utils.config.ApplicationSettingsParser[T]):T = ConfigTemplateProcessor.createSettings(
+    getClass.getResource("/oph-configuration/valinta-tulos-service-devtest.properties.template"),
+    templateAttributesURL
+  )
+  def templateAttributesURL: URL
+}*/
+
+
+
+
+/*object AppConfig extends Logging with AppConfig {
+  private val itPostgresPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.it.postgres.port")
+
+  trait ExternalProps {
+    def configFile = System.getProperty("user.home") + "/oph-configuration/valinta-tulos-service.properties"
+    lazy val settings = ApplicationSettingsLoader.loadSettings(configFile)
+  }
+
+  trait ExampleTemplatedProps extends AppConfig with TemplatedProps {
+    def templateAttributesURL = getClass.getResource("/oph-configuration/dev-vars.yml")
+  }
+
+  trait StubbedExternalDeps {}
+
+  trait TemplatedProps {
+    logger.info("Using template variables from " + templateAttributesURL)
+    lazy val settings = loadSettings
+    def loadSettings = ConfigTemplateProcessor.createSettings(
+      getClass.getResource("/oph-configuration/valinta-tulos-service-devtest.properties.template"),
+      templateAttributesURL
+    )
+    def templateAttributesURL: URL
+  }
+
+  class EmbeddedPostgres extends ExampleTemplatedProps {
+    private lazy val itPostgres = new ITPostgres(itPostgresPortChooser)
+
+    override def start {
+      itPostgres.start()
+    }
+
+    override lazy val settings = loadSettings
+      .withOverride(("valinta-tulos-service.valintarekisteri.ensikertalaisuus.max.henkilo.oids", "100"))
+      .withOverride("valinta-tulos-service.valintarekisteri.db.url", s"jdbc:postgresql://localhost:${itPostgresPortChooser.chosenPort}/valintarekisteri")
+      .withoutPath("valinta-tulos-service.valintarekisteri.db.user")
+      .withoutPath("valinta-tulos-service.valintarekisteri.db.password")
+  }
+
+  trait AppConfig {
+    def start {}
+
+    def settings: ApplicationSettings
+
+    def properties: Map[String, String] = settings.toProperties
+  }
+
+  /*trait AppConfig {
+
+    def start {}
+
+    def settings: ApplicationSettings
+
+    def properties: Map[String, String] = settings.toProperties
+
+  }*/
+}*/

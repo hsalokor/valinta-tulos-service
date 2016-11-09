@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.domain
 
 import java.util.Date
 
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.domain.Valintatila.Valintatila
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila.Vastaanotettavuustila
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila
@@ -67,7 +67,7 @@ case class Hakutoiveentulos(hakukohdeOid: String,
 }
 
 object Hakutoiveentulos {
-  def julkaistavaVersioSijoittelunTuloksesta(tulos: HakutoiveenSijoitteluntulos, hakutoive: Hakutoive, haku: Haku, ohjausparametrit: Option[Ohjausparametrit], checkJulkaisuAikaParametri: Boolean = true)(implicit appConfig: AppConfig): Hakutoiveentulos = {
+  def julkaistavaVersioSijoittelunTuloksesta(tulos: HakutoiveenSijoitteluntulos, hakutoive: Hakutoive, haku: Haku, ohjausparametrit: Option[Ohjausparametrit], checkJulkaisuAikaParametri: Boolean = true)(implicit appConfig: VtsAppConfig): Hakutoiveentulos = {
     val saaJulkaista: Boolean = !checkJulkaisuAikaParametri || ohjausparametrit.flatMap(_.tulostenJulkistusAlkaa).map(_.isBeforeNow()).getOrElse(ohjausparametrit.isDefined)
     Hakutoiveentulos(
       tulos.hakukohdeOid,

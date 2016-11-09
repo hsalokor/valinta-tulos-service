@@ -2,7 +2,7 @@ package fi.vm.sade.valintatulosservice.tarjonta
 
 import fi.vm.sade.utils.http.DefaultHttpClient
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.{StubbedExternalDeps, VtsAppConfig}
 import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, KoodistoService}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{Syksy, Kevat, Kausi}
@@ -25,7 +25,7 @@ trait HakuService {
 }
 
 object HakuService {
-  def apply(koodistoService: KoodistoService, appConfig: AppConfig): HakuService = appConfig match {
+  def apply(koodistoService: KoodistoService, appConfig: VtsAppConfig): HakuService = appConfig match {
     case _:StubbedExternalDeps => HakuFixtures
     case _ => new CachedHakuService(new TarjontaHakuService(koodistoService, appConfig))
   }
@@ -131,7 +131,7 @@ private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiU
 
 case class YhdenPaikanSaanto(voimassa: Boolean, syy: String)
 
-class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig) extends HakuService with JsonHakuService with Logging {
+class TarjontaHakuService(koodistoService: KoodistoService, appConfig:VtsAppConfig) extends HakuService with JsonHakuService with Logging {
 
   def parseStatus(json: String): Option[String] = {
     for {

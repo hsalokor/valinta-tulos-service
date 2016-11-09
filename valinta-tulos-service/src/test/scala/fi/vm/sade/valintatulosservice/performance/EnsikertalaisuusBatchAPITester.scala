@@ -6,7 +6,7 @@ import com.typesafe.config.ConfigValueFactory
 import fi.vm.sade.utils.http.{DefaultHttpClient, DefaultHttpRequest}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.SharedJetty
-import fi.vm.sade.valintatulosservice.config.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Ensikertalaisuus
@@ -20,7 +20,7 @@ import scalaj.http.Http
 
 object EnsikertalaisuusBatchAPITester extends App with Logging {
   implicit val formats = EnsikertalaisuusServlet.ensikertalaisuusJsonFormats
-  implicit val appConfig = new AppConfig.IT
+  implicit val appConfig = new VtsAppConfig.IT
   private val dbConfig = appConfig.settings.valintaRekisteriDbConfig
   lazy val valintarekisteriDb = new ValintarekisteriDb(
     dbConfig.withValue("connectionPool", ConfigValueFactory.fromAnyRef("disabled"))).db

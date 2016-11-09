@@ -3,9 +3,10 @@ package fi.vm.sade.valintatulosservice.config
 import com.typesafe.config.Config
 import fi.vm.sade.utils.config.MongoConfig
 import fi.vm.sade.valintatulosservice.SecuritySettings
+import fi.vm.sade.valintatulosservice.valintarekisteri.config.ApplicationSettings
 import org.apache.commons.lang3.BooleanUtils
 
-case class ApplicationSettings(config: Config) extends fi.vm.sade.utils.config.ApplicationSettings(config) {
+case class VtsApplicationSettings(config: Config) extends ApplicationSettings(config) {
   val hakemusMongoConfig: MongoConfig = getMongoConfig(config.getConfig("hakemus.mongodb"))
   val valintatulosMongoConfig: MongoConfig = getMongoConfig(config.getConfig("sijoittelu-service.mongodb"))
   val ohjausparametritUrl = withConfig(_.getString("valinta-tulos-service.ohjausparametrit.url"))
@@ -40,6 +41,6 @@ case class ApplicationSettings(config: Config) extends fi.vm.sade.utils.config.A
   }
 }
 
-object ApplicationSettingsParser extends fi.vm.sade.utils.config.ApplicationSettingsParser[ApplicationSettings] {
-  override def parse(config: Config) = ApplicationSettings(config)
+object VtsApplicationSettingsParser extends fi.vm.sade.utils.config.ApplicationSettingsParser[VtsApplicationSettings] {
+  override def parse(config: Config) = VtsApplicationSettings(config)
 }

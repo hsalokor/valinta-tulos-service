@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.local
 
-import fi.vm.sade.valintatulosservice.config.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, YhdenPaikanSaanto}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{Kausi, Vastaanottotila}
@@ -16,14 +16,14 @@ class HakutoiveenIlmoittautumistilaSpec extends Specification {
   }
   "Ilmoittautuminen" should {
     "should be enabled in IT" in {
-      implicit val appConfig = new AppConfig.IT
+      implicit val appConfig = new VtsAppConfig.IT
       val it = HakutoiveenIlmoittautumistila.getIlmoittautumistila(vastaanottanut, Haku("", true, true, true, false,
         true, None, Set(), Nil, Some(Kausi("2016S")), YhdenPaikanSaanto(false, ""), Map("kieli_fi" -> "Haun nimi")), None)
       it.ilmoittauduttavissa must_== true
     }
 
     "should be disabled by default" in {
-      implicit val appConfig = new AppConfig.IT_disabledIlmoittautuminen
+      implicit val appConfig = new VtsAppConfig.IT_disabledIlmoittautuminen
       val it = HakutoiveenIlmoittautumistila.getIlmoittautumistila(vastaanottanut, Haku("", true, true, true, false,
         true, None, Set(), Nil, Some(Kausi("2016S")), YhdenPaikanSaanto(false, ""), Map("kieli_fi" -> "Haun nimi")), None)
       it.ilmoittauduttavissa must_== false
