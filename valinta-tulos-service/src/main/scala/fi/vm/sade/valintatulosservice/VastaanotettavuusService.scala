@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{PriorAcceptanceException, HakukohdeRecord}
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.{VastaanottoRecord, HakijaVastaanottoRepository}
-import fi.vm.sade.valintatulosservice.valintarekisteri.HakukohdeRecordService
+import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 import slick.dbio.{DBIO, DBIOAction}
 
 import scala.concurrent.ExecutionContext.Implicits.global

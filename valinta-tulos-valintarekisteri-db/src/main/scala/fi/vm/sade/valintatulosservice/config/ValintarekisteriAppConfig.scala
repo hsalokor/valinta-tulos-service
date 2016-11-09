@@ -1,23 +1,17 @@
-package fi.vm.sade.valintatulosservice.valintarekisteri
-
+package fi.vm.sade.valintatulosservice.config
 
 import java.net.URL
 
 import fi.vm.sade.utils.config.{ApplicationSettingsLoader, ConfigTemplateProcessor}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.utils.tcp.PortFromSystemPropertyOrFindFree
-import fi.vm.sade.valintatulosservice.config.ITPostgres
-import fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu.{ApplicationSettings, ApplicationSettingsParser}
 
-object ITAppConfig extends Logging {
-  private implicit val settingsParser = ApplicationSettingsParser
+object ValintarekisteriAppConfig extends Logging {
+  def getProfileProperty() = System.getProperty("valintatulos.profile", "default")
+  private implicit val settingsParser = ValintarekisteriApplicationSettingsParser
+  private val embeddedMongoPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.embeddedmongo.port")
   private val itPostgresPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.it.postgres.port")
 
-
-
-  /**
-   *  IT (integration test) profiles. Uses embedded mongo and PostgreSQL databases, and stubbed external deps
-   */
   class IT extends ExampleTemplatedProps {
     private lazy val itPostgres = new ITPostgres(itPostgresPortChooser)
 
@@ -38,7 +32,7 @@ object ITAppConfig extends Logging {
     lazy val settings = ApplicationSettingsLoader.loadSettings(configFile)
   }
 
-  trait ExampleTemplatedProps extends AppConfig with TemplatedProps {
+  trait ExampleTemplatedProps extends ValintarekisteriAppConfig with TemplatedProps {
     def templateAttributesURL = getClass.getResource("/oph-configuration/dev-vars.yml")
   }
 
@@ -52,14 +46,18 @@ object ITAppConfig extends Logging {
     def templateAttributesURL: URL
   }
 
-  trait AppConfig {
+  trait ValintarekisteriAppConfig extends AppConfig {
 
     def start {}
 
-    def settings: ApplicationSettings
+    override def settings: ValintarekisteriApplicationSettings
 
     def properties: Map[String, String] = settings.toProperties
 
   }
+}
+
+trait StubbedExternalDeps {
+
 }
 

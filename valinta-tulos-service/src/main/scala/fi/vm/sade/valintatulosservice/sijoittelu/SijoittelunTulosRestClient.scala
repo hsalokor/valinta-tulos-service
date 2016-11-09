@@ -3,7 +3,8 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 import fi.vm.sade.sijoittelu.domain.{HakukohdeItem, SijoitteluAjo}
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
 import fi.vm.sade.sijoittelu.tulos.dto.{HakukohdeDTO, SijoitteluajoDTO}
-import fi.vm.sade.valintatulosservice.config.VtsAppConfig.{StubbedExternalDeps, VtsAppConfig}
+import fi.vm.sade.valintatulosservice.config.StubbedExternalDeps
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.json.StreamingJsonArrayRetriever
 
 import scala.collection.JavaConverters._

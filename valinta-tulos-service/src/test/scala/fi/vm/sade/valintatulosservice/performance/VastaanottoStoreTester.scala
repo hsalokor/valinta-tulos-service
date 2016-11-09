@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.valintarekisteri.config.ValintarekisteriAppConfig
+import fi.vm.sade.valintatulosservice.config.ValintarekisteriAppConfig
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{VastaanotaSitovasti, HakijanVastaanotto}
 import slick.driver.PostgresDriver.api._

@@ -2,9 +2,8 @@ import java.util
 import javax.servlet.{DispatcherType, ServletContext}
 
 import fi.vm.sade.valintatulosservice._
-import fi.vm.sade.valintatulosservice.config.VtsAppConfig
+import fi.vm.sade.valintatulosservice.config.{ValintarekisteriAppConfig, VtsAppConfig}
 import fi.vm.sade.valintatulosservice.config.VtsAppConfig.{Dev, VtsAppConfig}
-import fi.vm.sade.valintatulosservice.valintarekisteri.config.ValintarekisteriAppConfig
 import ValintarekisteriAppConfig._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
@@ -13,7 +12,7 @@ import fi.vm.sade.valintatulosservice.migraatio.MigraatioServlet
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoittelunTulosRestClient, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
-import fi.vm.sade.valintatulosservice.valintarekisteri.HakukohdeRecordService
+import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 import fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu.ValintarekisteriForSijoittelu
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{MailDecorator, MailPoller, ValintatulosMongoCollection}
 import org.scalatra._
