@@ -1,11 +1,13 @@
 package fi.vm.sade.valintatulosservice.config
 
 import com.typesafe.config.Config
+import org.apache.commons.lang3.BooleanUtils
 
 abstract class ApplicationSettings(config: Config) extends fi.vm.sade.utils.config.ApplicationSettings(config) {
   val tarjontaUrl = withConfig(_.getString("tarjonta-service.url"))
   val valintaRekisteriDbConfig = withConfig(_.getConfig("valinta-tulos-service.valintarekisteri.db"))
   val koodistoUrl = withConfig(_.getString("koodisto-service.rest.url"))
+  val lenientTarjontaDataParsing: Boolean = BooleanUtils.isTrue(withConfig(_.getBoolean("valinta-tulos-service.parseleniently.tarjonta")))
 
   protected def withConfig[T](operation: Config => T): T = {
     try {

@@ -10,6 +10,12 @@ import scala.collection.JavaConverters._
 
 case class SijoitteluWrapper(sijoitteluajo:SijoitteluAjo, hakukohteet:List[Hakukohde], valintatulokset:List[Valintatulos])
 
+object SijoitteluWrapper {
+  def apply(sijoitteluajo:SijoitteluAjo, hakukohteet:java.util.List[Hakukohde], valintatulokset:java.util.List[Valintatulos]): SijoitteluWrapper = {
+    SijoitteluWrapper(sijoitteluajo, hakukohteet.asScala.toList, valintatulokset.asScala.toList)
+  }
+}
+
 case class SijoitteluajoWrapper(sijoitteluajoId:Long, hakuOid:String, startMils:Long, endMils:Long) {
   val sijoitteluajo:SijoitteluAjo = {
     val sijoitteluajo = new SijoitteluAjo

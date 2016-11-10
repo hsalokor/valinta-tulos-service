@@ -14,7 +14,7 @@ class ValintarekisteriForSijoitteluTest extends Specification with ITSetup with 
   step(deleteAll())
   step(singleConnectionValintarekisteriDb.storeSijoittelu(loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/")))
 
-  lazy val valintarekisteri = new ValintarekisteriForSijoittelu(singleConnectionValintarekisteriDb)
+  lazy val valintarekisteri = new ValintarekisteriForSijoittelu(singleConnectionValintarekisteriDb, hakukohdeRecordService)
 
   "SijoitteluajoDTO should be fetched from database" in {
     val sijoitteluAjo = valintarekisteri.getSijoitteluajo("1.2.246.562.29.75203638285","1476936450191")
@@ -23,6 +23,9 @@ class ValintarekisteriForSijoitteluTest extends Specification with ITSetup with 
     sijoitteluAjo.getHakukohteet.get(0).getValintatapajonot.get(0).getHakemukset.size mustEqual 15
     sijoitteluAjo.getHakukohteet.get(1).getValintatapajonot.get(0).getOid mustEqual "14539780970882907815262745035155"
   }
+  /*"Sijoittelu and hakukohteet should be saved in database" in {
+
+  }*/
 
   step(deleteAll())
 }

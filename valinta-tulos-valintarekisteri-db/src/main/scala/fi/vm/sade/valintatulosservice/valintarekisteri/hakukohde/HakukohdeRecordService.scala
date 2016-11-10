@@ -1,8 +1,10 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde
 
 import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.config.AppConfig
+import fi.vm.sade.valintatulosservice.koodisto.KoodistoService
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Koulutus, Hakukohde, HakuService}
-import fi.vm.sade.valintatulosservice.valintarekisteri.db.HakukohdeRepository
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.{ValintarekisteriDb, HakukohdeRepository}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakukohdeRecord, Kausi}
 
 import scala.util.{Failure, Success, Try}
@@ -88,5 +90,14 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
     case Stream.Empty => Right(Nil)
     case Left(e)#::_ => Left(e)
     case Right(x)#::rest => sequence(rest).right.map(x +: _)
+  }
+}
+
+object HakukohdeRecordService {
+
+  def apply(valintarekisteriDb: ValintarekisteriDb, appConfig: AppConfig) = {
+    val koodistoService = new KoodistoService(appConfig)
+    val hakuService = HakuService(koodistoService, appConfig)
+    new HakukohdeRecordService(hakuService, valintarekisteriDb, appConfig.settings.lenientTarjontaDataParsing)
   }
 }

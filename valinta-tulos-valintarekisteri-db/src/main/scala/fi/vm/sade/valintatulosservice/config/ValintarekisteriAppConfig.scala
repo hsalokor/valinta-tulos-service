@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice.config
 
 import java.net.URL
 
+import com.typesafe.config.ConfigFactory
 import fi.vm.sade.utils.config.{ApplicationSettingsLoader, ConfigTemplateProcessor}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.utils.tcp.PortFromSystemPropertyOrFindFree
@@ -11,6 +12,12 @@ object ValintarekisteriAppConfig extends Logging {
   private implicit val settingsParser = ValintarekisteriApplicationSettingsParser
   //1private val embeddedMongoPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.embeddedmongo.port")
   private val itPostgresPortChooser = new PortFromSystemPropertyOrFindFree("valintatulos.it.postgres.port")
+
+  def getDefault() = new Default
+
+  class Default extends ValintarekisteriAppConfig {
+    val settings = settingsParser.parse(ConfigFactory.load())
+  }
 
   class IT extends ExampleTemplatedProps {
     private lazy val itPostgres = new ITPostgres(itPostgresPortChooser)
