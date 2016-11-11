@@ -28,44 +28,40 @@ class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with
       hakukohdeRepository.findHakukohde(hakukohdeOid) returns None
       hakuService.getHakukohde(hakukohdeOid) returns Right(hakukohdeFromTarjonta)
       hakuService.getHaku(hakuOid) returns Right(hakuFromTarjonta)
-      hakuService.getKoulutus(julkaistuKoulutus.oid) returns Right(julkaistuKoulutus)
       hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must_== Right(hakukohdeRecord)
       one(hakukohdeRepository).storeHakukohde(hakukohdeRecord)
     }
   }
 
   "Strict HakukohdeRecordService" in {
-    "throws an exception for hakukohde with only POISTETTU koulutus" in new HakukohdeRecordServiceWithMocks {
+    "throws an exception when neither haku has koulutuksen alkamiskausi" in new HakukohdeRecordServiceWithMocks {
       val hakukohdeRecordService = new HakukohdeRecordService(hakuService, hakukohdeRepository, false)
       hakukohdeRepository.findHakukohde(hakukohdeOid) returns None
-      hakuService.getHakukohde(hakukohdeOid) returns Right(hakukohdeFromTarjonta.copy(hakukohdeKoulutusOids = List(poistettuKoulutus.oid)))
+      hakuService.getHakukohde(hakukohdeOid) returns Right(hakukohdeFromTarjonta.copy(koulutuksenAlkamiskausiUri = ""))
       hakuService.getHaku(hakuOid) returns Right(hakuFromTarjonta)
-      hakuService.getKoulutus(poistettuKoulutus.oid) returns Right(poistettuKoulutus)
       hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must beLeft[Throwable]
       there was no(hakukohdeRepository).storeHakukohde(hakukohdeRecord)
     }
   }
 
   "Lenient HakukohdeRecordService" in {
-    "falls back to koulutuksen alkamiskausi of haku for hakukohde with only POISTETTU koulutus" in new HakukohdeRecordServiceWithMocks {
+    "falls back to koulutuksen alkamiskausi of haku for hakukohde when hakukohde has no koulutuksen alkamiskausi" in new HakukohdeRecordServiceWithMocks {
       val hakukohdeRecordService = new HakukohdeRecordService(hakuService, hakukohdeRepository, true)
       val hakukohdeRecordWithKausiFromHaku: HakukohdeRecord = hakukohdeRecord.copy(koulutuksenAlkamiskausi = hakuFromTarjonta.koulutuksenAlkamiskausi.get)
 
       hakukohdeRepository.findHakukohde(hakukohdeOid) returns None
-      hakuService.getHakukohde(hakukohdeOid) returns Right(hakukohdeFromTarjonta.copy(hakukohdeKoulutusOids = List(poistettuKoulutus.oid)))
+      hakuService.getHakukohde(hakukohdeOid) returns Right(hakukohdeFromTarjonta.copy(koulutuksenAlkamiskausiUri = ""))
       hakuService.getHaku(hakuOid) returns Right(hakuFromTarjonta)
-      hakuService.getKoulutus(poistettuKoulutus.oid) returns Right(poistettuKoulutus)
       hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must_== Right(hakukohdeRecordWithKausiFromHaku)
       one(hakukohdeRepository).storeHakukohde(hakukohdeRecordWithKausiFromHaku)
     }
 
-    "crashes if haku has no koulutuksen alkamiskausi for hakukohde with only POISTETTU koulutus" in new HakukohdeRecordServiceWithMocks {
+    "crashes if haku has no koulutuksen alkamiskausi for hakukohde or haku" in new HakukohdeRecordServiceWithMocks {
       val hakukohdeRecordService = new HakukohdeRecordService(hakuService, hakukohdeRepository, true)
 
       hakukohdeRepository.findHakukohde(hakukohdeOid) returns None
-      hakuService.getHakukohde(hakukohdeOid) returns Right(hakukohdeFromTarjonta.copy(hakukohdeKoulutusOids = List(poistettuKoulutus.oid)))
+      hakuService.getHakukohde(hakukohdeOid) returns Right(hakukohdeFromTarjonta.copy(koulutuksenAlkamiskausiUri = ""))
       hakuService.getHaku(hakuOid) returns Right(hakuFromTarjonta.copy(koulutuksenAlkamiskausi = None))
-      hakuService.getKoulutus(poistettuKoulutus.oid) returns Right(poistettuKoulutus)
       hakukohdeRecordService.getHakukohdeRecord(hakukohdeOid) must beLeft[Throwable]
       there was no(hakukohdeRepository).storeHakukohde(hakukohdeRecord)
     }
@@ -80,11 +76,10 @@ class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with
       yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true, Kausi("2016S"))
 
     val koodi = Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(Koodi(KoodistoService.OnTutkinto, 1, None)))))
-    val poistettuKoulutus = Koulutus("1.2.246.562.17.53513994722", Kausi("2017S"), "POISTETTU", Some(koodi))
     val julkaistuKoulutus = Koulutus("1.2.246.562.17.42423443434", Kausi("2016S"), "JULKAISTU", Some(koodi))
     val yhdenpaikansaanto = YhdenPaikanSaanto(voimassa = true, "Korkeakoulutus ilman kohdejoukon tarkennetta")
     val hakukohdeFromTarjonta = Hakukohde(hakukohdeOid, hakuOid, List(julkaistuKoulutus.oid), "KORKEAKOULUTUS", "TUTKINTO",
-      Map("kieli_fi" -> "Hakukohteen nimi"), Map("fi" -> "Tarjoajan nimi"), yhdenPaikanSaanto = yhdenpaikansaanto)
+      Map("kieli_fi" -> "Hakukohteen nimi"), Map("fi" -> "Tarjoajan nimi"), yhdenPaikanSaanto = yhdenpaikansaanto, true, "S", 2016)
     val hakuFromTarjonta: Haku = Haku(hakuOid, korkeakoulu = true, yhteishaku = true, varsinainenhaku = true,
       lisähaku = false, käyttääSijoittelua = true, varsinaisenHaunOid = None, sisältyvätHaut = Set(), hakuAjat = Nil,
       Some(Kausi("2016K")), yhdenpaikansaanto,

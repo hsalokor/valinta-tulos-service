@@ -63,17 +63,12 @@ object HakuFixtures extends HakuService with JsonHakuService {
     // TODO: Saner / more working test data
     if (activeFixture == toinenAsteYhteishaku || activeFixture == toinenAsteErillishakuEiSijoittelua) {
       Right(Hakukohde(oid, hakuOid, List("koulu.tus.oid"), "AMMATILLINEN_PERUSKOULUTUS", "TUTKINTO_OHJELMA",
-        Map("kieli_fi" -> "Lukion ilmaisutaitolinja"), Map("fi" -> "Kallion lukio"), YhdenPaikanSaanto(false, "testihakukohde")))
+        Map("kieli_fi" -> "Lukion ilmaisutaitolinja"), Map("fi" -> "Kallion lukio"), YhdenPaikanSaanto(false, "testihakukohde"), false, "S", 2017))
     } else {
       Right(Hakukohde(oid, hakuOid, List("koulu.tus.oid"), "KORKEAKOULUTUS", "TUTKINTO",
         Map("kieli_fi" -> "Lukion ilmaisutaitolinja"), Map("fi" -> "Kallion lukio"), YhdenPaikanSaanto(
-          activeFixture != korkeakouluErillishakuEiYhdenPaikanSaantoa, "testihakukohde")))
+          activeFixture != korkeakouluErillishakuEiYhdenPaikanSaantoa, "testihakukohde"), true, "S", 2017))
     }
-  }
-
-  override def getKoulutus(koulutusOid: String): Either[Throwable, Koulutus] = {
-    val koodi = Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(Koodi(KoodistoService.OnTutkinto, 1, None)))))
-    Right(Koulutus(koulutusOid, Kausi("2016K"), "JULKAISTU", Some(koodi)))
   }
 
   override def getHakukohdeOids(hakuOid: String): Either[Throwable, Seq[String]] = Right(List(

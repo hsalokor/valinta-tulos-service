@@ -2,10 +2,10 @@ package fi.vm.sade.valintatulosservice.tarjonta
 
 import fi.vm.sade.utils.http.DefaultHttpClient
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.config.{ValintarekisteriApplicationSettings, AppConfig, StubbedExternalDeps}
+import fi.vm.sade.valintatulosservice.config.{AppConfig, StubbedExternalDeps}
 import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, KoodistoService}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{Syksy, Kevat, Kausi}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{Kausi, Kevat, Syksy}
 import org.joda.time.DateTime
 import org.json4s.JsonAST.{JInt, JObject, JString}
 import org.json4s.jackson.JsonMethods._
@@ -20,7 +20,6 @@ trait HakuService {
   def getHakukohde(oid: String): Either[Throwable, Hakukohde]
   def getHakukohdes(oids: Seq[String]): Either[Throwable, Seq[Hakukohde]]
   def getHakukohdesForHaku(hakuOid: String): Either[Throwable, Seq[Hakukohde]]
-  def getKoulutus(koulutusOid: String): Either[Throwable, Koulutus]
   def getHakukohdeOids(hakuOid:String): Either[Throwable, Seq[String]]
   def getArbitraryPublishedHakukohdeOid(oid: String): Either[Throwable, String]
   def kaikkiJulkaistutHaut: Either[Throwable, List[Haku]]
@@ -46,8 +45,8 @@ case class Hakuaika(hakuaikaId: String, alkuPvm: Option[Long], loppuPvm: Option[
 
 case class Hakukohde(oid: String, hakuOid: String, hakukohdeKoulutusOids: List[String],
                      koulutusAsteTyyppi: String, koulutusmoduuliTyyppi: String,
-                     hakukohteenNimet: Map[String, String], tarjoajaNimet: Map[String, String],
-                     yhdenPaikanSaanto: YhdenPaikanSaanto)
+                     hakukohteenNimet: Map[String, String], tarjoajaNimet: Map[String, String], yhdenPaikanSaanto: YhdenPaikanSaanto,
+                     tutkintoonJohtava:Boolean, koulutuksenAlkamiskausiUri:String, koulutuksenAlkamisvuosi:Int)
 
 case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, koulutusKoodi: Option[Koodi]) {
   def johtaaTutkintoon: Boolean = {
@@ -119,8 +118,6 @@ class CachedHakuService(wrappedService: HakuService) extends HakuService {
   override def getArbitraryPublishedHakukohdeOid(oid: String): Either[Throwable, String] = wrappedService.getArbitraryPublishedHakukohdeOid(oid)
 
   def kaikkiJulkaistutHaut: Either[Throwable, List[Haku]] = all()
-
-  override def getKoulutus(koulutusOid: String): Either[Throwable, Koulutus] = wrappedService.getKoulutus(koulutusOid)
 }
 
 private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiUri: String, kohdejoukkoUri: String,

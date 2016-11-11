@@ -1,9 +1,9 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde
 
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Koulutus, Hakukohde, HakuService}
+import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService, Hakukohde, Koulutus}
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.HakukohdeRepository
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakukohdeRecord, Kausi}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakukohdeRecord, Kausi, Kevat, Syksy}
 
 import scala.util.{Failure, Success, Try}
 
@@ -82,28 +82,19 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
   private def fetchHakukohdeDetails(oid: String): Either[Throwable, HakukohdeRecord] = {
     for {
       hakukohde <- hakuService.getHakukohde(oid).right
-      koulutukset <- sequence(hakukohde.hakukohdeKoulutusOids.toStream.map(hakuService.getKoulutus)).right
-      alkamiskausi <- resolveKoulutuksenAlkamiskausi(hakukohde, koulutukset).right
-    } yield HakukohdeRecord(hakukohde.oid, hakukohde.hakuOid, hakukohde.yhdenPaikanSaanto.voimassa,
-      hakukohdeJohtaaKkTutkintoon(hakukohde, koulutukset), alkamiskausi)
+      haku <- hakuService.getHaku(hakukohde.hakuOid).right
+      alkamiskausi <- resolveKoulutuksenAlkamiskausi(hakukohde, haku).right
+    } yield HakukohdeRecord(hakukohde.oid, haku.oid, haku.yhdenPaikanSaanto.voimassa, hakukohde.tutkintoonJohtava, alkamiskausi)
   }
 
-  private def resolveKoulutuksenAlkamiskausi(hakukohde: Hakukohde, koulutukset: Seq[Koulutus]): Either[Throwable, Kausi] = {
-    def oikeanTilaiset(koulutukset: Seq[Koulutus]): Seq[Koulutus] = koulutukset.filter(k => !koulutusTilasToSkipInStrictParsing.contains(k.tila))
-    val errorMessage = s"No unique koulutuksen alkamiskausi in $koulutukset for $hakukohde " +
-      s"(koulutukset in correct state: ${oikeanTilaiset(koulutukset)})"
-
-    unique(oikeanTilaiset(koulutukset).map(_.koulutuksenAlkamiskausi)) match {
-      case Some(found) => Right(found)
-      case None if parseLeniently =>
-        hakuService.getHaku(hakukohde.hakuOid) match {
-          case Right(haku) =>
-            logger.warn(s"$errorMessage. Falling back to koulutuksen alkamiskausi from haku: ${haku.koulutuksenAlkamiskausi}")
-            haku.koulutuksenAlkamiskausi.toRight(new IllegalStateException(s"$errorMessage , and no koulutuksen alkamiskausi on haku $haku"))
-          case Left(e) => Left(e)
-        }
-      case None => Left(new IllegalStateException(errorMessage))
+  private def resolveKoulutuksenAlkamiskausi(hakukohde: Hakukohde, haku: Haku): Either[Throwable, Kausi] = hakukohde.koulutuksenAlkamiskausiUri match {
+    case "K" => Right(Kevat(hakukohde.koulutuksenAlkamisvuosi))
+    case "S" => Right(Syksy(hakukohde.koulutuksenAlkamisvuosi))
+    case _ if parseLeniently => {
+      logger.warn(s"No alkamiskausi for hakukohde ${hakukohde.oid}. Falling back to koulutuksen alkamiskausi from haku: ${haku.koulutuksenAlkamiskausi}")
+      haku.koulutuksenAlkamiskausi.toRight(new IllegalStateException(s"No koulutuksen alkamiskausi on haku $haku"))
     }
+    case _ => Left(new IllegalStateException(s"No alkamiskausi for hakukohde ${hakukohde.oid}."))
   }
 
   private def hakukohdeJohtaaKkTutkintoon(hakukohde: Hakukohde, koulutukset: Seq[Koulutus]): Boolean = {
