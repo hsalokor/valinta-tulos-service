@@ -238,7 +238,8 @@ class VastaanottoServiceHakijanaSpec extends ITSpecification with TimeWarp with 
         vastaanota("korkeakoulu-lisahaku1", lisahakuHakemusOid, lisahaunVastaanotettavaHakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
 
         val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", lisahakuHakemusOid)
-        lisaHaunTulos.hakutoiveet(0).vastaanottotila == Vastaanottotila.vastaanottanut
+        lisaHaunTulos.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
+        lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.vastaanottanut
         lisaHaunTulos.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
 
         HakuFixtures.useFixture("korkeakoulu-yhteishaku")
@@ -254,7 +255,7 @@ class VastaanottoServiceHakijanaSpec extends ITSpecification with TimeWarp with 
         vastaanota("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230", "1.2.246.562.14.2013120515524070995659", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
 
         val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", "1.2.246.562.11.00000878230")
-        lisaHaunTulos.hakutoiveet(0).vastaanottotila == Vastaanottotila.vastaanottanut
+        lisaHaunTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
         lisaHaunTulos.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
       }
 
@@ -295,7 +296,8 @@ class VastaanottoServiceHakijanaSpec extends ITSpecification with TimeWarp with 
         vastaanota("korkeakoulu-lisahaku1", lisahakuHakemusOid, lisahaunVastaanotettavaHakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
 
         val lisaHaunTulos = hakemuksenTulos("korkeakoulu-lisahaku1", lisahakuHakemusOid)
-        lisaHaunTulos.hakutoiveet(0).vastaanottotila == Vastaanottotila.vastaanottanut
+        lisaHaunTulos.hakutoiveet(0).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
+        lisaHaunTulos.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.vastaanottanut
         lisaHaunTulos.hakutoiveet(1).vastaanotettavuustila must_== Vastaanotettavuustila.ei_vastaanotettavissa
       }
 
