@@ -353,7 +353,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   override def hakukohteessaVastaanottoja(oid: String): Boolean = {
     runBlocking(sql"""select count(*) from newest_vastaanotot where hakukohde = ${oid}""".as[Int]).head > 0
   }
-  
+
   override def storeSijoitteluajo(sijoitteluajo:SijoitteluAjo): Unit = {
     runBlocking(insertSijoitteluajo(sijoitteluajo))
   }
