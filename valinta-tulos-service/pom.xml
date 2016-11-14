@@ -124,7 +124,6 @@
             <groupId>com.typesafe.slick</groupId>
             <artifactId>slick-hikaricp_2.11</artifactId>
             <version>${slick_2.11.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
