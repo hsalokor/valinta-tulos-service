@@ -88,8 +88,8 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
   }
 
   private def resolveKoulutuksenAlkamiskausi(hakukohde: Hakukohde, haku: Haku): Either[Throwable, Kausi] = hakukohde.koulutuksenAlkamiskausiUri match {
-    case x if x.matches("""kausi_k#\d""") => Right(Kevat(hakukohde.koulutuksenAlkamisvuosi))
-    case x if x.matches("""kausi_s#\d""") => Right(Syksy(hakukohde.koulutuksenAlkamisvuosi))
+    case x if x.matches("""kausi_k#\d+""") => Right(Kevat(hakukohde.koulutuksenAlkamisvuosi))
+    case x if x.matches("""kausi_s#\d+""") => Right(Syksy(hakukohde.koulutuksenAlkamisvuosi))
     case _ if parseLeniently => {
       logger.warn(s"No alkamiskausi for hakukohde ${hakukohde.oid}. Falling back to koulutuksen alkamiskausi from haku: ${haku.koulutuksenAlkamiskausi}")
       haku.koulutuksenAlkamiskausi.toRight(new IllegalStateException(s"No koulutuksen alkamiskausi on haku $haku"))
