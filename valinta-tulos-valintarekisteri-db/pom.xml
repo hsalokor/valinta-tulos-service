@@ -97,6 +97,11 @@
             <artifactId>json4s-native_2.11</artifactId>
             <version>${FIXME.json4s_2.11.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.typesafe.slick</groupId>
+            <artifactId>slick-hikaricp_2.11</artifactId>
+            <version>${slick_2.11.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

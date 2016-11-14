@@ -1,8 +1,10 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde
 
 import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.config.AppConfig
+import fi.vm.sade.valintatulosservice.koodisto.KoodistoService
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService, Hakukohde, Koulutus}
-import fi.vm.sade.valintatulosservice.valintarekisteri.db.HakukohdeRepository
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.{HakukohdeRepository, ValintarekisteriDb}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakukohdeRecord, Kausi, Kevat, Syksy}
 
 import scala.util.{Failure, Success, Try}
@@ -75,6 +77,7 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
 
   private def fetchAndStoreHakukohdeDetails(oid: String): Either[Throwable, HakukohdeRecord] = {
     val fresh = fetchHakukohdeDetails(oid)
+    fresh.left.foreach(t => logger.warn(s"Error fetching hakukohde ${oid} details. Cannot store it to the database.", t))
     fresh.right.foreach(hakukohdeRepository.storeHakukohde)
     fresh
   }
@@ -112,5 +115,14 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
     case Stream.Empty => Right(Nil)
     case Left(e)#::_ => Left(e)
     case Right(x)#::rest => sequence(rest).right.map(x +: _)
+  }
+}
+
+object HakukohdeRecordService {
+
+  def apply(valintarekisteriDb: ValintarekisteriDb, appConfig: AppConfig) = {
+    val koodistoService = new KoodistoService(appConfig)
+    val hakuService = HakuService(koodistoService, appConfig)
+    new HakukohdeRecordService(hakuService, valintarekisteriDb, appConfig.settings.lenientTarjontaDataParsing)
   }
 }

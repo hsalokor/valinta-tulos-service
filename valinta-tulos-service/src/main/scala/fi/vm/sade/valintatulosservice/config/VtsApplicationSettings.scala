@@ -12,7 +12,6 @@ case class VtsApplicationSettings(config: Config) extends ApplicationSettings(co
   val sijoitteluServiceRestUrl = withConfig(_.getString("sijoittelu-service.rest.url"))
   val securitySettings = new SecuritySettings(config)
   val valintaRekisteriEnsikertalaisuusMaxPersonOids = withConfig(_.getInt("valinta-tulos-service.valintarekisteri.ensikertalaisuus.max.henkilo.oids"))
-  val lenientTarjontaDataParsing: Boolean = BooleanUtils.isTrue(withConfig(_.getBoolean("valinta-tulos-service.parseleniently.tarjonta")))
   val lenientSijoitteluntuloksetParsing: Boolean = BooleanUtils.isTrue(withConfig(_.getBoolean("valinta-tulos-service.parseleniently.sijoitteluajontulos")))
 
   val ilmoittautuminenEnabled = {
