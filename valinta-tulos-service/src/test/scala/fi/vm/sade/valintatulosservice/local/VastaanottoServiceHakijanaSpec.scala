@@ -318,23 +318,23 @@ class VastaanottoServiceHakijanaSpec extends ITSpecification with TimeWarp with 
       }
 
       "vastaanota varsinaisessa haussa, kun lisähaussa jo vastaanottanut -> ERROR" in {
-        useFixture("lisahaku-vastaanottanut.json", hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+        useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
         expectFailure(Some("Väärä vastaanotettavuustila kohteella 1.2.246.562.5.72607738902: EI_VASTAANOTETTAVISSA (yritetty muutos: VastaanotaSitovasti)")) {
-          vastaanota("korkeakoulu-lisahaku1", hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
+          vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
         }
       }
 
       "vastaanota ehdollisesti varsinaisessa haussa, kun lisähaussa jo vastaanottanut -> ERROR" in {
-        useFixture("lisahaku-vastaanottanut.json", hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+        useFixture("hyvaksytty-ylempi-varalla.json", List("lisahaku-vastaanottanut.json"), hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
         expectFailure(Some("Väärä vastaanotettavuustila kohteella 1.2.246.562.5.16303028779: EI_VASTAANOTETTAVISSA (yritetty muutos: VastaanotaEhdollisesti)")) {
-          vastaanota("korkeakoulu-lisahaku1", hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
+          vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.ehdollisesti_vastaanottanut, muokkaaja, selite, personOid)
         }
       }
 
       "vastaanota varsinaisessa haussa, kun lisähaussa jo vastaanottanut ehdollisesti -> ERROR" in {
-        useFixture("lisahaku-vastaanottanut-ehdollisesti.json", hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+        useFixture("hyvaksytty-kesken-julkaistavissa.json", List("lisahaku-vastaanottanut-ehdollisesti.json"), hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
         expectFailure(Some("Väärä vastaanotettavuustila kohteella 1.2.246.562.5.72607738902: EI_VASTAANOTETTAVISSA (yritetty muutos: VastaanotaSitovasti)")) {
-          vastaanota("korkeakoulu-lisahaku1", hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
+          vastaanota(hakuOid, hakemusOid, "1.2.246.562.5.72607738902", Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
         }
       }
 
