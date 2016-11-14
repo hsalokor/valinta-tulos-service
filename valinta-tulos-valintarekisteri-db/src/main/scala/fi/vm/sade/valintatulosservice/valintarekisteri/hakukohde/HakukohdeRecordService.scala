@@ -47,6 +47,7 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
 
   private def fetchAndStoreHakukohdeDetails(oid: String): Either[Throwable, HakukohdeRecord] = {
     val fresh = fetchHakukohdeDetails(oid)
+    fresh.left.foreach(t => logger.warn(s"Error fetching hakukohde ${oid} details. Cannot store it to the database.", t))
     fresh.right.foreach(hakukohdeRepository.storeHakukohde)
     fresh
   }

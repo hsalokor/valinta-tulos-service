@@ -6,22 +6,36 @@ import fi.vm.sade.sijoittelu.domain.{Valintatulos, Hakukohde, SijoitteluAjo}
 import fi.vm.sade.sijoittelu.tulos.dto.SijoitteluajoDTO
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.config.{AppConfig, ValintarekisteriAppConfig}
-import fi.vm.sade.valintatulosservice.koodisto.KoodistoService
-import fi.vm.sade.valintatulosservice.tarjonta.HakuService
+import fi.vm.sade.valintatulosservice.config.ValintarekisteriAppConfig
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.SijoitteluRepository
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{SijoitteluWrapper, SijoitteluUtil, ValintatapajonoRecord}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{SijoitteluWrapper, SijoitteluUtil}
 import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 
 import scala.collection.JavaConverters._
 
-class ValintarekisteriForSijoittelu(sijoitteluRepository:SijoitteluRepository,
-                                    hakukohdeRecordService: HakukohdeRecordService) extends Logging {
+class ValintarekisteriForSijoittelu(appConfig:ValintarekisteriAppConfig.ValintarekisteriAppConfig) extends Valintarekisteri {
+
+  def this() = this(ValintarekisteriAppConfig.getDefault())
+
+  def this(properties:java.util.Properties) = this(ValintarekisteriAppConfig.getDefault(properties))
+
+  override val sijoitteluRepository = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
+  override val hakukohdeRecordService: HakukohdeRecordService = HakukohdeRecordService(sijoitteluRepository, appConfig)
+}
+
+class ValintarekisteriService(override val sijoitteluRepository:SijoitteluRepository,
+                              override val hakukohdeRecordService: HakukohdeRecordService) extends Valintarekisteri {
+}
+
+abstract class Valintarekisteri extends Logging {
+
+  val sijoitteluRepository:SijoitteluRepository
+  val hakukohdeRecordService: HakukohdeRecordService
 
   lazy val sijoitteluUtil = new SijoitteluUtil(sijoitteluRepository)
 
-  def luoSijoittelu(sijoitteluajo:SijoitteluAjo, hakukohteet:java.util.List[Hakukohde], valintatulokset:java.util.List[Valintatulos]) = {
+  def tallennaSijoittelu(sijoitteluajo:SijoitteluAjo, hakukohteet:java.util.List[Hakukohde], valintatulokset:java.util.List[Valintatulos]) = {
     val sijoittelu = SijoitteluWrapper(sijoitteluajo, hakukohteet, valintatulokset)
     sijoittelu.hakukohteet.map(_.getOid).foreach(hakukohdeRecordService.getHakukohdeRecord(_))
     sijoitteluRepository.storeSijoittelu(sijoittelu)
@@ -93,14 +107,5 @@ class ValintarekisteriForSijoittelu(sijoitteluRepository:SijoitteluRepository,
     hakutoiveetDTOs.sortBy(h => h.getHakutoive)
     hakijaDTO.setHakutoiveet(hakutoiveetDTOs.asInstanceOf[util.SortedSet[HakutoiveDTO]])
     return hakijaDTO
-  }
-}
-
-object ValintarekisteriForSijoittelu {
-
-  def apply() = {
-    val appConfig = ValintarekisteriAppConfig.getDefault()
-    val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
-    new ValintarekisteriForSijoittelu(valintarekisteriDb, HakukohdeRecordService(valintarekisteriDb, appConfig))
   }
 }

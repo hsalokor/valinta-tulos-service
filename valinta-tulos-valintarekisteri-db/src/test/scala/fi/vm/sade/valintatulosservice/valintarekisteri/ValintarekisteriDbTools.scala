@@ -79,7 +79,7 @@ trait ValintarekisteriDbTools extends Specification {
     singleConnectionValintarekisteriDb.runBlocking(deleteFromVastaanotot)
   }
 
-  def sijoitteluWrapperFromJson(json: JValue): SijoitteluWrapper = {
+  def sijoitteluWrapperFromJson(json: JValue, tallennaHakukohteet: Boolean = true): SijoitteluWrapper = {
     val JArray(sijoittelut) = (json \ "Sijoittelu")
     val JArray(sijoitteluajot) = (sijoittelut(0) \ "sijoitteluajot")
     val sijoitteluajo: SijoitteluAjo = sijoitteluajot(0).extract[SijoitteluajoWrapper].sijoitteluajo
@@ -128,7 +128,9 @@ trait ValintarekisteriDbTools extends Specification {
     val wrapper: SijoitteluWrapper = SijoitteluWrapper(sijoitteluajo, hakukohteet.filter(h => {
       h.getSijoitteluajoId.equals(sijoitteluajo.getSijoitteluajoId)
     }), valintatulokset)
-    hakukohteet.foreach(h => insertHakukohde(h.getOid, sijoitteluajo.getHakuOid))
+    if(tallennaHakukohteet) {
+      hakukohteet.foreach(h => insertHakukohde(h.getOid, sijoitteluajo.getHakuOid))
+    }
     wrapper
   }
 
@@ -138,9 +140,9 @@ trait ValintarekisteriDbTools extends Specification {
            values ($hakukohdeOid, $hakuOid, true, true, '2015K')"""))
   }
 
-  def loadSijoitteluFromFixture(fixture: String, path: String = "sijoittelu/"):SijoitteluWrapper = {
+  def loadSijoitteluFromFixture(fixture: String, path: String = "sijoittelu/", tallennaHakukohteet: Boolean = true):SijoitteluWrapper = {
     val json = parse(getClass.getClassLoader.getResourceAsStream("fixtures/" + path + fixture + ".json"))
-    sijoitteluWrapperFromJson(json)
+    sijoitteluWrapperFromJson(json, tallennaHakukohteet)
   }
 
   private implicit val getSijoitteluajoResult = GetResult(r => {

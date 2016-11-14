@@ -361,6 +361,8 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   import scala.collection.JavaConverters._
 
   def storeSijoittelunHakukohde(sijoitteluajoId:Long, hakukohde: Hakukohde, valintatulokset: List[Valintatulos]) = {
+    println("Tallennetaan sijoittelun hakukohde")
+    println(hakukohde.getOid)
     insertHakukohde(hakukohde).flatMap(id =>
       DBIO.sequence(
         hakukohde.getValintatapajonot.asScala.map(valintatapajono =>

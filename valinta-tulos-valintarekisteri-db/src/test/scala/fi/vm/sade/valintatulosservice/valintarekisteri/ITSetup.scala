@@ -12,7 +12,7 @@ trait ITSetup {
   lazy val singleConnectionValintarekisteriDb = new ValintarekisteriDb(
     dbConfig.withValue("connectionPool", ConfigValueFactory.fromAnyRef("disabled")))
 
-  lazy val valintarekisteriDbWithPool = new ValintarekisteriDb(dbConfig)
+  lazy val valintarekisteriDbWithPool = new ValintarekisteriDb(dbConfig, true)
 
   lazy val hakukohdeRecordService = HakukohdeRecordService(singleConnectionValintarekisteriDb, appConfig)
 }
