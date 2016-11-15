@@ -106,6 +106,11 @@
             <version>${FIXME.http4s_2.11.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.http4s</groupId>
+            <artifactId>blaze-http_2.11</artifactId>
+            <version>${FIXME.http4s_2.11.version}</version>
+        </dependency>
+        <dependency>
             <groupId>fi.vm.sade</groupId>
             <artifactId>scala-ldap-client_2.11</artifactId>
             <version>${scala-ldap-client_2.11.version}</version>
