@@ -115,7 +115,7 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
   }
 
   private implicit val getHakemusResult = GetResult(r => HakemusRecord(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.<<, r.<<, r.<<, r.<<, r.nextStringOption().getOrElse("").split(",").toSet, r.<<, r.<<))
 
   def getHakemus(hakemusOid: String): Option[HakemusRecord] = {
     singleConnectionValintarekisteriDb.runBlocking(

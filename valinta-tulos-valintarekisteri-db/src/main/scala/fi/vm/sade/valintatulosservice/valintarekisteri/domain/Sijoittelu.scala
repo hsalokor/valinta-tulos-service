@@ -25,8 +25,8 @@ case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String,
 case class HakemusRecord(hakijaOid:String, hakemusOid:String, pisteet:BigDecimal, etunimi:String, sukunimi:String,
                          prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila,
                          tarkenne:String, tarkenteenLisatieto:String, hyvaksyttyHarkinnanvaraisesti:Boolean,
-                         varasijaNumero:Int, onkoMuuttunutviimesijoittelusta:Boolean, hyvaksyttyHakijaRyhmasta:Boolean,
-                         hakijaryhmaOid:String, siirtynytToisestaValintatapaJonosta:Boolean, valintatapajonoOid:String)
+                         varasijaNumero:Int, onkoMuuttunutviimesijoittelusta:Boolean, hakijaryhmaOids:Set[String],
+                         siirtynytToisestaValintatapaJonosta:Boolean, valintatapajonoOid:String)
 
 case class TilaHistoriaRecord(tila:String, poistaja:String, selite:String, luotu:java.sql.Date)
 
@@ -137,8 +137,7 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     hakemusDTO.setHyvaksyttyHarkinnanvaraisesti(hakemus.hyvaksyttyHarkinnanvaraisesti)
     hakemusDTO.setVarasijanNumero(hakemus.varasijaNumero)
     hakemusDTO.setOnkoMuuttunutViimeSijoittelussa(hakemus.onkoMuuttunutviimesijoittelusta)
-    hakemusDTO.setHyvaksyttyHakijaryhmasta(hakemus.hyvaksyttyHakijaRyhmasta)
-    hakemusDTO.setHakijaryhmaOid(hakemus.hakijaryhmaOid)
+    hakemusDTO.setHyvaksyttyHakijaryhmista(hakemus.hakijaryhmaOids.asJava)
     hakemusDTO.setSiirtynytToisestaValintatapajonosta(hakemus.siirtynytToisestaValintatapaJonosta)
     hakemusDTO.setValintatapajonoOid(hakemus.valintatapajonoOid)
     hakemusDTO

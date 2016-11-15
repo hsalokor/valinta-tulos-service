@@ -335,7 +335,6 @@ case class SijoitteluajonHakemusWrapper(
   pisteet:Option[BigDecimal],
   tasasijaJonosija:Option[Int],
   hyvaksyttyHarkinnanvaraisesti:Option[Boolean],
-  hyvaksyttyHakijaryhmasta:Option[Boolean],
   siirtynytToisestaValintatapajonosta:Option[Boolean],
   tila:Valinnantila,
   valinnanTilanTarkenne:Option[ValinnantilanTarkenne]) {
@@ -355,7 +354,6 @@ case class SijoitteluajonHakemusWrapper(
     pisteet.foreach(p => hakemus.setPisteet(p.bigDecimal))
     tasasijaJonosija.foreach(hakemus.setTasasijaJonosija(_))
     hyvaksyttyHarkinnanvaraisesti.foreach(hakemus.setHyvaksyttyHarkinnanvaraisesti(_))
-    hyvaksyttyHakijaryhmasta.foreach(hakemus.setHyvaksyttyHakijaryhmasta(_))
     siirtynytToisestaValintatapajonosta.foreach(hakemus.setSiirtynytToisestaValintatapajonosta(_))
     hakemus.setTila(tila.valinnantila)
     valinnanTilanTarkenne.foreach(tarkenne => hakemus.setTilanKuvaukset(tarkenne.valinnantilanTarkenne.asJava))
@@ -378,7 +376,6 @@ object SijoitteluajonHakemusWrapper extends OptionConverter {
       convert[javaBigDecimal,BigDecimal](hakemus.getPisteet, bigDecimal),
       convert[javaInt,Int](hakemus.getTasasijaJonosija,int),
       convert[javaBoolean,Boolean](hakemus.isHyvaksyttyHarkinnanvaraisesti,boolean),
-      convert[javaBoolean,Boolean](hakemus.isHyvaksyttyHakijaryhmasta,boolean),
       convert[javaBoolean,Boolean](hakemus.getSiirtynytToisestaValintatapajonosta,boolean),
       Valinnantila.getValinnantila(hakemus.getTila),
       ValinnantilanTarkenne.getValinnantilanTarkenne(hakemus.getTilanKuvaukset.asScala.toMap)
