@@ -43,10 +43,17 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   private implicit val getValintatapajonotResult = GetResult(r => ValintatapajonoRecord(r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<<, r.<<, r.<<))
   private implicit val getHakemuksetForValintatapajonosResult = GetResult(r => HakemusRecord(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.<< , r.<<, r.<< , r.<<, r.nextStringOption().getOrElse("").split(",").toSet, r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.<< , r.<<, r.<< , r.<<, hakijaryhmaOidsToSet(r.nextStringOption), r.<<, r.<<))
   private implicit val getHakemuksenTilahistoriaResult = GetResult(r => TilaHistoriaRecord(r.<<, r.<<, r.<<, r.<<))
   private implicit val getHakijaryhmatResult = GetResult(r => HakijaryhmaRecord(r.<<, r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+
+  def hakijaryhmaOidsToSet(hakijaryhmaOids:Option[String]): Set[String] = {
+    hakijaryhmaOids match {
+      case Some(oids) if !oids.isEmpty => oids.split(",").toSet
+      case _ => Set()
+    }
+  }
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
     val d = runBlocking(
@@ -363,8 +370,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       DBIO.sequence(sijoittelu.hakukohteet.map(hakukohde =>
         storeSijoittelunHakukohde(sijoittelu.sijoitteluajo.getSijoitteluajoId, hakukohde,
           sijoittelu.valintatulokset.filter(vt => vt.getHakukohdeOid == hakukohde.getOid))
-      ))
-    )
+      )))
     )
   }
 
@@ -376,13 +382,17 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
         hakukohde.getValintatapajonot.asScala.map(valintatapajono =>
           storeSijoittelunValintatapajono(sijoitteluajoId, hakukohde.getOid, valintatapajono,
             valintatulokset.filter(_.getValintatapajonoOid == valintatapajono.getOid))).toList ++
-          hakukohde.getHakijaryhmat.asScala.map(hakijaryhma => storeSijoittelunHakijaryhma(sijoitteluajoId, hakukohde.getOid, hakijaryhma)).toList)
+          hakukohde.getHakijaryhmat.asScala.map(hakijaryhma => storeSijoittelunHakijaryhma(sijoitteluajoId, hakukohde.getOid, hakijaryhma,
+            hakukohde.getValintatapajonot.asScala.flatMap(_.getHakemukset.asScala).toList)).toList)
     )
   }
 
-  def storeSijoittelunHakijaryhma(sijoitteluajoId:Long, hakukohdeOid:String, hakijaryhma: Hakijaryhma) = {
+  def storeSijoittelunHakijaryhma(sijoitteluajoId:Long, hakukohdeOid:String, hakijaryhma: Hakijaryhma, hakemukset: List[SijoitteluHakemus]) = {
     insertHakijaryhma(sijoitteluajoId, hakukohdeOid, hakijaryhma).flatMap(hakijaryhmaId =>
-      DBIO.sequence(hakijaryhma.getHakemusOid.asScala.map(hakemusOid => insertHakijaryhmanHakemus(hakijaryhmaId.get, hakemusOid)).toList)
+      DBIO.sequence(hakijaryhma.getHakemusOid.asScala.map(hakemusOid => {
+        val hakemusExists = hakemukset.exists(h => h.getHakemusOid == hakemusOid && h.getHyvaksyttyHakijaryhmista.contains(hakijaryhma.getOid))
+        insertHakijaryhmanHakemus(hakijaryhmaId.get, hakemusOid, hakemusExists)
+      }).toList)
     )
   }
 
@@ -450,7 +460,8 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   private def insertJonosija(sijoittaluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
-    onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti, siirtynytToisestaValintatapajonosta, _, _)
+    onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti, siirtynytToisestaValintatapajonosta,
+    _, _, hyvaksyttyHakijaryhmista)
     = SijoitteluajonHakemusWrapper(hakemus)
 
     sql"""insert into jonosijat (valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
@@ -468,7 +479,8 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   private def insertValinnantulos(sijoitteluajoId:Long, jonosijaId:Long, valintatulos:Valintatulos, hakemus:SijoitteluHakemus) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
-    onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti, siirtynytToisestaValintatapajonosta, valinnanTila, valinnanTilanTarkenne)
+    onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti, siirtynytToisestaValintatapajonosta,
+    valinnanTila, valinnanTilanTarkenne, hyvaksyttyHakijaryhmista)
     = SijoitteluajonHakemusWrapper(hakemus)
     val SijoitteluajonValinnantulosWrapper(valintatapajonoOid, _, hakukohdeOid, ehdollisestiHyvaksyttavissa,
     julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, ilmoittautumistila, originalLogEntries, mailStatus)
@@ -531,7 +543,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            RETURNING id""".as[Long].headOption
   }
 
-  private def insertHakijaryhmanHakemus(hakijaryhmaId:Long, hakemusOid:String) = {
+  private def insertHakijaryhmanHakemus(hakijaryhmaId:Long, hakemusOid:String, hyvaksyttyHakijaryhmasta:Boolean) = {
     sqlu"""insert into hakijaryhman_hakemukset (hakijaryhma_id, hakemus_oid) values (${hakijaryhmaId}, ${hakemusOid})"""
   }
 

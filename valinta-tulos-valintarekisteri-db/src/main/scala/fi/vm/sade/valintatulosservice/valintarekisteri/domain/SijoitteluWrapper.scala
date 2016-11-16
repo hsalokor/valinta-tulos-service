@@ -337,7 +337,8 @@ case class SijoitteluajonHakemusWrapper(
   hyvaksyttyHarkinnanvaraisesti:Option[Boolean],
   siirtynytToisestaValintatapajonosta:Option[Boolean],
   tila:Valinnantila,
-  valinnanTilanTarkenne:Option[ValinnantilanTarkenne]) {
+  valinnanTilanTarkenne:Option[ValinnantilanTarkenne],
+  hyvaksyttyHakijaryhmista:Set[String]) {
 
   import scala.collection.JavaConverters._
 
@@ -357,6 +358,7 @@ case class SijoitteluajonHakemusWrapper(
     siirtynytToisestaValintatapajonosta.foreach(hakemus.setSiirtynytToisestaValintatapajonosta(_))
     hakemus.setTila(tila.valinnantila)
     valinnanTilanTarkenne.foreach(tarkenne => hakemus.setTilanKuvaukset(tarkenne.valinnantilanTarkenne.asJava))
+    hakemus.setHyvaksyttyHakijaryhmista(hyvaksyttyHakijaryhmista.asJava)
     hakemus
   }
 }
@@ -378,7 +380,8 @@ object SijoitteluajonHakemusWrapper extends OptionConverter {
       convert[javaBoolean,Boolean](hakemus.isHyvaksyttyHarkinnanvaraisesti,boolean),
       convert[javaBoolean,Boolean](hakemus.getSiirtynytToisestaValintatapajonosta,boolean),
       Valinnantila.getValinnantila(hakemus.getTila),
-      ValinnantilanTarkenne.getValinnantilanTarkenne(hakemus.getTilanKuvaukset.asScala.toMap)
+      ValinnantilanTarkenne.getValinnantilanTarkenne(hakemus.getTilanKuvaukset.asScala.toMap),
+      hakemus.getHyvaksyttyHakijaryhmista.asScala.toSet
     )
   }
 }

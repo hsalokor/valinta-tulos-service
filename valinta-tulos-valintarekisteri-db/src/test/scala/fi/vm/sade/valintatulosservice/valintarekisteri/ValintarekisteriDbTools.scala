@@ -49,6 +49,13 @@ trait ValintarekisteriDbTools extends Specification {
 
   implicit val formats = DefaultFormats ++ List(new NumberLongSerializer, new TasasijasaantoSerializer, new ValinnantilaSerializer, new DateSerializer)
 
+  def hakijaryhmaOidsToSet(hakijaryhmaOids:Option[String]): Set[String] = {
+    hakijaryhmaOids match {
+      case Some(oids) if !oids.isEmpty => oids.split(",").toSet
+      case _ => Set()
+    }
+  }
+
   private val deleteFromVastaanotot = DBIO.seq(
     sqlu"delete from vastaanotot",
     sqlu"delete from deleted_vastaanotot where id <> overriden_vastaanotto_deleted_id()",
@@ -209,17 +216,23 @@ trait ValintarekisteriDbTools extends Specification {
   private implicit val getSijoitteluajonJonosijaResult = GetResult(r => {
     SijoitteluajonHakemusWrapper(r.nextString, r.nextString, r.nextString, r.nextString, r.nextInt, r.nextInt,
       r.nextIntOption, r.nextBooleanOption, r.nextBigDecimalOption, r.nextIntOption, r.nextBooleanOption,
-      r.nextBooleanOption, Valinnantila(r.nextString), r.nextStringOption().map(ValinnantilanTarkenne(_))).hakemus
+      r.nextBooleanOption, Valinnantila(r.nextString), r.nextStringOption().map(ValinnantilanTarkenne(_)),
+      hakijaryhmaOidsToSet(r.nextStringOption)).hakemus
   })
 
   def findValintatapajononJonosijat(valintatapajonoOid:String): Seq[Hakemus] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select j.hakemus_oid, j.hakija_oid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijan_numero, j.onko_muuttunut_viime_sijoittelussa,
-            j.pisteet, j.tasasijajonosija, j.hyvaksytty_harkinnanvaraisesti, j.siirtynyt_toisesta_valintatapajonosta,
-            v.tila, v.tarkenne
+      sql"""select j.hakemus_oid, j.hakija_oid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijan_numero,
+            j.onko_muuttunut_viime_sijoittelussa, j.pisteet, j.tasasijajonosija, j.hyvaksytty_harkinnanvaraisesti,
+            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tarkenne, array_to_string(array_agg(hr.oid) , ',')
             from jonosijat j
+            left join hakijaryhman_hakemukset as hh on hh.hakemus_oid = j.hakemus_oid
+            left join hakijaryhmat as hr on hr.id = hh.hakijaryhma_id
             left join valinnantulokset v on j.valintatapajono_oid = v.valintatapajono_oid and j.hakemus_oid = v.hakemus_oid
             where j.valintatapajono_oid = ${valintatapajonoOid}
+            group by j.hakemus_oid, j.hakija_oid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijan_numero,
+            j.onko_muuttunut_viime_sijoittelussa, j.pisteet, j.tasasijajonosija, j.hyvaksytty_harkinnanvaraisesti,
+            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tarkenne
          """.as[Hakemus])
   }
 
@@ -254,7 +267,10 @@ trait ValintarekisteriDbTools extends Specification {
         valintatapajono.getHakemukset.asScala.toList.foreach(hakemus => {
           val storedJonosija = storedJonosijat.find(_.getHakemusOid.equals(hakemus.getHakemusOid))
           storedJonosija.isDefined must beTrue
-          SijoitteluajonHakemusWrapper(hakemus) mustEqual SijoitteluajonHakemusWrapper(storedJonosija.get)
+          val a = SijoitteluajonHakemusWrapper(hakemus)
+          val b = SijoitteluajonHakemusWrapper(storedJonosija.get)
+
+          a mustEqual b
 
           val storedPistetiedot = findHakemuksenPistetiedot(hakemus.getHakemusOid)
           hakemus.getPistetiedot.size mustEqual storedPistetiedot.size

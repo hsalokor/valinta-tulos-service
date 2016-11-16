@@ -111,7 +111,9 @@
                 }
               ],
               "varasijanNumero" : 1,
-              "hyvaksyttyHakijaryhmasta" : false
+              "hyvaksyttyHakijaryhmista" : [
+                "1452159018697-9158802588726167163"
+              ]
             }
           ]
         }
