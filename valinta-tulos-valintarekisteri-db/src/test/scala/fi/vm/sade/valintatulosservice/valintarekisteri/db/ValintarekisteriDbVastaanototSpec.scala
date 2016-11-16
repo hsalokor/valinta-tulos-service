@@ -319,9 +319,9 @@ class ValintarekisteriDbVastaanototSpec extends Specification with ITSetup with 
       val now = new java.sql.Timestamp(1)
       singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
         sqlu"""insert into sijoitteluajot values (111, ${hakuOid}, ${now}, ${now}, FALSE, FALSE)""",
-        sqlu"""insert into sijoitteluajon_hakukohteet values (222, 111, ${hakukohdeOid}, '123123', FALSE)""",
-        sqlu"""insert into valintatapajonot (oid, sijoitteluajon_hakukohde_id, nimi) values ('5.5.555.555', 222, 'asd')""",
-        sqlu"""insert into jonosijat (id, valintatapajono_oid, sijoitteluajon_hakukohde_id, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti, jonosija) values (333, '5.5.555.555', 222, '12345', '54321', 'Teppo', 'The Great', 9999, 1)"""))
+        sqlu"""insert into sijoitteluajon_hakukohteet values (111, ${hakukohdeOid}, '123123', FALSE)""",
+        sqlu"""insert into valintatapajonot (oid, sijoitteluajo_id, hakukohde_oid, nimi) values ('5.5.555.555', 111, ${hakukohdeOid}, 'asd')""",
+        sqlu"""insert into jonosijat (id, valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti, jonosija) values (333, '5.5.555.555', 111, ${hakukohdeOid}, '12345', '54321', 'Teppo', 'The Great', 9999, 1)"""))
       singleConnectionValintarekisteriDb.getHakija("12345", 111).get.etunimi mustEqual "Teppo"
     }
 

@@ -180,8 +180,7 @@ trait ValintarekisteriDbTools extends Specification {
             varasijat, varasijatayttopaivat, varasijoja_kaytetaan_alkaen, varasijoja_taytetaan_asti, tayttojono,
             hyvaksytty, varalla, alin_hyvaksytty_pistemaara
             from valintatapajonot
-            inner join sijoitteluajon_hakukohteet sh on sh.id = valintatapajonot.sijoitteluajon_hakukohde_id
-            and sh.hakukohde_oid = ${hakukohdeOid}""".as[Valintatapajono])
+            where hakukohde_oid = ${hakukohdeOid}""".as[Valintatapajono])
   }
 
   private implicit val getSijoitteluajonHakijaryhmaResult = GetResult(r => {
@@ -192,11 +191,10 @@ trait ValintarekisteriDbTools extends Specification {
 
   def findHakukohteenHakijaryhmat(hakukohdeOid:String): Seq[Hakijaryhma] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select h.oid, h.nimi, h.prioriteetti, h.paikat, h.kiintio, h.kayta_kaikki,
-            h.tarkka_kiintio, h.kaytetaan_ryhmaan_kuuluvia, h.alin_hyvaksytty_pistemaara
-            from hakijaryhmat h
-            inner join sijoitteluajon_hakukohteet sh on sh.id = h.sijoitteluajon_hakukohde_id
-            where sh.hakukohde_oid = ${hakukohdeOid}""".as[Hakijaryhma]
+      sql"""select oid, nimi, prioriteetti, paikat, kiintio, kayta_kaikki,
+            tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, alin_hyvaksytty_pistemaara
+            from hakijaryhmat
+            where hakukohde_oid = ${hakukohdeOid}""".as[Hakijaryhma]
     )
   }
 

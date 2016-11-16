@@ -121,7 +121,7 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
             j.tasasijajonosija, v.tila, v.tarkenne, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
-            j.onko_muuttunut_viime_sijoittelussa, j.hyvaksytty_hakijaryhmasta, hh.hakijaryhma_id,
+            j.onko_muuttunut_viime_sijoittelussa, hh.hyvaksytty_hakijaryhmasta, hh.hakijaryhma_id,
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
             from jonosijat as j
             inner join valinnantulokset as v on v.jonosija_id = j.id and v.hakemus_oid = j.hakemus_oid
