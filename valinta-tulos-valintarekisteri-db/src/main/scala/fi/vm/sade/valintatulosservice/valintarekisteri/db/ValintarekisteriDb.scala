@@ -552,15 +552,13 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
   override def getSijoitteluajoHakukohteet(sijoitteluajoId: Long): Option[List[SijoittelunHakukohdeRecord]] = {
-    // If there are perf problems it's in this subquery!
-    //TODO: hakijaryhmat.hakukohde_oid = sijoitteluajon_hakukohteet.hakukohde_oid!!!
     Option(runBlocking(
-      sql"""select sijoitteluajo_id, hakukohde_oid, tarjoaja_oid, kaikki_jonot_sijoiteltu,
-              (select min(alin_hyvaksytty_pistemaara)
-               from hakijaryhmat
-               where sijoitteluajo_id = ${sijoitteluajoId}) as ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet
-            from sijoitteluajon_hakukohteet
-            where sijoitteluajo_id = ${sijoitteluajoId}""".as[SijoittelunHakukohdeRecord]).toList)
+      sql"""select sh.sijoitteluajo_id, sh.hakukohde_oid, sh.tarjoaja_oid, sh.kaikki_jonot_sijoiteltu,
+              min(hr.alin_hyvaksytty_pistemaara) as ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet
+            from sijoitteluajon_hakukohteet sh
+            left join hakijaryhmat hr on hr.sijoitteluajo_id = sh.sijoitteluajo_id and hr.hakukohde_oid = sh.hakukohde_oid
+            where hr.sijoitteluajo_id = ${sijoitteluajoId}
+            group by sh.sijoitteluajo_id, sh.hakukohde_oid, sh.tarjoaja_oid, sh.kaikki_jonot_sijoiteltu""".as[SijoittelunHakukohdeRecord]).toList)
   }
 
   override def getValintatapajonot(sijoitteluajoId: Long): Option[List[ValintatapajonoRecord]] = {
