@@ -10,7 +10,7 @@ import fi.vm.sade.valintatulosservice.vastaanottomeili.{HakemusMailStatus, Lahet
 
 object MailPollerPerformanceTester extends App with Logging {
   implicit val appConfig: VtsAppConfig = new VtsAppConfig.Dev
-  val hakuService = HakuService(null, appConfig)
+  val hakuService = HakuService(appConfig)
   lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService,
     appConfig.ohjausparametritService, null, new DirectMongoSijoittelunTulosRestClient(appConfig))
   lazy val valintatulosService = new ValintatulosService(null, sijoittelutulosService, null, hakuService, null, null)

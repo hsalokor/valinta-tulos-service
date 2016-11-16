@@ -6,7 +6,6 @@ import fi.vm.sade.valintatulosservice.config.{ValintarekisteriAppConfig, VtsAppC
 import fi.vm.sade.valintatulosservice.config.VtsAppConfig.{Dev, VtsAppConfig, IT}
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
-import fi.vm.sade.valintatulosservice.koodisto.KoodistoService
 import fi.vm.sade.valintatulosservice.migraatio.MigraatioServlet
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoittelunTulosRestClient, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
@@ -30,8 +29,7 @@ class ScalatraBootstrap extends LifeCycle {
       context.mount(new FixtureServlet(valintarekisteriDb), "/util")
       SijoitteluFixtures(appConfig.sijoitteluContext.database, valintarekisteriDb).importFixture("hyvaksytty-kesken-julkaistavissa.json")
     }
-    lazy val koodistoService = new KoodistoService(appConfig)
-    lazy val hakuService = HakuService(koodistoService, appConfig)
+    lazy val hakuService = HakuService(appConfig)
     lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig, appConfig.isInstanceOf[IT])
     lazy val hakukohdeRecordService = new HakukohdeRecordService(hakuService, valintarekisteriDb, appConfig.settings.lenientTarjontaDataParsing)
     val sijoittelunTulosRestClient = SijoittelunTulosRestClient(appConfig)

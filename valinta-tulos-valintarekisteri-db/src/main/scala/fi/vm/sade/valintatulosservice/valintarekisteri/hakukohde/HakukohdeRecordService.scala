@@ -2,7 +2,6 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde
 
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.AppConfig
-import fi.vm.sade.valintatulosservice.koodisto.KoodistoService
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService, Hakukohde, Koulutus}
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.{HakukohdeRepository, ValintarekisteriDb}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakukohdeRecord, Kausi, Kevat, Syksy}
@@ -121,8 +120,7 @@ class HakukohdeRecordService(hakuService: HakuService, hakukohdeRepository: Haku
 object HakukohdeRecordService {
 
   def apply(valintarekisteriDb: ValintarekisteriDb, appConfig: AppConfig) = {
-    val koodistoService = new KoodistoService(appConfig)
-    val hakuService = HakuService(koodistoService, appConfig)
+    val hakuService = HakuService(appConfig)
     new HakukohdeRecordService(hakuService, valintarekisteriDb, appConfig.settings.lenientTarjontaDataParsing)
   }
 }

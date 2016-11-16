@@ -20,7 +20,7 @@ class ValintatulosIntegrationTest extends Specification {
       if (new File(varsFile).exists()) {
         implicit val appConfig = new VtsAppConfig.LocalTestingWithTemplatedVars(varsFile)
 
-        val hakuService = HakuService(null, appConfig)
+        val hakuService = HakuService(appConfig)
         val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, null,
           SijoittelunTulosRestClient(appConfig))
         val valintatulosService = new ValintatulosService(null, sijoittelutulosService, null, hakuService, null, null)

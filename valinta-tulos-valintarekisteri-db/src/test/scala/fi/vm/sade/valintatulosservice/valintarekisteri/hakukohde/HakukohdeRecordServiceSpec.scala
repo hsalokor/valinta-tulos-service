@@ -1,6 +1,5 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde
 
-import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, KoodistoService, Relaatiot}
 import fi.vm.sade.valintatulosservice.tarjonta._
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.HakukohdeRepository
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakukohdeRecord, Kausi}
@@ -75,8 +74,7 @@ class HakukohdeRecordServiceSpec extends Specification with MockitoMatchers with
     val hakukohdeRecord = HakukohdeRecord(hakukohdeOid, hakuOid = hakuOid,
       yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true, Kausi("2016K"))
 
-    val koodi = Koodi(KoodiUri("koulutus_000000"), 1, Some(Relaatiot(Nil, Nil, List(Koodi(KoodistoService.OnTutkinto, 1, None)))))
-    val julkaistuKoulutus = Koulutus("1.2.246.562.17.42423443434", Kausi("2016S"), "JULKAISTU", Some(koodi))
+    val julkaistuKoulutus = Koulutus("1.2.246.562.17.42423443434", Kausi("2016S"), "JULKAISTU", true)
     val yhdenpaikansaanto = YhdenPaikanSaanto(voimassa = true, "Korkeakoulutus ilman kohdejoukon tarkennetta")
     val hakukohdeFromTarjonta = Hakukohde(hakukohdeOid, hakuOid, List(julkaistuKoulutus.oid), "KORKEAKOULUTUS", "TUTKINTO",
       Map("kieli_fi" -> "Hakukohteen nimi"), Map("fi" -> "Tarjoajan nimi"), yhdenPaikanSaanto = yhdenpaikansaanto, true, "kausi_k#1", 2016)

@@ -387,7 +387,7 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
 
   step(valintarekisteriDb.db.shutdown)
 
-  lazy val hakuService = HakuService(null, appConfig)
+  lazy val hakuService = HakuService(appConfig)
   lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
   lazy val hakukohdeRecordService = new HakukohdeRecordService(hakuService, valintarekisteriDb, true)
   lazy val sijoittelunTulosRestClient = new DirectMongoSijoittelunTulosRestClient(appConfig)

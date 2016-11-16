@@ -1,7 +1,6 @@
 package fi.vm.sade.valintatulosservice.tarjonta
 
 import java.io.InputStream
-import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, KoodistoService, Relaatiot}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Kausi
 import org.json4s.jackson.JsonMethods._
 

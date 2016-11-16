@@ -3,11 +3,10 @@ package fi.vm.sade.valintatulosservice.tarjonta
 import fi.vm.sade.utils.http.DefaultHttpClient
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.{AppConfig, StubbedExternalDeps}
-import fi.vm.sade.valintatulosservice.koodisto.{Koodi, KoodiUri, KoodistoService}
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{Kausi, Kevat, Syksy}
 import org.joda.time.DateTime
-import org.json4s.JsonAST.{JInt, JObject, JString}
+import org.json4s.JsonAST.{JBool, JInt, JObject, JString}
 import org.json4s.jackson.JsonMethods._
 import org.json4s.{CustomSerializer, Formats, MappingException}
 
@@ -26,9 +25,9 @@ trait HakuService {
 }
 
 object HakuService {
-  def apply(koodistoService: KoodistoService, appConfig: AppConfig): HakuService = appConfig match {
+  def apply(appConfig: AppConfig): HakuService = appConfig match {
     case _:StubbedExternalDeps => HakuFixtures
-    case _ => new CachedHakuService(new TarjontaHakuService(koodistoService, appConfig))
+    case _ => new CachedHakuService(new TarjontaHakuService(appConfig))
   }
 }
 
@@ -48,17 +47,7 @@ case class Hakukohde(oid: String, hakuOid: String, hakukohdeKoulutusOids: List[S
                      hakukohteenNimet: Map[String, String], tarjoajaNimet: Map[String, String], yhdenPaikanSaanto: YhdenPaikanSaanto,
                      tutkintoonJohtava:Boolean, koulutuksenAlkamiskausiUri:String, koulutuksenAlkamisvuosi:Int)
 
-case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, koulutusKoodi: Option[Koodi]) {
-  def johtaaTutkintoon: Boolean = {
-    koulutusKoodi.exists { koodi =>
-      val relaatiot = koodi.relaatiot
-        .getOrElse(throw new IllegalStateException(s"Koulutus $this is missing koodi relations"))
-      val tutkintoonjohtavuus = relaatiot.includes.find(_.uri.koodistoUri == KoodistoService.TutkintooJohtavaKoulutus)
-        .getOrElse(throw new IllegalStateException(s"koodi $koodi is missing tutkintoonjohtavuus relation"))
-      tutkintoonjohtavuus.uri == KoodistoService.OnTutkinto
-    }
-  }
-}
+case class Koulutus(oid: String, koulutuksenAlkamiskausi: Kausi, tila: String, johtaaTutkintoon: Boolean)
 
 class KoulutusSerializer extends CustomSerializer[Koulutus]((formats: Formats) => {
   implicit val f = formats
@@ -67,6 +56,7 @@ class KoulutusSerializer extends CustomSerializer[Koulutus]((formats: Formats) =
       val JString(oid) = o \ "oid"
       val JString(tila) = o \ "tila"
       val JInt(vuosi) = o \ "koulutuksenAlkamisvuosi"
+      val JBool(johtaaTutkintoon) = o \ "johtaaTutkintoon"
       val kausi = o \ "koulutuksenAlkamiskausi" \ "uri" match {
         case JString("kausi_k") => Kevat(vuosi.toInt)
         case JString("kausi_s") => Syksy(vuosi.toInt)
@@ -74,12 +64,7 @@ class KoulutusSerializer extends CustomSerializer[Koulutus]((formats: Formats) =
       }
       val koulutusUriOpt = (o \ "koulutuskoodi" \ "uri").extractOpt[String]
       val koulutusVersioOpt = (o \ "koulutuskoodi" \ "versio").extractOpt[Int]
-      val koodi: Option[Koodi] = for {
-        koulutusUri <- koulutusUriOpt
-        koulutusVersio <- koulutusVersioOpt
-      } yield Koodi(KoodiUri(koulutusUri), koulutusVersio, None)
-
-      Koulutus(oid, kausi, tila, koodi)
+      Koulutus(oid, kausi, tila, johtaaTutkintoon)
   }, { case o => ??? })
 })
 
@@ -133,7 +118,7 @@ private case class HakuTarjonnassa(oid: String, hakutapaUri: String, hakutyyppiU
 
 case class YhdenPaikanSaanto(voimassa: Boolean, syy: String)
 
-class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig) extends HakuService with JsonHakuService with Logging {
+class TarjontaHakuService(appConfig:AppConfig) extends HakuService with JsonHakuService with Logging {
 
   def parseStatus(json: String): Option[String] = {
     for {
@@ -202,12 +187,7 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
     val koulutusUrl = s"${appConfig.settings.tarjontaUrl}/rest/v1/koulutus/$koulutusOid"
     fetch(koulutusUrl) { response =>
       (parse(response) \ "result").extract[Koulutus]
-    }.right.flatMap(koulutus => koulutus.koulutusKoodi match {
-      case Some(koodi) =>
-        koodistoService.fetchLatest(koodi.uri).right.map(koodi => koulutus.copy(koulutusKoodi = Some(koodi)))
-      case None =>
-        Right(koulutus)
-    })
+    }
   }
 
   private def fetch[T](url: String)(parse: (String => T)): Either[Throwable, T] = {
