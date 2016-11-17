@@ -115,7 +115,7 @@ trait ValintarekisteriDbTools extends Specification {
         dhakijaryhma.getPrioriteetti mustEqual whakijaryhma.getPrioriteetti
         dhakijaryhma.getPaikat mustEqual whakijaryhma.getPaikat
         dhakijaryhma.getNimi mustEqual whakijaryhma.getNimi
-        //TODO: dhakijaryhma.getHakukohdeOid mustEqual whakijaryhma.getHakukohdeOid
+        dhakijaryhma.getHakukohdeOid mustEqual whakukohde.getOid
         dhakijaryhma.getKiintio mustEqual whakijaryhma.getKiintio
         dhakijaryhma.isKaytaKaikki mustEqual whakijaryhma.isKaytaKaikki
         dhakijaryhma.isTarkkaKiintio mustEqual whakijaryhma.isTarkkaKiintio
@@ -130,14 +130,17 @@ trait ValintarekisteriDbTools extends Specification {
         dvalintatapajono.getAlkuperaisetAloituspaikat mustEqual wvalintatapajono.getAlkuperaisetAloituspaikat
         dvalintatapajono.getAloituspaikat mustEqual wvalintatapajono.getAloituspaikat
         dvalintatapajono.getEiVarasijatayttoa mustEqual wvalintatapajono.getEiVarasijatayttoa
-        //TODO: dvalintatapajono.getHakeneet mustEqual wvalintatapajono.getHakemustenMaara
+        dvalintatapajono.getHakeneet mustEqual wvalintatapajono.getHyvaksytty + wvalintatapajono.getVaralla
         dvalintatapajono.getKaikkiEhdonTayttavatHyvaksytaan mustEqual wvalintatapajono.getKaikkiEhdonTayttavatHyvaksytaan
         dvalintatapajono.getNimi mustEqual wvalintatapajono.getNimi
         dvalintatapajono.getPoissaOlevaTaytto mustEqual wvalintatapajono.getPoissaOlevaTaytto
         dvalintatapajono.getPrioriteetti mustEqual wvalintatapajono.getPrioriteetti
         dvalintatapajono.getTasasijasaanto.toString mustEqual wvalintatapajono.getTasasijasaanto.toString
         dvalintatapajono.getTayttojono mustEqual wvalintatapajono.getTayttojono
-        //TODO: dvalintatapajono.getValintaesitysHyvaksytty mustEqual wvalintatapajono.getValintaesitysHyvaksytty
+        wvalintatapajono.getValintaesitysHyvaksytty match { //TODO is this correct?
+          case null => dvalintatapajono.getValintaesitysHyvaksytty mustEqual false
+          case x => dvalintatapajono.getValintaesitysHyvaksytty mustEqual x
+        }
         dvalintatapajono.getVaralla mustEqual wvalintatapajono.getVaralla
         dvalintatapajono.getVarasijat mustEqual wvalintatapajono.getVarasijat
         dvalintatapajono.getVarasijaTayttoPaivat mustEqual wvalintatapajono.getVarasijaTayttoPaivat
