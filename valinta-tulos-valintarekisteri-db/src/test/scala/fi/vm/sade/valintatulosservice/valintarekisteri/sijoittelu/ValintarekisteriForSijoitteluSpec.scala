@@ -1,6 +1,8 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu
 
 import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus}
+import fi.vm.sade.sijoittelu.tulos.dto.{HakukohdeDTO, SijoitteluajoDTO}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.SijoitteluWrapper
 import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriDbTools}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -17,23 +19,28 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
 
   lazy val valintarekisteri = new ValintarekisteriService(singleConnectionValintarekisteriDb, hakukohdeRecordService)
 
-  "SijoitteluajoDTO should be fetched from database" in {
-    singleConnectionValintarekisteriDb.storeSijoittelu(loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/"))
-    val sijoitteluAjo = valintarekisteri.getSijoitteluajo("1.2.246.562.29.75203638285","1476936450191")
-    sijoitteluAjo.getHakukohteet.size mustEqual 3
-    val hakukohteet = sijoitteluAjo.getHakukohteet.asScala.toList
-    val hakukohde1 = hakukohteet.filter(hk => hk.getOid.equals("1.2.246.562.20.26643418986")).head
-    hakukohde1.getHakijaryhmat.size mustEqual 2
-    hakukohde1.getValintatapajonot.get(0).getHakemukset.size mustEqual 15
-    val hakukohde2 = hakukohteet.filter(hk => hk.getOid.equals("1.2.246.562.20.56217166919")).head
-    hakukohde2.getValintatapajonot.get(0).getOid mustEqual "14539780970882907815262745035155"
+  "SijoitteluajoDTO should be fetched from database 1" in {
+    val wrapper = loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/")
+    singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)
+    compareSijoitteluWrapperToDTO(
+      wrapper,
+      valintarekisteri.getSijoitteluajo("1.2.246.562.29.75203638285", "1476936450191")
+    )
   }
-  "Sijoittelu and hakukohteet should be saved in database" in {
+  "SijoitteluajoDTO should be fetched from database 2" in {
+    val wrapper = loadSijoitteluFromFixture("valintatapajono_hakijaryhma_pistetiedot", "sijoittelu/")
+    singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)
+    compareSijoitteluWrapperToDTO(
+      wrapper,
+      valintarekisteri.getSijoitteluajo("korkeakoulu-erillishaku", "1464957466474")
+    )
+  }
+  "Sijoittelu and hakukohteet should be saved in database 1" in {
     val wrapper = loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/", false)
     valintarekisteri.tallennaSijoittelu(wrapper.sijoitteluajo, wrapper.hakukohteet.asJava, wrapper.valintatulokset.asJava)
     assertSijoittelu(wrapper)
   }
-  "Sijoittelu and hakukohteet should be saved in database" in {
+  "Sijoittelu and hakukohteet should be saved in database 2" in {
     val wrapper = loadSijoitteluFromFixture("valintatapajono_hakijaryhma_pistetiedot", "sijoittelu/", false)
     valintarekisteri.tallennaSijoittelu(wrapper.sijoitteluajo, wrapper.hakukohteet.asJava, wrapper.valintatulokset.asJava)
     assertSijoittelu(wrapper)

@@ -1,8 +1,10 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
+import java.text.SimpleDateFormat
 import java.util.Date
 
 import fi.vm.sade.sijoittelu.domain._
+import fi.vm.sade.sijoittelu.tulos.dto.SijoitteluajoDTO
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Tasasijasaanto
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
@@ -85,6 +87,96 @@ trait ValintarekisteriDbTools extends Specification {
   def deleteVastaanotot(): Unit = {
     singleConnectionValintarekisteriDb.runBlocking(deleteFromVastaanotot)
   }
+
+  def compareSijoitteluWrapperToDTO(wrapper:SijoitteluWrapper, dto:SijoitteluajoDTO) = {
+    val simpleFormat = new SimpleDateFormat("dd-MM-yyyy")
+
+    def format(date:java.util.Date) = date match {
+      case null => null
+      case x:java.util.Date => simpleFormat.format(x)
+    }
+
+    dto.getSijoitteluajoId mustEqual wrapper.sijoitteluajo.getSijoitteluajoId
+    dto.getHakuOid mustEqual wrapper.sijoitteluajo.getHakuOid
+    dto.getStartMils mustEqual wrapper.sijoitteluajo.getStartMils
+    dto.getEndMils mustEqual wrapper.sijoitteluajo.getEndMils
+
+    dto.getHakukohteet.size mustEqual wrapper.hakukohteet.size
+    dto.getHakukohteet.asScala.toList.foreach(dhakukohde => {
+      val whakukohde = wrapper.hakukohteet.find(_.getOid.equals(dhakukohde.getOid)).head
+      dhakukohde.getSijoitteluajoId mustEqual wrapper.sijoitteluajo.getSijoitteluajoId
+      dhakukohde.getEnsikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet mustEqual null
+      dhakukohde.getTarjoajaOid mustEqual whakukohde.getTarjoajaOid
+      dhakukohde.isKaikkiJonotSijoiteltu mustEqual whakukohde.isKaikkiJonotSijoiteltu
+
+      dhakukohde.getHakijaryhmat.size mustEqual whakukohde.getHakijaryhmat.size
+      dhakukohde.getHakijaryhmat.asScala.toList.foreach(dhakijaryhma => {
+        val whakijaryhma = whakukohde.getHakijaryhmat.asScala.toList.find(_.getOid.equals(dhakijaryhma.getOid)).head
+        dhakijaryhma.getPrioriteetti mustEqual whakijaryhma.getPrioriteetti
+        dhakijaryhma.getPaikat mustEqual whakijaryhma.getPaikat
+        dhakijaryhma.getNimi mustEqual whakijaryhma.getNimi
+        //TODO: dhakijaryhma.getHakukohdeOid mustEqual whakijaryhma.getHakukohdeOid
+        dhakijaryhma.getKiintio mustEqual whakijaryhma.getKiintio
+        dhakijaryhma.isKaytaKaikki mustEqual whakijaryhma.isKaytaKaikki
+        dhakijaryhma.isTarkkaKiintio mustEqual whakijaryhma.isTarkkaKiintio
+        dhakijaryhma.isKaytetaanRyhmaanKuuluvia mustEqual whakijaryhma.isKaytetaanRyhmaanKuuluvia
+        dhakijaryhma.getHakemusOid.asScala.toList.diff(whakijaryhma.getHakemusOid.asScala.toList) mustEqual List()
+      })
+
+      dhakukohde.getValintatapajonot.size mustEqual whakukohde.getValintatapajonot.size
+      dhakukohde.getValintatapajonot.asScala.toList.foreach(dvalintatapajono => {
+        val wvalintatapajono = whakukohde.getValintatapajonot.asScala.toList.find(_.getOid.equals(dvalintatapajono.getOid)).head
+        dvalintatapajono.getAlinHyvaksyttyPistemaara mustEqual wvalintatapajono.getAlinHyvaksyttyPistemaara
+        dvalintatapajono.getAlkuperaisetAloituspaikat mustEqual wvalintatapajono.getAlkuperaisetAloituspaikat
+        dvalintatapajono.getAloituspaikat mustEqual wvalintatapajono.getAloituspaikat
+        dvalintatapajono.getEiVarasijatayttoa mustEqual wvalintatapajono.getEiVarasijatayttoa
+        //TODO: dvalintatapajono.getHakeneet mustEqual wvalintatapajono.getHakemustenMaara
+        dvalintatapajono.getKaikkiEhdonTayttavatHyvaksytaan mustEqual wvalintatapajono.getKaikkiEhdonTayttavatHyvaksytaan
+        dvalintatapajono.getNimi mustEqual wvalintatapajono.getNimi
+        dvalintatapajono.getPoissaOlevaTaytto mustEqual wvalintatapajono.getPoissaOlevaTaytto
+        dvalintatapajono.getPrioriteetti mustEqual wvalintatapajono.getPrioriteetti
+        dvalintatapajono.getTasasijasaanto.toString mustEqual wvalintatapajono.getTasasijasaanto.toString
+        dvalintatapajono.getTayttojono mustEqual wvalintatapajono.getTayttojono
+        //TODO: dvalintatapajono.getValintaesitysHyvaksytty mustEqual wvalintatapajono.getValintaesitysHyvaksytty
+        dvalintatapajono.getVaralla mustEqual wvalintatapajono.getVaralla
+        dvalintatapajono.getVarasijat mustEqual wvalintatapajono.getVarasijat
+        dvalintatapajono.getVarasijaTayttoPaivat mustEqual wvalintatapajono.getVarasijaTayttoPaivat
+        format(dvalintatapajono.getVarasijojaKaytetaanAlkaen) mustEqual format(wvalintatapajono.getVarasijojaKaytetaanAlkaen)
+        format(dvalintatapajono.getVarasijojaTaytetaanAsti) mustEqual format(wvalintatapajono.getVarasijojaTaytetaanAsti)
+
+        dvalintatapajono.getHakemukset.size mustEqual wvalintatapajono.getHakemukset.size
+        dvalintatapajono.getHakemukset.asScala.toList.foreach(dhakemus => {
+          val whakemus = wvalintatapajono.getHakemukset.asScala.toList.find(_.getHakemusOid.equals(dhakemus.getHakemusOid)).head
+          dhakemus.getEtunimi mustEqual whakemus.getEtunimi
+          dhakemus.getHakijaOid mustEqual whakemus.getHakijaOid
+          //TODO: dhakemus.getHakukohdeOid mustEqual whakukohde.getOid
+          //TODO: dhakemus.getHakuOid mustEqual wrapper.sijoitteluajo.getHakuOid
+          //TODO: dhakemus.getHyvaksyttyHakijaryhmista mustEqual whakemus.getHyvaksyttyHakijaryhmista
+          dhakemus.getJonosija mustEqual whakemus.getJonosija
+          //TODO: dhakemus.getPaasyJaSoveltuvuusKokeenTulos mustEqual whakemus.
+          dhakemus.getPisteet mustEqual whakemus.getPisteet
+          dhakemus.getPrioriteetti mustEqual whakemus.getPrioriteetti
+          dhakemus.getSiirtynytToisestaValintatapajonosta mustEqual whakemus.getSiirtynytToisestaValintatapajonosta
+          //TODO: dhakemus.getSijoitteluajoId mustEqual wrapper.sijoitteluajo.getSijoitteluajoId
+          dhakemus.getSukunimi mustEqual whakemus.getSukunimi
+          //TODO: dhakemus.getTarjoajaOid mustEqual whakukohde.getTarjoajaOid
+          dhakemus.getTasasijaJonosija mustEqual whakemus.getTasasijaJonosija
+          //TODO: dhakemus.getTodellinenJonosija mustEqual whakemus.getJonosija
+          dhakemus.getValintatapajonoOid mustEqual wvalintatapajono.getOid
+          //TODO: dhakemus.getVarasijanNumero mustEqual whakemus.getVarasijanNumero
+          dhakemus.isHyvaksyttyHarkinnanvaraisesti mustEqual whakemus.isHyvaksyttyHarkinnanvaraisesti
+          dhakemus.isOnkoMuuttunutViimeSijoittelussa mustEqual whakemus.isOnkoMuuttunutViimeSijoittelussa
+          dhakemus.getTila.toString mustEqual whakemus.getTila.toString
+
+          //TODO: dhakemus.getTilanKuvaukset
+          //TODO: dhakemus.getPistetiedot
+        })
+      })
+    })
+    true must beTrue
+  }
+
+
 
   def sijoitteluWrapperFromJson(json: JValue, tallennaHakukohteet: Boolean = true): SijoitteluWrapper = {
     val JArray(sijoittelut) = (json \ "Sijoittelu")
