@@ -588,11 +588,12 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     Option(runBlocking(
       sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
             j.tasasijajonosija, v.tila, v.tarkenne, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
-            j.onko_muuttunut_viime_sijoittelussa, array_to_string(array_agg(hh.hakijaryhma_id), ','),
+            j.onko_muuttunut_viime_sijoittelussa, array_to_string(array_agg(hr.oid), ','),
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
             from jonosijat as j
             inner join valinnantulokset as v on v.jonosija_id = j.id and v.hakemus_oid = j.hakemus_oid
             left join hakijaryhman_hakemukset as hh on j.hakemus_oid = hh.hakemus_oid
+            left join hakijaryhmat as hr on hr.id = hh.hakijaryhma_id
             where j.valintatapajono_oid in (#${inParameter})
                   and v.deleted is null
             GROUP BY j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,

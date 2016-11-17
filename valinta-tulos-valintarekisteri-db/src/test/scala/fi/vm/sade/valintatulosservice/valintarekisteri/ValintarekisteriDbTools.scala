@@ -150,29 +150,25 @@ trait ValintarekisteriDbTools extends Specification {
         dvalintatapajono.getHakemukset.size mustEqual wvalintatapajono.getHakemukset.size
         dvalintatapajono.getHakemukset.asScala.toList.foreach(dhakemus => {
           val whakemus = wvalintatapajono.getHakemukset.asScala.toList.find(_.getHakemusOid.equals(dhakemus.getHakemusOid)).head
-          dhakemus.getEtunimi mustEqual whakemus.getEtunimi
           dhakemus.getHakijaOid mustEqual whakemus.getHakijaOid
-          //TODO: dhakemus.getHakukohdeOid mustEqual whakukohde.getOid
-          //TODO: dhakemus.getHakuOid mustEqual wrapper.sijoitteluajo.getHakuOid
-          //TODO: dhakemus.getHyvaksyttyHakijaryhmista mustEqual whakemus.getHyvaksyttyHakijaryhmista
-          dhakemus.getJonosija mustEqual whakemus.getJonosija
-          //TODO: dhakemus.getPaasyJaSoveltuvuusKokeenTulos mustEqual whakemus.
+          dhakemus.getHakemusOid mustEqual whakemus.getHakemusOid
           dhakemus.getPisteet mustEqual whakemus.getPisteet
-          dhakemus.getPrioriteetti mustEqual whakemus.getPrioriteetti
-          dhakemus.getSiirtynytToisestaValintatapajonosta mustEqual whakemus.getSiirtynytToisestaValintatapajonosta
-          //TODO: dhakemus.getSijoitteluajoId mustEqual wrapper.sijoitteluajo.getSijoitteluajoId
+          // TODO: ei datassa? dhakemus.getPaasyJaSoveltuvuusKokeenTulos mustEqual whakemus.getPaasyJaSoveltuvuusKokeenTulos
+          dhakemus.getEtunimi mustEqual whakemus.getEtunimi
           dhakemus.getSukunimi mustEqual whakemus.getSukunimi
-          //TODO: dhakemus.getTarjoajaOid mustEqual whakukohde.getTarjoajaOid
+          dhakemus.getPrioriteetti mustEqual whakemus.getPrioriteetti
+          dhakemus.getJonosija mustEqual whakemus.getJonosija
           dhakemus.getTasasijaJonosija mustEqual whakemus.getTasasijaJonosija
-          //TODO: dhakemus.getTodellinenJonosija mustEqual whakemus.getJonosija
-          dhakemus.getValintatapajonoOid mustEqual wvalintatapajono.getOid
-          //TODO: dhakemus.getVarasijanNumero mustEqual whakemus.getVarasijanNumero
-          dhakemus.isHyvaksyttyHarkinnanvaraisesti mustEqual whakemus.isHyvaksyttyHarkinnanvaraisesti
-          dhakemus.isOnkoMuuttunutViimeSijoittelussa mustEqual whakemus.isOnkoMuuttunutViimeSijoittelussa
           dhakemus.getTila.toString mustEqual whakemus.getTila.toString
-
-          //TODO: dhakemus.getTilanKuvaukset
-          //TODO: dhakemus.getPistetiedot
+          // TODO näille piti vissiin tehdä jotain? dhakemus.getTilanKuvaukset mustEqual whakemus.getTilanKuvaukset
+          // TODO tallennetaanko historia vanhoista? dhakemus.getTilahistoria mustEqual whakemus.getTilahistoria
+          dhakemus.isHyvaksyttyHarkinnanvaraisesti mustEqual whakemus.isHyvaksyttyHarkinnanvaraisesti
+          // TODO tätä ei taida tulla datassa? dhakemus.getVarasijanNumero mustEqual whakemus.getVarasijanNumero
+          dhakemus.getValintatapajonoOid mustEqual wvalintatapajono.getOid
+          dhakemus.isOnkoMuuttunutViimeSijoittelussa mustEqual whakemus.isOnkoMuuttunutViimeSijoittelussa
+          dhakemus.getHyvaksyttyHakijaryhmista mustEqual whakemus.getHyvaksyttyHakijaryhmista
+          dhakemus.getSiirtynytToisestaValintatapajonosta mustEqual whakemus.getSiirtynytToisestaValintatapajonosta
+          //TODO: ?? dhakemus.getTodellinenJonosija mustEqual whakemus.getJonosija
         })
       })
     })
