@@ -441,7 +441,9 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           val hakijaOid = hakemuksenTulos.hakijaOid
           val tilaVirkailijalle = ValintatulosService.toVirkailijaTila(tilaHakijalle, haunVastaanotot.get(hakijaOid), hakutoiveenTulos.hakukohdeOid)
           valintaTulos.setTila(tilaVirkailijalle, tilaVirkailijalle, "", "") // pass same old and new tila to avoid log entries
-          valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
+          if (valintaTulos.getHakijaOid == null) {
+            valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
+          }
           valintaTulos.setTilaHakijalle(tilaHakijalle)
         case None =>
           crashOrLog(s"Problem when processing valintatulos for hakemus ${valintaTulos.getHakemusOid}")
