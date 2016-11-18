@@ -10,6 +10,7 @@ import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.ensikertalaisuus._
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
+import slick.dbio.DBIO
 import slick.driver.PostgresDriver.api.{Database, _}
 import slick.jdbc.{GetResult, TransactionIsolation}
 
@@ -333,5 +334,9 @@ class ValintarekisteriDb(dbConfig: Config) extends ValintarekisteriService with 
 
   override def hakukohteessaVastaanottoja(oid: String): Boolean = {
     runBlocking(sql"""select count(*) from newest_vastaanotot where hakukohde = ${oid}""".as[Int]).head > 0
+  }
+
+  override def aliases(henkiloOid: String): DBIO[Set[String]] = {
+    sql"""select linked_oid from henkiloviitteet where person_oid = ${henkiloOid}""".as[String].map(_.toSet)
   }
 }
