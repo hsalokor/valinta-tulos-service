@@ -50,17 +50,17 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
     }
 
     "get sijoitteluajon hakukohteet" in {
-      val res = singleConnectionValintarekisteriDb.getSijoitteluajoHakukohteet(1476936450191L).get
+      val res = singleConnectionValintarekisteriDb.getSijoitteluajoHakukohteet(1476936450191L)
       res.map(_.oid).diff(List("1.2.246.562.20.26643418986", "1.2.246.562.20.56217166919", "1.2.246.562.20.69766139963")) mustEqual List()
     }
 
     "get valintatapajonot for sijoitteluajo" in {
-      val res = singleConnectionValintarekisteriDb.getValintatapajonot(1476936450191L).get
+      val res = singleConnectionValintarekisteriDb.getValintatapajonot(1476936450191L)
       res.map(r => r.oid).diff(List("14538080612623056182813241345174", "14539780970882907815262745035155", "14525090029451152170747426429137")) mustEqual List()
     }
 
     "get hakemukset for valintatapajono" in {
-      val res = singleConnectionValintarekisteriDb.getHakemuksetForValintatapajonos(List("14538080612623056182813241345174", "14539780970882907815262745035155", "14525090029451152170747426429137")).get
+      val res = singleConnectionValintarekisteriDb.getHakemuksetForValintatapajonos(List("14538080612623056182813241345174", "14539780970882907815262745035155", "14525090029451152170747426429137"))
       res.size mustEqual 163
     }
 

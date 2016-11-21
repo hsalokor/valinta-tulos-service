@@ -563,29 +563,29 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
             where id = ${sijoitteluajoId} and haku_oid = ${hakuOid}""".as[SijoitteluajoRecord]).headOption
   }
 
-  override def getSijoitteluajoHakukohteet(sijoitteluajoId: Long): Option[List[SijoittelunHakukohdeRecord]] = {
-    Option(runBlocking(
+  override def getSijoitteluajoHakukohteet(sijoitteluajoId: Long): List[SijoittelunHakukohdeRecord] = {
+    runBlocking(
       sql"""select sh.sijoitteluajo_id, sh.hakukohde_oid, sh.tarjoaja_oid, sh.kaikki_jonot_sijoiteltu,
               min(hr.alin_hyvaksytty_pistemaara) as ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet
             from sijoitteluajon_hakukohteet sh
             left join hakijaryhmat hr on hr.sijoitteluajo_id = sh.sijoitteluajo_id and hr.hakukohde_oid = sh.hakukohde_oid
             where hr.sijoitteluajo_id = ${sijoitteluajoId}
-            group by sh.sijoitteluajo_id, sh.hakukohde_oid, sh.tarjoaja_oid, sh.kaikki_jonot_sijoiteltu""".as[SijoittelunHakukohdeRecord]).toList)
+            group by sh.sijoitteluajo_id, sh.hakukohde_oid, sh.tarjoaja_oid, sh.kaikki_jonot_sijoiteltu""".as[SijoittelunHakukohdeRecord]).toList
   }
 
-  override def getValintatapajonot(sijoitteluajoId: Long): Option[List[ValintatapajonoRecord]] = {
-    Option(runBlocking(
+  override def getValintatapajonot(sijoitteluajoId: Long): List[ValintatapajonoRecord] = {
+    runBlocking(
       sql"""select tasasijasaanto, oid, nimi, prioriteetti, aloituspaikat, alkuperaiset_aloituspaikat,
             alin_hyvaksytty_pistemaara, ei_varasijatayttoa, kaikki_ehdon_tayttavat_hyvaksytaan, poissaoleva_taytto,
             valintaesitys_hyvaksytty, (hyvaksytty + varalla) as hakeneet, hyvaksytty, varalla, varasijat,
             varasijatayttopaivat, varasijoja_kaytetaan_alkaen, varasijoja_taytetaan_asti, tayttojono, hakukohde_oid
             from valintatapajonot
-            where sijoitteluajo_id = ${sijoitteluajoId}""".as[ValintatapajonoRecord]).toList)
+            where sijoitteluajo_id = ${sijoitteluajoId}""".as[ValintatapajonoRecord]).toList
   }
 
-  override def getHakemuksetForValintatapajonos(valintatapajonoOids: List[String]): Option[List[HakemusRecord]] = {
+  override def getHakemuksetForValintatapajonos(valintatapajonoOids: List[String]): List[HakemusRecord] = {
     val inParameter = valintatapajonoOids.map(oid => s"'$oid'").mkString(",")
-    Option(runBlocking(
+    runBlocking(
       sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
             j.tasasijajonosija, v.tila, v.tarkenne, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, array_to_string(array_agg(hr.oid), ','),
@@ -599,7 +599,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
             GROUP BY j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
             j.tasasijajonosija, v.tila, v.tarkenne, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa,
-            j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid""".as[HakemusRecord]).toList)
+            j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid""".as[HakemusRecord]).toList
   }
 
   override def getHakemuksenTilahistoria(valintatapajonoOid:String, hakemusOid: String): List[TilaHistoriaRecord] = {

@@ -10,9 +10,9 @@ trait SijoitteluRepository {
   def storeSijoittelu(sijoittelu:SijoitteluWrapper)
   def getLatestSijoitteluajoId(hakuOid:String): Option[Long]
   def getSijoitteluajo(hakuOid:String, sijoitteluajoId:Long): Option[SijoitteluajoRecord]
-  def getSijoitteluajoHakukohteet(sijoitteluajoId:Long): Option[List[SijoittelunHakukohdeRecord]]
-  def getValintatapajonot(sijoitteluajoId:Long): Option[List[ValintatapajonoRecord]]
-  def getHakemuksetForValintatapajonos(valintatapajonoOids:List[String]): Option[List[HakemusRecord]]
+  def getSijoitteluajoHakukohteet(sijoitteluajoId:Long): List[SijoittelunHakukohdeRecord]
+  def getValintatapajonot(sijoitteluajoId:Long): List[ValintatapajonoRecord]
+  def getHakemuksetForValintatapajonos(valintatapajonoOids:List[String]): List[HakemusRecord]
   def getHakemuksenTilahistoria(valintatapajonoOid:String, hakemusOid:String): List[TilaHistoriaRecord]
   def getHakijaryhmat(sijoitteluajoId:Long): List[HakijaryhmaRecord]
   def getHakijaryhmanHakemukset(hakijaryhmaId:Long): List[String]

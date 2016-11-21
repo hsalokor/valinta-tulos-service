@@ -2,17 +2,17 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu
 
 import java.util
 
-import fi.vm.sade.sijoittelu.domain.{Valintatulos, Hakukohde, SijoitteluAjo}
+import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatulos}
 import fi.vm.sade.sijoittelu.tulos.dto.SijoitteluajoDTO
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.ValintarekisteriAppConfig
-import fi.vm.sade.valintatulosservice.valintarekisteri.db.SijoitteluRepository
-import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{SijoitteluWrapper, SijoitteluUtil}
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.{SijoitteluRepository, ValintarekisteriDb}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{SijoitteluRecordToDTO, SijoitteluWrapper}
 import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 class ValintarekisteriForSijoittelu(appConfig:ValintarekisteriAppConfig.ValintarekisteriAppConfig) extends Valintarekisteri {
 
@@ -28,12 +28,10 @@ class ValintarekisteriService(override val sijoitteluRepository:SijoitteluReposi
                               override val hakukohdeRecordService: HakukohdeRecordService) extends Valintarekisteri {
 }
 
-abstract class Valintarekisteri extends Logging {
+abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
 
   val sijoitteluRepository:SijoitteluRepository
   val hakukohdeRecordService: HakukohdeRecordService
-
-  lazy val sijoitteluUtil = new SijoitteluUtil(sijoitteluRepository)
 
   def tallennaSijoittelu(sijoitteluajo:SijoitteluAjo, hakukohteet:java.util.List[Hakukohde], valintatulokset:java.util.List[Valintatulos]) = {
     val sijoittelu = SijoitteluWrapper(sijoitteluajo, hakukohteet, valintatulokset)
@@ -42,70 +40,59 @@ abstract class Valintarekisteri extends Logging {
   }
 
   def getSijoitteluajo(hakuOid:String, sijoitteluajoId:String): SijoitteluajoDTO = {
-    val latestId = sijoitteluUtil.getLatestSijoitteluajoId(sijoitteluajoId, hakuOid)
-    val sijoitteluAjoDTO = sijoitteluRepository.getSijoitteluajo(hakuOid, latestId) match {
-      case Some(s) => sijoitteluUtil.sijoitteluajoRecordToDto(s)
-      case None => new SijoitteluajoDTO
-    }
-    val hakukohdeDTOs = sijoitteluRepository.getSijoitteluajoHakukohteet(latestId) match {
-      case Some(hakukohteet) => hakukohteet.map(h => sijoitteluUtil.sijoittelunHakukohdeRecordToDTO(h))
-      case None => List()
-    }
-    val valintatapajonos = sijoitteluRepository.getValintatapajonot(latestId).getOrElse(List())
-    val valintatapajonoOids = valintatapajonos.map(v => v.oid)
-    val valintatapajononHakemusDTOs = sijoitteluRepository.getHakemuksetForValintatapajonos(valintatapajonoOids) match {
-      case Some(hakemukset) => hakemukset.map(h => sijoitteluUtil.hakemusRecordToDTO(h))
-      case None => List()
-    }
+    val latestId = getLatestSijoitteluajoId(sijoitteluajoId, hakuOid)
 
-    valintatapajononHakemusDTOs.map(h => {
-      val tilahistoria = sijoitteluRepository.getHakemuksenTilahistoria(h.getValintatapajonoOid,h.getHakemusOid)
-      h.setTilaHistoria(tilahistoria.map(h => sijoitteluUtil.tilaHistoriaRecordToDTO(h)).asJava)
+    val valintatapajonotByHakukohde = getSijoitteluajonValintatapajonotGroupedByHakukohde(latestId)
+
+    val hakijaryhmatByHakukohde = sijoitteluRepository.getHakijaryhmat(latestId)
+      .map(h => hakijaryhmaRecordToDTO(h, sijoitteluRepository.getHakijaryhmanHakemukset(h.id))
+    ).groupBy(_.getHakukohdeOid)
+
+    val hakukohteet = sijoitteluRepository.getSijoitteluajoHakukohteet(latestId).map(sijoittelunHakukohdeRecordToDTO)
+    hakukohteet.foreach(h => {
+      h.setValintatapajonot(valintatapajonotByHakukohde.get(h.getOid).getOrElse(List()).asJava)
+      h.setHakijaryhmat(hakijaryhmatByHakukohde.get(h.getOid).getOrElse(List()).asJava)
     })
 
-    val hakijaRyhmat = sijoitteluRepository.getHakijaryhmat(latestId)
-    val hakijaryhmaDTOs = hakijaRyhmat.map(hr => {
-      val hakijaryhmanHakemukset = sijoitteluRepository.getHakijaryhmanHakemukset(hr.id)
-      val hakijaryhmaDTO = sijoitteluUtil.hakijaryhmaRecordToDTO(hr)
-      hakijaryhmaDTO.setHakemusOid(hakijaryhmanHakemukset.asJava)
-      hakijaryhmaDTO
+    sijoitteluRepository.getSijoitteluajo(hakuOid, latestId).map(sijoitteluajoRecordToDto(_, hakukohteet)).get
+  }
+
+  private def getSijoitteluajonValintatapajonotGroupedByHakukohde(latestId:Long) = {
+    val valintatapajonotByHakukohde = sijoitteluRepository.getValintatapajonot(latestId).groupBy(_.hakukohdeOid).map({
+      case (x, y) => (x, y.map(valintatapajonoRecordToDTO))
     })
 
-    hakukohdeDTOs.map(h => {
-      val hakukohteenValintatapajonoDTOs = valintatapajonos.filter(v => v.hakukohdeOid == h.getOid).map(v => {
-        val valintatapajonoDTO = sijoitteluUtil.valintatapajonoRecordToDTO(v)
-        valintatapajonoDTO.setHakemukset(valintatapajononHakemusDTOs.filter(vh => vh.getValintatapajonoOid == valintatapajonoDTO.getOid).asJava)
-        valintatapajonoDTO
-      }).asJava
-      h.setValintatapajonot(hakukohteenValintatapajonoDTOs)
-      h.setHakijaryhmat(hakijaryhmaDTOs.filter(hr => hr.getHakukohdeOid == h.getOid).asJava)
-    })
+    val valintatapajonoOidit = valintatapajonotByHakukohde.values.flatten.map(_.getOid).toList
 
-    sijoitteluAjoDTO.setHakukohteet(hakukohdeDTOs.asJava)
-    sijoitteluAjoDTO
+    val kaikkiValintatapajonoHakemukset = sijoitteluRepository.getHakemuksetForValintatapajonos(valintatapajonoOidit).map(hakemusRecordToDTO)
+    kaikkiValintatapajonoHakemukset.foreach(h => h.setTilaHistoria(
+      sijoitteluRepository.getHakemuksenTilahistoria(h.getValintatapajonoOid, h.getHakemusOid).map(tilaHistoriaRecordToDTO).asJava
+    ))
+
+    valintatapajonotByHakukohde.values.flatten.foreach(j => j.setHakemukset(kaikkiValintatapajonoHakemukset.filter(_.getValintatapajonoOid.equals(j.getOid)).asJava))
+    valintatapajonotByHakukohde
   }
 
   def getHakemusBySijoitteluajo(hakuOid:String, sijoitteluajoId:String, hakemusOid:String): HakijaDTO = {
-    val latestId = sijoitteluUtil.getLatestSijoitteluajoId(sijoitteluajoId, hakuOid)
-    val hakija = sijoitteluRepository.getHakija(hakemusOid, latestId) match {
-      case Some(h) => h
-      case None => throw new IllegalArgumentException(s"Hakijaa ei löytynyt hakemukselle $hakemusOid, sijoitteluajoid: $latestId")
-    }
+    val latestId = getLatestSijoitteluajoId(sijoitteluajoId, hakuOid)
+    val hakija = sijoitteluRepository.getHakija(hakemusOid, latestId)
+      .orElse(throw new IllegalArgumentException(s"Hakijaa ei löytynyt hakemukselle $hakemusOid, sijoitteluajoid: $latestId"))
+      .map(hakijaRecordToDTO).get
 
     val hakutoiveet = sijoitteluRepository.getHakutoiveet(hakemusOid, latestId)
-    val jonosijaIds = hakutoiveet.map(h => h.jonosijaId)
-    val pistetiedot = sijoitteluRepository.getPistetiedot(jonosijaIds)
+    val pistetiedot = sijoitteluRepository.getPistetiedot(hakutoiveet.map(_.jonosijaId))
 
-    val hakijaDTO = sijoitteluUtil.hakijaRecordToDTO(hakija)
+    val hakutoiveDTOs = hakutoiveet.map(h => hakutoiveRecordToDTO(h, pistetiedot.filter(_.jonosijaId == h.jonosijaId)))
+    hakutoiveDTOs.sortBy(_.getHakutoive)
 
-    val hakutoiveetDTOs = hakutoiveet.map(h => {
-      val hakutoiveenPistetiedot = pistetiedot.filter(p => {
-        p.jonosijaId == h.jonosijaId
-      })
-      sijoitteluUtil.hakutoiveRecordToDTO(h, hakutoiveenPistetiedot)
-    })
-    hakutoiveetDTOs.sortBy(h => h.getHakutoive)
-    hakijaDTO.setHakutoiveet(hakutoiveetDTOs.asInstanceOf[util.SortedSet[HakutoiveDTO]])
-    return hakijaDTO
+    hakija.setHakutoiveet(hakutoiveDTOs.asInstanceOf[util.SortedSet[HakutoiveDTO]])
+    hakija
+  }
+
+  def getLatestSijoitteluajoId(sijoitteluajoId:String, hakuOid:String): Long = sijoitteluajoId match {
+    case x if "latest".equalsIgnoreCase(x) => sijoitteluRepository.getLatestSijoitteluajoId(hakuOid)
+      .getOrElse(throw new IllegalArgumentException(s"Yhtään sijoitteluajoa ei löytynyt haulle $hakuOid"))
+    case x => Try(x.toLong).toOption
+      .getOrElse(throw new IllegalArgumentException(s"Väärän tyyppinen sijoitteuajon ID: $sijoitteluajoId"))
   }
 }

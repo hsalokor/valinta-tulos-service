@@ -34,8 +34,8 @@ case class HakijaryhmaRecord(id:Long, prioriteetti:Int, paikat:Int, oid:String, 
                        kaytaKaikki:Boolean, tarkkaKiintio:Boolean, kaytetaanRyhmaanKuuluvia:Boolean,
                        valintatapajonoOid:String)
 
-class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
-  def hakijaRecordToDTO(hakija:HakijaRecord): HakijaDTO = {
+abstract class SijoitteluRecordToDTO() {
+  def hakijaRecordToDTO(hakija: HakijaRecord): HakijaDTO = {
     val hakijaDTO = new HakijaDTO
     hakijaDTO.setHakijaOid(hakija.hakijaOid)
     hakijaDTO.setHakemusOid(hakija.hakemusOid)
@@ -44,19 +44,19 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     return hakijaDTO
   }
 
-  def hakutoiveRecordToDTO(hakutoive:HakutoiveRecord, pistetiedot:List[PistetietoRecord]): HakutoiveDTO = {
+  def hakutoiveRecordToDTO(hakutoive: HakutoiveRecord, pistetiedot: List[PistetietoRecord]): HakutoiveDTO = {
     val hakutoiveDTO = new HakutoiveDTO
     hakutoiveDTO.setHakutoive(hakutoive.hakutoive)
     hakutoiveDTO.setHakukohdeOid(hakutoive.hakukohdeOid)
     hakutoiveDTO.setTarjoajaOid(hakutoive.tarjoajaOid)
-//  TODO mites tämä? hakutoiveDTO.setVastaanottotieto(hakutoive.valintatuloksenTila)
+    //  TODO mites tämä? hakutoiveDTO.setVastaanottotieto(hakutoive.valintatuloksenTila)
 
     val pistetietoDTOs = pistetiedot.map(p => pistetietoRecordToTDO(p))
     hakutoiveDTO.setPistetiedot(pistetietoDTOs.asJava)
     return hakutoiveDTO
   }
 
-  def pistetietoRecordToTDO(pistetieto:PistetietoRecord): PistetietoDTO = {
+  def pistetietoRecordToTDO(pistetieto: PistetietoRecord): PistetietoDTO = {
     val pistetietoDTO = new PistetietoDTO
     pistetietoDTO.setArvo(pistetieto.arvo)
     pistetietoDTO.setLaskennallinenArvo(pistetieto.laskennallinenArvo)
@@ -65,7 +65,7 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     return pistetietoDTO
   }
 
-  def sijoitteluajoRecordToDto(sijoitteluajo:SijoitteluajoRecord): SijoitteluajoDTO = {
+  def sijoitteluajoRecordToDto(sijoitteluajo: SijoitteluajoRecord): SijoitteluajoDTO = {
     val sijoitteluajoDTO = new SijoitteluajoDTO
     sijoitteluajoDTO.setSijoitteluajoId(sijoitteluajo.sijoitteluajoId)
     sijoitteluajoDTO.setHakuOid(sijoitteluajo.hakuOid)
@@ -74,22 +74,28 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     sijoitteluajoDTO
   }
 
+  def sijoitteluajoRecordToDto(sijoitteluajo: SijoitteluajoRecord, hakukohteet:List[HakukohdeDTO]): SijoitteluajoDTO = {
+    val sijoitteluajoDTO = sijoitteluajoRecordToDto(sijoitteluajo)
+    sijoitteluajoDTO.setHakukohteet(hakukohteet.asJava)
+    sijoitteluajoDTO
+  }
+
   import scala.collection.JavaConverters._
 
-  def sijoittelunHakukohdeRecordToDTO(hakukohde:SijoittelunHakukohdeRecord): HakukohdeDTO = {
+  def sijoittelunHakukohdeRecordToDTO(hakukohde: SijoittelunHakukohdeRecord): HakukohdeDTO = {
     val hakukohdeDTO = new HakukohdeDTO
     hakukohdeDTO.setSijoitteluajoId(hakukohde.sijoitteluajoId)
     hakukohdeDTO.setOid(hakukohde.oid)
     hakukohdeDTO.setTarjoajaOid(hakukohde.tarjoajaOid)
     hakukohdeDTO.setKaikkiJonotSijoiteltu(hakukohde.kaikkiJonotsijoiteltu)
     hakukohdeDTO.setEnsikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet(hakukohde.ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet match {
-      case i:BigDecimal => i.bigDecimal
+      case i: BigDecimal => i.bigDecimal
       case _ => null
-     })
+    })
     hakukohdeDTO
   }
 
-  def valintatapajonoRecordToDTO(jono:ValintatapajonoRecord): ValintatapajonoDTO = {
+  def valintatapajonoRecordToDTO(jono: ValintatapajonoRecord): ValintatapajonoDTO = {
     val jonoDTO = new ValintatapajonoDTO
     jonoDTO.setTasasijasaanto(fi.vm.sade.sijoittelu.tulos.dto.Tasasijasaanto.valueOf(jono.tasasijasaanto.toUpperCase()))
     jonoDTO.setOid(jono.oid)
@@ -98,7 +104,7 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     jonoDTO.setAloituspaikat(jono.aloituspaikat)
     jonoDTO.setAlkuperaisetAloituspaikat(jono.alkuperaisetAloituspaikat)
     jonoDTO.setAlinHyvaksyttyPistemaara(jono.alinHyvaksyttyPistemaara match {
-      case i:BigDecimal => i.bigDecimal
+      case i: BigDecimal => i.bigDecimal
       case _ => null
     })
     jonoDTO.setEiVarasijatayttoa(jono.eiVarasijatayttoa)
@@ -116,12 +122,12 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     jonoDTO
   }
 
-  def hakemusRecordToDTO(hakemus:HakemusRecord): HakemusDTO = {
+  def hakemusRecordToDTO(hakemus: HakemusRecord): HakemusDTO = {
     val hakemusDTO = new HakemusDTO
     hakemusDTO.setHakijaOid(hakemus.hakijaOid)
     hakemusDTO.setHakemusOid(hakemus.hakemusOid)
     hakemusDTO.setPisteet(hakemus.pisteet match {
-      case i:BigDecimal => i.bigDecimal
+      case i: BigDecimal => i.bigDecimal
       case _ => null
     })
     hakemusDTO.setEtunimi(hakemus.etunimi)
@@ -143,14 +149,14 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     hakemusDTO
   }
 
-  def tilaHistoriaRecordToDTO(tila:TilaHistoriaRecord): TilaHistoriaDTO = {
+  def tilaHistoriaRecordToDTO(tila: TilaHistoriaRecord): TilaHistoriaDTO = {
     val tilaDTO = new TilaHistoriaDTO
     tilaDTO.setLuotu(tila.luotu)
     tilaDTO.setTila(tila.tila)
     tilaDTO
   }
 
-  def hakijaryhmaRecordToDTO(hakijaRyhma:HakijaryhmaRecord): HakijaryhmaDTO = {
+  def hakijaryhmaRecordToDTO(hakijaRyhma: HakijaryhmaRecord): HakijaryhmaDTO = {
     val ryhmaDTO = new HakijaryhmaDTO
     ryhmaDTO.setPrioriteetti(hakijaRyhma.prioriteetti)
     ryhmaDTO.setPaikat(hakijaRyhma.paikat)
@@ -165,18 +171,9 @@ class SijoitteluUtil(sijoitteluRepository: SijoitteluRepository) {
     ryhmaDTO
   }
 
-  def getLatestSijoitteluajoId(sijoitteluajoId:String, hakuOid:String): Long = {
-    if (sijoitteluajoId.equalsIgnoreCase("latest")) {
-      sijoitteluRepository.getLatestSijoitteluajoId(hakuOid) match {
-        case Some(i) => i
-        case None => throw new IllegalArgumentException(s"Yhtään sijoitteluajoa ei löytynyt haulle $hakuOid")
-      }
-    } else {
-      try {
-        sijoitteluajoId.toLong
-      } catch {
-        case e: NumberFormatException => throw new NumberFormatException(s"Väärän tyyppinen sijoitteuajon ID: $sijoitteluajoId")
-      }
-    }
+  def hakijaryhmaRecordToDTO(hakijaRyhma: HakijaryhmaRecord, hakemusOidit:List[String]): HakijaryhmaDTO = {
+    val ryhmaDTO = hakijaryhmaRecordToDTO(hakijaRyhma)
+    ryhmaDTO.setHakemusOid(hakemusOidit.asJava)
+    ryhmaDTO
   }
 }
