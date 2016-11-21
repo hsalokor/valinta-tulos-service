@@ -34,7 +34,7 @@ case class HakijaryhmaRecord(id:Long, prioriteetti:Int, paikat:Int, oid:String, 
                        kaytaKaikki:Boolean, tarkkaKiintio:Boolean, kaytetaanRyhmaanKuuluvia:Boolean,
                        valintatapajonoOid:String)
 
-abstract class SijoitteluRecordToDTO() {
+abstract class SijoitteluRecordToDTO {
   def hakijaRecordToDTO(hakija: HakijaRecord): HakijaDTO = {
     val hakijaDTO = new HakijaDTO
     hakijaDTO.setHakijaOid(hakija.hakijaOid)
@@ -88,10 +88,7 @@ abstract class SijoitteluRecordToDTO() {
     hakukohdeDTO.setOid(hakukohde.oid)
     hakukohdeDTO.setTarjoajaOid(hakukohde.tarjoajaOid)
     hakukohdeDTO.setKaikkiJonotSijoiteltu(hakukohde.kaikkiJonotsijoiteltu)
-    hakukohdeDTO.setEnsikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet(hakukohde.ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet match {
-      case i: BigDecimal => i.bigDecimal
-      case _ => null
-    })
+    hakukohdeDTO.setEnsikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet(bigDecimal(hakukohde.ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet))
     hakukohdeDTO
   }
 
@@ -103,10 +100,7 @@ abstract class SijoitteluRecordToDTO() {
     jonoDTO.setPrioriteetti(jono.prioriteetti)
     jonoDTO.setAloituspaikat(jono.aloituspaikat)
     jonoDTO.setAlkuperaisetAloituspaikat(jono.alkuperaisetAloituspaikat)
-    jonoDTO.setAlinHyvaksyttyPistemaara(jono.alinHyvaksyttyPistemaara match {
-      case i: BigDecimal => i.bigDecimal
-      case _ => null
-    })
+    jonoDTO.setAlinHyvaksyttyPistemaara(bigDecimal(jono.alinHyvaksyttyPistemaara))
     jonoDTO.setEiVarasijatayttoa(jono.eiVarasijatayttoa)
     jonoDTO.setKaikkiEhdonTayttavatHyvaksytaan(jono.kaikkiEhdonTayttavatHyvaksytaan)
     jonoDTO.setPoissaOlevaTaytto(jono.poissaOlevaTaytto)
@@ -126,10 +120,7 @@ abstract class SijoitteluRecordToDTO() {
     val hakemusDTO = new HakemusDTO
     hakemusDTO.setHakijaOid(hakemus.hakijaOid)
     hakemusDTO.setHakemusOid(hakemus.hakemusOid)
-    hakemusDTO.setPisteet(hakemus.pisteet match {
-      case i: BigDecimal => i.bigDecimal
-      case _ => null
-    })
+    hakemusDTO.setPisteet(bigDecimal(hakemus.pisteet))
     hakemusDTO.setEtunimi(hakemus.etunimi)
     hakemusDTO.setSukunimi(hakemus.sukunimi)
     hakemusDTO.setPrioriteetti(hakemus.prioriteetti)
@@ -175,5 +166,10 @@ abstract class SijoitteluRecordToDTO() {
     val ryhmaDTO = hakijaryhmaRecordToDTO(hakijaRyhma)
     ryhmaDTO.setHakemusOid(hakemusOidit.asJava)
     ryhmaDTO
+  }
+
+  def bigDecimal(bigDecimal:BigDecimal): java.math.BigDecimal = bigDecimal match {
+    case i: BigDecimal => i.bigDecimal
+    case _ => null
   }
 }
