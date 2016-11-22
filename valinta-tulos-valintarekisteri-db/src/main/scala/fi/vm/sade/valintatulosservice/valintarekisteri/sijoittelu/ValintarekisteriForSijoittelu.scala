@@ -41,20 +41,21 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
 
   def getSijoitteluajo(hakuOid:String, sijoitteluajoId:String): SijoitteluajoDTO = {
     val latestId = getLatestSijoitteluajoId(sijoitteluajoId, hakuOid)
+    sijoitteluRepository.getSijoitteluajo(hakuOid, latestId).map(sijoitteluajo => {
+      val valintatapajonotByHakukohde = getSijoitteluajonValintatapajonotGroupedByHakukohde(latestId)
 
-    val valintatapajonotByHakukohde = getSijoitteluajonValintatapajonotGroupedByHakukohde(latestId)
+      val hakijaryhmatByHakukohde = sijoitteluRepository.getHakijaryhmat(latestId)
+        .map(h => hakijaryhmaRecordToDTO(h, sijoitteluRepository.getHakijaryhmanHakemukset(h.id))
+        ).groupBy(_.getHakukohdeOid)
 
-    val hakijaryhmatByHakukohde = sijoitteluRepository.getHakijaryhmat(latestId)
-      .map(h => hakijaryhmaRecordToDTO(h, sijoitteluRepository.getHakijaryhmanHakemukset(h.id))
-    ).groupBy(_.getHakukohdeOid)
+      val hakukohteet = sijoitteluRepository.getSijoitteluajoHakukohteet(latestId).map(sijoittelunHakukohdeRecordToDTO)
+      hakukohteet.foreach(h => {
+        h.setValintatapajonot(valintatapajonotByHakukohde.get(h.getOid).getOrElse(List()).asJava)
+        h.setHakijaryhmat(hakijaryhmatByHakukohde.get(h.getOid).getOrElse(List()).asJava)
+      })
 
-    val hakukohteet = sijoitteluRepository.getSijoitteluajoHakukohteet(latestId).map(sijoittelunHakukohdeRecordToDTO)
-    hakukohteet.foreach(h => {
-      h.setValintatapajonot(valintatapajonotByHakukohde.get(h.getOid).getOrElse(List()).asJava)
-      h.setHakijaryhmat(hakijaryhmatByHakukohde.get(h.getOid).getOrElse(List()).asJava)
-    })
-
-    sijoitteluRepository.getSijoitteluajo(hakuOid, latestId).map(sijoitteluajoRecordToDto(_, hakukohteet)).get
+      (sijoitteluajoRecordToDto(sijoitteluajo, hakukohteet))
+    }).getOrElse(throw new IllegalArgumentException(s"Sijoitteluajoa $sijoitteluajoId ei löytynyt haulle $hakuOid"))
   }
 
   private def getSijoitteluajonValintatapajonotGroupedByHakukohde(latestId:Long) = {
@@ -93,6 +94,6 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
     case x if "latest".equalsIgnoreCase(x) => sijoitteluRepository.getLatestSijoitteluajoId(hakuOid)
       .getOrElse(throw new IllegalArgumentException(s"Yhtään sijoitteluajoa ei löytynyt haulle $hakuOid"))
     case x => Try(x.toLong).toOption
-      .getOrElse(throw new IllegalArgumentException(s"Väärän tyyppinen sijoitteuajon ID: $sijoitteluajoId"))
+      .getOrElse(throw new IllegalArgumentException(s"Väärän tyyppinen sijoitteluajon ID: $sijoitteluajoId"))
   }
 }

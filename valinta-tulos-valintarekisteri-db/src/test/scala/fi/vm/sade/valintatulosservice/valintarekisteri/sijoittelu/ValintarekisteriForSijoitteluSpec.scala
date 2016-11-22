@@ -1,13 +1,11 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu
 
-import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus}
-import fi.vm.sade.sijoittelu.tulos.dto.{HakukohdeDTO, SijoitteluajoDTO}
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.SijoitteluWrapper
 import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriDbTools}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterExample
+
 import scala.collection.JavaConverters._
 
 
@@ -19,7 +17,7 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
 
   lazy val valintarekisteri = new ValintarekisteriService(singleConnectionValintarekisteriDb, hakukohdeRecordService)
 
-  "SijoitteluajoDTO should be fetched from database 1" in {
+  "SijoitteluajoDTO with sijoitteluajoId should be fetched from database" in {
     val wrapper = loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/")
     singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)
     compareSijoitteluWrapperToDTO(
@@ -27,12 +25,12 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
       valintarekisteri.getSijoitteluajo("1.2.246.562.29.75203638285", "1476936450191")
     )
   }
-  "SijoitteluajoDTO should be fetched from database 2" in {
+  "SijoitteluajoDTO with latest sijoitteluajoId should be fetched from database" in {
     val wrapper = loadSijoitteluFromFixture("valintatapajono_hakijaryhma_pistetiedot", "sijoittelu/")
     singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)
     compareSijoitteluWrapperToDTO(
       wrapper,
-      valintarekisteri.getSijoitteluajo("korkeakoulu-erillishaku", "1464957466474")
+      valintarekisteri.getSijoitteluajo("korkeakoulu-erillishaku", "latest")
     )
   }
   "Sijoittelu and hakukohteet should be saved in database 1" in {
@@ -44,6 +42,24 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
     val wrapper = loadSijoitteluFromFixture("valintatapajono_hakijaryhma_pistetiedot", "sijoittelu/", false)
     valintarekisteri.tallennaSijoittelu(wrapper.sijoitteluajo, wrapper.hakukohteet.asJava, wrapper.valintatulokset.asJava)
     assertSijoittelu(wrapper)
+  }
+  "Unknown sijoitteluajo cannot be found" in {
+    val wrapper = loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/")
+    singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)
+    valintarekisteri.getSijoitteluajo("1.2.246.562.29.75203638285", "1476936450192") must throwA(
+      new IllegalArgumentException(s"Sijoitteluajoa 1476936450192 ei löytynyt haulle 1.2.246.562.29.75203638285"))
+  }
+  "Exception is thrown when no latest sijoitteluajo is found" in {
+    val wrapper = loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/")
+    singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)
+    valintarekisteri.getSijoitteluajo("1.2.246.562.29.75203638286", "latest") must throwA(
+      new IllegalArgumentException("Yhtään sijoitteluajoa ei löytynyt haulle 1.2.246.562.29.75203638286"))
+  }
+  "Exception is thrown when sijoitteluajoId is malformed" in {
+    val wrapper = loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/")
+    singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)
+    valintarekisteri.getSijoitteluajo("1.2.246.562.29.75203638285", "1476936450192a") must throwA(
+      new IllegalArgumentException("Väärän tyyppinen sijoitteluajon ID: 1476936450192a"))
   }
 
   override protected def before: Unit = {
