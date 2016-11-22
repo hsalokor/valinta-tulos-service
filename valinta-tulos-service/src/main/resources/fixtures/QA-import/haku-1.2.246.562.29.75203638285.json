@@ -115,8 +115,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.54385885873",
@@ -160,8 +163,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.81999691361",
@@ -198,8 +204,11 @@
                 "SV": "Annullerad, godkänt till ansökningsmål med högre prioritet",
                 "EN": "Cancelled, accepted for a study place with higher priority"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "PERUUNTUNUT_HYVAKSYTTY_YLEMMALLE_HAKUTOIVEELLE"
             },
             {
               "hakijaOid": "1.2.246.562.24.78951224941",
@@ -243,8 +252,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.83947059377",
@@ -288,8 +300,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.65280358041",
@@ -333,8 +348,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.67493181993",
@@ -378,8 +396,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.51453177652",
@@ -423,8 +444,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.65277604452",
@@ -468,8 +492,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.31449870349",
@@ -504,8 +531,11 @@
                 "SV": "Godkänd med köpåfyllningsregel från urvalsmetodskö: 14538080612623056182813241345174",
                 "EN": "Accepted from selection method queue: 14538080612623056182813241345174"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "HYVAKSYTTY_TAYTTOJONO_SAANNOLLA"
             },
             {
               "hakijaOid": "1.2.246.562.24.85797330778",
@@ -540,8 +570,11 @@
                 "SV": "Deltog inte i urvalsprovet",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.44604191478",
@@ -576,8 +609,12 @@
                 "SV": "Inte ansökningsbehörig (den sökande uppfyller inte behörighetskraven)",
                 "EN": "Not eligible (the applicant does not meet the eligibility requirements)"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14521594993758343217655058789845",
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.82204689520",
@@ -612,8 +649,12 @@
                 "SV": "Inte ansökningsbehörig (den sökande uppfyller inte behörighetskraven)",
                 "EN": "Not eligible (the applicant does not meet the eligibility requirements)"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14521594993758343217655058789845",
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.24351540130",
@@ -648,8 +689,12 @@
                 "SV": "Inte ansökningsbehörig (den sökande uppfyller inte behörighetskraven)",
                 "EN": "Not eligible (the applicant does not meet the eligibility requirements)"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14521594993758343217655058789845",
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.48294633106",
@@ -684,8 +729,12 @@
                 "SV": "Inte ansökningsbehörig (den sökande uppfyller inte behörighetskraven)",
                 "EN": "Not eligible (the applicant does not meet the eligibility requirements)"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14521594993758343217655058789845",
+                "1476103764898-8837999876477636603"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             }
           ]
         }
@@ -809,9 +858,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.60622224291",
@@ -851,8 +904,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.60521920900",
@@ -892,9 +948,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.29919962168",
@@ -934,8 +994,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.99349379762",
@@ -975,9 +1038,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.25864682513",
@@ -1017,9 +1084,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.74304596738",
@@ -1059,9 +1130,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.41183779437",
@@ -1101,9 +1176,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.75303856915",
@@ -1143,9 +1222,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.54747424940",
@@ -1185,9 +1268,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.75752890195",
@@ -1231,8 +1318,12 @@
                 "SV": "Annullerad, godkänt till ansökningsmål med högre prioritet",
                 "EN": "Cancelled, accepted for a study place with higher priority"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "PERUUNTUNUT_HYVAKSYTTY_YLEMMALLE_HAKUTOIVEELLE"
             },
             {
               "hakijaOid": "1.2.246.562.24.12447046084",
@@ -1272,9 +1363,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.70675509021",
@@ -1314,9 +1409,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.27631464616",
@@ -1356,9 +1455,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.26380488672",
@@ -1398,9 +1501,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.89463186692",
@@ -1440,9 +1547,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.66768226102",
@@ -1482,9 +1593,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.39943962292",
@@ -1524,9 +1639,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.67973975412",
@@ -1566,9 +1685,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.42155564268",
@@ -1608,9 +1731,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.76163188916",
@@ -1650,9 +1777,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.68042483216",
@@ -1692,9 +1823,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.10103633160",
@@ -1734,8 +1869,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.30110985726",
@@ -1775,9 +1913,13 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": true,
-              "hakijaryhmaOid": "1453978097229-956937256090574089",
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967",
+                "1453978097229-956937256090574089"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.47418915766",
@@ -1821,8 +1963,12 @@
                 "SV": "Annullerad, tagit emot en annan högskoleplats",
                 "EN": "Cancelled, accepted another higher education study place"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN_YHDEN_SAANNON_PAIKAN_PIIRISSA"
             },
             {
               "hakijaOid": "1.2.246.562.24.36799339124",
@@ -1862,8 +2008,12 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.43143878457",
@@ -1903,8 +2053,12 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.36929640379",
@@ -1944,8 +2098,12 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.46712572275",
@@ -1985,8 +2143,12 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.84199439854",
@@ -2026,8 +2188,12 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.55920124231",
@@ -2070,8 +2236,12 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.34735547710",
@@ -2114,8 +2284,11 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.59997431584",
@@ -2158,8 +2331,11 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.33442275509",
@@ -2202,8 +2378,11 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.65523277216",
@@ -2246,8 +2425,12 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.48405059113",
@@ -2290,8 +2473,12 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.66371700361",
@@ -2334,8 +2521,11 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.15206632911",
@@ -2378,8 +2568,11 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.71834261824",
@@ -2422,8 +2615,12 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.13537199222",
@@ -2466,8 +2663,12 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.70260162611",
@@ -2510,8 +2711,12 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.55311125001",
@@ -2554,8 +2759,11 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.99426873084",
@@ -2598,8 +2806,11 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.72977709174",
@@ -2642,8 +2853,12 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.23735194873",
@@ -2686,8 +2901,12 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.95200372789",
@@ -2730,8 +2949,12 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.77396960573",
@@ -2774,8 +2997,12 @@
                 "FI": "Valintakokeen pakollinen osio hylätty",
                 "EN": "Compulsory exam section has been failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.62207266931",
@@ -2818,8 +3045,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.84609521731",
@@ -2862,8 +3093,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.90862837531",
@@ -2906,8 +3141,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.58561767928",
@@ -2950,8 +3189,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.88544554762",
@@ -2994,8 +3237,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.61454814917",
@@ -3038,8 +3285,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.40136789103",
@@ -3082,8 +3333,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.76301828368",
@@ -3126,8 +3381,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.63086680245",
@@ -3170,8 +3429,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.47616690702",
@@ -3214,8 +3477,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.61071813896",
@@ -3258,8 +3525,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.30710126189",
@@ -3302,8 +3573,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.85534156102",
@@ -3346,8 +3621,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.18621905770",
@@ -3390,8 +3669,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.95277085724",
@@ -3434,8 +3717,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.82585557847",
@@ -3478,8 +3765,11 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.21499043602",
@@ -3522,8 +3812,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.61582928322",
@@ -3566,8 +3860,11 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.50670402130",
@@ -3610,8 +3907,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.23381821367",
@@ -3654,8 +3955,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.53863691056",
@@ -3698,8 +4003,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.53436386714",
@@ -3742,8 +4051,11 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.61802431515",
@@ -3786,8 +4098,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.26517613676",
@@ -3830,8 +4146,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.64702367401",
@@ -3874,8 +4194,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.15220650050",
@@ -3918,8 +4242,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.40108476787",
@@ -3962,8 +4290,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.36462144277",
@@ -4006,8 +4338,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.60017786865",
@@ -4050,8 +4386,12 @@
                 "FI": "Valintakoe hylätty",
                 "EN": "Entrance exam failed"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.34847851608",
@@ -4090,8 +4430,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.56467194600",
@@ -4130,8 +4474,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.97677015554",
@@ -4170,8 +4518,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.84998867164",
@@ -4210,8 +4562,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.53850956995",
@@ -4250,8 +4606,11 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.11579583128",
@@ -4290,8 +4649,11 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.47799374291",
@@ -4330,8 +4692,11 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.69468232008",
@@ -4370,8 +4735,11 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.16613803578",
@@ -4410,8 +4778,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.15182817449",
@@ -4450,8 +4822,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.80005576258",
@@ -4490,8 +4866,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.37787975052",
@@ -4530,8 +4910,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.74252711050",
@@ -4570,8 +4954,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.58965486423",
@@ -4610,8 +4998,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.14304350293",
@@ -4650,8 +5042,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.86922062661",
@@ -4690,8 +5086,11 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.70947571185",
@@ -4730,8 +5129,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.52677296091",
@@ -4770,8 +5173,12 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.60840849018",
@@ -4810,8 +5217,11 @@
                 "FI": "Hakija ei osallistunut valintakokeeseen",
                 "EN": "Applicant did not participate in the entrance examination"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.46948738126",
@@ -4850,8 +5260,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.23335430490",
@@ -4890,8 +5304,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.81128194354",
@@ -4930,8 +5348,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.82077959115",
@@ -4970,8 +5392,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.53112779548",
@@ -5010,8 +5436,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.49222327409",
@@ -5050,8 +5480,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.69006382721",
@@ -5090,8 +5524,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.43464151345",
@@ -5130,8 +5568,11 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.72819402885",
@@ -5170,8 +5611,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.13761220912",
@@ -5210,8 +5655,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.44732879468",
@@ -5250,8 +5699,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.66782234413",
@@ -5290,8 +5743,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.77500922310",
@@ -5330,8 +5787,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.62155455580",
@@ -5370,8 +5831,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.38614655790",
@@ -5410,8 +5875,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.89371693235",
@@ -5450,8 +5919,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.62561322812",
@@ -5490,8 +5963,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.42038258112",
@@ -5530,8 +6007,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.14184139058",
@@ -5570,8 +6051,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.49389733266",
@@ -5610,8 +6095,11 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.68770461665",
@@ -5650,8 +6138,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.95648498034",
@@ -5690,8 +6182,11 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.37336840046",
@@ -5730,8 +6225,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.22516045980",
@@ -5771,8 +6270,12 @@
                 "SV": "Inte ansökningsbehörig (den sökande uppfyller inte behörighetskraven)",
                 "EN": "Not eligible (the applicant does not meet the eligibility requirements)"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.36620059418",
@@ -5811,8 +6314,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.58201598907",
@@ -5851,8 +6358,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.26962707441",
@@ -5891,8 +6402,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.92898591386",
@@ -5931,8 +6446,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.10979087403",
@@ -5971,8 +6490,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.23781906769",
@@ -6011,8 +6534,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.19312585479",
@@ -6051,8 +6578,11 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.80590855921",
@@ -6091,8 +6621,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.50892834939",
@@ -6131,8 +6665,11 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.47974076767",
@@ -6171,8 +6708,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.41029118673",
@@ -6211,8 +6752,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.98298559728",
@@ -6251,8 +6796,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.37592778800",
@@ -6291,8 +6840,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.56369376306",
@@ -6331,8 +6884,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.45461239446",
@@ -6371,8 +6928,12 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "1453978097229-956937256090574089",
+                "14761030623672404853230769896967"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             }
           ]
         }
@@ -6725,8 +7286,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.72474455646",
@@ -6770,8 +7334,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.37180074534",
@@ -6815,8 +7382,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.42433672856",
@@ -6860,8 +7430,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.30492323158",
@@ -6905,8 +7478,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.58133662891",
@@ -6950,8 +7526,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.37558411758",
@@ -6995,8 +7574,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.61676277523",
@@ -7040,8 +7622,11 @@
                   "tilastoidaan": false
                 }
               ],
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.66127300915",
@@ -7078,8 +7663,11 @@
                 "SV": "Annullerad, tagit emot en annan högskoleplats",
                 "EN": "Cancelled, accepted another higher education study place"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN_YHDEN_SAANNON_PAIKAN_PIIRISSA"
             },
             {
               "hakijaOid": "1.2.246.562.24.56357563273",
@@ -7114,8 +7702,11 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.90338860223",
@@ -7150,8 +7741,11 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.68305650906",
@@ -7186,8 +7780,11 @@
                 "FI": "Ennakkotehtävä palauttamatta",
                 "EN": "Pretask not returned"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.71660136398",
@@ -7222,8 +7819,11 @@
                 "FI": "Ei hakukelpoinen (hakija ei täytä kelpoisuusvaatimuksia)",
                 "EN": "Not eligible (the applicant does not meet the eligibility requirements)"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.60784686654",
@@ -7258,8 +7858,11 @@
                 "FI": "Ei hakukelpoinen (hakija ei täytä kelpoisuusvaatimuksia)",
                 "EN": "Not eligible (the applicant does not meet the eligibility requirements)"
               },
-              "hyvaksyttyHakijaryhmasta": false,
-              "siirtynytToisestaValintatapajonosta": false
+              "siirtynytToisestaValintatapajonosta": false,
+              "hyvaksyttyHakijaryhmista": [
+                "14761056762354411505847130564606"
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             }
           ]
         }
@@ -7307,7 +7910,7 @@
       "hakijaOid": "1.2.246.562.24.60840849018",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7316,11 +7919,11 @@
       "logEntries": [
         {
           "luotu": {
-          "$date": "2016-10-13T12:44:40.151+0000"
-        },
-        "muokkaaja": "System",
-        "muutos": "julkaistavissa: false -> true",
-        "selite": "Massamuokkaus"
+            "$date": "2016-10-13T12:44:40.151+0000"
+          },
+          "muokkaaja": "System",
+          "muutos": "julkaistavissa: false -> true",
+          "selite": "Massamuokkaus"
         },
         {
           "luotu": {
@@ -7351,7 +7954,7 @@
       "hakijaOid": "1.2.246.562.24.33442275509",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7362,9 +7965,9 @@
           "luotu": {
             "$date": "2016-10-13T12:44:39.570+0000"
           },
-          "muokkaaja": "System",
+          "muokkaaja": "testi ilmoittaja",
           "muutos": "julkaistavissa: false -> true",
-          "selite": "Massamuokkaus"
+          "selite": "muokkaus testi"
         }
       ],
       "mailStatus": {
@@ -7387,7 +7990,7 @@
       "hakijaOid": "1.2.246.562.24.82585557847",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7423,7 +8026,7 @@
       "hakijaOid": "1.2.246.562.24.76301828368",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 6.0,
+      "hakutoive": 6,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7459,7 +8062,7 @@
       "hakijaOid": "1.2.246.562.24.56369376306",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7495,7 +8098,7 @@
       "hakijaOid": "1.2.246.562.24.27631464616",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7528,7 +8131,7 @@
       "hakijaOid": "1.2.246.562.24.55920124231",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 6.0,
+      "hakutoive": 6,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7564,7 +8167,7 @@
       "hakijaOid": "1.2.246.562.24.67973975412",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7597,7 +8200,7 @@
       "hakijaOid": "1.2.246.562.24.75303856915",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7630,7 +8233,7 @@
       "hakijaOid": "1.2.246.562.24.84199439854",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7669,7 +8272,7 @@
       "hakijaOid": "1.2.246.562.24.80590855921",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 4.0,
+      "hakutoive": 4,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7705,7 +8308,7 @@
       "hakijaOid": "1.2.246.562.24.77500922310",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 6.0,
+      "hakutoive": 6,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7741,7 +8344,7 @@
       "hakijaOid": "1.2.246.562.24.72977709174",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 4.0,
+      "hakutoive": 4,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7777,7 +8380,7 @@
       "hakijaOid": "1.2.246.562.24.76163188916",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7816,7 +8419,7 @@
       "hakijaOid": "1.2.246.562.24.71834261824",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7852,7 +8455,7 @@
       "hakijaOid": "1.2.246.562.24.75752890195",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7885,7 +8488,7 @@
       "hakijaOid": "1.2.246.562.24.64702367401",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7921,7 +8524,7 @@
       "hakijaOid": "1.2.246.562.24.63086680245",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7957,7 +8560,7 @@
       "hakijaOid": "1.2.246.562.24.97677015554",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -7993,7 +8596,7 @@
       "hakijaOid": "1.2.246.562.24.61802431515",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8029,7 +8632,7 @@
       "hakijaOid": "1.2.246.562.24.34735547710",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8065,7 +8668,7 @@
       "hakijaOid": "1.2.246.562.24.47974076767",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8101,7 +8704,7 @@
       "hakijaOid": "1.2.246.562.24.89463186692",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8140,7 +8743,7 @@
       "hakijaOid": "1.2.246.562.24.11579583128",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8176,7 +8779,7 @@
       "hakijaOid": "1.2.246.562.24.62155455580",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8212,7 +8815,7 @@
       "hakijaOid": "1.2.246.562.24.16613803578",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8248,7 +8851,7 @@
       "hakijaOid": "1.2.246.562.24.53863691056",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8284,7 +8887,7 @@
       "hakijaOid": "1.2.246.562.24.60622224291",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8323,7 +8926,7 @@
       "hakijaOid": "1.2.246.562.24.70675509021",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8362,7 +8965,7 @@
       "hakijaOid": "1.2.246.562.24.95277085724",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8398,7 +9001,7 @@
       "hakijaOid": "1.2.246.562.24.36929640379",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8437,7 +9040,7 @@
       "hakijaOid": "1.2.246.562.24.54747424940",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8476,7 +9079,7 @@
       "hakijaOid": "1.2.246.562.24.80005576258",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8512,7 +9115,7 @@
       "hakijaOid": "1.2.246.562.24.66371700361",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8548,7 +9151,7 @@
       "hakijaOid": "1.2.246.562.24.36799339124",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8581,7 +9184,7 @@
       "hakijaOid": "1.2.246.562.24.66768226102",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8620,7 +9223,7 @@
       "hakijaOid": "1.2.246.562.24.66782234413",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8656,7 +9259,7 @@
       "hakijaOid": "1.2.246.562.24.19312585479",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8692,7 +9295,7 @@
       "hakijaOid": "1.2.246.562.24.65523277216",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8728,7 +9331,7 @@
       "hakijaOid": "1.2.246.562.24.53112779548",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8764,7 +9367,7 @@
       "hakijaOid": "1.2.246.562.24.21499043602",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8800,7 +9403,7 @@
       "hakijaOid": "1.2.246.562.24.60521920900",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8839,7 +9442,7 @@
       "hakijaOid": "1.2.246.562.24.14304350293",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8875,7 +9478,7 @@
       "hakijaOid": "1.2.246.562.24.50670402130",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8911,7 +9514,7 @@
       "hakijaOid": "1.2.246.562.24.42038258112",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8947,7 +9550,7 @@
       "hakijaOid": "1.2.246.562.24.42155564268",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -8986,7 +9589,7 @@
       "hakijaOid": "1.2.246.562.24.92898591386",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9022,7 +9625,7 @@
       "hakijaOid": "1.2.246.562.24.40136789103",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9058,7 +9661,7 @@
       "hakijaOid": "1.2.246.562.24.90862837531",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9094,7 +9697,7 @@
       "hakijaOid": "1.2.246.562.24.15206632911",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9130,7 +9733,7 @@
       "hakijaOid": "1.2.246.562.24.70947571185",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9166,7 +9769,7 @@
       "hakijaOid": "1.2.246.562.24.53850956995",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9202,7 +9805,7 @@
       "hakijaOid": "1.2.246.562.24.36462144277",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9238,7 +9841,7 @@
       "hakijaOid": "1.2.246.562.24.37787975052",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9274,7 +9877,7 @@
       "hakijaOid": "1.2.246.562.24.74252711050",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9310,7 +9913,7 @@
       "hakijaOid": "1.2.246.562.24.47418915766",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 4.0,
+      "hakutoive": 4,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9346,7 +9949,7 @@
       "hakijaOid": "1.2.246.562.24.72819402885",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9382,7 +9985,7 @@
       "hakijaOid": "1.2.246.562.24.44732879468",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 6.0,
+      "hakutoive": 6,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9418,7 +10021,7 @@
       "hakijaOid": "1.2.246.562.24.85534156102",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9454,7 +10057,7 @@
       "hakijaOid": "1.2.246.562.24.47616690702",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9490,7 +10093,7 @@
       "hakijaOid": "1.2.246.562.24.77396960573",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9526,7 +10129,7 @@
       "hakijaOid": "1.2.246.562.24.70260162611",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9562,7 +10165,7 @@
       "hakijaOid": "1.2.246.562.24.30110985726",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9601,7 +10204,7 @@
       "hakijaOid": "1.2.246.562.24.46948738126",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9637,7 +10240,7 @@
       "hakijaOid": "1.2.246.562.24.56467194600",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9673,7 +10276,7 @@
       "hakijaOid": "1.2.246.562.24.22516045980",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9709,7 +10312,7 @@
       "hakijaOid": "1.2.246.562.24.23335430490",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9745,7 +10348,7 @@
       "hakijaOid": "1.2.246.562.24.50892834939",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9781,7 +10384,7 @@
       "hakijaOid": "1.2.246.562.24.49389733266",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9817,7 +10420,7 @@
       "hakijaOid": "1.2.246.562.24.61454814917",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9853,7 +10456,7 @@
       "hakijaOid": "1.2.246.562.24.26380488672",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9886,7 +10489,7 @@
       "hakijaOid": "1.2.246.562.24.58561767928",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9922,7 +10525,7 @@
       "hakijaOid": "1.2.246.562.24.55311125001",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9958,7 +10561,7 @@
       "hakijaOid": "1.2.246.562.24.15220650050",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -9994,7 +10597,7 @@
       "hakijaOid": "1.2.246.562.24.99349379762",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10027,7 +10630,7 @@
       "hakijaOid": "1.2.246.562.24.58965486423",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10063,7 +10666,7 @@
       "hakijaOid": "1.2.246.562.24.30710126189",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10099,7 +10702,7 @@
       "hakijaOid": "1.2.246.562.24.40108476787",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10135,7 +10738,7 @@
       "hakijaOid": "1.2.246.562.24.88544554762",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10171,7 +10774,7 @@
       "hakijaOid": "1.2.246.562.24.10103633160",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10210,7 +10813,7 @@
       "hakijaOid": "1.2.246.562.24.95200372789",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10246,7 +10849,7 @@
       "hakijaOid": "1.2.246.562.24.61071813896",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 4.0,
+      "hakutoive": 4,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10282,7 +10885,7 @@
       "hakijaOid": "1.2.246.562.24.49222327409",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10318,7 +10921,7 @@
       "hakijaOid": "1.2.246.562.24.25864682513",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10357,7 +10960,7 @@
       "hakijaOid": "1.2.246.562.24.84609521731",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10393,7 +10996,7 @@
       "hakijaOid": "1.2.246.562.24.84998867164",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10429,7 +11032,7 @@
       "hakijaOid": "1.2.246.562.24.62207266931",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10465,7 +11068,7 @@
       "hakijaOid": "1.2.246.562.24.10979087403",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 4.0,
+      "hakutoive": 4,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10501,7 +11104,7 @@
       "hakijaOid": "1.2.246.562.24.37336840046",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10537,7 +11140,7 @@
       "hakijaOid": "1.2.246.562.24.45461239446",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 4.0,
+      "hakutoive": 4,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10573,7 +11176,7 @@
       "hakijaOid": "1.2.246.562.24.86922062661",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 4.0,
+      "hakutoive": 4,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10609,7 +11212,7 @@
       "hakijaOid": "1.2.246.562.24.41029118673",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 6.0,
+      "hakutoive": 6,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10645,7 +11248,7 @@
       "hakijaOid": "1.2.246.562.24.68042483216",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10684,7 +11287,7 @@
       "hakijaOid": "1.2.246.562.24.98298559728",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10720,7 +11323,7 @@
       "hakijaOid": "1.2.246.562.24.99426873084",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10756,7 +11359,7 @@
       "hakijaOid": "1.2.246.562.24.23735194873",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10792,7 +11395,7 @@
       "hakijaOid": "1.2.246.562.24.69468232008",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10828,7 +11431,7 @@
       "hakijaOid": "1.2.246.562.24.59997431584",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10864,7 +11467,7 @@
       "hakijaOid": "1.2.246.562.24.38614655790",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10900,7 +11503,7 @@
       "hakijaOid": "1.2.246.562.24.48405059113",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10936,7 +11539,7 @@
       "hakijaOid": "1.2.246.562.24.58201598907",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 4.0,
+      "hakutoive": 4,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -10972,7 +11575,7 @@
       "hakijaOid": "1.2.246.562.24.53436386714",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11008,7 +11611,7 @@
       "hakijaOid": "1.2.246.562.24.41183779437",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11047,7 +11650,7 @@
       "hakijaOid": "1.2.246.562.24.43143878457",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11086,7 +11689,7 @@
       "hakijaOid": "1.2.246.562.24.74304596738",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11125,7 +11728,7 @@
       "hakijaOid": "1.2.246.562.24.82077959115",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11161,7 +11764,7 @@
       "hakijaOid": "1.2.246.562.24.18621905770",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11197,7 +11800,7 @@
       "hakijaOid": "1.2.246.562.24.13761220912",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 6.0,
+      "hakutoive": 6,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11233,7 +11836,7 @@
       "hakijaOid": "1.2.246.562.24.75191186208",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11272,7 +11875,7 @@
       "hakijaOid": "1.2.246.562.24.69006382721",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 4.0,
+      "hakutoive": 4,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11308,7 +11911,7 @@
       "hakijaOid": "1.2.246.562.24.26517613676",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11344,7 +11947,7 @@
       "hakijaOid": "1.2.246.562.24.46712572275",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11377,7 +11980,7 @@
       "hakijaOid": "1.2.246.562.24.12447046084",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11416,7 +12019,7 @@
       "hakijaOid": "1.2.246.562.24.15182817449",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11452,7 +12055,7 @@
       "hakijaOid": "1.2.246.562.24.26962707441",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11488,7 +12091,7 @@
       "hakijaOid": "1.2.246.562.24.52677296091",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11524,7 +12127,7 @@
       "hakijaOid": "1.2.246.562.24.89371693235",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11560,7 +12163,7 @@
       "hakijaOid": "1.2.246.562.24.37592778800",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11596,7 +12199,7 @@
       "hakijaOid": "1.2.246.562.24.23781906769",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11632,7 +12235,7 @@
       "hakijaOid": "1.2.246.562.24.62561322812",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11668,7 +12271,7 @@
       "hakijaOid": "1.2.246.562.24.29919962168",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11707,7 +12310,7 @@
       "hakijaOid": "1.2.246.562.24.13537199222",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11743,7 +12346,7 @@
       "hakijaOid": "1.2.246.562.24.39943962292",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 3.0,
+      "hakutoive": 3,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11776,7 +12379,7 @@
       "hakijaOid": "1.2.246.562.24.95648498034",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 5.0,
+      "hakutoive": 5,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11812,7 +12415,7 @@
       "hakijaOid": "1.2.246.562.24.14184139058",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11848,7 +12451,7 @@
       "hakijaOid": "1.2.246.562.24.81128194354",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11884,7 +12487,7 @@
       "hakijaOid": "1.2.246.562.24.47799374291",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11920,7 +12523,7 @@
       "hakijaOid": "1.2.246.562.24.60017786865",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11956,7 +12559,7 @@
       "hakijaOid": "1.2.246.562.24.36620059418",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 2.0,
+      "hakutoive": 2,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -11992,7 +12595,7 @@
       "hakijaOid": "1.2.246.562.24.68770461665",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 4.0,
+      "hakutoive": 4,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -12028,7 +12631,7 @@
       "hakijaOid": "1.2.246.562.24.43464151345",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 6.0,
+      "hakutoive": 6,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -12064,7 +12667,7 @@
       "hakijaOid": "1.2.246.562.24.34847851608",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -12100,7 +12703,7 @@
       "hakijaOid": "1.2.246.562.24.23381821367",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",
@@ -12136,7 +12739,7 @@
       "hakijaOid": "1.2.246.562.24.61582928322",
       "hakuOid": "1.2.246.562.29.75203638285",
       "hakukohdeOid": "1.2.246.562.20.56217166919",
-      "hakutoive": 1.0,
+      "hakutoive": 1,
       "hyvaksyPeruuntunut": false,
       "hyvaksyttyVarasijalta": false,
       "ilmoittautumisTila": "EI_TEHTY",

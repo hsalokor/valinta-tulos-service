@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.{Comparator, Date}
 
 import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.sijoittelu.tulos.dto.SijoitteluajoDTO
@@ -160,7 +160,7 @@ trait ValintarekisteriDbTools extends Specification {
           dhakemus.getJonosija mustEqual whakemus.getJonosija
           dhakemus.getTasasijaJonosija mustEqual whakemus.getTasasijaJonosija
           dhakemus.getTila.toString mustEqual whakemus.getTila.toString
-          // TODO näille piti vissiin tehdä jotain? dhakemus.getTilanKuvaukset mustEqual whakemus.getTilanKuvaukset
+          dhakemus.getTilanKuvaukset mustEqual whakemus.getTilanKuvaukset
           // TODO tallennetaanko historia vanhoista? dhakemus.getTilahistoria mustEqual whakemus.getTilahistoria
           dhakemus.isHyvaksyttyHarkinnanvaraisesti mustEqual whakemus.isHyvaksyttyHarkinnanvaraisesti
           // TODO tätä ei taida tulla datassa? dhakemus.getVarasijanNumero mustEqual whakemus.getVarasijanNumero
@@ -194,10 +194,6 @@ trait ValintarekisteriDbTools extends Specification {
             val hakemusExt = hakemus.extract[SijoitteluajonHakemusWrapper].hakemus
             (hakemus \ "pistetiedot") match {
               case JArray(pistetiedot) => hakemusExt.setPistetiedot(pistetiedot.map(pistetieto => pistetieto.extract[SijoitteluajonPistetietoWrapper].pistetieto).asJava)
-              case _ =>
-            }
-            (hakemus \ "tilanKuvaukset") match {
-              case JObject(tilanKuvaukset) => hakemusExt.setTilanKuvaukset(tilanKuvaukset.map(x => Map(x._1 -> x._2.extract[String])).flatten.toMap.asJava)
               case _ =>
             }
             hakemusExt
@@ -307,24 +303,31 @@ trait ValintarekisteriDbTools extends Specification {
   private implicit val getSijoitteluajonJonosijaResult = GetResult(r => {
     SijoitteluajonHakemusWrapper(r.nextString, r.nextString, r.nextString, r.nextString, r.nextInt, r.nextInt,
       r.nextIntOption, r.nextBooleanOption, r.nextBigDecimalOption, r.nextIntOption, r.nextBooleanOption,
-      r.nextBooleanOption, Valinnantila(r.nextString), r.nextStringOption().map(ValinnantilanTarkenne(_)),
-      hakijaryhmaOidsToSet(r.nextStringOption)).hakemus
+      r.nextBooleanOption, Valinnantila(r.nextString), getHakemuksenTilankuvaukset(r.nextLong), r.nextString, hakijaryhmaOidsToSet(r.nextStringOption)).hakemus
   })
 
   def findValintatapajononJonosijat(valintatapajonoOid:String): Seq[Hakemus] = {
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select j.hakemus_oid, j.hakija_oid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, j.pisteet, j.tasasijajonosija, j.hyvaksytty_harkinnanvaraisesti,
-            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tarkenne, array_to_string(array_agg(hr.oid) , ',')
+            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_id, t.tilankuvauksen_tarkenne, array_to_string(array_agg(hr.oid) , ',')
             from jonosijat j
             left join hakijaryhman_hakemukset as hh on hh.hakemus_oid = j.hakemus_oid
             left join hakijaryhmat as hr on hr.id = hh.hakijaryhma_id
             left join valinnantulokset v on j.valintatapajono_oid = v.valintatapajono_oid and j.hakemus_oid = v.hakemus_oid
+            left join tilankuvaukset as t on t.id = v.tilankuvaus_id
             where j.valintatapajono_oid = ${valintatapajonoOid}
             group by j.hakemus_oid, j.hakija_oid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, j.pisteet, j.tasasijajonosija, j.hyvaksytty_harkinnanvaraisesti,
-            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tarkenne
+            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_id, t.tilankuvauksen_tarkenne
          """.as[Hakemus])
+  }
+
+  def getHakemuksenTilankuvaukset(tilankuvausId: Long): Option[Map[String,String]] = {
+    Option(Map(singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select kieli, teksti
+            from tilankuvausten_tekstit
+            where tilankuvaus_id = ${tilankuvausId}""".as[(String,String)]) : _*))
   }
 
   private implicit val getSijoitteluajonPistetietoResult = GetResult(r => {
@@ -358,11 +361,7 @@ trait ValintarekisteriDbTools extends Specification {
         valintatapajono.getHakemukset.asScala.toList.foreach(hakemus => {
           val storedJonosija = storedJonosijat.find(_.getHakemusOid.equals(hakemus.getHakemusOid))
           storedJonosija.isDefined must beTrue
-          val a = SijoitteluajonHakemusWrapper(hakemus)
-          val b = SijoitteluajonHakemusWrapper(storedJonosija.get)
-
-          a mustEqual b
-
+          SijoitteluajonHakemusWrapper(hakemus) mustEqual SijoitteluajonHakemusWrapper(storedJonosija.get)
           val storedPistetiedot = findHakemuksenPistetiedot(hakemus.getHakemusOid)
           hakemus.getPistetiedot.size mustEqual storedPistetiedot.size
           hakemus.getPistetiedot.asScala.foreach(pistetieto => {
@@ -378,7 +377,11 @@ trait ValintarekisteriDbTools extends Specification {
         val storedHakijaryhma = storedHakijaryhmat.find(_.getOid.equals(hakijaryhma.getOid))
         storedHakijaryhma.isDefined must beTrue
         storedHakijaryhma.get.getHakemusOid.addAll(findHakijaryhmanHakemukset(hakijaryhma.getOid).asJava)
-        SijoitteluajonHakijaryhmaWrapper(hakijaryhma) mustEqual SijoitteluajonHakijaryhmaWrapper(storedHakijaryhma.get)
+        def createSortedHakijaryhmaWrapper(hakijaryhma:Hakijaryhma) = {
+          java.util.Collections.sort(hakijaryhma.getHakemusOid)
+          SijoitteluajonHakijaryhmaWrapper(hakijaryhma)
+        }
+        createSortedHakijaryhmaWrapper(hakijaryhma) mustEqual createSortedHakijaryhmaWrapper(storedHakijaryhma.get)
       })
       storedValintatapajonot.length mustEqual hakukohde.getValintatapajonot.size
     })

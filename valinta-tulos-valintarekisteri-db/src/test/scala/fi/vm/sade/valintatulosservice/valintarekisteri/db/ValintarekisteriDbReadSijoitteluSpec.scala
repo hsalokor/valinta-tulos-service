@@ -81,18 +81,6 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
       singleConnectionValintarekisteriDb.getHakijaryhmanHakemukset(hakijaryhmaId).size mustEqual 14
     }
 
-    "get hakemuksen tilankuvauksen lisatieto" in {
-      val hakemus = getHakemus("1.2.246.562.11.00005808388").get
-      hakemus.tarkenne mustEqual "peruuntunutHyvaksyttyYlemmalleHakutoiveelle"
-      hakemus.tarkenteenLisatieto mustEqual null
-    }
-
-    "get hakemuksen tilankuvauksen tarkenteen lisatiedon tarkenne" in {
-      val hakemus = getHakemus("1.2.246.562.11.00006560353").get
-      hakemus.tarkenne mustEqual "hyvaksyttyTayttojonoSaannolla"
-      hakemus.tarkenteenLisatieto mustEqual "14538080612623056182813241345174"
-    }
-
     "get hakemuksen ilmoittaja, selite and viimeksiMuokattu" in {
       val hakemus = getHakemusInfo("1.2.246.562.11.00004663595").get
       hakemus.selite mustEqual "testimuutos"
@@ -115,12 +103,12 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
   }
 
   private implicit val getHakemusResult = GetResult(r => HakemusRecord(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.<<, r.<<, r.<<, r.<<, r.nextStringOption().getOrElse("").split(",").toSet, r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.<<, r.<<, r.<<, r.nextStringOption().getOrElse("").split(",").toSet, r.<<, r.<<))
 
   def getHakemus(hakemusOid: String): Option[HakemusRecord] = {
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
-            j.tasasijajonosija, v.tila, v.tarkenne, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
+            j.tasasijajonosija, v.tila, v.tilankuvaus_id, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, hh.hyvaksytty_hakijaryhmasta, hh.hakijaryhma_id,
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
             from jonosijat as j

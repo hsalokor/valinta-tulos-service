@@ -2,7 +2,6 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.domain
 
 import fi.vm.sade.sijoittelu.tulos.dto._
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
-import fi.vm.sade.valintatulosservice.valintarekisteri.db.SijoitteluRepository
 
 import scala.collection.JavaConverters._
 
@@ -23,10 +22,9 @@ case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String,
                                  varasijojaKaytetaanAlkaen:java.sql.Date, varasijojaKaytetaanAsti:java.sql.Date, tayttoJono:String, hakukohdeOid:String)
 
 case class HakemusRecord(hakijaOid:String, hakemusOid:String, pisteet:BigDecimal, etunimi:String, sukunimi:String,
-                         prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila,
-                         tarkenne:String, tarkenteenLisatieto:String, hyvaksyttyHarkinnanvaraisesti:Boolean,
-                         varasijaNumero:Int, onkoMuuttunutviimesijoittelusta:Boolean, hakijaryhmaOids:Set[String],
-                         siirtynytToisestaValintatapaJonosta:Boolean, valintatapajonoOid:String)
+                         prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila, tilankuvausId:Long,
+                         hyvaksyttyHarkinnanvaraisesti:Boolean, varasijaNumero:Int, onkoMuuttunutviimesijoittelusta:Boolean,
+                         hakijaryhmaOids:Set[String],siirtynytToisestaValintatapaJonosta:Boolean, valintatapajonoOid:String)
 
 case class TilaHistoriaRecord(tila:String, poistaja:String, selite:String, luotu:java.sql.Date)
 
@@ -116,7 +114,7 @@ abstract class SijoitteluRecordToDTO {
     jonoDTO
   }
 
-  def hakemusRecordToDTO(hakemus: HakemusRecord): HakemusDTO = {
+  def hakemusRecordToDTO(hakemus:HakemusRecord, tilanKuvaukset:Map[String,String]): HakemusDTO = {
     val hakemusDTO = new HakemusDTO
     hakemusDTO.setHakijaOid(hakemus.hakijaOid)
     hakemusDTO.setHakemusOid(hakemus.hakemusOid)
@@ -127,10 +125,7 @@ abstract class SijoitteluRecordToDTO {
     hakemusDTO.setJonosija(hakemus.jonosija)
     hakemusDTO.setTasasijaJonosija(hakemus.tasasijaJonosija)
     hakemusDTO.setTila(HakemuksenTila.valueOf(hakemus.tila.valinnantila.name()))
-    hakemusDTO.setTilanKuvaukset(ValinnantilanTarkenne.getValinnantilanTarkenne(Map[String, String](hakemus.tarkenne -> hakemus.tarkenteenLisatieto)) match {
-      case Some(t) => t.valinnantilanTarkenne.asJava
-      case None => null
-    })
+    hakemusDTO.setTilanKuvaukset(tilanKuvaukset.asJava)
     hakemusDTO.setHyvaksyttyHarkinnanvaraisesti(hakemus.hyvaksyttyHarkinnanvaraisesti)
     hakemusDTO.setVarasijanNumero(hakemus.varasijaNumero)
     hakemusDTO.setOnkoMuuttunutViimeSijoittelussa(hakemus.onkoMuuttunutviimesijoittelusta)

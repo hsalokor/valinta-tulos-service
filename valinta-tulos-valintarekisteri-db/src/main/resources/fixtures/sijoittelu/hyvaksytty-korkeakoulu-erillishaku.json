@@ -76,7 +76,8 @@
                                 }
                             ],
                             "hyvaksyttyHarkinnanvaraisesti": false,
-                            "hyvaksyttyHakijaryhmista": []
+                            "hyvaksyttyHakijaryhmista": [],
+                            "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
                         }
                     ]
                 },
@@ -109,7 +110,8 @@
                                 }
                             ],
                             "hyvaksyttyHarkinnanvaraisesti": false,
-                            "hyvaksyttyHakijaryhmista": []
+                            "hyvaksyttyHakijaryhmista": [],
+                            "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
                         }
                     ]
                 }

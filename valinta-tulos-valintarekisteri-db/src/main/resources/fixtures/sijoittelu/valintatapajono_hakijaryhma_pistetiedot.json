@@ -77,6 +77,7 @@
               "pisteet" : "0",
               "tasasijaJonosija" : 1,
               "tila" : "VARALLA",
+              "tilankuvauksenTarkenne" : "EI_TILANKUVAUKSEN_TARKENNETTA",
               "edellinenTila" : "HYLATTY",
               "tilaHistoria" : [
                 {

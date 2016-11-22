@@ -118,7 +118,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.54385885873",
@@ -165,7 +166,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.81999691361",
@@ -205,7 +207,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "PERUUNTUNUT_HYVAKSYTTY_YLEMMALLE_HAKUTOIVEELLE"
             },
             {
               "hakijaOid": "1.2.246.562.24.78951224941",
@@ -252,7 +255,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.83947059377",
@@ -299,7 +303,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.65280358041",
@@ -346,7 +351,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.67493181993",
@@ -393,7 +399,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.51453177652",
@@ -440,7 +447,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.65277604452",
@@ -487,7 +495,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.31449870349",
@@ -525,7 +534,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "HYVAKSYTTY_TAYTTOJONO_SAANNOLLA"
             },
             {
               "hakijaOid": "1.2.246.562.24.85797330778",
@@ -563,7 +573,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.44604191478",
@@ -602,7 +613,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "14521594993758343217655058789845",
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.82204689520",
@@ -641,7 +653,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "14521594993758343217655058789845",
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.24351540130",
@@ -680,7 +693,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "14521594993758343217655058789845",
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.48294633106",
@@ -719,7 +733,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "14521594993758343217655058789845",
                 "1476103764898-8837999876477636603"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             }
           ]
         }
@@ -848,7 +863,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.60622224291",
@@ -891,7 +907,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.60521920900",
@@ -936,7 +953,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.29919962168",
@@ -979,7 +997,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.99349379762",
@@ -1024,7 +1043,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.25864682513",
@@ -1069,7 +1089,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.74304596738",
@@ -1114,7 +1135,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.41183779437",
@@ -1159,7 +1181,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.75303856915",
@@ -1204,7 +1227,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.54747424940",
@@ -1249,7 +1273,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.75752890195",
@@ -1297,7 +1322,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "PERUUNTUNUT_HYVAKSYTTY_YLEMMALLE_HAKUTOIVEELLE"
             },
             {
               "hakijaOid": "1.2.246.562.24.12447046084",
@@ -1342,7 +1368,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.70675509021",
@@ -1387,7 +1414,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.27631464616",
@@ -1432,7 +1460,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.26380488672",
@@ -1477,7 +1506,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.89463186692",
@@ -1522,7 +1552,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.66768226102",
@@ -1567,7 +1598,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.39943962292",
@@ -1612,7 +1644,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.67973975412",
@@ -1657,7 +1690,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.42155564268",
@@ -1702,7 +1736,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.76163188916",
@@ -1747,7 +1782,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.68042483216",
@@ -1792,7 +1828,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.10103633160",
@@ -1835,7 +1872,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.30110985726",
@@ -1880,7 +1918,8 @@
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967",
                 "1453978097229-956937256090574089"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.47418915766",
@@ -1928,7 +1967,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN_YHDEN_SAANNON_PAIKAN_PIIRISSA"
             },
             {
               "hakijaOid": "1.2.246.562.24.36799339124",
@@ -1972,7 +2012,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.43143878457",
@@ -2016,7 +2057,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.36929640379",
@@ -2060,7 +2102,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.46712572275",
@@ -2104,7 +2147,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.84199439854",
@@ -2148,7 +2192,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.55920124231",
@@ -2195,7 +2240,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.34735547710",
@@ -2241,7 +2287,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.59997431584",
@@ -2287,7 +2334,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.33442275509",
@@ -2333,7 +2381,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.65523277216",
@@ -2380,7 +2429,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.48405059113",
@@ -2427,7 +2477,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.66371700361",
@@ -2473,7 +2524,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.15206632911",
@@ -2519,7 +2571,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.71834261824",
@@ -2566,7 +2619,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.13537199222",
@@ -2613,7 +2667,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.70260162611",
@@ -2660,7 +2715,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.55311125001",
@@ -2706,7 +2762,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.99426873084",
@@ -2752,7 +2809,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.72977709174",
@@ -2799,7 +2857,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.23735194873",
@@ -2846,7 +2905,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.95200372789",
@@ -2893,7 +2953,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.77396960573",
@@ -2940,7 +3001,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.62207266931",
@@ -2987,7 +3049,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.84609521731",
@@ -3034,7 +3097,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.90862837531",
@@ -3081,7 +3145,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.58561767928",
@@ -3128,7 +3193,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.88544554762",
@@ -3175,7 +3241,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.61454814917",
@@ -3222,7 +3289,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.40136789103",
@@ -3269,7 +3337,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.76301828368",
@@ -3316,7 +3385,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.63086680245",
@@ -3363,7 +3433,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.47616690702",
@@ -3410,7 +3481,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.61071813896",
@@ -3457,7 +3529,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.30710126189",
@@ -3504,7 +3577,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.85534156102",
@@ -3551,7 +3625,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.18621905770",
@@ -3598,7 +3673,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.95277085724",
@@ -3645,7 +3721,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.82585557847",
@@ -3691,7 +3768,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.21499043602",
@@ -3738,7 +3816,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.61582928322",
@@ -3784,7 +3863,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.50670402130",
@@ -3831,7 +3911,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.23381821367",
@@ -3878,7 +3959,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.53863691056",
@@ -3925,7 +4007,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.53436386714",
@@ -3971,7 +4054,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.61802431515",
@@ -4018,7 +4102,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.26517613676",
@@ -4065,7 +4150,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.64702367401",
@@ -4112,7 +4198,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.15220650050",
@@ -4159,7 +4246,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.40108476787",
@@ -4206,7 +4294,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.36462144277",
@@ -4253,7 +4342,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.60017786865",
@@ -4300,7 +4390,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.34847851608",
@@ -4343,7 +4434,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.56467194600",
@@ -4386,7 +4478,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.97677015554",
@@ -4429,7 +4522,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.84998867164",
@@ -4472,7 +4566,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.53850956995",
@@ -4514,7 +4609,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.11579583128",
@@ -4556,7 +4652,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.47799374291",
@@ -4598,7 +4695,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.69468232008",
@@ -4640,7 +4738,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.16613803578",
@@ -4683,7 +4782,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.15182817449",
@@ -4726,7 +4826,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.80005576258",
@@ -4769,7 +4870,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.37787975052",
@@ -4812,7 +4914,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.74252711050",
@@ -4855,7 +4958,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.58965486423",
@@ -4898,7 +5002,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.14304350293",
@@ -4941,7 +5046,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.86922062661",
@@ -4983,7 +5089,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.70947571185",
@@ -5026,7 +5133,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.52677296091",
@@ -5069,7 +5177,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.60840849018",
@@ -5111,7 +5220,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.46948738126",
@@ -5154,7 +5264,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.23335430490",
@@ -5197,7 +5308,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.81128194354",
@@ -5240,7 +5352,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.82077959115",
@@ -5283,7 +5396,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.53112779548",
@@ -5326,7 +5440,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.49222327409",
@@ -5369,7 +5484,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.69006382721",
@@ -5412,7 +5528,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.43464151345",
@@ -5454,7 +5571,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.72819402885",
@@ -5497,7 +5615,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.13761220912",
@@ -5540,7 +5659,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.44732879468",
@@ -5583,7 +5703,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.66782234413",
@@ -5626,7 +5747,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.77500922310",
@@ -5669,7 +5791,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.62155455580",
@@ -5712,7 +5835,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.38614655790",
@@ -5755,7 +5879,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.89371693235",
@@ -5798,7 +5923,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.62561322812",
@@ -5841,7 +5967,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.42038258112",
@@ -5884,7 +6011,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.14184139058",
@@ -5927,7 +6055,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.49389733266",
@@ -5969,7 +6098,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.68770461665",
@@ -6012,7 +6142,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.95648498034",
@@ -6054,7 +6185,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.37336840046",
@@ -6097,7 +6229,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.22516045980",
@@ -6141,7 +6274,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.36620059418",
@@ -6184,7 +6318,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.58201598907",
@@ -6227,7 +6362,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.26962707441",
@@ -6270,7 +6406,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.92898591386",
@@ -6313,7 +6450,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.10979087403",
@@ -6356,7 +6494,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.23781906769",
@@ -6399,7 +6538,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.19312585479",
@@ -6441,7 +6581,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.80590855921",
@@ -6484,7 +6625,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.50892834939",
@@ -6526,7 +6668,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.47974076767",
@@ -6569,7 +6712,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.41029118673",
@@ -6612,7 +6756,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.98298559728",
@@ -6655,7 +6800,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.37592778800",
@@ -6698,7 +6844,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.56369376306",
@@ -6741,7 +6888,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.45461239446",
@@ -6784,7 +6932,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1453978097229-956937256090574089",
                 "14761030623672404853230769896967"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             }
           ]
         }
@@ -7140,7 +7289,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.72474455646",
@@ -7187,7 +7337,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.37180074534",
@@ -7234,7 +7385,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.42433672856",
@@ -7281,7 +7433,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.30492323158",
@@ -7328,7 +7481,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.58133662891",
@@ -7375,7 +7529,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.37558411758",
@@ -7422,7 +7577,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.61676277523",
@@ -7469,7 +7625,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.66127300915",
@@ -7509,7 +7666,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN_YHDEN_SAANNON_PAIKAN_PIIRISSA"
             },
             {
               "hakijaOid": "1.2.246.562.24.56357563273",
@@ -7547,7 +7705,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.90338860223",
@@ -7585,7 +7744,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.68305650906",
@@ -7623,7 +7783,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.71660136398",
@@ -7661,7 +7822,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             },
             {
               "hakijaOid": "1.2.246.562.24.60784686654",
@@ -7699,7 +7861,8 @@
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
-              ]
+              ],
+              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
             }
           ]
         }

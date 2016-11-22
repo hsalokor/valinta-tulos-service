@@ -43,7 +43,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   private implicit val getValintatapajonotResult = GetResult(r => ValintatapajonoRecord(r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<<, r.<<, r.<<))
   private implicit val getHakemuksetForValintatapajonosResult = GetResult(r => HakemusRecord(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.<< , r.<<, r.<< , r.<<, hakijaryhmaOidsToSet(r.nextStringOption), r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.<<, r.<< , r.<<, hakijaryhmaOidsToSet(r.nextStringOption), r.<<, r.<<))
   private implicit val getHakemuksenTilahistoriaResult = GetResult(r => TilaHistoriaRecord(r.<<, r.<<, r.<<, r.<<))
   private implicit val getHakijaryhmatResult = GetResult(r => HakijaryhmaRecord(r.<<, r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
@@ -402,24 +402,45 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
   def storeSijoittelunJonosija(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos]) = {
-    if(valintatulos.isDefined) {
       insertJonosija(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus).flatMap(jonosijaId => {
-        DBIO.sequence(
-          List(insertValinnantulos(sijoitteluajoId, jonosijaId.get, valintatulos.get, hakemus),
-            insertIlmoittautuminen(valintatulos.get, hakemus.getHakijaOid)) ++
-            hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(jonosijaId.get, pistetieto)).toList
-        )
+        if (hakemus.getTilankuvauksenTarkenne == TilankuvauksenTarkenne.EI_TILANKUVAUKSEN_TARKENNETTA && !hakemus.getTilanKuvaukset.isEmpty) {
+          storeTilankuvausAndTekstit(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId.get)
+        } else {
+          findTilankuvausId(hakemus).flatMap {
+            case None => storeTilankuvausAndTekstit(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId.get)
+            case Some(id) => DBIO.sequence(List(storeValinnantulos(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId.get, id)))
+          }
+        }
       })
+  }
+
+  def storeTilankuvausAndTekstit(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos], jonosijaId:Long) = {
+    storeTilankuvaus(hakemus).flatMap(id => {
+      val sequences = List(storeValinnantulos(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId, id))
+      hakemus.getTilanKuvaukset.isEmpty match {
+        case true => DBIO.sequence(sequences)
+        case false => DBIO.sequence(sequences ++ List(insertTilankuvauksenTeksti(id, hakemus.getTilanKuvaukset.asScala.toMap)))
+      }
+    })
+  }
+
+  def storeValinnantulos(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos], jonosijaId:Long, tilankuvausId:Long) = {
+    if(!valintatulos.isDefined) {
+      val valintatulos = SijoitteluajonValinnantulosWrapper(
+        valintatapajonoOid, hakemus.getHakemusOid, hakukohdeOid, false, false, false, false, None, Option(List()), null).valintatulos
+      valintatulos.setMailStatus(new ValintatulosMailStatus)
+      DBIO.sequence(
+        List(
+          insertValinnantulos(sijoitteluajoId, jonosijaId, valintatulos, hakemus, tilankuvausId)) ++
+          hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(jonosijaId, pistetieto)).toList
+      )
     } else {
-      insertJonosija(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus).flatMap(jonosijaId => {
-        val valintatulos = SijoitteluajonValinnantulosWrapper(
-          valintatapajonoOid, hakemus.getHakemusOid, hakukohdeOid, false, false, false, false, None, Option(List()), null).valintatulos
-        valintatulos.setMailStatus(new ValintatulosMailStatus)
-        DBIO.sequence(
-          List(insertValinnantulos(sijoitteluajoId, jonosijaId.get, valintatulos, hakemus)) ++
-            hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(jonosijaId.get, pistetieto)).toList
-        )
-      })
+      DBIO.sequence(
+        List(
+          insertValinnantulos(sijoitteluajoId, jonosijaId, valintatulos.get, hakemus, tilankuvausId),
+          insertIlmoittautuminen(valintatulos.get, hakemus.getHakijaOid)) ++
+          hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(jonosijaId, pistetieto)).toList
+      )
     }
   }
 
@@ -457,15 +478,15 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   private def insertJonosija(sijoittaluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
     onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti, siirtynytToisestaValintatapajonosta,
-    _, _, hyvaksyttyHakijaryhmista)
+    valinnantila, tilanKuvaukset, tilankuvauksenTarkenne, hyvaksyttyHakijaryhmista)
     = SijoitteluajonHakemusWrapper(hakemus)
 
     sql"""insert into jonosijat (valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
-           jonosija, varasijan_numero, onko_muuttunut_viime_sijoittelussa, pisteet, tasasijajonosija, hyvaksytty_harkinnanvaraisesti,
-           siirtynyt_toisesta_valintatapajonosta)
-           values (${valintatapajonoOid}, ${sijoittaluajoId}, ${hakukohdeOid}, ${hakemusOid}, ${hakijaOid}, ${etunimi}, ${sukunimi}, ${prioriteetti},
-           ${jonosija}, ${varasijanNumero}, ${onkoMuuttunutViimeSijoittelussa}, ${pisteet}, ${tasasijaJonosija},
-           ${hyvaksyttyHarkinnanvaraisesti}, ${siirtynytToisestaValintatapajonosta}) RETURNING id""".as[Long].headOption
+          jonosija, varasijan_numero, onko_muuttunut_viime_sijoittelussa, pisteet, tasasijajonosija, hyvaksytty_harkinnanvaraisesti,
+          siirtynyt_toisesta_valintatapajonosta)
+          values (${valintatapajonoOid}, ${sijoittaluajoId}, ${hakukohdeOid}, ${hakemusOid}, ${hakijaOid}, ${etunimi}, ${sukunimi}, ${prioriteetti},
+          ${jonosija}, ${varasijanNumero}, ${onkoMuuttunutViimeSijoittelussa}, ${pisteet}, ${tasasijaJonosija},
+          ${hyvaksyttyHarkinnanvaraisesti}, ${siirtynytToisestaValintatapajonosta}) RETURNING id""".as[Long].headOption
   }
 
   def dateToTimestamp(date:Option[Date]): Timestamp = date match {
@@ -473,10 +494,10 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     case None => null
   }
 
-  private def insertValinnantulos(sijoitteluajoId:Long, jonosijaId:Long, valintatulos:Valintatulos, hakemus:SijoitteluHakemus) = {
+  private def insertValinnantulos(sijoitteluajoId:Long, jonosijaId:Long, valintatulos:Valintatulos, hakemus:SijoitteluHakemus, tilankuvausId:Long) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
     onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti, siirtynytToisestaValintatapajonosta,
-    valinnanTila, valinnanTilanTarkenne, hyvaksyttyHakijaryhmista)
+    valinnantila, tilanKuvaukset, tilankuvauksenTarkenne, hyvaksyttyHakijaryhmista)
     = SijoitteluajonHakemusWrapper(hakemus)
     val SijoitteluajonValinnantulosWrapper(valintatapajonoOid, _, hakukohdeOid, ehdollisestiHyvaksyttavissa,
     julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, ilmoittautumistila, originalLogEntries, mailStatus)
@@ -488,21 +509,33 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       case None => ("System", "", new Date())
     }
 
-    val valinnantilanTarkenneString = valinnanTilanTarkenne.flatMap(x => Some(x.tarkenneString))
-    val valinnantilanTarkenteenLisatieto = valinnanTilanTarkenne match {
-      case Some(HyvaksyttyTayttojonoSaannolla) => valintatulos.getValintatapajonoOid
-      case Some(HylattyHakijaryhmaanKuulumattomana) => hakemus.getHakijaryhmaOid
-      case _ => null
-    }
-
     sqlu"""insert into valinnantulokset (hakukohde_oid, valintatapajono_oid, hakemus_oid, sijoitteluajo_id, jonosija_id,
-           tila, tarkenne, tarkenteen_lisatieto, julkaistavissa, ehdollisesti_hyvaksyttavissa, hyvaksytty_varasijalta,
+           tila, tilankuvaus_id, julkaistavissa, ehdollisesti_hyvaksyttavissa, hyvaksytty_varasijalta,
            hyvaksy_peruuntunut, ilmoittaja, selite, tilan_viimeisin_muutos, previous_check, sent, done, message)
            values (${hakukohdeOid}, ${valintatapajonoOid}, ${hakemusOid}, ${sijoitteluajoId}, ${jonosijaId},
-           ${valinnanTila.toString}::valinnantila, ${valinnantilanTarkenneString}::valinnantilanTarkenne,
-           ${valinnantilanTarkenteenLisatieto}, ${julkaistavissa}, ${ehdollisestiHyvaksyttavissa}, ${hyvaksyttyVarasijalta},
-           ${hyvaksyPeruuntunut}, ${ilmoittaja}, ${selite}, ${new java.sql.Timestamp(tilanViimeisinMuutos.getTime)},
+           ${valinnantila.toString}::valinnantila, ${tilankuvausId}, ${julkaistavissa}, ${ehdollisestiHyvaksyttavissa},
+           ${hyvaksyttyVarasijalta}, ${hyvaksyPeruuntunut}, ${ilmoittaja}, ${selite}, ${new java.sql.Timestamp(tilanViimeisinMuutos.getTime)},
            ${dateToTimestamp(previousCheck)}, ${dateToTimestamp(sent)}, ${dateToTimestamp(done)}, ${message})"""
+  }
+
+  def storeTilankuvaus(hakemus:SijoitteluHakemus) = {
+    sql"""insert into tilankuvaukset (tilankuvauksen_tarkenne) values (${hakemus.getTilankuvauksenTarkenne.toString}) returning id""".as[Long].head
+  }
+
+  def findTilankuvausId(hakemus:SijoitteluHakemus) = {
+    sql"""select max(id)
+          from tilankuvaukset
+          where (tilankuvauksen_tarkenne = ${hakemus.getTilankuvauksenTarkenne.toString}
+                 and tilankuvauksen_tarkenne != 'EI_TILANKUVAUKSEN_TARKENNETTA')
+            or (tilankuvauksen_tarkenne = ${hakemus.getTilankuvauksenTarkenne.toString}
+                and tilankuvauksen_tarkenne = 'EI_TILANKUVAUKSEN_TARKENNETTA'
+                and id not in (select tilankuvaus_id from tilankuvausten_tekstit))""".as[Option[Long]].head
+  }
+
+  def insertTilankuvauksenTeksti(tilankuvauksenId:BigInt, tilankuvaukset:Map[String,String]) = {
+    val values = tilankuvaukset.map(k => s"(${tilankuvauksenId}, '${k._1}', '${k._2}')").mkString(",")
+    sqlu"""insert into tilankuvausten_tekstit (tilankuvaus_id, kieli, teksti)
+           values #${values}"""
   }
 
   private def insertIlmoittautuminen(valintatulos:Valintatulos, hakijaOid:String) = {
@@ -583,17 +616,16 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     val inParameter = valintatapajonoOids.map(oid => s"'$oid'").mkString(",")
     runBlocking(
       sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
-            j.tasasijajonosija, v.tila, v.tarkenne, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
+            j.tasasijajonosija, v.tila, v.tilankuvaus_id, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, array_to_string(array_agg(hr.oid), ','),
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
             from jonosijat as j
             inner join valinnantulokset as v on v.jonosija_id = j.id and v.hakemus_oid = j.hakemus_oid
             left join hakijaryhman_hakemukset as hh on j.hakemus_oid = hh.hakemus_oid
             left join hakijaryhmat as hr on hr.id = hh.hakijaryhma_id
-            where j.valintatapajono_oid in (#${inParameter})
-                  and v.deleted is null
+            where j.valintatapajono_oid in (#${inParameter}) and v.deleted is null
             GROUP BY j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
-            j.tasasijajonosija, v.tila, v.tarkenne, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
+            j.tasasijajonosija, v.tila, v.tilankuvaus_id, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa,
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid""".as[HakemusRecord]).toList
   }
@@ -605,6 +637,14 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
             left join deleted_valinnantulokset as dv on v.deleted = dv.id
             where v.valintatapajono_oid = ${valintatapajonoOid} and v.hakemus_oid = ${hakemusOid} and v.deleted is not null
             order by dv.timestamp desc""".as[TilaHistoriaRecord]).toList
+  }
+
+  override def getHakemuksenTilankuvaukset(tilankuvausId: Long): Vector[(String, String)] = {
+    runBlocking(
+      sql"""select kieli, teksti
+            from tilankuvausten_tekstit
+            where tilankuvaus_id = ${tilankuvausId}""".as[(String,String)]
+    )
   }
 
   override def getHakijaryhmat(sijoitteluajoId: Long): List[HakijaryhmaRecord] = {
