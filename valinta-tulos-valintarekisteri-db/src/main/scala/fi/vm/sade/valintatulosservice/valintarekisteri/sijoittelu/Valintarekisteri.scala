@@ -65,7 +65,10 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
 
     val valintatapajonoOidit = valintatapajonotByHakukohde.values.flatten.map(_.getOid).toList
 
-    val kaikkiValintatapajonoHakemukset = sijoitteluRepository.getHakemuksetForValintatapajonos(valintatapajonoOidit).map(hakemusRecordToDTO)
+    val kaikkiValintatapajonoHakemukset = sijoitteluRepository.getHakemuksetForValintatapajonos(valintatapajonoOidit).map(hakemus => {
+      val tilankuvaukset = Map(sijoitteluRepository.getHakemuksenTilankuvaukset(hakemus.tilankuvausId): _*)
+      hakemusRecordToDTO(hakemus, tilankuvaukset)
+    })
     kaikkiValintatapajonoHakemukset.foreach(h => h.setTilaHistoria(
       sijoitteluRepository.getHakemuksenTilahistoria(h.getValintatapajonoOid, h.getHakemusOid).map(tilaHistoriaRecordToDTO).asJava
     ))
