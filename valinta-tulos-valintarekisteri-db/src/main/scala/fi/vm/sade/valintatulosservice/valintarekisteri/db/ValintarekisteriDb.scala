@@ -361,10 +361,6 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     runBlocking(sql"""select count(*) from newest_vastaanotot where hakukohde = ${oid}""".as[Int]).head > 0
   }
 
-  override def storeSijoitteluajo(sijoitteluajo:SijoitteluAjo): Unit = {
-    runBlocking(insertSijoitteluajo(sijoitteluajo))
-  }
-
   override def storeSijoittelu(sijoittelu: SijoitteluWrapper) = {
     runBlocking(insertSijoitteluajo(sijoittelu.sijoitteluajo).andThen(
       DBIO.sequence(sijoittelu.hakukohteet.map(hakukohde =>

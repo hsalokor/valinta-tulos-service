@@ -22,20 +22,6 @@ class ValintarekisteriDbSaveSijoitteluSpec extends Specification with ITSetup wi
   step(deleteAll())
 
   "ValintarekisteriDb" should {
-    "store sijoitteluajo" in {
-      val sijoitteluajo = createSijoitteluajo()
-      singleConnectionValintarekisteriDb.storeSijoitteluajo(sijoitteluajo)
-      val stored: Option[SijoitteluAjo] = findSijoitteluajo(sijoitteluajo.getSijoitteluajoId)
-      stored.isDefined must beTrue
-      SijoitteluajoWrapper(stored.get) mustEqual SijoitteluajoWrapper(sijoitteluajo)
-    }
-    "store sijoitteluajo fixture" in {
-      val wrapper = loadSijoitteluFromFixture("hyvaksytty-korkeakoulu-erillishaku")
-      singleConnectionValintarekisteriDb.storeSijoitteluajo(wrapper.sijoitteluajo)
-      val stored: Option[SijoitteluAjo] = findSijoitteluajo(wrapper.sijoitteluajo.getSijoitteluajoId)
-      stored.isDefined must beTrue
-      SijoitteluajoWrapper(stored.get) mustEqual SijoitteluajoWrapper(wrapper.sijoitteluajo)
-    }
     "store sijoitteluajoWrapper fixture" in {
       val wrapper = loadSijoitteluFromFixture("hyvaksytty-korkeakoulu-erillishaku")
       singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)
@@ -46,10 +32,6 @@ class ValintarekisteriDbSaveSijoitteluSpec extends Specification with ITSetup wi
       singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)
       assertSijoittelu(wrapper)
     }
-  }
-
-  def createSijoitteluajo(): SijoitteluAjo = {
-    SijoitteluajoWrapper(now, hakuOid, now-1000, now).sijoitteluajo
   }
 
   override protected def before: Unit = {

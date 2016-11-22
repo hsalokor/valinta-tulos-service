@@ -6,7 +6,6 @@ import slick.driver.PostgresDriver.backend.Database
 
 trait SijoitteluRepository {
   val db: Database
-  def storeSijoitteluajo(sijoitteluajo:SijoitteluAjo): Unit
   def storeSijoittelu(sijoittelu:SijoitteluWrapper)
   def getLatestSijoitteluajoId(hakuOid:String): Option[Long]
   def getSijoitteluajo(hakuOid:String, sijoitteluajoId:Long): Option[SijoitteluajoRecord]
