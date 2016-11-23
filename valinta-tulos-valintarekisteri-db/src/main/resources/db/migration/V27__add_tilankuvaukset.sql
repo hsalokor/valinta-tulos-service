@@ -11,6 +11,8 @@ create table tilankuvaukset (
 );
 alter table tilankuvaukset owner to oph;
 
+insert into tilankuvaukset (tilankuvauksen_tarkenne) values ('EI_TILANKUVAUKSEN_TARKENNETTA');
+
 create table tilankuvausten_tekstit (
   tilankuvaus_id bigint not null references tilankuvaukset(id),
   kieli varchar(3) not null,
@@ -18,4 +20,4 @@ create table tilankuvausten_tekstit (
 );
 alter table tilankuvausten_tekstit owner to oph;
 
-alter table valinnantulokset add column tilankuvaus_id bigint not null references tilankuvaukset(id);
+alter table valinnantulokset add column tilankuvaus_id bigint not null references tilankuvaukset(id) default 1;
