@@ -225,6 +225,7 @@ case class SijoitteluajonHakemusWrapper(
   tila:Valinnantila,
   tilanKuvaukset:Option[Map[String,String]],
   tilankuvauksenTarkenne:String,
+  tarkenteenLisatieto:Option[String],
   hyvaksyttyHakijaryhmista:Set[String]) {
 
   import scala.collection.JavaConverters._
@@ -246,6 +247,7 @@ case class SijoitteluajonHakemusWrapper(
     hakemus.setTila(tila.valinnantila)
     hakemus.setTilanKuvaukset(tilanKuvaukset.getOrElse(Map()).asJava)
     hakemus.setTilankuvauksenTarkenne(TilankuvauksenTarkenne.valueOf(tilankuvauksenTarkenne))
+    tarkenteenLisatieto.foreach(hakemus.setTarkenteenLisatieto(_))
     hakemus.setHyvaksyttyHakijaryhmista(hyvaksyttyHakijaryhmista.asJava)
     hakemus
   }
@@ -270,6 +272,7 @@ object SijoitteluajonHakemusWrapper extends OptionConverter {
       Valinnantila.getValinnantila(hakemus.getTila),
       Option(hakemus.getTilanKuvaukset.asScala.toMap),
       hakemus.getTilankuvauksenTarkenne.toString,
+      Option(hakemus.getTarkenteenLisatieto),
       hakemus.getHyvaksyttyHakijaryhmista.asScala.toSet
     )
   }

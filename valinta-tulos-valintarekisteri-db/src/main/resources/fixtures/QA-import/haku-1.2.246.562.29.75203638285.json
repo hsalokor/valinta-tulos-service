@@ -535,7 +535,8 @@
               "hyvaksyttyHakijaryhmista": [
                 "1476103764898-8837999876477636603"
               ],
-              "tilankuvauksenTarkenne": "HYVAKSYTTY_TAYTTOJONO_SAANNOLLA"
+              "tilankuvauksenTarkenne": "HYVAKSYTTY_TAYTTOJONO_SAANNOLLA",
+              "tarkenteenLisatieto": "14538080612623056182813241345174"
             },
             {
               "hakijaOid": "1.2.246.562.24.85797330778",
@@ -7698,15 +7699,16 @@
                 }
               ],
               "tilanKuvaukset": {
-                "SV": "förhandsuppgiften är oinlämnad",
-                "FI": "Ennakkotehtävä palauttamatta",
-                "EN": "Pretask not returned"
+                "FI": "Hyväksytty täyttöjonosäännöllä valintatapajonosta: 14525090029451152170747426429137",
+                "SV": "Godkänd med köpåfyllningsregel från urvalsmetodskö: 14525090029451152170747426429137",
+                "EN": "Accepted from selection method queue: 14525090029451152170747426429137"
               },
               "siirtynytToisestaValintatapajonosta": false,
               "hyvaksyttyHakijaryhmista": [
                 "14761056762354411505847130564606"
               ],
-              "tilankuvauksenTarkenne": "EI_TILANKUVAUKSEN_TARKENNETTA"
+              "tilankuvauksenTarkenne": "HYVAKSYTTY_TAYTTOJONO_SAANNOLLA",
+              "tarkenteenLisatieto": "14525090029451152170747426429137"
             },
             {
               "hakijaOid": "1.2.246.562.24.90338860223",
