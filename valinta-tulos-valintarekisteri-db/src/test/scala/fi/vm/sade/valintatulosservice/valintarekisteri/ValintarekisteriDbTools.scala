@@ -303,14 +303,15 @@ trait ValintarekisteriDbTools extends Specification {
   private implicit val getSijoitteluajonJonosijaResult = GetResult(r => {
     SijoitteluajonHakemusWrapper(r.nextString, r.nextString, r.nextString, r.nextString, r.nextInt, r.nextInt,
       r.nextIntOption, r.nextBooleanOption, r.nextBigDecimalOption, r.nextIntOption, r.nextBooleanOption,
-      r.nextBooleanOption, Valinnantila(r.nextString), getHakemuksenTilankuvaukset(r.nextLong), r.nextString, hakijaryhmaOidsToSet(r.nextStringOption)).hakemus
+      r.nextBooleanOption, Valinnantila(r.nextString), singleConnectionValintarekisteriDb.getHakemuksenTilankuvaukset(r.nextLong, r.nextStringOption),
+      r.nextString, r.nextStringOption, hakijaryhmaOidsToSet(r.nextStringOption)).hakemus
   })
 
   def findValintatapajononJonosijat(valintatapajonoOid:String): Seq[Hakemus] = {
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select j.hakemus_oid, j.hakija_oid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, j.pisteet, j.tasasijajonosija, j.hyvaksytty_harkinnanvaraisesti,
-            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_id, t.tilankuvauksen_tarkenne, array_to_string(array_agg(hr.oid) , ',')
+            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_id, v.tarkenteen_lisatieto, t.tilankuvauksen_tarkenne, v.tarkenteen_lisatieto, array_to_string(array_agg(hr.oid) , ',')
             from jonosijat j
             left join hakijaryhman_hakemukset as hh on hh.hakemus_oid = j.hakemus_oid
             left join hakijaryhmat as hr on hr.id = hh.hakijaryhma_id
@@ -319,15 +320,8 @@ trait ValintarekisteriDbTools extends Specification {
             where j.valintatapajono_oid = ${valintatapajonoOid}
             group by j.hakemus_oid, j.hakija_oid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, j.pisteet, j.tasasijajonosija, j.hyvaksytty_harkinnanvaraisesti,
-            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_id, t.tilankuvauksen_tarkenne
+            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_id, t.tilankuvauksen_tarkenne, v.tarkenteen_lisatieto
          """.as[Hakemus])
-  }
-
-  def getHakemuksenTilankuvaukset(tilankuvausId: Long): Option[Map[String,String]] = {
-    Option(Map(singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select kieli, teksti
-            from tilankuvausten_tekstit
-            where tilankuvaus_id = ${tilankuvausId}""".as[(String,String)]) : _*))
   }
 
   private implicit val getSijoitteluajonPistetietoResult = GetResult(r => {

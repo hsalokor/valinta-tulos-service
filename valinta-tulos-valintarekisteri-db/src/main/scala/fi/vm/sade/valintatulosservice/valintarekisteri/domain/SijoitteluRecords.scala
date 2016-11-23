@@ -22,7 +22,7 @@ case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String,
                                  varasijojaKaytetaanAlkaen:java.sql.Date, varasijojaKaytetaanAsti:java.sql.Date, tayttoJono:String, hakukohdeOid:String)
 
 case class HakemusRecord(hakijaOid:String, hakemusOid:String, pisteet:BigDecimal, etunimi:String, sukunimi:String,
-                         prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila, tilankuvausId:Long,
+                         prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila, tilankuvausId:Long, tarkenteenLisatieto:Option[String],
                          hyvaksyttyHarkinnanvaraisesti:Boolean, varasijaNumero:Int, onkoMuuttunutviimesijoittelusta:Boolean,
                          hakijaryhmaOids:Set[String],siirtynytToisestaValintatapaJonosta:Boolean, valintatapajonoOid:String)
 
@@ -114,7 +114,7 @@ abstract class SijoitteluRecordToDTO {
     jonoDTO
   }
 
-  def hakemusRecordToDTO(hakemus:HakemusRecord, tilanKuvaukset:Map[String,String]): HakemusDTO = {
+  def hakemusRecordToDTO(hakemus:HakemusRecord, tilanKuvaukset:Option[Map[String,String]]): HakemusDTO = {
     val hakemusDTO = new HakemusDTO
     hakemusDTO.setHakijaOid(hakemus.hakijaOid)
     hakemusDTO.setHakemusOid(hakemus.hakemusOid)
@@ -125,7 +125,7 @@ abstract class SijoitteluRecordToDTO {
     hakemusDTO.setJonosija(hakemus.jonosija)
     hakemusDTO.setTasasijaJonosija(hakemus.tasasijaJonosija)
     hakemusDTO.setTila(HakemuksenTila.valueOf(hakemus.tila.valinnantila.name()))
-    hakemusDTO.setTilanKuvaukset(tilanKuvaukset.asJava)
+    hakemusDTO.setTilanKuvaukset(tilanKuvaukset.get.asJava)
     hakemusDTO.setHyvaksyttyHarkinnanvaraisesti(hakemus.hyvaksyttyHarkinnanvaraisesti)
     hakemusDTO.setVarasijanNumero(hakemus.varasijaNumero)
     hakemusDTO.setOnkoMuuttunutViimeSijoittelussa(hakemus.onkoMuuttunutviimesijoittelusta)

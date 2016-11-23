@@ -43,7 +43,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   private implicit val getValintatapajonotResult = GetResult(r => ValintatapajonoRecord(r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<<, r.<<, r.<<))
   private implicit val getHakemuksetForValintatapajonosResult = GetResult(r => HakemusRecord(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.<<, r.<< , r.<<, hakijaryhmaOidsToSet(r.nextStringOption), r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.nextStringOption(), r.<<, r.<< , r.<<, hakijaryhmaOidsToSet(r.nextStringOption), r.<<, r.<<))
   private implicit val getHakemuksenTilahistoriaResult = GetResult(r => TilaHistoriaRecord(r.<<, r.<<, r.<<, r.<<))
   private implicit val getHakijaryhmatResult = GetResult(r => HakijaryhmaRecord(r.<<, r.<<, r.<<, r.<<, r.<<,
     r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
@@ -419,7 +419,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       val sequences = List(storeValinnantulos(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId, id))
       hakemus.getTilanKuvaukset.isEmpty match {
         case true => DBIO.sequence(sequences)
-        case false => DBIO.sequence(sequences ++ List(insertTilankuvauksenTeksti(id, hakemus.getTilanKuvaukset.asScala.toMap)))
+        case false => DBIO.sequence(sequences ++ List(insertTilankuvauksenTeksti(id, hakemus)))
       }
     })
   }
@@ -478,7 +478,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   private def insertJonosija(sijoittaluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
     onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti, siirtynytToisestaValintatapajonosta,
-    valinnantila, tilanKuvaukset, tilankuvauksenTarkenne, hyvaksyttyHakijaryhmista)
+    valinnantila, tilanKuvaukset, tilankuvauksenTarkenne, tarkenteenLisatieto, hyvaksyttyHakijaryhmista)
     = SijoitteluajonHakemusWrapper(hakemus)
 
     sql"""insert into jonosijat (valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
@@ -497,7 +497,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   private def insertValinnantulos(sijoitteluajoId:Long, jonosijaId:Long, valintatulos:Valintatulos, hakemus:SijoitteluHakemus, tilankuvausId:Long) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
     onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti, siirtynytToisestaValintatapajonosta,
-    valinnantila, tilanKuvaukset, tilankuvauksenTarkenne, hyvaksyttyHakijaryhmista)
+    valinnantila, tilanKuvaukset, tilankuvauksenTarkenne, tarkenteenLisatieto, hyvaksyttyHakijaryhmista)
     = SijoitteluajonHakemusWrapper(hakemus)
     val SijoitteluajonValinnantulosWrapper(valintatapajonoOid, _, hakukohdeOid, ehdollisestiHyvaksyttavissa,
     julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, ilmoittautumistila, originalLogEntries, mailStatus)
@@ -510,10 +510,10 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     }
 
     sqlu"""insert into valinnantulokset (hakukohde_oid, valintatapajono_oid, hakemus_oid, sijoitteluajo_id, jonosija_id,
-           tila, tilankuvaus_id, julkaistavissa, ehdollisesti_hyvaksyttavissa, hyvaksytty_varasijalta,
+           tila, tilankuvaus_id, tarkenteen_lisatieto, julkaistavissa, ehdollisesti_hyvaksyttavissa, hyvaksytty_varasijalta,
            hyvaksy_peruuntunut, ilmoittaja, selite, tilan_viimeisin_muutos, previous_check, sent, done, message)
            values (${hakukohdeOid}, ${valintatapajonoOid}, ${hakemusOid}, ${sijoitteluajoId}, ${jonosijaId},
-           ${valinnantila.toString}::valinnantila, ${tilankuvausId}, ${julkaistavissa}, ${ehdollisestiHyvaksyttavissa},
+           ${valinnantila.toString}::valinnantila, ${tilankuvausId}, ${tarkenteenLisatieto}, ${julkaistavissa}, ${ehdollisestiHyvaksyttavissa},
            ${hyvaksyttyVarasijalta}, ${hyvaksyPeruuntunut}, ${ilmoittaja}, ${selite}, ${new java.sql.Timestamp(tilanViimeisinMuutos.getTime)},
            ${dateToTimestamp(previousCheck)}, ${dateToTimestamp(sent)}, ${dateToTimestamp(done)}, ${message})"""
   }
@@ -532,8 +532,11 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
                 and id not in (select tilankuvaus_id from tilankuvausten_tekstit))""".as[Option[Long]].head
   }
 
-  def insertTilankuvauksenTeksti(tilankuvauksenId:BigInt, tilankuvaukset:Map[String,String]) = {
-    val values = tilankuvaukset.map(k => s"(${tilankuvauksenId}, '${k._1}', '${k._2}')").mkString(",")
+  def insertTilankuvauksenTeksti(tilankuvauksenId:BigInt, hakemus:SijoitteluHakemus) = {
+    val values = hakemus.getTilanKuvaukset.asScala.toMap.map(k => {
+      val teksti = if (hakemus.getTarkenteenLisatieto == null) k._2 else k._2.replace(hakemus.getTarkenteenLisatieto, "<lisatieto>")
+      s"(${tilankuvauksenId}, '${k._1}', '${teksti}')"
+    }).mkString(",")
     sqlu"""insert into tilankuvausten_tekstit (tilankuvaus_id, kieli, teksti)
            values #${values}"""
   }
@@ -616,7 +619,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     val inParameter = valintatapajonoOids.map(oid => s"'$oid'").mkString(",")
     runBlocking(
       sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
-            j.tasasijajonosija, v.tila, v.tilankuvaus_id, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
+            j.tasasijajonosija, v.tila, v.tilankuvaus_id, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, array_to_string(array_agg(hr.oid), ','),
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
             from jonosijat as j
@@ -625,9 +628,8 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
             left join hakijaryhmat as hr on hr.id = hh.hakijaryhma_id
             where j.valintatapajono_oid in (#${inParameter}) and v.deleted is null
             GROUP BY j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
-            j.tasasijajonosija, v.tila, v.tilankuvaus_id, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
-            j.onko_muuttunut_viime_sijoittelussa,
-            j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid""".as[HakemusRecord]).toList
+            j.tasasijajonosija, v.tila, v.tilankuvaus_id, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
+            j.onko_muuttunut_viime_sijoittelussa, j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid""".as[HakemusRecord]).toList
   }
 
   override def getHakemuksenTilahistoria(valintatapajonoOid:String, hakemusOid: String): List[TilaHistoriaRecord] = {
@@ -639,12 +641,18 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
             order by dv.timestamp desc""".as[TilaHistoriaRecord]).toList
   }
 
-  override def getHakemuksenTilankuvaukset(tilankuvausId: Long): Vector[(String, String)] = {
-    runBlocking(
+  override def getHakemuksenTilankuvaukset(tilankuvausId:Long, tarkenteenLisatieto:Option[String]): Option[Map[String,String]] = {
+    val res = runBlocking(
       sql"""select kieli, teksti
             from tilankuvausten_tekstit
             where tilankuvaus_id = ${tilankuvausId}""".as[(String,String)]
     )
+    Option(Map(res.map(kuvaus => {
+      tarkenteenLisatieto match {
+        case Some(lisatieto) => (kuvaus._1, kuvaus._2.replace("<lisatieto>", lisatieto))
+        case None => (kuvaus._1, kuvaus._2)
+      }
+    }): _*))
   }
 
   override def getHakijaryhmat(sijoitteluajoId: Long): List[HakijaryhmaRecord] = {

@@ -103,12 +103,12 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
   }
 
   private implicit val getHakemusResult = GetResult(r => HakemusRecord(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.<<, r.<<, r.<<, r.nextStringOption().getOrElse("").split(",").toSet, r.<<, r.<<))
+    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.nextStringOption(), r.<<, r.<<, r.<<, r.nextStringOption().getOrElse("").split(",").toSet, r.<<, r.<<))
 
   def getHakemus(hakemusOid: String): Option[HakemusRecord] = {
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
-            j.tasasijajonosija, v.tila, v.tilankuvaus_id, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
+            j.tasasijajonosija, v.tila, v.tilankuvaus_id, v.kuvauksen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, hh.hyvaksytty_hakijaryhmasta, hh.hakijaryhma_id,
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
             from jonosijat as j
