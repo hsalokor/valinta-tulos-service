@@ -598,7 +598,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
               min(hr.alin_hyvaksytty_pistemaara) as ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet
             from sijoitteluajon_hakukohteet sh
             left join hakijaryhmat hr on hr.sijoitteluajo_id = sh.sijoitteluajo_id and hr.hakukohde_oid = sh.hakukohde_oid
-            where hr.sijoitteluajo_id = ${sijoitteluajoId}
+            where sh.sijoitteluajo_id = ${sijoitteluajoId}
             group by sh.sijoitteluajo_id, sh.hakukohde_oid, sh.tarjoaja_oid, sh.kaikki_jonot_sijoiteltu""".as[SijoittelunHakukohdeRecord]).toList
   }
 
