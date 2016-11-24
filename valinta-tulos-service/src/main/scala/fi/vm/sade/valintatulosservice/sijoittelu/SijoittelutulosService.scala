@@ -248,7 +248,7 @@ class SijoittelutulosService(raportointiService: RaportointiService,
   }
 
   private def laskeVastaanotettavuustila(valintatila: Valintatila, vastaanottotila: Vastaanottotila): Vastaanotettavuustila.Value = {
-    if (Valintatila.isHyväksytty(valintatila) && vastaanottotila == Vastaanottotila.kesken) {
+    if (Valintatila.isHyväksytty(valintatila) && Set(Vastaanottotila.kesken, Vastaanottotila.ehdollisesti_vastaanottanut).contains(vastaanottotila)) {
       Vastaanotettavuustila.vastaanotettavissa_sitovasti
     } else {
       Vastaanotettavuustila.ei_vastaanotettavissa
