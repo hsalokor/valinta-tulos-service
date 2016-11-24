@@ -102,14 +102,16 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
     }
   }
 
-  private implicit val getHakemusResult = GetResult(r => HakemusRecord(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.nextStringOption(), r.<<, r.<<, r.<<, r.nextStringOption().getOrElse("").split(",").toSet, r.<<, r.<<))
+  private implicit val getHakemusResult = GetResult(r => HakemusRecord(r.nextString, r.nextString, r.nextBigDecimal,
+    r.nextString, r.nextString, r.nextInt, r.nextInt, r.nextInt, Valinnantila(r.nextString), r.nextLong, r.nextStringOption(),
+    r.nextBoolean, r.nextInt, r.nextBoolean, r.nextStringOption().getOrElse("").split(",").toSet, r.nextBoolean,
+    r.nextString))
 
   def getHakemus(hakemusOid: String): Option[HakemusRecord] = {
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
-            j.tasasijajonosija, v.tila, v.tilankuvaus_id, v.kuvauksen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
-            j.onko_muuttunut_viime_sijoittelussa, hh.hyvaksytty_hakijaryhmasta, hh.hakijaryhma_id,
+            j.tasasijajonosija, v.tila, v.tilankuvaus_id, v.kuvauksen_lisatieto, j.hyvaksytty_harkinnanvaraisesti,
+            j.varasijan_numero, j.onko_muuttunut_viime_sijoittelussa, hh.hyvaksytty_hakijaryhmasta, hh.hakijaryhma_id,
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
             from jonosijat as j
             inner join valinnantulokset as v on v.jonosija_id = j.id and v.hakemus_oid = j.hakemus_oid
@@ -117,10 +119,11 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
             where v.hakemus_oid = ${hakemusOid} and deleted is null""".as[HakemusRecord]).headOption
   }
 
-  case class HakemusInfoRecord(selite:String, ilmoittaja:String, tilanViimeisinMuutos:Timestamp, previousCheck:Timestamp,
-                               sent:Timestamp, done:Timestamp, message:String)
+  case class HakemusInfoRecord(selite:String, ilmoittaja:String, tilanViimeisinMuutos:Timestamp,
+                               previousCheck:Timestamp, sent:Timestamp, done:Timestamp, message:String)
 
-  private implicit val getHakemusInfoResult = GetResult(r => HakemusInfoRecord(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+  private implicit val getHakemusInfoResult = GetResult(r => HakemusInfoRecord(r.nextString, r.nextString,
+    r.nextTimestamp, r.nextTimestamp, r.nextTimestamp, r.nextTimestamp, r.nextString))
 
   def getHakemusInfo(hakemusOid: String): Option[HakemusInfoRecord] = {
     singleConnectionValintarekisteriDb.runBlocking(
@@ -131,7 +134,7 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
 
   case class IlmoittautumisRecord(ilmoittaja:String, selite:String)
 
-  private implicit val getIlmoittautumistiedotResult = GetResult(r => IlmoittautumisRecord(r.<<, r.<<))
+  private implicit val getIlmoittautumistiedotResult = GetResult(r => IlmoittautumisRecord(r.nextString, r.nextString))
 
   def getIlmoittautumistiedot(hakijaOid: String): Option[IlmoittautumisRecord] = {
     singleConnectionValintarekisteriDb.runBlocking(

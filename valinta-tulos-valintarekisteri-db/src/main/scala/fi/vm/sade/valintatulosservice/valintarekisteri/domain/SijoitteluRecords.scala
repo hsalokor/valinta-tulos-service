@@ -9,28 +9,34 @@ case class SijoitteluajoRecord(sijoitteluajoId:Long, hakuOid:String, startMils:L
 
 case class HakijaRecord(etunimi:String, sukunimi:String, hakemusOid:String, hakijaOid:String)
 
-case class HakutoiveRecord(jonosijaId:Int, hakutoive:Int, hakukohdeOid:String, tarjoajaOid:String, valintatuloksenTila:String, kaikkiJonotsijoiteltu:Boolean)
+case class HakutoiveRecord(jonosijaId:Int, hakutoive:Int, hakukohdeOid:String, tarjoajaOid:String,
+                           valintatuloksenTila:String, kaikkiJonotsijoiteltu:Boolean)
 
-case class PistetietoRecord(jonosijaId:Int, tunniste:String, arvo:String, laskennallinenArvo:String, osallistuminen:String)
+case class PistetietoRecord(jonosijaId:Int, tunniste:String, arvo:String, laskennallinenArvo:String,
+                            osallistuminen:String)
 
-case class SijoittelunHakukohdeRecord(sijoitteluajoId:Long, oid:String, tarjoajaOid:String, kaikkiJonotsijoiteltu:Boolean, ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet:BigDecimal)
+case class SijoittelunHakukohdeRecord(sijoitteluajoId:Long, oid:String, tarjoajaOid:String, kaikkiJonotsijoiteltu:Boolean,
+                                      ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet:BigDecimal)
 
 case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String, prioriteetti:Int, aloituspaikat:Int,
-                                 alkuperaisetAloituspaikat:Int, alinHyvaksyttyPistemaara:BigDecimal, eiVarasijatayttoa:Boolean,
-                                 kaikkiEhdonTayttavatHyvaksytaan:Boolean, poissaOlevaTaytto:Boolean, valintaesitysHyvaksytty:Boolean,
-                                 hakeneet:Int, hyvaksytty:Int, varalla:Int, varasijat:Int, varasijanTayttoPaivat:Int,
-                                 varasijojaKaytetaanAlkaen:java.sql.Date, varasijojaKaytetaanAsti:java.sql.Date, tayttoJono:String, hakukohdeOid:String)
+                                 alkuperaisetAloituspaikat:Int, alinHyvaksyttyPistemaara:BigDecimal,
+                                 eiVarasijatayttoa:Boolean, kaikkiEhdonTayttavatHyvaksytaan:Boolean,
+                                 poissaOlevaTaytto:Boolean, valintaesitysHyvaksytty:Boolean, hakeneet:Int,
+                                 hyvaksytty:Int, varalla:Int, varasijat:Int, varasijanTayttoPaivat:Int,
+                                 varasijojaKaytetaanAlkaen:java.sql.Date, varasijojaKaytetaanAsti:java.sql.Date,
+                                 tayttoJono:String, hakukohdeOid:String)
 
 case class HakemusRecord(hakijaOid:String, hakemusOid:String, pisteet:BigDecimal, etunimi:String, sukunimi:String,
-                         prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila, tilankuvausId:Long, tarkenteenLisatieto:Option[String],
-                         hyvaksyttyHarkinnanvaraisesti:Boolean, varasijaNumero:Int, onkoMuuttunutviimesijoittelusta:Boolean,
-                         hakijaryhmaOids:Set[String],siirtynytToisestaValintatapaJonosta:Boolean, valintatapajonoOid:String)
+                         prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila, tilankuvausId:Long,
+                         tarkenteenLisatieto:Option[String], hyvaksyttyHarkinnanvaraisesti:Boolean, varasijaNumero:Int,
+                         onkoMuuttunutviimesijoittelusta:Boolean, hakijaryhmaOids:Set[String],
+                         siirtynytToisestaValintatapaJonosta:Boolean, valintatapajonoOid:String)
 
 case class TilaHistoriaRecord(tila:String, poistaja:String, selite:String, luotu:java.sql.Date)
 
-case class HakijaryhmaRecord(id:Long, prioriteetti:Int, paikat:Int, oid:String, nimi:String, hakukohdeOid:String, kiintio:Int,
-                       kaytaKaikki:Boolean, tarkkaKiintio:Boolean, kaytetaanRyhmaanKuuluvia:Boolean,
-                       valintatapajonoOid:String)
+case class HakijaryhmaRecord(id:Long, prioriteetti:Int, paikat:Int, oid:String, nimi:String, hakukohdeOid:String,
+                             kiintio:Int, kaytaKaikki:Boolean, tarkkaKiintio:Boolean, kaytetaanRyhmaanKuuluvia:Boolean,
+                             valintatapajonoOid:String)
 
 abstract class SijoitteluRecordToDTO {
   def hakijaRecordToDTO(hakija: HakijaRecord): HakijaDTO = {
@@ -86,7 +92,8 @@ abstract class SijoitteluRecordToDTO {
     hakukohdeDTO.setOid(hakukohde.oid)
     hakukohdeDTO.setTarjoajaOid(hakukohde.tarjoajaOid)
     hakukohdeDTO.setKaikkiJonotSijoiteltu(hakukohde.kaikkiJonotsijoiteltu)
-    hakukohdeDTO.setEnsikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet(bigDecimal(hakukohde.ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet))
+    hakukohdeDTO.setEnsikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet(
+      bigDecimal(hakukohde.ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet))
     hakukohdeDTO
   }
 

@@ -3,8 +3,8 @@ package fi.vm.sade.valintatulosservice.ensikertalaisuus
 import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet._
 import fi.vm.sade.valintatulosservice.json.JsonFormats
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{VastaanottoHistoria, Ensikertalaisuus, Kausi}
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriService
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{Ensikertalaisuus, Kausi, VastaanottoHistoria}
 import fi.vm.sade.valintatulosservice.{VtsServletBase, VtsSwaggerBase}
 import org.json4s.Formats
 import org.json4s.jackson.Serialization.read

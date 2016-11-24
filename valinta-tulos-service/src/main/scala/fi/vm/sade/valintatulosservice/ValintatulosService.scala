@@ -14,8 +14,8 @@ import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelutulosService, StreamingHakijaDtoClient}
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakukohdeRecord, Kausi, MerkitseMyohastyneeksi, Vastaanottotila}
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.{HakijaVastaanottoRepository, VastaanottoRecord, VirkailijaVastaanottoRepository}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakukohdeRecord, Kausi, MerkitseMyohastyneeksi, Vastaanottotila}
 import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 import org.apache.commons.lang3.StringUtils
 import org.joda.time.DateTime

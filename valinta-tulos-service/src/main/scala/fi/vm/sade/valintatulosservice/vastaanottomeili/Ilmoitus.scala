@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.vastaanottomeili
 import java.util.Date
 
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila
-import Vastaanottotila._
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila._
 import fi.vm.sade.valintatulosservice.vastaanottomeili.LahetysSyy.LahetysSyy
 
 case class Ilmoitus(

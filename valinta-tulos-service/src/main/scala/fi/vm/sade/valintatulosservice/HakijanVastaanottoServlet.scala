@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakijanVastaanottoAction, HakijanVastaanotto}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakijanVastaanotto, HakijanVastaanottoAction}
 import org.json4s._
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._

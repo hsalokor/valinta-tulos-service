@@ -3,10 +3,10 @@ package fi.vm.sade.valintatulosservice
 import java.io.FileInputStream
 import java.text.SimpleDateFormat
 import java.util.{Date, Properties}
-import scala.collection.JavaConversions._
 
 import org.http4s.Uri
 
+import scala.collection.JavaConversions._
 import scala.util.Try
 
 case class DbConfiguration(user: Option[String], password: Option[String], url: String)

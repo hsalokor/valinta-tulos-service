@@ -30,23 +30,32 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     logger.warn("alter table public.schema_version owner to oph")
     runBlocking(sqlu"""alter table public.schema_version owner to oph""")
   }
-  private implicit val getVastaanottoResult = GetResult(r => VastaanottoRecord(r.nextString(), r.nextString(),
-    r.nextString(), VastaanottoAction(r.nextString()), r.nextString(), r.nextTimestamp()))
+  private implicit val getVastaanottoResult = GetResult(r => VastaanottoRecord(r.nextString, r.nextString,
+    r.nextString, VastaanottoAction(r.nextString), r.nextString, r.nextTimestamp))
   private implicit val getHakukohdeResult = GetResult(r =>
-    HakukohdeRecord(r.nextString(), r.nextString(), r.nextBoolean(), r.nextBoolean(), Kausi(r.nextString())))
-  private implicit val getHakijaResult = GetResult(r => HakijaRecord(r.<<, r.<<, r.<<, r.<<))
-  private implicit val getHakutoiveResult = GetResult(r => HakutoiveRecord(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
-  private implicit val getPistetiedotResult = GetResult(r => PistetietoRecord(r.<<, r.<<, r.<<, r.<<, r.<<))
-  private implicit val getSijoitteluajoResult = GetResult(r => SijoitteluajoRecord(r.<<, r.<<,
-    r.nextTimestamp().getTime, r.nextTimestamp().getTime))
-  private implicit val getSijoitteluajoHakukohteetResult = GetResult(r => SijoittelunHakukohdeRecord(r.<<, r.<<, r.<<, r.<<, r.<<))
-  private implicit val getValintatapajonotResult = GetResult(r => ValintatapajonoRecord(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<< , r.<<, r.<<, r.<<, r.<<))
-  private implicit val getHakemuksetForValintatapajonosResult = GetResult(r => HakemusRecord(r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, Valinnantila(r.<<), r.<<, r.nextStringOption(), r.<<, r.<< , r.<<, hakijaryhmaOidsToSet(r.nextStringOption), r.<<, r.<<))
-  private implicit val getHakemuksenTilahistoriaResult = GetResult(r => TilaHistoriaRecord(r.<<, r.<<, r.<<, r.<<))
-  private implicit val getHakijaryhmatResult = GetResult(r => HakijaryhmaRecord(r.<<, r.<<, r.<<, r.<<, r.<<,
-    r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+    HakukohdeRecord(r.nextString, r.nextString, r.nextBoolean, r.nextBoolean, Kausi(r.nextString)))
+  private implicit val getHakijaResult = GetResult(r => HakijaRecord(r.nextString, r.nextString, r.nextString,
+    r.nextString))
+  private implicit val getHakutoiveResult = GetResult(r => HakutoiveRecord(r.nextInt, r.nextInt, r.nextString,
+    r.nextString, r.nextString, r.nextBoolean))
+  private implicit val getPistetiedotResult = GetResult(r => PistetietoRecord(r.nextInt, r.nextString, r.nextString,
+    r.nextString, r.nextString))
+  private implicit val getSijoitteluajoResult = GetResult(r => SijoitteluajoRecord(r.nextLong, r.nextString,
+    r.nextTimestamp.getTime, r.nextTimestamp.getTime))
+  private implicit val getSijoitteluajoHakukohteetResult = GetResult(r => SijoittelunHakukohdeRecord(r.nextLong,
+    r.nextString, r.nextString, r.nextBoolean, r.nextBigDecimal))
+  private implicit val getValintatapajonotResult = GetResult(r => ValintatapajonoRecord(r.nextString, r.nextString,
+    r.nextString, r.nextInt, r.nextInt, r.nextInt, r.nextBigDecimal, r.nextBoolean, r.nextBoolean, r.nextBoolean,
+    r.nextBoolean, r.nextInt , r.nextInt, r.nextInt , r.nextInt, r.nextInt , r.nextDate, r.nextDate, r.nextString,
+    r.nextString))
+  private implicit val getHakemuksetForValintatapajonosResult = GetResult(r => HakemusRecord(r.nextString,
+    r.nextString, r.nextBigDecimal, r.nextString, r.nextString, r.nextInt, r.nextInt, r.nextInt,
+    Valinnantila(r.nextString), r.nextLong, r.nextStringOption(), r.nextBoolean, r.nextInt, r.nextBoolean,
+    hakijaryhmaOidsToSet(r.nextStringOption), r.nextBoolean, r.nextString))
+  private implicit val getHakemuksenTilahistoriaResult = GetResult(r => TilaHistoriaRecord(r.nextString, r.nextString,
+    r.nextString, r.nextDate))
+  private implicit val getHakijaryhmatResult = GetResult(r => HakijaryhmaRecord(r.nextLong, r.nextInt, r.nextInt,
+    r.nextString, r.nextString, r.nextString, r.nextInt, r.nextBoolean, r.nextBoolean, r.nextBoolean, r.nextString))
 
   def hakijaryhmaOidsToSet(hakijaryhmaOids:Option[String]): Set[String] = {
     hakijaryhmaOids match {

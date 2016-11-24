@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice
 
 import com.typesafe.config.ConfigValueFactory
-import fi.vm.sade.valintatulosservice.config.{ValintarekisteriAppConfig, VtsAppConfig}
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig
 import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures

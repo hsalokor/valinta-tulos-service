@@ -8,7 +8,6 @@ import fi.vm.sade.sijoittelu.domain.{ValintatuloksenTila, Valintatulos}
 import fi.vm.sade.sijoittelu.tulos.service.RaportointiService
 import fi.vm.sade.valintatulosservice.VtsServletBase
 import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
-import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService

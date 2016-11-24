@@ -1,8 +1,8 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
-import fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu.ValintarekisteriService
 import fi.vm.sade.valintatulosservice.json.JsonFormats._
+import fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu.ValintarekisteriService
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 import org.scalatra.{NotImplemented, Ok}

@@ -1,18 +1,15 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{VastaanottoEventDto, PriorAcceptanceException, Vastaanottotila}
-import Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats.javaObjectToJsonString
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.VastaanottoRecord
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{PriorAcceptanceException, VastaanottoEventDto, Vastaanottotila}
 import org.joda.time.DateTime
 import org.json4s.jackson.Serialization._
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 import org.scalatra.{Forbidden, Ok}
-
-import scala.util.Try
 
 class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, vastaanottoService: VastaanottoService)(implicit val swagger: Swagger, appConfig: VtsAppConfig) extends VtsServletBase {
 

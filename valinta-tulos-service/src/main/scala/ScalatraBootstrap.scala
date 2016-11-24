@@ -2,8 +2,8 @@ import java.util
 import javax.servlet.{DispatcherType, ServletContext}
 
 import fi.vm.sade.valintatulosservice._
-import fi.vm.sade.valintatulosservice.config.{ValintarekisteriAppConfig, VtsAppConfig}
-import fi.vm.sade.valintatulosservice.config.VtsAppConfig.{Dev, VtsAppConfig, IT}
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.{Dev, IT, VtsAppConfig}
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.migraatio.MigraatioServlet

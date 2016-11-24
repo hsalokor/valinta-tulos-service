@@ -7,8 +7,8 @@ import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.json.JsonFormats
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.HakukohdeRecord
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.HakukohdeRepository
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.HakukohdeRecord
 import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 import org.json4s.jackson.Serialization._
 import org.scalatra._
