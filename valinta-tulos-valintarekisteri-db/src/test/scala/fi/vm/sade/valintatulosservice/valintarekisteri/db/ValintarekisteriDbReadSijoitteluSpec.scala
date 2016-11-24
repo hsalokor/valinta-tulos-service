@@ -60,7 +60,7 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
     }
 
     "get hakemukset for valintatapajono" in {
-      val res = singleConnectionValintarekisteriDb.getHakemuksetForValintatapajonos(List("14538080612623056182813241345174", "14539780970882907815262745035155", "14525090029451152170747426429137"))
+      val res = singleConnectionValintarekisteriDb.getHakemuksetForValintatapajonos(1476936450191L, List("14538080612623056182813241345174", "14539780970882907815262745035155", "14525090029451152170747426429137"))
       res.size mustEqual 163
     }
 

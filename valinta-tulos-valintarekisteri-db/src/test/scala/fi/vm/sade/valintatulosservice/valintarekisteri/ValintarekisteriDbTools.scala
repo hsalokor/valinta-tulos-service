@@ -137,7 +137,7 @@ trait ValintarekisteriDbTools extends Specification {
         dvalintatapajono.getPrioriteetti mustEqual wvalintatapajono.getPrioriteetti
         dvalintatapajono.getTasasijasaanto.toString mustEqual wvalintatapajono.getTasasijasaanto.toString
         dvalintatapajono.getTayttojono mustEqual wvalintatapajono.getTayttojono
-        wvalintatapajono.getValintaesitysHyvaksytty match { //TODO is this correct?
+        wvalintatapajono.getValintaesitysHyvaksytty match {
           case null => dvalintatapajono.getValintaesitysHyvaksytty mustEqual false
           case x => dvalintatapajono.getValintaesitysHyvaksytty mustEqual x
         }

@@ -11,7 +11,7 @@ trait SijoitteluRepository {
   def getSijoitteluajo(hakuOid:String, sijoitteluajoId:Long): Option[SijoitteluajoRecord]
   def getSijoitteluajoHakukohteet(sijoitteluajoId:Long): List[SijoittelunHakukohdeRecord]
   def getValintatapajonot(sijoitteluajoId:Long): List[ValintatapajonoRecord]
-  def getHakemuksetForValintatapajonos(valintatapajonoOids:List[String]): List[HakemusRecord]
+  def getHakemuksetForValintatapajonos(sijoitteluajoId:Long, valintatapajonoOids:List[String]): List[HakemusRecord]
   def getHakemuksenTilahistoria(valintatapajonoOid:String, hakemusOid:String): List[TilaHistoriaRecord]
   def getHakemuksenTilankuvaukset(tilankuvausId:Long, tarkenteenLisatieto:Option[String]): Option[Map[String,String]]
   def getHakijaryhmat(sijoitteluajoId:Long): List[HakijaryhmaRecord]
