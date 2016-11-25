@@ -46,7 +46,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     r.nextString, r.nextString, r.nextBoolean, r.nextBigDecimal))
   private implicit val getValintatapajonotResult = GetResult(r => ValintatapajonoRecord(r.nextString, r.nextString,
     r.nextString, r.nextInt, r.nextInt, r.nextInt, r.nextBigDecimal, r.nextBoolean, r.nextBoolean, r.nextBoolean,
-    r.nextBoolean, r.nextInt , r.nextInt, r.nextInt , r.nextInt, r.nextInt , r.nextDate, r.nextDate, r.nextString,
+    r.nextBoolean, 0, r.nextInt, r.nextInt , r.nextInt, r.nextInt , r.nextDate, r.nextDate, r.nextString,
     r.nextString))
   private implicit val getHakemuksetForValintatapajonosResult = GetResult(r => HakemusRecord(r.nextString,
     r.nextString, r.nextBigDecimal, r.nextString, r.nextString, r.nextInt, r.nextInt, r.nextInt,
@@ -476,12 +476,13 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
     sqlu"""insert into valintatapajonot (oid, sijoitteluajo_id, hakukohde_oid, nimi, prioriteetti, tasasijasaanto, aloituspaikat,
            alkuperaiset_aloituspaikat, kaikki_ehdon_tayttavat_hyvaksytaan, poissaoleva_taytto, ei_varasijatayttoa,
-           varasijat, varasijatayttopaivat, varasijoja_kaytetaan_alkaen, varasijoja_taytetaan_asti, tayttojono, hyvaksytty, varalla, alin_hyvaksytty_pistemaara)
+           varasijat, varasijatayttopaivat, varasijoja_kaytetaan_alkaen, varasijoja_taytetaan_asti, tayttojono, hyvaksytty, varalla,
+           alin_hyvaksytty_pistemaara, valintaesitys_hyvaksytty)
            values (${oid}, ${sijoitteluajoId}, ${hakukohdeOid}, ${nimi}, ${prioriteetti}, ${tasasijasaanto.toString}::tasasijasaanto, ${aloituspaikat},
            ${alkuperaisetAloituspaikat}, ${kaikkiEhdonTayttavatHyvaksytaan},
            ${poissaOlevaTaytto}, ${eiVarasijatayttoa}, ${varasijat}, ${varasijaTayttoPaivat},
            ${varasijojaKaytetaanAlkaenTs}, ${varasijojaTaytetaanAstiTs}, ${tayttojono},
-           ${hyvaksytty}, ${varalla}, ${alinHyvaksyttyPistemaara})"""
+           ${hyvaksytty}, ${varalla}, ${alinHyvaksyttyPistemaara}, ${valintaesitysHyvaksytty})"""
   }
 
   private def insertJonosija(sijoittaluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus) = {
@@ -618,7 +619,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     runBlocking(
       sql"""select tasasijasaanto, oid, nimi, prioriteetti, aloituspaikat, alkuperaiset_aloituspaikat,
             alin_hyvaksytty_pistemaara, ei_varasijatayttoa, kaikki_ehdon_tayttavat_hyvaksytaan, poissaoleva_taytto,
-            valintaesitys_hyvaksytty, (hyvaksytty + varalla) as hakeneet, hyvaksytty, varalla, varasijat,
+            valintaesitys_hyvaksytty, hyvaksytty, varalla, varasijat,
             varasijatayttopaivat, varasijoja_kaytetaan_alkaen, varasijoja_taytetaan_asti, tayttojono, hakukohde_oid
             from valintatapajonot
             where sijoitteluajo_id = ${sijoitteluajoId}""".as[ValintatapajonoRecord]).toList

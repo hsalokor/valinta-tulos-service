@@ -130,7 +130,7 @@ trait ValintarekisteriDbTools extends Specification {
         dvalintatapajono.getAlkuperaisetAloituspaikat mustEqual wvalintatapajono.getAlkuperaisetAloituspaikat
         dvalintatapajono.getAloituspaikat mustEqual wvalintatapajono.getAloituspaikat
         dvalintatapajono.getEiVarasijatayttoa mustEqual wvalintatapajono.getEiVarasijatayttoa
-        dvalintatapajono.getHakeneet mustEqual wvalintatapajono.getHyvaksytty + wvalintatapajono.getVaralla
+        dvalintatapajono.getHakeneet mustEqual wvalintatapajono.getHakemukset.size
         dvalintatapajono.getKaikkiEhdonTayttavatHyvaksytaan mustEqual wvalintatapajono.getKaikkiEhdonTayttavatHyvaksytaan
         dvalintatapajono.getNimi mustEqual wvalintatapajono.getNimi
         dvalintatapajono.getPoissaOlevaTaytto mustEqual wvalintatapajono.getPoissaOlevaTaytto
