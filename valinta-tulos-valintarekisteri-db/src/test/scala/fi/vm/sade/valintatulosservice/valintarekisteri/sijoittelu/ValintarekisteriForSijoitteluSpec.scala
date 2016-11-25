@@ -8,6 +8,7 @@ import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterExample
 
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 
 @RunWith(classOf[JUnitRunner])
@@ -43,6 +44,12 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
     val wrapper = loadSijoitteluFromFixture("valintatapajono_hakijaryhma_pistetiedot", "sijoittelu/", false)
     time("Tallenna sijoittelu") { valintarekisteri.tallennaSijoittelu(wrapper.sijoitteluajo, wrapper.hakukohteet.asJava, wrapper.valintatulokset.asJava) }
     assertSijoittelu(wrapper)
+  }
+  "Sijoitteluajo should be stored in transaction" in {
+    val wrapper = loadSijoitteluFromFixture("valintatapajono_hakijaryhma_pistetiedot", "sijoittelu/", false)
+    wrapper.hakukohteet(0).getValintatapajonot.get(0).getHakemukset.get(0).setHakemusOid(null)
+    Try(valintarekisteri.tallennaSijoittelu(wrapper.sijoitteluajo, wrapper.hakukohteet.asJava, wrapper.valintatulokset.asJava)).toOption mustEqual None
+    findSijoitteluajo(wrapper.sijoitteluajo.getSijoitteluajoId) mustEqual None
   }
   "Unknown sijoitteluajo cannot be found" in {
     val wrapper = loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/")

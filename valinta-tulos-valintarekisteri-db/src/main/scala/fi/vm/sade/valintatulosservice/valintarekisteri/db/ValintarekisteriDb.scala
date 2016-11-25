@@ -371,11 +371,11 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
   override def storeSijoittelu(sijoittelu: SijoitteluWrapper) = {
-    runBlocking(insertSijoitteluajo(sijoittelu.sijoitteluajo).andThen(
+    runBlocking((insertSijoitteluajo(sijoittelu.sijoitteluajo).andThen(
       DBIO.sequence(sijoittelu.hakukohteet.map(hakukohde =>
         storeSijoittelunHakukohde(sijoittelu.sijoitteluajo.getSijoitteluajoId, hakukohde,
           sijoittelu.valintatulokset.filter(vt => vt.getHakukohdeOid == hakukohde.getOid))
-      )))
+      ))).transactionally)
     )
   }
 
