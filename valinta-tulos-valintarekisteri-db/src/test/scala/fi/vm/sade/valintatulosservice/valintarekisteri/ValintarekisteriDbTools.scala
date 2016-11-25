@@ -169,6 +169,16 @@ trait ValintarekisteriDbTools extends Specification {
           dhakemus.getHyvaksyttyHakijaryhmista mustEqual whakemus.getHyvaksyttyHakijaryhmista
           dhakemus.getSiirtynytToisestaValintatapajonosta mustEqual whakemus.getSiirtynytToisestaValintatapajonosta
           //TODO: ?? dhakemus.getTodellinenJonosija mustEqual whakemus.getJonosija
+
+          dhakemus.getPistetiedot.size mustEqual whakemus.getPistetiedot.size
+          dhakemus.getPistetiedot.asScala.toList.foreach(dpistetieto => {
+            val wpistetieto = whakemus.getPistetiedot.asScala.toList.find(_.getTunniste.equals(dpistetieto.getTunniste)).head
+            dpistetieto.getArvo mustEqual wpistetieto.getArvo
+            dpistetieto.getLaskennallinenArvo mustEqual wpistetieto.getLaskennallinenArvo
+            dpistetieto.getOsallistuminen mustEqual wpistetieto.getOsallistuminen
+            dpistetieto.getTyypinKoodiUri mustEqual wpistetieto.getTyypinKoodiUri
+            dpistetieto.isTilastoidaan mustEqual wpistetieto.isTilastoidaan
+          })
         })
       })
     })

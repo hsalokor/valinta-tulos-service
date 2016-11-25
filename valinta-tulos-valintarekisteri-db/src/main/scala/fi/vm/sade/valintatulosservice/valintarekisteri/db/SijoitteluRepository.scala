@@ -19,4 +19,5 @@ trait SijoitteluRepository {
   def getHakija(hakemusOid:String, sijoitteluajoId:Long): Option[HakijaRecord]
   def getHakutoiveet(hakemusOid:String, sijoitteluajoId:Long): List[HakutoiveRecord]
   def getPistetiedot(jonosijaIds:List[Int]): List[PistetietoRecord]
+  def getPistetiedot(hakemusOid:String, sijoitteluajoId:Long): List[PistetietoRecord]
 }

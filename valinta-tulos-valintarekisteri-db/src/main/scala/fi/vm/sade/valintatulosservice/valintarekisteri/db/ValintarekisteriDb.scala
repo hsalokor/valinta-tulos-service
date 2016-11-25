@@ -705,4 +705,13 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
             where jonosija_id in (#${inParameter})""".as[PistetietoRecord]).toList
   }
 
+  //TODO: Pitäisikö tässä olla myös hakukohde_oid!?
+  override def getPistetiedot(hakemusOid:String, sijoitteluajoId:Long): List[PistetietoRecord] = {
+    runBlocking(
+      sql"""
+           select p.*
+           from pistetiedot p
+           inner join jonosijat j on j.id = p.jonosija_id and j.sijoitteluajo_id = ${sijoitteluajoId} and j.hakemus_oid = ${hakemusOid}
+         """.as[PistetietoRecord]).toList
+  }
 }
