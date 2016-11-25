@@ -73,7 +73,7 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
       h.setTilaHistoria(
         sijoitteluRepository.getHakemuksenTilahistoria(h.getValintatapajonoOid, h.getHakemusOid).map(tilaHistoriaRecordToDTO).asJava
       )
-      h.getPistetiedot().addAll(sijoitteluRepository.getPistetiedot(h.getHakemusOid, latestId).map(pistetietoRecordToTDO).asJava)
+      h.getPistetiedot().addAll(sijoitteluRepository.getPistetiedot(h.getHakemusOid, latestId, h.getValintatapajonoOid).map(pistetietoRecordToTDO).asJava)
     })
 
     valintatapajonotByHakukohde.values.flatten.foreach(j => {

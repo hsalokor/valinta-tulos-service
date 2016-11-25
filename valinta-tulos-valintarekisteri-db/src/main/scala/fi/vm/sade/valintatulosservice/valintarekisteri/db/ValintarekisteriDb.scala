@@ -706,12 +706,12 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
   //TODO: Pitäisikö tässä olla myös hakukohde_oid!?
-  override def getPistetiedot(hakemusOid:String, sijoitteluajoId:Long): List[PistetietoRecord] = {
+  override def getPistetiedot(hakemusOid:String, sijoitteluajoId:Long, valintatapajonoOid:String): List[PistetietoRecord] = {
     runBlocking(
       sql"""
            select p.*
            from pistetiedot p
-           inner join jonosijat j on j.id = p.jonosija_id and j.sijoitteluajo_id = ${sijoitteluajoId} and j.hakemus_oid = ${hakemusOid}
+           inner join jonosijat j on j.id = p.jonosija_id and j.sijoitteluajo_id = ${sijoitteluajoId} and j.hakemus_oid = ${hakemusOid} and j.valintatapajono_oid = ${valintatapajonoOid}
          """.as[PistetietoRecord]).toList
   }
 }
