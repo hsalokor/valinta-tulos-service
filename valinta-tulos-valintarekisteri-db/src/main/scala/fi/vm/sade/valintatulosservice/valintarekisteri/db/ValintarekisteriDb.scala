@@ -574,14 +574,14 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   private def insertHakijaryhma(sijoitteluajoId:Long, hakukohdeOid:String, hakijaryhma:Hakijaryhma) = {
     val SijoitteluajonHakijaryhmaWrapper(oid, nimi, prioriteetti, paikat, kiintio,
-    kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara, _)
+    kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara, _, valintatapajonoOid)
     = SijoitteluajonHakijaryhmaWrapper(hakijaryhma)
 
     sql"""insert into hakijaryhmat (oid, sijoitteluajo_id, hakukohde_oid, nimi, prioriteetti, paikat,
-           kiintio, kayta_kaikki, tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, alin_hyvaksytty_pistemaara)
+           kiintio, kayta_kaikki, tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, alin_hyvaksytty_pistemaara, valintatapajono_oid)
            values (${oid}, ${sijoitteluajoId}, ${hakukohdeOid}, ${nimi}, ${prioriteetti}, ${paikat},
            ${kiintio}, ${kaytaKaikki}, ${tarkkaKiintio}, ${kaytetaanRyhmaanKuuluvia},
-           ${alinHyvaksyttyPistemaara})
+           ${alinHyvaksyttyPistemaara}, ${valintatapajonoOid})
            RETURNING id""".as[Long].headOption
   }
 
@@ -667,11 +667,10 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   override def getHakijaryhmat(sijoitteluajoId: Long): List[HakijaryhmaRecord] = {
     runBlocking(
-      sql"""select hr.id, hr.prioriteetti, hr.paikat, hr.oid, hr.nimi, hr.hakukohde_oid, hr.kiintio, hr.kayta_kaikki,
-            hr.tarkka_kiintio, hr.kaytetaan_ryhmaan_kuuluvia, v.oid
-            from hakijaryhmat as hr
-            inner join valintatapajonot as v on v.sijoitteluajo_id = hr.sijoitteluajo_id and v.hakukohde_oid = hr.hakukohde_oid
-            where hr.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakijaryhmaRecord]).toList
+      sql"""select id, prioriteetti, paikat, oid, nimi, hakukohde_oid, kiintio, kayta_kaikki,
+            tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, valintatapajono_oid
+            from hakijaryhmat
+            where sijoitteluajo_id = ${sijoitteluajoId}""".as[HakijaryhmaRecord]).toList
   }
 
   override def getHakijaryhmanHakemukset(hakijaryhmaId: Long): List[String] = {

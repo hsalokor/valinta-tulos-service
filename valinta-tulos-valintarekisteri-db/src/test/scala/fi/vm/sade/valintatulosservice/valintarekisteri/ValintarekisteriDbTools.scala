@@ -121,6 +121,7 @@ trait ValintarekisteriDbTools extends Specification {
         dhakijaryhma.isTarkkaKiintio mustEqual whakijaryhma.isTarkkaKiintio
         dhakijaryhma.isKaytetaanRyhmaanKuuluvia mustEqual whakijaryhma.isKaytetaanRyhmaanKuuluvia
         dhakijaryhma.getHakemusOid.asScala.toList.diff(whakijaryhma.getHakemusOid.asScala.toList) mustEqual List()
+        dhakijaryhma.getValintatapajonoOid mustEqual whakijaryhma.getValintatapajonoOid
       })
 
       dhakukohde.getValintatapajonot.size mustEqual whakukohde.getValintatapajonot.size
@@ -290,13 +291,13 @@ trait ValintarekisteriDbTools extends Specification {
   private implicit val getSijoitteluajonHakijaryhmaResult = GetResult(r => {
     SijoitteluajonHakijaryhmaWrapper(r.nextString, r.nextString,
       r.nextIntOption(), r.nextIntOption, r.nextIntOption, r.nextBooleanOption,
-      r.nextBooleanOption, r.nextBooleanOption, r.nextBigDecimalOption, List()).hakijaryhma
+      r.nextBooleanOption, r.nextBooleanOption, r.nextBigDecimalOption, List(), r.nextStringOption()).hakijaryhma
   })
 
   def findHakukohteenHakijaryhmat(hakukohdeOid:String): Seq[Hakijaryhma] = {
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select oid, nimi, prioriteetti, paikat, kiintio, kayta_kaikki,
-            tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, alin_hyvaksytty_pistemaara
+            tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, alin_hyvaksytty_pistemaara, valintatapajono_oid
             from hakijaryhmat
             where hakukohde_oid = ${hakukohdeOid}""".as[Hakijaryhma]
     )

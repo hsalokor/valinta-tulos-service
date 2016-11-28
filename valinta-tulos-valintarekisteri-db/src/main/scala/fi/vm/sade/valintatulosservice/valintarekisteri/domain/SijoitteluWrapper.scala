@@ -461,7 +461,8 @@ case class SijoitteluajonHakijaryhmaWrapper(
   tarkkaKiintio:Option[Boolean],
   kaytetaanRyhmaanKuuluvia:Option[Boolean],
   alinHyvaksyttyPistemaara:Option[BigDecimal],
-  hakemusOid:List[String]
+  hakemusOid:List[String],
+  valintatapajonoOid:Option[String]
 ) {
   val hakijaryhma:Hakijaryhma = {
     import scala.collection.JavaConverters._
@@ -476,6 +477,7 @@ case class SijoitteluajonHakijaryhmaWrapper(
     kaytetaanRyhmaanKuuluvia.foreach(hakijaryhma.setKaytetaanRyhmaanKuuluvia(_))
     alinHyvaksyttyPistemaara.foreach(pistemaara => hakijaryhma.setAlinHyvaksyttyPistemaara(pistemaara.bigDecimal))
     hakijaryhma.getHakemusOid.addAll(hakemusOid.asJava)
+    valintatapajonoOid.foreach(hakijaryhma.setValintatapajonoOid(_))
     hakijaryhma
   }
 }
@@ -493,7 +495,8 @@ object SijoitteluajonHakijaryhmaWrapper extends OptionConverter {
       convert[javaBoolean,Boolean](hakijaryhma.isTarkkaKiintio, boolean),
       convert[javaBoolean,Boolean](hakijaryhma.isKaytetaanRyhmaanKuuluvia, boolean),
       convert[javaBigDecimal,BigDecimal](hakijaryhma.getAlinHyvaksyttyPistemaara, bigDecimal),
-      hakijaryhma.getHakemusOid.asScala.toList
+      hakijaryhma.getHakemusOid.asScala.toList,
+      convert[javaString,String](hakijaryhma.getValintatapajonoOid, string)
     )
   }
 }
