@@ -1,0 +1,1 @@
+alter table jonosijat alter hakija_oid drop not null;
