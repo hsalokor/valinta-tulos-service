@@ -11,14 +11,16 @@ import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
 import slick.driver.PostgresDriver.api.{Database, _}
-import slick.jdbc.{GetResult, TransactionIsolation}
+import slick.jdbc.TransactionIsolation
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
-class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends ValintarekisteriService with HakijaVastaanottoRepository with SijoitteluRepository
-  with HakukohdeRepository with VirkailijaVastaanottoRepository with Logging {
+class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends ValintarekisteriResultExtractors
+  with HakijaVastaanottoRepository with SijoitteluRepository with HakukohdeRepository
+  with VirkailijaVastaanottoRepository with ValintarekisteriService with Logging {
+
   val user = if (dbConfig.hasPath("user")) dbConfig.getString("user") else null
   val password = if (dbConfig.hasPath("password")) dbConfig.getString("password") else null
   logger.info(s"Database configuration: ${dbConfig.withValue("password", ConfigValueFactory.fromAnyRef("***"))}")
@@ -29,39 +31,6 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   if(isItProfile) {
     logger.warn("alter table public.schema_version owner to oph")
     runBlocking(sqlu"""alter table public.schema_version owner to oph""")
-  }
-  private implicit val getVastaanottoResult = GetResult(r => VastaanottoRecord(r.nextString, r.nextString,
-    r.nextString, VastaanottoAction(r.nextString), r.nextString, r.nextTimestamp))
-  private implicit val getHakukohdeResult = GetResult(r =>
-    HakukohdeRecord(r.nextString, r.nextString, r.nextBoolean, r.nextBoolean, Kausi(r.nextString)))
-  private implicit val getHakijaResult = GetResult(r => HakijaRecord(r.nextString, r.nextString, r.nextString,
-    r.nextString))
-  private implicit val getHakutoiveResult = GetResult(r => HakutoiveRecord(r.nextInt, r.nextInt, r.nextString,
-    r.nextString, r.nextString, r.nextBoolean))
-  private implicit val getPistetiedotResult = GetResult(r => PistetietoRecord(r.nextInt, r.nextString, r.nextString,
-    r.nextString, r.nextString))
-  private implicit val getSijoitteluajoResult = GetResult(r => SijoitteluajoRecord(r.nextLong, r.nextString,
-    r.nextTimestamp.getTime, r.nextTimestamp.getTime))
-  private implicit val getSijoitteluajoHakukohteetResult = GetResult(r => SijoittelunHakukohdeRecord(r.nextLong,
-    r.nextString, r.nextString, r.nextBoolean, r.nextBigDecimal))
-  private implicit val getValintatapajonotResult = GetResult(r => ValintatapajonoRecord(r.nextString, r.nextString,
-    r.nextString, r.nextInt, r.nextInt, r.nextInt, r.nextBigDecimal, r.nextBoolean, r.nextBoolean, r.nextBoolean,
-    r.nextBoolean, 0, r.nextInt, r.nextInt , r.nextInt, r.nextInt , r.nextDate, r.nextDate, r.nextString,
-    r.nextString))
-  private implicit val getHakemuksetForValintatapajonosResult = GetResult(r => HakemusRecord(r.nextString,
-    r.nextString, r.nextBigDecimal, r.nextString, r.nextString, r.nextInt, r.nextInt, r.nextInt,
-    Valinnantila(r.nextString), r.nextLong, r.nextStringOption(), r.nextBoolean, r.nextInt, r.nextBoolean,
-    hakijaryhmaOidsToSet(r.nextStringOption), r.nextBoolean, r.nextString))
-  private implicit val getHakemuksenTilahistoriaResult = GetResult(r => TilaHistoriaRecord(r.nextString, r.nextString,
-    r.nextString, r.nextDate))
-  private implicit val getHakijaryhmatResult = GetResult(r => HakijaryhmaRecord(r.nextLong, r.nextInt, r.nextInt,
-    r.nextString, r.nextString, r.nextString, r.nextInt, r.nextBoolean, r.nextBoolean, r.nextBoolean, r.nextString, r.nextString))
-
-  def hakijaryhmaOidsToSet(hakijaryhmaOids:Option[String]): Set[String] = {
-    hakijaryhmaOids match {
-      case Some(oids) if !oids.isEmpty => oids.split(",").toSet
-      case _ => Set()
-    }
   }
 
   override def findEnsikertalaisuus(personOid: String, koulutuksenAlkamisKausi: Kausi): Ensikertalaisuus = {
