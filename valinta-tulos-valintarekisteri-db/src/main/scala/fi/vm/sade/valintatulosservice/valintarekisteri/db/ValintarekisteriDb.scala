@@ -353,7 +353,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   import scala.collection.JavaConverters._
 
-  def storeSijoittelunHakukohde(sijoitteluajoId:Long, hakukohde: Hakukohde, valintatulokset: List[Valintatulos]) = {
+  private def storeSijoittelunHakukohde(sijoitteluajoId:Long, hakukohde: Hakukohde, valintatulokset: List[Valintatulos]) = {
     insertHakukohde(hakukohde).andThen(
       DBIO.sequence(
         hakukohde.getValintatapajonot.asScala.map(valintatapajono =>
@@ -364,7 +364,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     )
   }
 
-  def storeSijoittelunHakijaryhma(sijoitteluajoId:Long, hakukohdeOid:String, hakijaryhma: Hakijaryhma, hakemukset: List[SijoitteluHakemus]) = {
+  private def storeSijoittelunHakijaryhma(sijoitteluajoId:Long, hakukohdeOid:String, hakijaryhma: Hakijaryhma, hakemukset: List[SijoitteluHakemus]) = {
     insertHakijaryhma(sijoitteluajoId, hakukohdeOid, hakijaryhma).flatMap(hakijaryhmaId =>
       DBIO.sequence(hakijaryhma.getHakemusOid.asScala.map(hakemusOid => {
         val hakemusExists = hakemukset.exists(h => h.getHakemusOid == hakemusOid && h.getHyvaksyttyHakijaryhmista.contains(hakijaryhma.getOid))
@@ -373,7 +373,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     )
   }
 
-  def storeSijoittelunValintatapajono(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajono:Valintatapajono, valintatulokset: List[Valintatulos]) = {
+  private def storeSijoittelunValintatapajono(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajono:Valintatapajono, valintatulokset: List[Valintatulos]) = {
     insertValintatapajono(sijoitteluajoId, hakukohdeOid, valintatapajono).andThen(
       DBIO.sequence(valintatapajono.getHakemukset.asScala.map(hakemus =>
         storeSijoittelunJonosija(sijoitteluajoId, hakukohdeOid, valintatapajono.getOid, hakemus,
@@ -382,7 +382,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       ))
   }
 
-  def storeSijoittelunJonosija(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos]) = {
+  private def storeSijoittelunJonosija(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos]) = {
       insertJonosija(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus).flatMap(jonosijaId => {
         if (hakemus.getTilankuvauksenTarkenne == TilankuvauksenTarkenne.EI_TILANKUVAUKSEN_TARKENNETTA && !hakemus.getTilanKuvaukset.isEmpty) {
           storeTilankuvausAndTekstit(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId.get)
@@ -395,7 +395,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       })
   }
 
-  def storeTilankuvausAndTekstit(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos], jonosijaId:Long) = {
+  private def storeTilankuvausAndTekstit(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos], jonosijaId:Long) = {
     storeTilankuvaus(hakemus).flatMap(id => {
       val sequences = List(storeValinnantulos(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId, id))
       hakemus.getTilanKuvaukset.isEmpty match {
@@ -405,7 +405,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     })
   }
 
-  def storeValinnantulos(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos], jonosijaId:Long, tilankuvausId:Long) = {
+  private def storeValinnantulos(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos], jonosijaId:Long, tilankuvausId:Long) = {
     if(!valintatulos.isDefined) {
       val valintatulos = SijoitteluajonValinnantulosWrapper(
         valintatapajonoOid, hakemus.getHakemusOid, hakukohdeOid, false, false, false, false, None, Option(List()), null).valintatulos
@@ -471,7 +471,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
           ${hyvaksyttyHarkinnanvaraisesti}, ${siirtynytToisestaValintatapajonosta}) RETURNING id""".as[Long].headOption
   }
 
-  def dateToTimestamp(date:Option[Date]): Timestamp = date match {
+  private def dateToTimestamp(date:Option[Date]): Timestamp = date match {
     case Some(d) => new java.sql.Timestamp(d.getTime)
     case None => null
   }
@@ -500,11 +500,11 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            ${dateToTimestamp(previousCheck)}, ${dateToTimestamp(sent)}, ${dateToTimestamp(done)}, ${message})"""
   }
 
-  def storeTilankuvaus(hakemus:SijoitteluHakemus) = {
+  private def storeTilankuvaus(hakemus:SijoitteluHakemus) = {
     sql"""insert into tilankuvaukset (tilankuvauksen_tarkenne) values (${hakemus.getTilankuvauksenTarkenne.toString}) returning id""".as[Long].head
   }
 
-  def findTilankuvausId(hakemus:SijoitteluHakemus) = {
+  private def findTilankuvausId(hakemus:SijoitteluHakemus) = {
     sql"""select max(id)
           from tilankuvaukset
           where (tilankuvauksen_tarkenne = ${hakemus.getTilankuvauksenTarkenne.toString}
