@@ -670,7 +670,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   override def getPistetiedot(jonosijaIds: List[Int]): List[PistetietoRecord] = {
     val inParameter = jonosijaIds.map(id => s"'$id'").mkString(",")
     runBlocking(
-      sql"""select *
+      sql"""select jonosija_id, tunniste, arvo, laskennallinen_arvo, osallistuminen
             from pistetiedot
             where jonosija_id in (#${inParameter})""".as[PistetietoRecord]).toList
   }
@@ -679,9 +679,10 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   override def getPistetiedot(hakemusOid:String, sijoitteluajoId:Long, valintatapajonoOid:String): List[PistetietoRecord] = {
     runBlocking(
       sql"""
-           select p.*
+           select p.jonosija_id, p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen
            from pistetiedot p
-           inner join jonosijat j on j.id = p.jonosija_id and j.sijoitteluajo_id = ${sijoitteluajoId} and j.hakemus_oid = ${hakemusOid} and j.valintatapajono_oid = ${valintatapajonoOid}
+           inner join jonosijat j on j.id = p.jonosija_id and j.sijoitteluajo_id = ${sijoitteluajoId}
+           and j.hakemus_oid = ${hakemusOid} and j.valintatapajono_oid = ${valintatapajonoOid}
          """.as[PistetietoRecord]).toList
   }
 }
