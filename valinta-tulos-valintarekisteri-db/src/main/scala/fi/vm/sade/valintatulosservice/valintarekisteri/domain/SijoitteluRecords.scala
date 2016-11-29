@@ -36,7 +36,7 @@ case class TilaHistoriaRecord(tila:String, poistaja:String, selite:String, luotu
 
 case class HakijaryhmaRecord(id:Long, prioriteetti:Int, paikat:Int, oid:String, nimi:String, hakukohdeOid:String,
                              kiintio:Int, kaytaKaikki:Boolean, tarkkaKiintio:Boolean, kaytetaanRyhmaanKuuluvia:Boolean,
-                             valintatapajonoOid:String)
+                             valintatapajonoOid:String, hakijaryhmatyyppikoodiUri:String)
 
 abstract class SijoitteluRecordToDTO {
   def hakijaRecordToDTO(hakija: HakijaRecord): HakijaDTO = {
@@ -161,6 +161,7 @@ abstract class SijoitteluRecordToDTO {
     ryhmaDTO.setTarkkaKiintio(hakijaRyhma.tarkkaKiintio)
     ryhmaDTO.setKaytetaanRyhmaanKuuluvia(hakijaRyhma.kaytetaanRyhmaanKuuluvia)
     ryhmaDTO.setValintatapajonoOid(hakijaRyhma.valintatapajonoOid)
+    ryhmaDTO.setHakijaryhmatyyppikoodiUri(hakijaRyhma.hakijaryhmatyyppikoodiUri)
     ryhmaDTO
   }
 

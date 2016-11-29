@@ -55,7 +55,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   private implicit val getHakemuksenTilahistoriaResult = GetResult(r => TilaHistoriaRecord(r.nextString, r.nextString,
     r.nextString, r.nextDate))
   private implicit val getHakijaryhmatResult = GetResult(r => HakijaryhmaRecord(r.nextLong, r.nextInt, r.nextInt,
-    r.nextString, r.nextString, r.nextString, r.nextInt, r.nextBoolean, r.nextBoolean, r.nextBoolean, r.nextString))
+    r.nextString, r.nextString, r.nextString, r.nextInt, r.nextBoolean, r.nextBoolean, r.nextBoolean, r.nextString, r.nextString))
 
   def hakijaryhmaOidsToSet(hakijaryhmaOids:Option[String]): Set[String] = {
     hakijaryhmaOids match {
@@ -574,14 +574,16 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   private def insertHakijaryhma(sijoitteluajoId:Long, hakukohdeOid:String, hakijaryhma:Hakijaryhma) = {
     val SijoitteluajonHakijaryhmaWrapper(oid, nimi, prioriteetti, paikat, kiintio,
-    kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara, _, valintatapajonoOid)
+    kaytaKaikki, tarkkaKiintio, kaytetaanRyhmaanKuuluvia, alinHyvaksyttyPistemaara, _,
+    valintatapajonoOid, hakijaryhmatyyppikoodiUri)
     = SijoitteluajonHakijaryhmaWrapper(hakijaryhma)
 
     sql"""insert into hakijaryhmat (oid, sijoitteluajo_id, hakukohde_oid, nimi, prioriteetti, paikat,
-           kiintio, kayta_kaikki, tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, alin_hyvaksytty_pistemaara, valintatapajono_oid)
+           kiintio, kayta_kaikki, tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, alin_hyvaksytty_pistemaara,
+           valintatapajono_oid, hakijaryhmatyyppikoodi_uri)
            values (${oid}, ${sijoitteluajoId}, ${hakukohdeOid}, ${nimi}, ${prioriteetti}, ${paikat},
            ${kiintio}, ${kaytaKaikki}, ${tarkkaKiintio}, ${kaytetaanRyhmaanKuuluvia},
-           ${alinHyvaksyttyPistemaara}, ${valintatapajonoOid})
+           ${alinHyvaksyttyPistemaara}, ${valintatapajonoOid}, ${hakijaryhmatyyppikoodiUri})
            RETURNING id""".as[Long].headOption
   }
 
@@ -668,7 +670,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   override def getHakijaryhmat(sijoitteluajoId: Long): List[HakijaryhmaRecord] = {
     runBlocking(
       sql"""select id, prioriteetti, paikat, oid, nimi, hakukohde_oid, kiintio, kayta_kaikki,
-            tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, valintatapajono_oid
+            tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, valintatapajono_oid, hakijaryhmatyyppikoodi_uri
             from hakijaryhmat
             where sijoitteluajo_id = ${sijoitteluajoId}""".as[HakijaryhmaRecord]).toList
   }
