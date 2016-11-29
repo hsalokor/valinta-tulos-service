@@ -28,7 +28,7 @@ case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String,
 
 case class HakemusRecord(hakijaOid:String, hakemusOid:String, pisteet:BigDecimal, etunimi:String, sukunimi:String,
                          prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila, tilankuvausId:Long,
-                         tarkenteenLisatieto:Option[String], hyvaksyttyHarkinnanvaraisesti:Boolean, varasijaNumero:Int,
+                         tarkenteenLisatieto:Option[String], hyvaksyttyHarkinnanvaraisesti:Boolean, varasijaNumero:Option[Int],
                          onkoMuuttunutviimesijoittelusta:Boolean, hakijaryhmaOids:Set[String],
                          siirtynytToisestaValintatapaJonosta:Boolean, valintatapajonoOid:String)
 
@@ -134,7 +134,7 @@ abstract class SijoitteluRecordToDTO {
     hakemusDTO.setTila(HakemuksenTila.valueOf(hakemus.tila.valinnantila.name()))
     hakemusDTO.setTilanKuvaukset(tilanKuvaukset.get.asJava)
     hakemusDTO.setHyvaksyttyHarkinnanvaraisesti(hakemus.hyvaksyttyHarkinnanvaraisesti)
-    hakemusDTO.setVarasijanNumero(hakemus.varasijaNumero)
+    hakemus.varasijaNumero.foreach(hakemusDTO.setVarasijanNumero(_))
     hakemusDTO.setOnkoMuuttunutViimeSijoittelussa(hakemus.onkoMuuttunutviimesijoittelusta)
     hakemusDTO.setHyvaksyttyHakijaryhmista(hakemus.hakijaryhmaOids.asJava)
     hakemusDTO.setSiirtynytToisestaValintatapajonosta(hakemus.siirtynytToisestaValintatapaJonosta)

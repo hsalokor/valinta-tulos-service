@@ -165,7 +165,7 @@ trait ValintarekisteriDbTools extends Specification {
           dhakemus.getTilanKuvaukset mustEqual whakemus.getTilanKuvaukset
           // TODO tallennetaanko historia vanhoista? dhakemus.getTilahistoria mustEqual whakemus.getTilahistoria
           dhakemus.isHyvaksyttyHarkinnanvaraisesti mustEqual whakemus.isHyvaksyttyHarkinnanvaraisesti
-          // TODO tätä ei taida tulla datassa? dhakemus.getVarasijanNumero mustEqual whakemus.getVarasijanNumero
+          dhakemus.getVarasijanNumero mustEqual whakemus.getVarasijanNumero
           dhakemus.getValintatapajonoOid mustEqual wvalintatapajono.getOid
           dhakemus.isOnkoMuuttunutViimeSijoittelussa mustEqual whakemus.isOnkoMuuttunutViimeSijoittelussa
           dhakemus.getHyvaksyttyHakijaryhmista mustEqual whakemus.getHyvaksyttyHakijaryhmista
