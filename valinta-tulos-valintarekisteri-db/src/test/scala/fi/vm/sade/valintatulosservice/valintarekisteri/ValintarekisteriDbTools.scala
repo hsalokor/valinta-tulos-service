@@ -274,9 +274,9 @@ trait ValintarekisteriDbTools extends Specification {
   }
 
   private implicit val getSijoitteluajonValintatapajonoResult = GetResult(r => {
-    SijoitteluajonValintatapajonoWrapper(r.nextString, r.nextString, r.nextInt, Tasasijasaanto(r.nextString()), r.nextInt, r.nextIntOption, r.nextBoolean,
-      r.nextBoolean, r.nextBoolean, r.nextInt, r.nextInt, r.nextTimestampOption(), r.nextTimestampOption(), r.nextStringOption(),
-      r.nextIntOption, r.nextIntOption, r.nextBigDecimalOption, None).valintatapajono
+    SijoitteluajonValintatapajonoWrapper(r.nextString, r.nextString, r.nextInt, Tasasijasaanto(r.nextString()), r.nextIntOption, r.nextIntOption, r.nextBoolean,
+      r.nextBoolean, r.nextBoolean, r.nextIntOption, r.nextIntOption, r.nextTimestampOption(), r.nextTimestampOption(), r.nextStringOption(),
+      r.nextInt, r.nextInt, r.nextBigDecimalOption, false).valintatapajono
   })
 
   def findHakukohteenValintatapajonot(hakukohdeOid:String): Seq[Valintatapajono] = {
@@ -290,16 +290,13 @@ trait ValintarekisteriDbTools extends Specification {
   }
 
   private implicit val getSijoitteluajonHakijaryhmaResult = GetResult(r => {
-    SijoitteluajonHakijaryhmaWrapper(r.nextString, r.nextString,
-      r.nextIntOption(), r.nextIntOption, r.nextIntOption, r.nextBooleanOption,
-      r.nextBooleanOption, r.nextBooleanOption, r.nextBigDecimalOption, List(),
-      r.nextStringOption(), r.nextStringOption()).hakijaryhma
+    SijoitteluajonHakijaryhmaWrapper(r.nextString, r.nextString, r.nextInt, r.nextInt, r.nextBoolean, r.nextBoolean,
+      r.nextBoolean, List(), r.nextStringOption, r.nextStringOption).hakijaryhma
   })
 
   def findHakukohteenHakijaryhmat(hakukohdeOid:String): Seq[Hakijaryhma] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select oid, nimi, prioriteetti, paikat, kiintio, kayta_kaikki,
-            tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, alin_hyvaksytty_pistemaara,
+      sql"""select oid, nimi, prioriteetti, kiintio, kayta_kaikki, tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia,
             valintatapajono_oid, hakijaryhmatyyppikoodi_uri
             from hakijaryhmat
             where hakukohde_oid = ${hakukohdeOid}""".as[Hakijaryhma]
@@ -316,8 +313,8 @@ trait ValintarekisteriDbTools extends Specification {
 
   private implicit val getSijoitteluajonJonosijaResult = GetResult(r => {
     SijoitteluajonHakemusWrapper(r.nextString, r.nextString, r.nextString, r.nextString, r.nextInt, r.nextInt,
-      r.nextIntOption, r.nextBooleanOption, r.nextBigDecimalOption, r.nextIntOption, r.nextBooleanOption,
-      r.nextBooleanOption, Valinnantila(r.nextString), singleConnectionValintarekisteriDb.getHakemuksenTilankuvaukset(r.nextLong, r.nextStringOption),
+      r.nextIntOption, r.nextBoolean, r.nextBigDecimalOption, r.nextInt, r.nextBoolean,
+      r.nextBoolean, Valinnantila(r.nextString), singleConnectionValintarekisteriDb.getHakemuksenTilankuvaukset(r.nextLong, r.nextStringOption),
       r.nextString, r.nextStringOption, hakijaryhmaOidsToSet(r.nextStringOption)).hakemus
   })
 

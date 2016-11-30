@@ -15,18 +15,17 @@ case class HakutoiveRecord(jonosijaId:Int, hakutoive:Int, hakukohdeOid:String, t
 case class PistetietoRecord(jonosijaId:Int, tunniste:String, arvo:String, laskennallinenArvo:String,
                             osallistuminen:String)
 
-case class SijoittelunHakukohdeRecord(sijoitteluajoId:Long, oid:String, tarjoajaOid:String, kaikkiJonotsijoiteltu:Boolean,
-                                      ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet:BigDecimal)
+case class SijoittelunHakukohdeRecord(sijoitteluajoId:Long, oid:String, tarjoajaOid:String, kaikkiJonotsijoiteltu:Boolean)
 
-case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String, prioriteetti:Int, aloituspaikat:Int,
-                                 alkuperaisetAloituspaikat:Int, alinHyvaksyttyPistemaara:BigDecimal,
+case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String, prioriteetti:Int, aloituspaikat:Option[Int],
+                                 alkuperaisetAloituspaikat:Option[Int], alinHyvaksyttyPistemaara:BigDecimal,
                                  eiVarasijatayttoa:Boolean, kaikkiEhdonTayttavatHyvaksytaan:Boolean,
                                  poissaOlevaTaytto:Boolean, valintaesitysHyvaksytty:Boolean, hakeneet:Int,
-                                 hyvaksytty:Int, varalla:Int, varasijat:Int, varasijanTayttoPaivat:Int,
-                                 varasijojaKaytetaanAlkaen:java.sql.Date, varasijojaKaytetaanAsti:java.sql.Date,
-                                 tayttoJono:String, hakukohdeOid:String)
+                                 hyvaksytty:Int, varalla:Int, varasijat:Option[Int], varasijanTayttoPaivat:Option[Int],
+                                 varasijojaKaytetaanAlkaen:Option[java.sql.Date], varasijojaKaytetaanAsti:Option[java.sql.Date],
+                                 tayttoJono:Option[String], hakukohdeOid:String)
 
-case class HakemusRecord(hakijaOid:String, hakemusOid:String, pisteet:BigDecimal, etunimi:String, sukunimi:String,
+case class HakemusRecord(hakijaOid:String, hakemusOid:String, pisteet:Option[BigDecimal], etunimi:Option[String], sukunimi:Option[String],
                          prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila, tilankuvausId:Long,
                          tarkenteenLisatieto:Option[String], hyvaksyttyHarkinnanvaraisesti:Boolean, varasijaNumero:Option[Int],
                          onkoMuuttunutviimesijoittelusta:Boolean, hakijaryhmaOids:Set[String],
@@ -34,7 +33,7 @@ case class HakemusRecord(hakijaOid:String, hakemusOid:String, pisteet:BigDecimal
 
 case class TilaHistoriaRecord(tila:String, poistaja:String, selite:String, luotu:java.sql.Date)
 
-case class HakijaryhmaRecord(id:Long, prioriteetti:Int, paikat:Int, oid:String, nimi:String, hakukohdeOid:String,
+case class HakijaryhmaRecord(id:Long, prioriteetti:Int, oid:String, nimi:String, hakukohdeOid:String,
                              kiintio:Int, kaytaKaikki:Boolean, tarkkaKiintio:Boolean, kaytetaanRyhmaanKuuluvia:Boolean,
                              valintatapajonoOid:String, hakijaryhmatyyppikoodiUri:String)
 
@@ -92,8 +91,6 @@ abstract class SijoitteluRecordToDTO {
     hakukohdeDTO.setOid(hakukohde.oid)
     hakukohdeDTO.setTarjoajaOid(hakukohde.tarjoajaOid)
     hakukohdeDTO.setKaikkiJonotSijoiteltu(hakukohde.kaikkiJonotsijoiteltu)
-    hakukohdeDTO.setEnsikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet(
-      bigDecimal(hakukohde.ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet))
     hakukohdeDTO
   }
 
@@ -103,8 +100,8 @@ abstract class SijoitteluRecordToDTO {
     jonoDTO.setOid(jono.oid)
     jonoDTO.setNimi(jono.nimi)
     jonoDTO.setPrioriteetti(jono.prioriteetti)
-    jonoDTO.setAloituspaikat(jono.aloituspaikat)
-    jonoDTO.setAlkuperaisetAloituspaikat(jono.alkuperaisetAloituspaikat)
+    jonoDTO.setAloituspaikat(jono.aloituspaikat.get)
+    jono.alkuperaisetAloituspaikat.foreach(jonoDTO.setAlkuperaisetAloituspaikat(_))
     jonoDTO.setAlinHyvaksyttyPistemaara(bigDecimal(jono.alinHyvaksyttyPistemaara))
     jonoDTO.setEiVarasijatayttoa(jono.eiVarasijatayttoa)
     jonoDTO.setKaikkiEhdonTayttavatHyvaksytaan(jono.kaikkiEhdonTayttavatHyvaksytaan)
@@ -113,11 +110,11 @@ abstract class SijoitteluRecordToDTO {
     jonoDTO.setHakeneet(jono.hakeneet)
     jonoDTO.setHyvaksytty(jono.hyvaksytty)
     jonoDTO.setVaralla(jono.varalla)
-    jonoDTO.setVarasijat(jono.varasijat)
-    jonoDTO.setVarasijaTayttoPaivat(jono.varasijanTayttoPaivat)
-    jonoDTO.setVarasijojaKaytetaanAlkaen(jono.varasijojaKaytetaanAlkaen)
-    jonoDTO.setVarasijojaTaytetaanAsti(jono.varasijojaKaytetaanAsti)
-    jonoDTO.setTayttojono(jono.tayttoJono)
+    jono.varasijat.foreach(jonoDTO.setVarasijat(_))
+    jono.varasijanTayttoPaivat.foreach(jonoDTO.setVarasijaTayttoPaivat(_))
+    jono.varasijojaKaytetaanAlkaen.foreach(jonoDTO.setVarasijojaKaytetaanAlkaen(_))
+    jono.varasijojaKaytetaanAsti.foreach(jonoDTO.setVarasijojaTaytetaanAsti(_))
+    jono.tayttoJono.foreach(jonoDTO.setTayttojono(_))
     jonoDTO
   }
 
@@ -125,9 +122,9 @@ abstract class SijoitteluRecordToDTO {
     val hakemusDTO = new HakemusDTO
     hakemusDTO.setHakijaOid(hakemus.hakijaOid)
     hakemusDTO.setHakemusOid(hakemus.hakemusOid)
-    hakemusDTO.setPisteet(bigDecimal(hakemus.pisteet))
-    hakemusDTO.setEtunimi(hakemus.etunimi)
-    hakemusDTO.setSukunimi(hakemus.sukunimi)
+    hakemus.pisteet.foreach(p => hakemusDTO.setPisteet(p.bigDecimal))
+    hakemus.etunimi.foreach(hakemusDTO.setEtunimi(_))
+    hakemus.sukunimi.foreach(hakemusDTO.setSukunimi(_))
     hakemusDTO.setPrioriteetti(hakemus.prioriteetti)
     hakemusDTO.setJonosija(hakemus.jonosija)
     hakemusDTO.setTasasijaJonosija(hakemus.tasasijaJonosija)
@@ -152,7 +149,6 @@ abstract class SijoitteluRecordToDTO {
   def hakijaryhmaRecordToDTO(hakijaRyhma: HakijaryhmaRecord): HakijaryhmaDTO = {
     val ryhmaDTO = new HakijaryhmaDTO
     ryhmaDTO.setPrioriteetti(hakijaRyhma.prioriteetti)
-    ryhmaDTO.setPaikat(hakijaRyhma.paikat)
     ryhmaDTO.setOid(hakijaRyhma.oid)
     ryhmaDTO.setNimi(hakijaRyhma.nimi)
     ryhmaDTO.setHakukohdeOid(hakijaRyhma.hakukohdeOid)

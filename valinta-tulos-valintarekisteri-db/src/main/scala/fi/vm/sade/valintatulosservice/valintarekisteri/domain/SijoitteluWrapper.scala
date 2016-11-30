@@ -16,7 +16,12 @@ object SijoitteluWrapper {
   }
 }
 
-case class SijoitteluajoWrapper(sijoitteluajoId:Long, hakuOid:String, startMils:Long, endMils:Long) {
+case class SijoitteluajoWrapper(
+  sijoitteluajoId:Long,
+  hakuOid:String,
+  startMils:Long,
+  endMils:Long) {
+
   val sijoitteluajo:SijoitteluAjo = {
     val sijoitteluajo = new SijoitteluAjo
     sijoitteluajo.setSijoitteluajoId(sijoitteluajoId)
@@ -29,11 +34,21 @@ case class SijoitteluajoWrapper(sijoitteluajoId:Long, hakuOid:String, startMils:
 
 object SijoitteluajoWrapper {
   def apply(sijoitteluAjo: SijoitteluAjo): SijoitteluajoWrapper = {
-    SijoitteluajoWrapper(sijoitteluAjo.getSijoitteluajoId, sijoitteluAjo.getHakuOid, sijoitteluAjo.getStartMils, sijoitteluAjo.getEndMils)
+    SijoitteluajoWrapper(
+      sijoitteluAjo.getSijoitteluajoId,
+      sijoitteluAjo.getHakuOid,
+      sijoitteluAjo.getStartMils,
+      sijoitteluAjo.getEndMils
+    )
   }
 }
 
-case class SijoitteluajonHakukohdeWrapper(sijoitteluajoId:Long, oid:String, tarjoajaOid:String, kaikkiJonotSijoiteltu:Boolean) {
+case class SijoitteluajonHakukohdeWrapper(
+  sijoitteluajoId:Long,
+  oid:String,
+  tarjoajaOid:String,
+  kaikkiJonotSijoiteltu:Boolean) {
+
   val hakukohde:Hakukohde = {
     val hakukohde = new Hakukohde
     hakukohde.setSijoitteluajoId(sijoitteluajoId)
@@ -46,7 +61,12 @@ case class SijoitteluajonHakukohdeWrapper(sijoitteluajoId:Long, oid:String, tarj
 
 object SijoitteluajonHakukohdeWrapper {
   def apply(hakukohde: Hakukohde): SijoitteluajonHakukohdeWrapper = {
-    SijoitteluajonHakukohdeWrapper(hakukohde.getSijoitteluajoId, hakukohde.getOid, hakukohde.getTarjoajaOid, hakukohde.isKaikkiJonotSijoiteltu)
+    SijoitteluajonHakukohdeWrapper(
+      hakukohde.getSijoitteluajoId,
+      hakukohde.getOid,
+      hakukohde.getTarjoajaOid,
+      hakukohde.isKaikkiJonotSijoiteltu
+    )
   }
 }
 
@@ -88,20 +108,20 @@ case class SijoitteluajonValintatapajonoWrapper(
   nimi:String,
   prioriteetti:Int,
   tasasijasaanto:Tasasijasaanto,
-  aloituspaikat:Int,
+  aloituspaikat:Option[Int],
   alkuperaisetAloituspaikat:Option[Int],
-  eiVarasijatayttoa:Boolean,
-  kaikkiEhdonTayttavatHyvaksytaan:Boolean,
-  poissaOlevaTaytto:Boolean,
-  varasijat:Int = 0,
-  varasijaTayttoPaivat:Int = 0,
+  eiVarasijatayttoa:Boolean = false,
+  kaikkiEhdonTayttavatHyvaksytaan:Boolean = false,
+  poissaOlevaTaytto:Boolean = false,
+  varasijat:Option[Int],
+  varasijaTayttoPaivat:Option[Int],
   varasijojaKaytetaanAlkaen:Option[Date],
   varasijojaTaytetaanAsti:Option[Date],
   tayttojono:Option[String],
-  hyvaksytty:Option[Int],
-  varalla:Option[Int],
+  hyvaksytty:Int,
+  varalla:Int,
   alinHyvaksyttyPistemaara:Option[BigDecimal],
-  valintaesitysHyvaksytty:Option[Boolean]) {
+  valintaesitysHyvaksytty:Boolean = false) {
 
   val valintatapajono:Valintatapajono = {
     val valintatapajono = new Valintatapajono
@@ -109,20 +129,20 @@ case class SijoitteluajonValintatapajonoWrapper(
     valintatapajono.setNimi(nimi)
     valintatapajono.setPrioriteetti(prioriteetti)
     valintatapajono.setTasasijasaanto(tasasijasaanto.tasasijasaanto)
-    valintatapajono.setAloituspaikat(aloituspaikat)
+    aloituspaikat.foreach(valintatapajono.setAloituspaikat(_))
     alkuperaisetAloituspaikat.foreach(valintatapajono.setAlkuperaisetAloituspaikat(_))
     valintatapajono.setEiVarasijatayttoa(eiVarasijatayttoa)
     valintatapajono.setKaikkiEhdonTayttavatHyvaksytaan(kaikkiEhdonTayttavatHyvaksytaan)
     valintatapajono.setPoissaOlevaTaytto(poissaOlevaTaytto)
-    valintatapajono.setVarasijat(varasijat)
-    valintatapajono.setVarasijaTayttoPaivat(varasijaTayttoPaivat)
+    varasijat.foreach(valintatapajono.setVarasijat(_))
+    varasijaTayttoPaivat.foreach(valintatapajono.setVarasijaTayttoPaivat(_))
     varasijojaKaytetaanAlkaen.foreach(valintatapajono.setVarasijojaKaytetaanAlkaen(_))
     varasijojaTaytetaanAsti.foreach(valintatapajono.setVarasijojaTaytetaanAsti(_))
     tayttojono.foreach(valintatapajono.setTayttojono(_))
-    hyvaksytty.foreach(valintatapajono.setHyvaksytty(_))
-    varalla.foreach(valintatapajono.setVaralla(_))
+    valintatapajono.setHyvaksytty(hyvaksytty)
+    valintatapajono.setVaralla(varalla)
     alinHyvaksyttyPistemaara.foreach(pm => valintatapajono.setAlinHyvaksyttyPistemaara(pm.bigDecimal))
-    valintaesitysHyvaksytty.foreach(valintatapajono.setValintaesitysHyvaksytty(_))
+    valintatapajono.setValintaesitysHyvaksytty(valintaesitysHyvaksytty)
     valintatapajono
   }
 }
@@ -134,20 +154,20 @@ object SijoitteluajonValintatapajonoWrapper extends OptionConverter {
       valintatapajono.getNimi(),
       valintatapajono.getPrioriteetti(),
       Tasasijasaanto.getTasasijasaanto(valintatapajono.getTasasijasaanto),
-      valintatapajono.getAloituspaikat(),
+      convert[javaInt,Int](valintatapajono.getAloituspaikat(), int),
       convert[javaInt,Int](valintatapajono.getAlkuperaisetAloituspaikat(), int),
       valintatapajono.getEiVarasijatayttoa(),
       valintatapajono.getKaikkiEhdonTayttavatHyvaksytaan(),
       valintatapajono.getPoissaOlevaTaytto(),
-      valintatapajono.getVarasijat(),
-      valintatapajono.getVarasijaTayttoPaivat(),
-      Option(valintatapajono.getVarasijojaKaytetaanAlkaen()),
-      Option(valintatapajono.getVarasijojaTaytetaanAsti()),
+      convert[javaInt,Int](valintatapajono.getVarasijat(), int),
+      convert[javaInt,Int](valintatapajono.getVarasijaTayttoPaivat(), int),
+      convert[Date,Date](valintatapajono.getVarasijojaKaytetaanAlkaen(), date),
+      convert[Date,Date](valintatapajono.getVarasijojaTaytetaanAsti(), date),
       convert[javaString,String](valintatapajono.getTayttojono, string),
-      convert[javaInt,Int](valintatapajono.getHyvaksytty(), int),
-      convert[javaInt,Int](valintatapajono.getVaralla(), int),
+      valintatapajono.getHyvaksytty(),
+      valintatapajono.getVaralla(),
       convert[javaBigDecimal,BigDecimal](valintatapajono.getAlinHyvaksyttyPistemaara(), bigDecimal),
-      convert[javaBoolean,Boolean](valintatapajono.getValintaesitysHyvaksytty(), boolean)
+      valintatapajono.getValintaesitysHyvaksytty()
     )
   }
 }
@@ -217,11 +237,11 @@ case class SijoitteluajonHakemusWrapper(
   prioriteetti:Int,
   jonosija:Int,
   varasijanNumero:Option[Int],
-  onkoMuuttunutViimeSijoittelussa:Option[Boolean],
+  onkoMuuttunutViimeSijoittelussa:Boolean = false,
   pisteet:Option[BigDecimal],
-  tasasijaJonosija:Option[Int],
-  hyvaksyttyHarkinnanvaraisesti:Option[Boolean],
-  siirtynytToisestaValintatapajonosta:Option[Boolean],
+  tasasijaJonosija:Int,
+  hyvaksyttyHarkinnanvaraisesti:Boolean = false,
+  siirtynytToisestaValintatapajonosta:Boolean = false,
   tila:Valinnantila,
   tilanKuvaukset:Option[Map[String,String]],
   tilankuvauksenTarkenne:String,
@@ -239,11 +259,11 @@ case class SijoitteluajonHakemusWrapper(
     hakemus.setPrioriteetti(prioriteetti)
     hakemus.setJonosija(jonosija)
     varasijanNumero.foreach(hakemus.setVarasijanNumero(_))
-    onkoMuuttunutViimeSijoittelussa.foreach(hakemus.setOnkoMuuttunutViimeSijoittelussa(_))
+    hakemus.setOnkoMuuttunutViimeSijoittelussa(onkoMuuttunutViimeSijoittelussa)
     pisteet.foreach(p => hakemus.setPisteet(p.bigDecimal))
-    tasasijaJonosija.foreach(hakemus.setTasasijaJonosija(_))
-    hyvaksyttyHarkinnanvaraisesti.foreach(hakemus.setHyvaksyttyHarkinnanvaraisesti(_))
-    siirtynytToisestaValintatapajonosta.foreach(hakemus.setSiirtynytToisestaValintatapajonosta(_))
+    hakemus.setTasasijaJonosija(tasasijaJonosija)
+    hakemus.setHyvaksyttyHarkinnanvaraisesti(hyvaksyttyHarkinnanvaraisesti)
+    hakemus.setSiirtynytToisestaValintatapajonosta(siirtynytToisestaValintatapajonosta)
     hakemus.setTila(tila.valinnantila)
     hakemus.setTilanKuvaukset(tilanKuvaukset.getOrElse(Map()).asJava)
     hakemus.setTilankuvauksenTarkenne(TilankuvauksenTarkenne.valueOf(tilankuvauksenTarkenne))
@@ -263,16 +283,16 @@ object SijoitteluajonHakemusWrapper extends OptionConverter {
       hakemus.getSukunimi,
       hakemus.getPrioriteetti,
       hakemus.getJonosija,
-      convert[javaInt,Int](hakemus.getVarasijanNumero,int),
-      convert[javaBoolean,Boolean](hakemus.isOnkoMuuttunutViimeSijoittelussa,boolean),
+      convert[javaInt,Int](hakemus.getVarasijanNumero, int),
+      hakemus.isOnkoMuuttunutViimeSijoittelussa,
       convert[javaBigDecimal,BigDecimal](hakemus.getPisteet, bigDecimal),
-      convert[javaInt,Int](hakemus.getTasasijaJonosija,int),
-      convert[javaBoolean,Boolean](hakemus.isHyvaksyttyHarkinnanvaraisesti,boolean),
-      convert[javaBoolean,Boolean](hakemus.getSiirtynytToisestaValintatapajonosta,boolean),
+      hakemus.getTasasijaJonosija,
+      hakemus.isHyvaksyttyHarkinnanvaraisesti,
+      hakemus.getSiirtynytToisestaValintatapajonosta,
       Valinnantila.getValinnantila(hakemus.getTila),
       Option(hakemus.getTilanKuvaukset.asScala.toMap),
       hakemus.getTilankuvauksenTarkenne.toString,
-      Option(hakemus.getTarkenteenLisatieto),
+      convert[javaString,String](hakemus.getTarkenteenLisatieto, string),
       hakemus.getHyvaksyttyHakijaryhmista.asScala.toSet
     )
   }
@@ -454,13 +474,11 @@ object SijoitteluajonPistetietoWrapper extends OptionConverter {
 case class SijoitteluajonHakijaryhmaWrapper(
   oid:String,
   nimi:String,
-  prioriteetti:Option[Int],
-  paikat:Option[Int],
-  kiintio:Option[Int],
-  kaytaKaikki:Option[Boolean],
-  tarkkaKiintio:Option[Boolean],
-  kaytetaanRyhmaanKuuluvia:Option[Boolean],
-  alinHyvaksyttyPistemaara:Option[BigDecimal],
+  prioriteetti:Int,
+  kiintio:Int,
+  kaytaKaikki:Boolean,
+  tarkkaKiintio:Boolean,
+  kaytetaanRyhmaanKuuluvia:Boolean,
   hakemusOid:List[String],
   valintatapajonoOid:Option[String],
   hakijaryhmatyyppikoodiUri:Option[String]
@@ -470,13 +488,11 @@ case class SijoitteluajonHakijaryhmaWrapper(
     val hakijaryhma = new Hakijaryhma()
     hakijaryhma.setOid(oid)
     hakijaryhma.setNimi(nimi)
-    prioriteetti.foreach(hakijaryhma.setPrioriteetti(_))
-    paikat.foreach(hakijaryhma.setPaikat(_))
-    kiintio.foreach(hakijaryhma.setKiintio(_))
-    kaytaKaikki.foreach(hakijaryhma.setKaytaKaikki(_))
-    tarkkaKiintio.foreach(hakijaryhma.setTarkkaKiintio(_))
-    kaytetaanRyhmaanKuuluvia.foreach(hakijaryhma.setKaytetaanRyhmaanKuuluvia(_))
-    alinHyvaksyttyPistemaara.foreach(pistemaara => hakijaryhma.setAlinHyvaksyttyPistemaara(pistemaara.bigDecimal))
+    hakijaryhma.setPrioriteetti(prioriteetti)
+    hakijaryhma.setKiintio(kiintio)
+    hakijaryhma.setKaytaKaikki(kaytaKaikki)
+    hakijaryhma.setTarkkaKiintio(tarkkaKiintio)
+    hakijaryhma.setKaytetaanRyhmaanKuuluvia(kaytetaanRyhmaanKuuluvia)
     hakijaryhma.getHakemusOid.addAll(hakemusOid.asJava)
     valintatapajonoOid.foreach(hakijaryhma.setValintatapajonoOid(_))
     hakijaryhmatyyppikoodiUri.foreach(hakijaryhma.setHakijaryhmatyyppikoodiUri(_))
@@ -490,13 +506,11 @@ object SijoitteluajonHakijaryhmaWrapper extends OptionConverter {
     SijoitteluajonHakijaryhmaWrapper(
       hakijaryhma.getOid,
       hakijaryhma.getNimi,
-      convert[javaInt,Int](hakijaryhma.getPrioriteetti, int),
-      convert[javaInt,Int](hakijaryhma.getPaikat, int),
-      convert[javaInt,Int](hakijaryhma.getKiintio, int),
-      convert[javaBoolean,Boolean](hakijaryhma.isKaytaKaikki, boolean),
-      convert[javaBoolean,Boolean](hakijaryhma.isTarkkaKiintio, boolean),
-      convert[javaBoolean,Boolean](hakijaryhma.isKaytetaanRyhmaanKuuluvia, boolean),
-      convert[javaBigDecimal,BigDecimal](hakijaryhma.getAlinHyvaksyttyPistemaara, bigDecimal),
+      hakijaryhma.getPrioriteetti,
+      hakijaryhma.getKiintio,
+      hakijaryhma.isKaytaKaikki,
+      hakijaryhma.isTarkkaKiintio,
+      hakijaryhma.isKaytetaanRyhmaanKuuluvia,
       hakijaryhma.getHakemusOid.asScala.toList,
       convert[javaString,String](hakijaryhma.getValintatapajonoOid, string),
       convert[javaString,String](hakijaryhma.getHakijaryhmatyyppikoodiUri, string)
@@ -509,6 +523,7 @@ trait OptionConverter {
   def boolean(x:javaBoolean) = x.booleanValue
   def bigDecimal(x:javaBigDecimal) = BigDecimal(x)
   def string(x:javaString) = x
+  def date(x:Date) = x
 
   def convert[javaType,scalaType](javaObject:javaType, f:javaType => scalaType):Option[scalaType] = javaObject match {
     case null => None //Avoid NullPointerException raised by type conversion when creating scala option with java object

@@ -51,16 +51,15 @@ abstract class ValintarekisteriResultExtractors {
     sijoitteluajoId = r.nextLong,
     oid = r.nextString,
     tarjoajaOid = r.nextString,
-    kaikkiJonotsijoiteltu = r.nextBoolean,
-    ensikertalaisuusHakijaryhmanAlimmatHyvaksytytPisteet = r.nextBigDecimal))
+    kaikkiJonotsijoiteltu = r.nextBoolean))
 
   protected implicit val getValintatapajonotResult = GetResult(r => ValintatapajonoRecord(
     tasasijasaanto = r.nextString,
     oid = r.nextString,
     nimi = r.nextString,
     prioriteetti = r.nextInt,
-    aloituspaikat = r.nextInt,
-    alkuperaisetAloituspaikat = r.nextInt,
+    aloituspaikat = r.nextIntOption,
+    alkuperaisetAloituspaikat = r.nextIntOption,
     alinHyvaksyttyPistemaara = r.nextBigDecimal,
     eiVarasijatayttoa = r.nextBoolean,
     kaikkiEhdonTayttavatHyvaksytaan = r.nextBoolean,
@@ -68,19 +67,19 @@ abstract class ValintarekisteriResultExtractors {
     valintaesitysHyvaksytty = r.nextBoolean,
     hakeneet = 0,
     hyvaksytty = r.nextInt,
-    varalla = r.nextInt , varasijat = r.nextInt,
-    varasijanTayttoPaivat = r.nextInt,
-    varasijojaKaytetaanAlkaen = r.nextDate,
-    varasijojaKaytetaanAsti = r.nextDate,
-    tayttoJono = r.nextString,
+    varalla = r.nextInt , varasijat = r.nextIntOption,
+    varasijanTayttoPaivat = r.nextIntOption,
+    varasijojaKaytetaanAlkaen = r.nextDateOption,
+    varasijojaKaytetaanAsti = r.nextDateOption,
+    tayttoJono = r.nextStringOption,
     hakukohdeOid = r.nextString))
 
   protected implicit val getHakemuksetForValintatapajonosResult = GetResult(r => HakemusRecord(
     hakijaOid = r.nextString,
     hakemusOid = r.nextString,
-    pisteet = r.nextBigDecimal,
-    etunimi = r.nextString,
-    sukunimi = r.nextString,
+    pisteet = r.nextBigDecimalOption,
+    etunimi = r.nextStringOption,
+    sukunimi = r.nextStringOption,
     prioriteetti = r.nextInt,
     jonosija = r.nextInt,
     tasasijaJonosija = r.nextInt,
@@ -103,7 +102,6 @@ abstract class ValintarekisteriResultExtractors {
   protected implicit val getHakijaryhmatResult = GetResult(r => HakijaryhmaRecord(
     id = r.nextLong,
     prioriteetti = r.nextInt,
-    paikat = r.nextInt,
     oid = r.nextString,
     nimi = r.nextString,
     hakukohdeOid = r.nextString,
