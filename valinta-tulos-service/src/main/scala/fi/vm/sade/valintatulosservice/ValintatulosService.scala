@@ -507,7 +507,6 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       .map(peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua)
       .map(näytäVarasijaltaHyväksytytHyväksyttyinäJosVarasijasäännötEiVoimassa)
       .map(sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä)
-      .map(sovellaKorkeakoulujenLisähaunSääntöjä)
       .map(näytäAlemmatPeruutuneetKeskeneräisinäJosYlemmätKeskeneräisiä)
       .map(piilotaKuvauksetKeskeneräisiltä)
       .map(asetaVastaanotettavuusValintarekisterinPerusteella(vastaanottoKaudella))
@@ -647,23 +646,6 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
         case (tulos, index) =>
           tulos
-      }
-    } else {
-      tulokset
-    }
-  }
-
-  private def sovellaKorkeakoulujenLisähaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
-    if (haku.korkeakoulu && haku.yhteishaku && haku.lisähaku) {
-      if (tulokset.count(_.vastaanottotila == Vastaanottotila.vastaanottanut) > 0) {
-        // Peru muut kesken toiveet, jokin vastaanotettu
-        tulokset.map( tulos => if (List(Vastaanottotila.kesken).contains(tulos.vastaanottotila)) {
-          tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
-        } else {
-          tulos
-        })
-      } else {
-        tulokset
       }
     } else {
       tulokset
