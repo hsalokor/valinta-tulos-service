@@ -622,11 +622,10 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   override def getHakemuksenTilahistoria(valintatapajonoOid:String, hakemusOid: String): List[TilaHistoriaRecord] = {
     runBlocking(
-      sql"""select v.tila, dv.poistaja, dv.selite, dv.timestamp
-            from valinnantulokset as v
-            left join deleted_valinnantulokset as dv on v.deleted = dv.id
-            where v.valintatapajono_oid = ${valintatapajonoOid} and v.hakemus_oid = ${hakemusOid} and v.deleted is not null
-            order by dv.timestamp desc""".as[TilaHistoriaRecord]).toList
+      sql"""select distinct tila, tilan_viimeisin_muutos as luotu
+            from valinnantulokset
+            where valintatapajono_oid = ${valintatapajonoOid} and hakemus_oid = ${hakemusOid}
+            order by tilan_viimeisin_muutos desc""".as[TilaHistoriaRecord]).toList
   }
 
   override def getHakemuksenTilankuvaukset(tilankuvausId:Long, tarkenteenLisatieto:Option[String]): Option[Map[String,String]] = {

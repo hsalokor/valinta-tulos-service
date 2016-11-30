@@ -94,10 +94,8 @@ abstract class ValintarekisteriResultExtractors {
     valintatapajonoOid = r.nextString))
 
   protected implicit val getHakemuksenTilahistoriaResult = GetResult(r => TilaHistoriaRecord(
-    tila = r.nextString,
-    poistaja = r.nextString,
-    selite = r.nextString,
-    luotu = r.nextDate))
+    tila = Valinnantila(r.nextString),
+    luotu = r.nextTimestamp))
 
   protected implicit val getHakijaryhmatResult = GetResult(r => HakijaryhmaRecord(
     id = r.nextLong,

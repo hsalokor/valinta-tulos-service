@@ -1,5 +1,7 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.domain
 
+import java.util.Date
+
 import fi.vm.sade.sijoittelu.tulos.dto._
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 
@@ -31,7 +33,7 @@ case class HakemusRecord(hakijaOid:String, hakemusOid:String, pisteet:Option[Big
                          onkoMuuttunutviimesijoittelusta:Boolean, hakijaryhmaOids:Set[String],
                          siirtynytToisestaValintatapaJonosta:Boolean, valintatapajonoOid:String)
 
-case class TilaHistoriaRecord(tila:String, poistaja:String, selite:String, luotu:java.sql.Date)
+case class TilaHistoriaRecord(tila:Valinnantila, luotu:Date)
 
 case class HakijaryhmaRecord(id:Long, prioriteetti:Int, oid:String, nimi:String, hakukohdeOid:String,
                              kiintio:Int, kaytaKaikki:Boolean, tarkkaKiintio:Boolean, kaytetaanRyhmaanKuuluvia:Boolean,
@@ -142,7 +144,7 @@ abstract class SijoitteluRecordToDTO {
   def tilaHistoriaRecordToDTO(tila: TilaHistoriaRecord): TilaHistoriaDTO = {
     val tilaDTO = new TilaHistoriaDTO
     tilaDTO.setLuotu(tila.luotu)
-    tilaDTO.setTila(tila.tila)
+    tilaDTO.setTila(tila.tila.valinnantila.toString)
     tilaDTO
   }
 
