@@ -64,7 +64,7 @@ abstract class ValintarekisteriResultExtractors {
     eiVarasijatayttoa = r.nextBoolean,
     kaikkiEhdonTayttavatHyvaksytaan = r.nextBoolean,
     poissaOlevaTaytto = r.nextBoolean,
-    valintaesitysHyvaksytty = r.nextBoolean,
+    valintaesitysHyvaksytty = r.nextBooleanOption,
     hakeneet = 0,
     hyvaksytty = r.nextInt,
     varalla = r.nextInt , varasijat = r.nextIntOption,

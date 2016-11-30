@@ -14,7 +14,8 @@ käytetään luokan dataa ja lokaalia `sijoitteludb`-Mongoa ja embedded `valinta
   * Aseta profiili `-Dvalintatulos.profile=it-localSijoittelu`
   * Etsi lokista embedded PostgresSQL:n portti
 3. Käynnistä `valintaperusteet`-projektin `fi.vm.sade.sijoittelu.SijoitteluServiceJetty`-luokka
-  * Aseta ajoparametrit `-Dpublic_server=http://localhost:3000/mock -Dport=9000 -Dvts_server=http://localhost:8097 -DsijoitteluMongoUri=mongodb://localhost:27017 -DvalintalaskentaMongoUri=osoiteLuokanValintalaskentadb -DuseLuokka=true`
+  * Aseta ajoparametrit `-Dpublic_server=http://localhost:3000/mock -Dport=9000 -Dvts_server=http://localhost:8097 -DsijoitteluMongoUri=mongodb://localhost:27017 -DvalintalaskentaMongoUri=<osoiteLuokanValintalaskentadb> -DuseLuokka=true`
+    * korvaa -DvalintalaskentaMongoUri=osoiteLuokanValintalaskentadb luokan sijoittelu-servicen conffeista löytyvällä uri:lla
   * Muokkaa tiedostoon embedded PostgreSQL:n portti System.propertyyn `valintarekisteri.db.url`
 4. Voit ajaa sijoittelun osoitteessa `http://localhost:9000/sijoittelu-service/resources/sijoittele/1.2.246.562.29.14662042044`
 5. Voit tarkastella sijoittelun tulosta `http://localhost:8097/valinta-tulos-service/sijoittelu/1.2.246.562.29.14662042044/sijoitteluajo/latest`

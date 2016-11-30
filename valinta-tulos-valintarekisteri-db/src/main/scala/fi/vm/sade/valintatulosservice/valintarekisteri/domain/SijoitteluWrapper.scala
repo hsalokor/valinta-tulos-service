@@ -121,7 +121,7 @@ case class SijoitteluajonValintatapajonoWrapper(
   hyvaksytty:Int,
   varalla:Int,
   alinHyvaksyttyPistemaara:Option[BigDecimal],
-  valintaesitysHyvaksytty:Boolean = false) {
+  valintaesitysHyvaksytty:Option[Boolean] = Some(false)) {
 
   val valintatapajono:Valintatapajono = {
     val valintatapajono = new Valintatapajono
@@ -142,7 +142,7 @@ case class SijoitteluajonValintatapajonoWrapper(
     valintatapajono.setHyvaksytty(hyvaksytty)
     valintatapajono.setVaralla(varalla)
     alinHyvaksyttyPistemaara.foreach(pm => valintatapajono.setAlinHyvaksyttyPistemaara(pm.bigDecimal))
-    valintatapajono.setValintaesitysHyvaksytty(valintaesitysHyvaksytty)
+    valintaesitysHyvaksytty.foreach(valintatapajono.setValintaesitysHyvaksytty(_))
     valintatapajono
   }
 }
@@ -167,7 +167,7 @@ object SijoitteluajonValintatapajonoWrapper extends OptionConverter {
       valintatapajono.getHyvaksytty(),
       valintatapajono.getVaralla(),
       convert[javaBigDecimal,BigDecimal](valintatapajono.getAlinHyvaksyttyPistemaara(), bigDecimal),
-      valintatapajono.getValintaesitysHyvaksytty()
+      convert[javaBoolean,Boolean](valintatapajono.getValintaesitysHyvaksytty(), boolean)
     )
   }
 }

@@ -274,9 +274,10 @@ trait ValintarekisteriDbTools extends Specification {
   }
 
   private implicit val getSijoitteluajonValintatapajonoResult = GetResult(r => {
-    SijoitteluajonValintatapajonoWrapper(r.nextString, r.nextString, r.nextInt, Tasasijasaanto(r.nextString()), r.nextIntOption, r.nextIntOption, r.nextBoolean,
-      r.nextBoolean, r.nextBoolean, r.nextIntOption, r.nextIntOption, r.nextTimestampOption(), r.nextTimestampOption(), r.nextStringOption(),
-      r.nextInt, r.nextInt, r.nextBigDecimalOption, false).valintatapajono
+    SijoitteluajonValintatapajonoWrapper(r.nextString, r.nextString, r.nextInt, Tasasijasaanto(r.nextString()),
+      r.nextIntOption, r.nextIntOption, r.nextBoolean, r.nextBoolean, r.nextBoolean, r.nextIntOption, r.nextIntOption,
+      r.nextTimestampOption(), r.nextTimestampOption(), r.nextStringOption(),r.nextInt, r.nextInt,
+      r.nextBigDecimalOption, Some(false)).valintatapajono
   })
 
   def findHakukohteenValintatapajonot(hakukohdeOid:String): Seq[Valintatapajono] = {

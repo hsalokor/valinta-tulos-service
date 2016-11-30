@@ -7,8 +7,6 @@ alter table valintatapajonot alter column poissaoleva_taytto set not null;
 alter table valintatapajonot alter column poissaoleva_taytto set default false;
 alter table valintatapajonot alter column ei_varasijatayttoa set not null;
 alter table valintatapajonot alter column ei_varasijatayttoa set default false;
-alter table valintatapajonot alter column valintaesitys_hyvaksytty set not null;
-alter table valintatapajonot alter column valintaesitys_hyvaksytty set default false;
 alter table valintatapajonot alter column varasijat drop not null;
 alter table valintatapajonot alter column varasijatayttopaivat drop not null;
 

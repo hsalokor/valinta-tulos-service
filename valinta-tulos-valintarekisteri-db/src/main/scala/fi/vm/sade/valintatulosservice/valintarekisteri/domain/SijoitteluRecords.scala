@@ -20,7 +20,7 @@ case class SijoittelunHakukohdeRecord(sijoitteluajoId:Long, oid:String, tarjoaja
 case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String, prioriteetti:Int, aloituspaikat:Option[Int],
                                  alkuperaisetAloituspaikat:Option[Int], alinHyvaksyttyPistemaara:BigDecimal,
                                  eiVarasijatayttoa:Boolean, kaikkiEhdonTayttavatHyvaksytaan:Boolean,
-                                 poissaOlevaTaytto:Boolean, valintaesitysHyvaksytty:Boolean, hakeneet:Int,
+                                 poissaOlevaTaytto:Boolean, valintaesitysHyvaksytty:Option[Boolean], hakeneet:Int,
                                  hyvaksytty:Int, varalla:Int, varasijat:Option[Int], varasijanTayttoPaivat:Option[Int],
                                  varasijojaKaytetaanAlkaen:Option[java.sql.Date], varasijojaKaytetaanAsti:Option[java.sql.Date],
                                  tayttoJono:Option[String], hakukohdeOid:String)
@@ -106,7 +106,7 @@ abstract class SijoitteluRecordToDTO {
     jonoDTO.setEiVarasijatayttoa(jono.eiVarasijatayttoa)
     jonoDTO.setKaikkiEhdonTayttavatHyvaksytaan(jono.kaikkiEhdonTayttavatHyvaksytaan)
     jonoDTO.setPoissaOlevaTaytto(jono.poissaOlevaTaytto)
-    jonoDTO.setValintaesitysHyvaksytty(jono.valintaesitysHyvaksytty)
+    jono.valintaesitysHyvaksytty.foreach(jonoDTO.setValintaesitysHyvaksytty(_))
     jonoDTO.setHakeneet(jono.hakeneet)
     jonoDTO.setHyvaksytty(jono.hyvaksytty)
     jonoDTO.setVaralla(jono.varalla)
