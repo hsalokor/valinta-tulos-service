@@ -246,7 +246,8 @@ case class SijoitteluajonHakemusWrapper(
   tilanKuvaukset:Option[Map[String,String]],
   tilankuvauksenTarkenne:String,
   tarkenteenLisatieto:Option[String],
-  hyvaksyttyHakijaryhmista:Set[String]) {
+  hyvaksyttyHakijaryhmista:Set[String],
+  tilaHistoria:List[TilahistoriaWrapper]) {
 
   import scala.collection.JavaConverters._
 
@@ -269,6 +270,7 @@ case class SijoitteluajonHakemusWrapper(
     hakemus.setTilankuvauksenTarkenne(TilankuvauksenTarkenne.valueOf(tilankuvauksenTarkenne))
     tarkenteenLisatieto.foreach(hakemus.setTarkenteenLisatieto(_))
     hakemus.setHyvaksyttyHakijaryhmista(hyvaksyttyHakijaryhmista.asJava)
+    hakemus.setTilaHistoria(tilaHistoria.map(_.tilahistoria).asJava)
     hakemus
   }
 }
@@ -293,7 +295,26 @@ object SijoitteluajonHakemusWrapper extends OptionConverter {
       Option(hakemus.getTilanKuvaukset.asScala.toMap),
       hakemus.getTilankuvauksenTarkenne.toString,
       convert[javaString,String](hakemus.getTarkenteenLisatieto, string),
-      hakemus.getHyvaksyttyHakijaryhmista.asScala.toSet
+      hakemus.getHyvaksyttyHakijaryhmista.asScala.toSet,
+      hakemus.getTilaHistoria.asScala.map(TilahistoriaWrapper(_)).toList
+    )
+  }
+}
+
+case class TilahistoriaWrapper(tila:Valinnantila, luotu:Date) {
+  val tilahistoria:TilaHistoria = {
+    val tilahistoria = new TilaHistoria()
+    tilahistoria.setLuotu(luotu)
+    tilahistoria.setTila(tila.valinnantila)
+    tilahistoria
+  }
+}
+
+object TilahistoriaWrapper {
+  def apply(tilahistoria:TilaHistoria):TilahistoriaWrapper = {
+    TilahistoriaWrapper(
+      Valinnantila.getValinnantila(tilahistoria.getTila),
+      tilahistoria.getLuotu
     )
   }
 }

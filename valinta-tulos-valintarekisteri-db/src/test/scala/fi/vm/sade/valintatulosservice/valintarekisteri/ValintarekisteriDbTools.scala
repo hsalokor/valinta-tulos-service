@@ -316,7 +316,7 @@ trait ValintarekisteriDbTools extends Specification {
     SijoitteluajonHakemusWrapper(r.nextString, r.nextString, r.nextString, r.nextString, r.nextInt, r.nextInt,
       r.nextIntOption, r.nextBoolean, r.nextBigDecimalOption, r.nextInt, r.nextBoolean,
       r.nextBoolean, Valinnantila(r.nextString), singleConnectionValintarekisteriDb.getHakemuksenTilankuvaukset(r.nextLong, r.nextStringOption),
-      r.nextString, r.nextStringOption, hakijaryhmaOidsToSet(r.nextStringOption)).hakemus
+      r.nextString, r.nextStringOption, hakijaryhmaOidsToSet(r.nextStringOption), List()).hakemus
   })
 
   def findValintatapajononJonosijat(valintatapajonoOid:String): Seq[Hakemus] = {
@@ -348,6 +348,12 @@ trait ValintarekisteriDbTools extends Specification {
             where j.hakemus_oid = ${hakemusOid}""".as[Pistetieto])
   }
 
+  def findTilanViimeisinMuutos(hakemusOid:String):Seq[java.sql.Timestamp] = {
+    singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select tilan_viimeisin_muutos from valinnantulokset where hakemus_oid = ${hakemusOid}""".as[java.sql.Timestamp]
+    )
+  }
+
   def assertSijoittelu(wrapper:SijoitteluWrapper) = {
     val stored: Option[SijoitteluAjo] = findSijoitteluajo(wrapper.sijoitteluajo.getSijoitteluajoId)
     stored.isDefined must beTrue
@@ -367,7 +373,7 @@ trait ValintarekisteriDbTools extends Specification {
         valintatapajono.getHakemukset.asScala.toList.foreach(hakemus => {
           val storedJonosija = storedJonosijat.find(_.getHakemusOid.equals(hakemus.getHakemusOid))
           storedJonosija.isDefined must beTrue
-          SijoitteluajonHakemusWrapper(hakemus) mustEqual SijoitteluajonHakemusWrapper(storedJonosija.get)
+          SijoitteluajonHakemusWrapper(hakemus).copy(tilaHistoria = List()) mustEqual SijoitteluajonHakemusWrapper(storedJonosija.get)
           val storedPistetiedot = findHakemuksenPistetiedot(hakemus.getHakemusOid)
           hakemus.getPistetiedot.size mustEqual storedPistetiedot.size
           hakemus.getPistetiedot.asScala.foreach(pistetieto => {

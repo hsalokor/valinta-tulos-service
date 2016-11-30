@@ -83,8 +83,8 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
 
     "get hakemuksen ilmoittaja, selite and viimeksiMuokattu" in {
       val hakemus = getHakemusInfo("1.2.246.562.11.00004663595").get
-      hakemus.selite mustEqual "testimuutos"
-      hakemus.tilanViimeisinMuutos mustEqual dateStringToTimestamp("2016-10-14T12:44:40.151+0000")
+      hakemus.selite mustEqual "Sijoittelun tallennus"
+      hakemus.tilanViimeisinMuutos mustEqual dateStringToTimestamp("2016-10-12T04:11:20.527+0000")
     }
 
     "get ilmoittautumisen ilmoittaja and selite" in {

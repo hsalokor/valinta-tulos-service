@@ -460,7 +460,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   private def insertJonosija(sijoittaluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
     onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti, siirtynytToisestaValintatapajonosta,
-    valinnantila, tilanKuvaukset, tilankuvauksenTarkenne, tarkenteenLisatieto, hyvaksyttyHakijaryhmista)
+    valinnantila, tilanKuvaukset, tilankuvauksenTarkenne, tarkenteenLisatieto, hyvaksyttyHakijaryhmista, _)
     = SijoitteluajonHakemusWrapper(hakemus)
 
     sql"""insert into jonosijat (valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
@@ -477,17 +477,17 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
   private def insertValinnantulos(sijoitteluajoId:Long, jonosijaId:Long, valintatulos:Valintatulos, hakemus:SijoitteluHakemus, tilankuvausId:Long) = {
-    val SijoitteluajonHakemusWrapper(hakemusOid, _, _, _, _, _, _, _, _, _, _, _, valinnantila, _, _, tarkenteenLisatieto, _)
+    val SijoitteluajonHakemusWrapper(hakemusOid, _, _, _, _, _, _, _, _, _, _, _, valinnantila, _, _, tarkenteenLisatieto, _, tilahistoria)
     = SijoitteluajonHakemusWrapper(hakemus)
     val SijoitteluajonValinnantulosWrapper(valintatapajonoOid, _, hakukohdeOid, ehdollisestiHyvaksyttavissa,
     julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, _, _, _)
     = SijoitteluajonValinnantulosWrapper(valintatulos)
     val MailStatusWrapper(previousCheck, sent, done, message) = MailStatusWrapper(valintatulos.getMailStatus)
 
-    val(ilmoittaja, selite, tilanViimeisinMuutos) = valintatulos.getOriginalLogEntries.asScala.filter(e => e.getLuotu != null).sortBy(_.getLuotu).reverse.headOption match {
-      case Some(entry) => (entry.getMuokkaaja, entry.getSelite, entry.getLuotu)
-      case None => ("System", "", new Date())
-    }
+    val tilanViimeisinMuutos = tilahistoria.filter(_.tila.equals(valinnantila)
+    ).map(_.luotu).sortWith(_.after(_)).headOption.getOrElse(new Date())
+
+    val (ilmoittaja, selite) = ("System", "Sijoittelun tallennus")
 
     sqlu"""insert into valinnantulokset (hakukohde_oid, valintatapajono_oid, hakemus_oid, sijoitteluajo_id, jonosija_id,
            tila, tilankuvaus_id, tarkenteen_lisatieto, julkaistavissa, ehdollisesti_hyvaksyttavissa, hyvaksytty_varasijalta,
