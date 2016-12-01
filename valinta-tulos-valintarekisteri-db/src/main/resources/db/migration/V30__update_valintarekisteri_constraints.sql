@@ -10,7 +10,6 @@ alter table valintatapajonot alter column ei_varasijatayttoa set default false;
 alter table valintatapajonot alter column varasijat drop not null;
 alter table valintatapajonot alter column varasijatayttopaivat drop not null;
 
-alter table jonosijat alter column hakija_oid set not null;
 alter table jonosijat alter column sijoitteluajo_id set not null;
 alter table jonosijat alter column hakukohde_oid set not null;
 alter table jonosijat alter column onko_muuttunut_viime_sijoittelussa set not null;

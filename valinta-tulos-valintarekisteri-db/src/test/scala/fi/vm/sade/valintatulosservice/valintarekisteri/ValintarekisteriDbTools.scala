@@ -313,9 +313,9 @@ trait ValintarekisteriDbTools extends Specification {
   }
 
   private implicit val getSijoitteluajonJonosijaResult = GetResult(r => {
-    SijoitteluajonHakemusWrapper(r.nextString, r.nextString, r.nextString, r.nextString, r.nextInt, r.nextInt,
-      r.nextIntOption, r.nextBoolean, r.nextBigDecimalOption, r.nextInt, r.nextBoolean,
-      r.nextBoolean, Valinnantila(r.nextString), singleConnectionValintarekisteriDb.getHakemuksenTilankuvaukset(r.nextLong, r.nextStringOption),
+    SijoitteluajonHakemusWrapper(r.nextString, r.nextStringOption, r.nextStringOption, r.nextStringOption, r.nextInt,
+      r.nextInt,r.nextIntOption, r.nextBoolean, r.nextBigDecimalOption, r.nextInt, r.nextBoolean, r.nextBoolean,
+      Valinnantila(r.nextString), singleConnectionValintarekisteriDb.getHakemuksenTilankuvaukset(r.nextLong, r.nextStringOption),
       r.nextString, r.nextStringOption, hakijaryhmaOidsToSet(r.nextStringOption), List()).hakemus
   })
 

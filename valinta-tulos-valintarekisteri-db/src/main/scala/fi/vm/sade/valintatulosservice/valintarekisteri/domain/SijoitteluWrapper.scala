@@ -231,9 +231,9 @@ object Valinnantila {
 
 case class SijoitteluajonHakemusWrapper(
   hakemusOid:String,
-  hakijaOid:String,
-  etunimi:String,
-  sukunimi:String,
+  hakijaOid:Option[String],
+  etunimi:Option[String],
+  sukunimi:Option[String],
   prioriteetti:Int,
   jonosija:Int,
   varasijanNumero:Option[Int],
@@ -254,9 +254,9 @@ case class SijoitteluajonHakemusWrapper(
   val hakemus:SijoitteluHakemus = {
     val hakemus = new SijoitteluHakemus
     hakemus.setHakemusOid(hakemusOid)
-    hakemus.setHakijaOid(hakijaOid)
-    hakemus.setEtunimi(etunimi)
-    hakemus.setSukunimi(sukunimi)
+    hakijaOid.foreach(hakemus.setHakijaOid(_))
+    etunimi.foreach(hakemus.setEtunimi(_))
+    sukunimi.foreach(hakemus.setSukunimi(_))
     hakemus.setPrioriteetti(prioriteetti)
     hakemus.setJonosija(jonosija)
     varasijanNumero.foreach(hakemus.setVarasijanNumero(_))
@@ -280,9 +280,9 @@ object SijoitteluajonHakemusWrapper extends OptionConverter {
   def apply(hakemus:SijoitteluHakemus):SijoitteluajonHakemusWrapper = {
     SijoitteluajonHakemusWrapper(
       hakemus.getHakemusOid,
-      hakemus.getHakijaOid,
-      hakemus.getEtunimi,
-      hakemus.getSukunimi,
+      convert[javaString,String](hakemus.getHakijaOid, string),
+      convert[javaString,String](hakemus.getEtunimi, string),
+      convert[javaString,String](hakemus.getSukunimi, string),
       hakemus.getPrioriteetti,
       hakemus.getJonosija,
       convert[javaInt,Int](hakemus.getVarasijanNumero, int),

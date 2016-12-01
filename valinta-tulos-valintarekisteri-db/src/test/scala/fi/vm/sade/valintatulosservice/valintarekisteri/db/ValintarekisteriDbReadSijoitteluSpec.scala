@@ -102,7 +102,7 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
     }
   }
 
-  private implicit val getHakemusResult = GetResult(r => HakemusRecord(r.nextString, r.nextString, r.nextBigDecimalOption,
+  private implicit val getHakemusResult = GetResult(r => HakemusRecord(r.nextStringOption, r.nextString, r.nextBigDecimalOption,
     r.nextStringOption, r.nextStringOption, r.nextInt, r.nextInt, r.nextInt, Valinnantila(r.nextString), r.nextLong,
     r.nextStringOption(), r.nextBoolean, r.nextIntOption, r.nextBoolean, r.nextStringOption().getOrElse("").split(",").toSet,
     r.nextBoolean, r.nextString))
