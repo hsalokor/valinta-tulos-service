@@ -506,7 +506,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       .map(näytäJulkaisematontaAlemmatPeruutetutKeskeneräisinä)
       .map(peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua)
       .map(näytäVarasijaltaHyväksytytHyväksyttyinäJosVarasijasäännötEiVoimassa)
-      .map(sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä)
+      .map(sovellaSijoitteluaKayttanvaKorkeakouluhaunSaantoja)
       .map(näytäAlemmatPeruutuneetKeskeneräisinäJosYlemmätKeskeneräisiä)
       .map(piilotaKuvauksetKeskeneräisiltä)
       .map(asetaVastaanotettavuusValintarekisterinPerusteella(vastaanottoKaudella))
@@ -611,8 +611,8 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     } else ValintatuloksenTila.KESKEN
   }
 
-  private def sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
-    if (haku.korkeakoulu && haku.yhteishaku && haku.varsinainenhaku) {
+  private def sovellaSijoitteluaKayttanvaKorkeakouluhaunSaantoja(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+    if (haku.korkeakoulu && haku.käyttääSijoittelua) {
       val firstVaralla = tulokset.indexWhere(_.valintatila == Valintatila.varalla)
       val firstVastaanotettu = tulokset.indexWhere(_.vastaanottotila == Vastaanottotila.vastaanottanut)
       val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
