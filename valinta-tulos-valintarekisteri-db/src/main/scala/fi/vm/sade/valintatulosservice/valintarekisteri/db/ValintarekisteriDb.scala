@@ -383,16 +383,12 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
   private def storeSijoittelunJonosija(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos]) = {
-      insertJonosija(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus).flatMap(jonosijaId => {
-        if (hakemus.getTilankuvauksenTarkenne == TilankuvauksenTarkenne.EI_TILANKUVAUKSEN_TARKENNETTA && !hakemus.getTilanKuvaukset.isEmpty) {
-          storeTilankuvausAndTekstit(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId.get)
-        } else {
-          findTilankuvausId(hakemus).flatMap {
-            case None => storeTilankuvausAndTekstit(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId.get)
-            case Some(id) => DBIO.sequence(List(storeValinnantulos(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId.get, id)))
-          }
-        }
-      })
+    insertJonosija(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus).flatMap(jonosijaId => {
+      findTilankuvausId(hakemus).flatMap {
+        case None => storeTilankuvausAndTekstit(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId.get)
+        case Some(id) => DBIO.sequence(List(storeValinnantulos(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId.get, id)))
+      }
+    })
   }
 
   private def storeTilankuvausAndTekstit(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos], jonosijaId:Long) = {
@@ -503,13 +499,37 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
   private def findTilankuvausId(hakemus:SijoitteluHakemus) = {
+    val teksti = hakemus.getTilanKuvaukset.asScala.get("FI").orElse(None)
+    val size = hakemus.getTilanKuvaukset.size()
+    (teksti == None && size == 0) match {
+      case true =>
+        getTilankuvausIdWithoutTekstis(hakemus, teksti)
+      case _ =>
+        getTilankuvausIdWithTekstis(hakemus, teksti, size)
+    }
+  }
+
+  private def getTilankuvausIdWithTekstis(hakemus: SijoitteluHakemus, teksti: Option[String], size: Int) = {
+    sql"""select tilankuvaus_id
+              from tilankuvausten_tekstit
+              where tilankuvaus_id in
+                (select max(id)
+                 from tilankuvaukset
+                 left join tilankuvausten_tekstit on tilankuvaukset.id = tilankuvausten_tekstit.tilankuvaus_id
+                 where tilankuvauksen_tarkenne = ${hakemus.getTilankuvauksenTarkenne.toString}
+                       and (tilankuvauksen_tarkenne != 'EI_TILANKUVAUKSEN_TARKENNETTA'
+                            or teksti is not distinct from ${teksti}))
+              group by tilankuvaus_id
+              having count(tilankuvaus_id) = ${size}""".as[Int].headOption
+  }
+
+  private def getTilankuvausIdWithoutTekstis(hakemus: SijoitteluHakemus, teksti: Option[String]) = {
     sql"""select max(id)
-          from tilankuvaukset
-          where (tilankuvauksen_tarkenne = ${hakemus.getTilankuvauksenTarkenne.toString}
-                 and tilankuvauksen_tarkenne != 'EI_TILANKUVAUKSEN_TARKENNETTA')
-            or (tilankuvauksen_tarkenne = ${hakemus.getTilankuvauksenTarkenne.toString}
-                and tilankuvauksen_tarkenne = 'EI_TILANKUVAUKSEN_TARKENNETTA'
-                and id not in (select tilankuvaus_id from tilankuvausten_tekstit))""".as[Option[Long]].head
+              from tilankuvaukset
+              left join tilankuvausten_tekstit on tilankuvaukset.id = tilankuvausten_tekstit.tilankuvaus_id
+              where tilankuvauksen_tarkenne = ${hakemus.getTilankuvauksenTarkenne.toString}
+                    and (tilankuvauksen_tarkenne != 'EI_TILANKUVAUKSEN_TARKENNETTA'
+                         or teksti is not distinct from ${teksti})""".as[Int].headOption
   }
 
   private def insertTilankuvauksenTeksti(tilankuvauksenId:BigInt, hakemus:SijoitteluHakemus) = {
