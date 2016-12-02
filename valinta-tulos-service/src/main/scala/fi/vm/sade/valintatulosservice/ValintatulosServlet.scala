@@ -25,7 +25,7 @@ abstract class ValintatulosServlet(valintatulosService: ValintatulosService, vas
       Hakutoiveentulos.julkaistavaVersioSijoittelunTuloksesta(
         HakutoiveenSijoitteluntulos.kesken("1.2.3.4", "4.4.4.4"),
         Hakutoive("1.2.3.4", "4.4.4.4", "Hakukohde1", "Tarjoaja1"),
-        Haku("5.5.5.5", true, true, true, false, true, None, Set(),
+        Haku("5.5.5.5", korkeakoulu = true, käyttääSijoittelua = true, None, Set(),
           List(Hakuaika("12345", Some(System.currentTimeMillis()), Some(System.currentTimeMillis()))),
           Some(Kausi("2016S")),
           YhdenPaikanSaanto(false, ""), Map("kieli_fi" -> "Haun nimi")),
