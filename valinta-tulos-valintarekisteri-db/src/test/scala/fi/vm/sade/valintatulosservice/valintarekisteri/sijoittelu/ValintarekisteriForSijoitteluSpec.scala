@@ -38,12 +38,12 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
     )
   }
   "Sijoittelu and hakukohteet should be saved in database 1" in {
-    val wrapper = loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/", false)
+    val wrapper = loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/")
     time("Tallenna sijoittelu") { valintarekisteri.tallennaSijoittelu(wrapper.sijoitteluajo, wrapper.hakukohteet.asJava, wrapper.valintatulokset.asJava) }
     assertSijoittelu(wrapper)
   }
   "Sijoittelu and hakukohteet should be saved in database 2" in {
-    val wrapper = loadSijoitteluFromFixture("valintatapajono_hakijaryhma_pistetiedot", "sijoittelu/", false)
+    val wrapper = loadSijoitteluFromFixture("valintatapajono_hakijaryhma_pistetiedot", "sijoittelu/")
     time("Tallenna sijoittelu") { valintarekisteri.tallennaSijoittelu(wrapper.sijoitteluajo, wrapper.hakukohteet.asJava, wrapper.valintatulokset.asJava) }
     assertSijoittelu(wrapper)
   }

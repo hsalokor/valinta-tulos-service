@@ -40,6 +40,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
            hakukohdeRecordService: HakukohdeRecordService)(implicit appConfig: VtsAppConfig) =
     this(vastaanotettavuusService, sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), virkailijaVastaanottoRepository, hakuService, hakijaVastaanottoRepository, hakukohdeRecordService)
 
+
   val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
   private val streamingHakijaDtoClient = new StreamingHakijaDtoClient(appConfig)
 
@@ -435,7 +436,9 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           val hakijaOid = hakemuksenTulos.hakijaOid
           val tilaVirkailijalle = ValintatulosService.toVirkailijaTila(tilaHakijalle, haunVastaanotot.get(hakijaOid), hakutoiveenTulos.hakukohdeOid)
           valintaTulos.setTila(tilaVirkailijalle, tilaVirkailijalle, "", "") // pass same old and new tila to avoid log entries
-          valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
+          if (valintaTulos.getHakijaOid == null) {
+            valintaTulos.setHakijaOid(hakemuksenTulos.hakijaOid, "")
+          }
           valintaTulos.setTilaHakijalle(tilaHakijalle)
         case None =>
           crashOrLog(s"Problem when processing valintatulos for hakemus ${valintaTulos.getHakemusOid}")
@@ -447,7 +450,11 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
 
   private def assertThatHakijaOidsDoNotConflict(valintaTulos: Valintatulos, hakemuksenTulos: Hakemuksentulos): Unit = {
     if (valintaTulos.getHakijaOid != null && !valintaTulos.getHakijaOid.equals(hakemuksenTulos.hakijaOid)) {
-      crashOrLog(s"Conflicting hakija oids: valintaTulos: ${valintaTulos.getHakijaOid} vs hakemuksenTulos: ${hakemuksenTulos.hakijaOid} in $valintaTulos , $hakemuksenTulos")
+      if (virkailijaVastaanottoRepository.runBlocking(virkailijaVastaanottoRepository.aliases(valintaTulos.getHakijaOid)).contains(hakemuksenTulos.hakijaOid)) {
+        logger.warn(s"Valintatulos $valintaTulos with hakijaoid that is alias of hakijaoid in $hakemuksenTulos")
+      } else {
+        crashOrLog(s"Conflicting hakija oids: valintaTulos: ${valintaTulos.getHakijaOid} vs hakemuksenTulos: ${hakemuksenTulos.hakijaOid} in $valintaTulos , $hakemuksenTulos")
+      }
     }
   }
 
@@ -494,8 +501,7 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
       .map(näytäJulkaisematontaAlemmatPeruutetutKeskeneräisinä)
       .map(peruValmistaAlemmatKeskeneräisetJosKäytetäänSijoittelua)
       .map(näytäVarasijaltaHyväksytytHyväksyttyinäJosVarasijasäännötEiVoimassa)
-      .map(sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä)
-      .map(sovellaKorkeakoulujenLisähaunSääntöjä)
+      .map(sovellaSijoitteluaKayttanvaKorkeakouluhaunSaantoja)
       .map(näytäAlemmatPeruutuneetKeskeneräisinäJosYlemmätKeskeneräisiä)
       .map(piilotaKuvauksetKeskeneräisiltä)
       .map(asetaVastaanotettavuusValintarekisterinPerusteella(vastaanottoKaudella))
@@ -600,8 +606,8 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
     } else ValintatuloksenTila.KESKEN
   }
 
-  private def sovellaKorkeakoulujenVarsinaisenYhteishaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
-    if (haku.korkeakoulu && haku.yhteishaku && haku.varsinainenhaku) {
+  private def sovellaSijoitteluaKayttanvaKorkeakouluhaunSaantoja(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
+    if (haku.korkeakoulu && haku.käyttääSijoittelua) {
       val firstVaralla = tulokset.indexWhere(_.valintatila == Valintatila.varalla)
       val firstVastaanotettu = tulokset.indexWhere(_.vastaanottotila == Vastaanottotila.vastaanottanut)
       val firstKesken = tulokset.indexWhere(_.valintatila == Valintatila.kesken)
@@ -635,23 +641,6 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
           tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
         case (tulos, index) =>
           tulos
-      }
-    } else {
-      tulokset
-    }
-  }
-
-  private def sovellaKorkeakoulujenLisähaunSääntöjä(tulokset: List[Hakutoiveentulos], haku: Haku, ohjausparametrit: Option[Ohjausparametrit]) = {
-    if (haku.korkeakoulu && haku.yhteishaku && haku.lisähaku) {
-      if (tulokset.count(_.vastaanottotila == Vastaanottotila.vastaanottanut) > 0) {
-        // Peru muut kesken toiveet, jokin vastaanotettu
-        tulokset.map( tulos => if (List(Vastaanottotila.kesken).contains(tulos.vastaanottotila)) {
-          tulos.copy(valintatila = Valintatila.peruuntunut, vastaanotettavuustila = Vastaanotettavuustila.ei_vastaanotettavissa)
-        } else {
-          tulos
-        })
-      } else {
-        tulokset
       }
     } else {
       tulokset

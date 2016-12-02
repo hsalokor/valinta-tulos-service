@@ -37,6 +37,11 @@ class VastaanottoServiceHakijanaSpec extends ITSpecification with TimeWarp with 
       hakemuksenTulos.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.vastaanottanut
     }
 
+    "vastaanota sitovasti ehdollisesti hyväksytty sama hakutoive" in {
+      useFixture("hyvaksytty-vastaanottanut-ehdollisesti.json", hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
+      vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)
+    }
+
     "virhetilanteet" in {
       "vastaanota aiemmin vastaanotettu" in {
         useFixture("hyvaksytty-vastaanottanut.json", hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
@@ -196,11 +201,6 @@ class VastaanottoServiceHakijanaSpec extends ITSpecification with TimeWarp with 
       yhteenveto.hakutoiveet(0).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(1).vastaanottotila must_== Vastaanottotila.kesken
       yhteenveto.hakutoiveet(2).vastaanottotila must_== Vastaanottotila.vastaanottanut
-    }
-
-    "vastaanota ehdollisesti vastaanotettu -> ERROR" in {
-      useFixture("hyvaksytty-vastaanottanut-ehdollisesti.json", hakuFixture = hakuFixture, yhdenPaikanSaantoVoimassa = true, kktutkintoonJohtava = true)
-      expectFailure { vastaanota(hakuOid, hakemusOid, hakukohdeOid, Vastaanottotila.vastaanottanut, muokkaaja, selite, personOid)}
     }
 
     "yhden paikan sääntö" in {
