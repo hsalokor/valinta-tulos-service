@@ -18,7 +18,6 @@ import scalaz.concurrent.Task
 
 import scala.language.experimental.macros
 
-@Ignore
 @RunWith(classOf[JUnitRunner])
 class SijoitteluRestTest extends Specification with MatcherMacros with Logging {
   val host = "https://itest-virkailija.oph.ware.fi"
@@ -78,10 +77,7 @@ class SijoitteluRestTest extends Specification with MatcherMacros with Logging {
             .varasijojaTaytetaanAsti(vanhaValintatapajono.varasijojaTaytetaanAsti)
             .tayttojono(vanhaValintatapajono.tayttojono)
 
-          vanhaValintatapajono.valintaesitysHyvaksytty match {
-            case None => uusiValintatapajono.valintaesitysHyvaksytty mustEqual Some(false)
-            case Some(x) => uusiValintatapajono.valintaesitysHyvaksytty mustEqual Some(x)
-          }
+          uusiValintatapajono.valintaesitysHyvaksytty mustEqual vanhaValintatapajono.valintaesitysHyvaksytty
 
           uusiValintatapajono.hakemukset.size mustEqual vanhaValintatapajono.hakemukset.size
           uusiValintatapajono.hakemukset.foreach(uusiHakemus => {
