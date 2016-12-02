@@ -15,6 +15,7 @@ sijoittelu-service.rest.url=https://{{host_virkailija}}/sijoittelu-service
 valinta-tulos-service.parseleniently.sijoitteluajontulos={{valintatulosservice_parseleniently_sijoitteluajontulos}}
 sijoittelu-service.hakukohdeCache.populate=false
 sijoittelu-service.hakukohdeDao.batchSize=300
+sijoittelu-service.saveSijoitteluToValintarekisteri={{save_sijoittelu_to_valintarekisteri}}
 
 # HAKEMUKSET
 hakemus.mongodb.dbname=hakulomake
