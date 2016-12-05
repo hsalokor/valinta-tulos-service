@@ -34,9 +34,20 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
   val hakukohdeRecordService: HakukohdeRecordService
 
   def tallennaSijoittelu(sijoitteluajo:SijoitteluAjo, hakukohteet:java.util.List[Hakukohde], valintatulokset:java.util.List[Valintatulos]) = {
-    val sijoittelu = SijoitteluWrapper(sijoitteluajo, hakukohteet, valintatulokset)
-    sijoittelu.hakukohteet.map(_.getOid).foreach(hakukohdeRecordService.getHakukohdeRecord(_))
-    sijoitteluRepository.storeSijoittelu(sijoittelu)
+    logger.info(s"Tallennetaan sijoittelu haulle: ${sijoitteluajo.getHakuOid}")
+    try {
+      val sijoittelu = SijoitteluWrapper(sijoitteluajo, hakukohteet, valintatulokset)
+      logger.info(s"Tallennetaan hakukohteet haulle: ${sijoitteluajo.getHakuOid}")
+      sijoittelu.hakukohteet.map(_.getOid).foreach(hakukohdeRecordService.getHakukohdeRecord(_))
+      logger.info(s"Tallennetaan sijoittelu haulle: ${sijoitteluajo.getHakuOid}")
+      sijoitteluRepository.storeSijoittelu(sijoittelu)
+      logger.info(s"Sijoittelun tallennus onnistui haulle: ${sijoitteluajo.getHakuOid}")
+    } catch {
+      case e: Exception => {
+        logger.error(s"Sijoittelun takkennus haulle ${sijoitteluajo.getHakuOid} epäonnistui: ${e.getMessage}")
+        throw new Exception(e)
+      }
+    }
   }
 
   def getSijoitteluajo(hakuOid:String, sijoitteluajoId:String): SijoitteluajoDTO = {

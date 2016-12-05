@@ -50,7 +50,7 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
   "Sijoitteluajo should be stored in transaction" in {
     val wrapper = loadSijoitteluFromFixture("valintatapajono_hakijaryhma_pistetiedot", "sijoittelu/", false)
     wrapper.hakukohteet(0).getValintatapajonot.get(0).getHakemukset.get(0).setHakemusOid(null)
-    Try(valintarekisteri.tallennaSijoittelu(wrapper.sijoitteluajo, wrapper.hakukohteet.asJava, wrapper.valintatulokset.asJava)).toOption mustEqual None
+    valintarekisteri.tallennaSijoittelu(wrapper.sijoitteluajo, wrapper.hakukohteet.asJava, wrapper.valintatulokset.asJava) must throwA[Exception]
     findSijoitteluajo(wrapper.sijoitteluajo.getSijoitteluajoId) mustEqual None
   }
   "Unknown sijoitteluajo cannot be found" in {
