@@ -20,7 +20,7 @@ import slick.dbio.{DBIO, SuccessAction}
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 class VastaanottoService(hakuService: HakuService,
                          hakukohdeRecordService: HakukohdeRecordService,
@@ -200,10 +200,15 @@ class VastaanottoService(hakuService: HakuService,
   }
 
   private def findHakutoive(hakemusOid: String, hakukohdeOid: String): Try[(Hakutoiveentulos, Int)] = {
-    Try {
-      val hakuOid = hakuService.getHakukohde(hakukohdeOid).right.get.hakuOid
-      val hakemuksenTulos = valintatulosService.hakemuksentulos(hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
-      hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
+    hakuService.getHakukohde(hakukohdeOid) match {
+      case Left(e) =>
+        logger.error(s"Cannot find hakukohde with oid: $hakukohdeOid", e)
+        Failure(e)
+      case Right(hakukohde) =>
+      Try {
+        val hakemuksenTulos = valintatulosService.hakemuksentulos(hakukohde.hakuOid, hakemusOid).getOrElse(throw new IllegalArgumentException("Hakemusta ei löydy"))
+        hakemuksenTulos.findHakutoive(hakukohdeOid).getOrElse(throw new IllegalArgumentException("Hakutoivetta ei löydy"))
+      }
     }
   }
   private def aiempiVastaanottoKausilla(hakukohdes: Seq[HakukohdeRecord],

@@ -352,8 +352,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       DBIO.sequence(sijoittelu.hakukohteet.map(hakukohde =>
         storeSijoittelunHakukohde(sijoittelu.sijoitteluajo.getSijoitteluajoId, hakukohde,
           sijoittelu.valintatulokset.filter(vt => vt.getHakukohdeOid == hakukohde.getOid))
-      ))).transactionally)
-    )
+      ))).transactionally), Duration(120, TimeUnit.SECONDS) /* Longer timeout for saving entire sijoittelu in a transaction. */)
   }
 
   import scala.collection.JavaConverters._
