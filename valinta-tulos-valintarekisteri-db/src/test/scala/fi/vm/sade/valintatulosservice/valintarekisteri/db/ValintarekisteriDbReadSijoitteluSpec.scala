@@ -64,13 +64,6 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
       res.size mustEqual 163
     }
 
-    "get tilahistoria for hakemus" in {
-      // TODO V
-      skipped("Hakemuksen tilahistorialle ei tehdä vielä mitään -> pitää toteuttaa")
-      val res = singleConnectionValintarekisteriDb.getHakemuksenTilahistoria("14538080612623056182813241345174", "1.2.246.562.11.00006926939")
-      res.size mustEqual 3
-    }
-
     "get hakijaryhmat" in {
       singleConnectionValintarekisteriDb.getHakijaryhmat(1476936450191L).size mustEqual 5
       singleConnectionValintarekisteriDb.getHakijaryhmat(1476936450191L).last.oid mustEqual "14761056762354411505847130564606"

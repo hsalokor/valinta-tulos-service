@@ -645,15 +645,33 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     }
   }
 
-  override def getHakemuksenTilahistoria(valintatapajonoOid:String, hakemusOid: String): List[TilaHistoriaRecord] = {
+  override def getHakemukset(sijoitteluajoId:Long): List[HakemusRecord] = {
     runBlocking(
-      sql"""select distinct tila, tilan_viimeisin_muutos as luotu
-            from valinnantulokset
-            where valintatapajono_oid = ${valintatapajonoOid} and hakemus_oid = ${hakemusOid}
-            order by tilan_viimeisin_muutos desc""".as[TilaHistoriaRecord]).toList
+      sql"""SELECT j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
+              j.tasasijajonosija, v.tila, v.tilankuvaus_id, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
+              j.onko_muuttunut_viime_sijoittelussa, array_to_string(array_agg(hr.oid), ','),
+              j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
+              FROM jonosijat AS j
+              INNER JOIN valinnantulokset AS v ON v.jonosija_id = j.id AND v.hakemus_oid = j.hakemus_oid AND v.deleted IS NULL
+              LEFT JOIN hakijaryhman_hakemukset AS hh ON j.hakemus_oid = hh.hakemus_oid
+              LEFT JOIN hakijaryhmat AS hr ON hr.id = hh.hakijaryhma_id
+              WHERE j.sijoitteluajo_id = ${sijoitteluajoId}
+              GROUP BY j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
+              j.tasasijajonosija, v.tila, v.tilankuvaus_id, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
+              j.onko_muuttunut_viime_sijoittelussa, j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid""".as[HakemusRecord]).toList
   }
 
-  override def getHakemuksenTilankuvaukset(tilankuvausId:Long, tarkenteenLisatieto:Option[String]): Option[Map[String,String]] = {
+  override def getSijoitteluajonTilahistoriat(sijoitteluajoId:Long): List[TilaHistoriaRecord] = {
+    runBlocking(
+      sql"""with valintatapajono_oidit as (
+              select oid from valintatapajonot where sijoitteluajo_id = ${sijoitteluajoId}
+            )
+            select distinct valintatapajono_oid, hakemus_oid, tila, tilan_viimeisin_muutos as luotu
+            from valinnantulokset
+        """.as[TilaHistoriaRecord]).toList
+  }
+
+  def getHakemuksenTilankuvaukset(tilankuvausId:Long, tarkenteenLisatieto:Option[String]): Option[Map[String,String]] = {
     val res = runBlocking(
       sql"""select kieli, teksti
             from tilankuvausten_tekstit
@@ -665,6 +683,18 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
         case None => (kuvaus._1, kuvaus._2)
       }
     }): _*))
+  }
+
+  override def getTilankuvaukset(tilankuvausIds:List[Long]): Map[Long,Map[String,String]] = tilankuvausIds match {
+    case x if 0 == tilankuvausIds.size => Map()
+    case _ => {
+      val inParameter = tilankuvausIds.distinct.map(id => s"'$id'").mkString(",")
+      runBlocking(
+        sql"""select tilankuvaus_id, kieli, teksti
+            from tilankuvausten_tekstit
+            where tilankuvaus_id IN (#${inParameter})""".as[(Long,String,String)]
+      ).groupBy(_._1).mapValues(value => Map(value.map{case (id,kieli,teksti)=>(kieli,teksti)}: _*))
+    }
   }
 
   override def getHakijaryhmat(sijoitteluajoId: Long): List[HakijaryhmaRecord] = {
@@ -698,25 +728,25 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
             where j.hakemus_oid = ${hakemusOid} and j.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakutoiveRecord]).toList
   }
 
-  override def getPistetiedot(jonosijaIds: List[Int]): List[PistetietoRecord] = jonosijaIds match {
-    case x if 0 == jonosijaIds.size => List()
+  override def getPistetiedot(jonosijaIds: List[Long]): List[PistetietoRecord] = jonosijaIds match {
+    case x if 0 == x.size => List()
     case _ => {
-      val inParameter = jonosijaIds.map(id => s"'$id'").mkString(",")
+      val inParameter = jonosijaIds.distinct.map(id => s"'$id'").mkString(",")
       runBlocking(
-        sql"""SELECT jonosija_id, tunniste, arvo, laskennallinen_arvo, osallistuminen
-            FROM pistetiedot
-            WHERE jonosija_id IN (#${inParameter})""".as[PistetietoRecord]).toList
+        sql"""
+           select j.valintatapajono_oid, j.hakemus_oid, p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen, p.jonosija_id
+           from pistetiedot p
+           inner join jonosijat j on j.id = p.jonosija_id and j.id IN (#${inParameter})
+         """.as[PistetietoRecord]).toList
     }
   }
 
-  //TODO: Pitäisikö tässä olla myös hakukohde_oid!?
-  override def getPistetiedot(hakemusOid:String, sijoitteluajoId:Long, valintatapajonoOid:String): List[PistetietoRecord] = {
+  override def getSijoitteluajonPistetiedot(sijoitteluajoId:Long): List[PistetietoRecord] = {
     runBlocking(
       sql"""
-           select p.jonosija_id, p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen
+           select j.valintatapajono_oid, j.hakemus_oid, p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen, p.jonosija_id
            from pistetiedot p
            inner join jonosijat j on j.id = p.jonosija_id and j.sijoitteluajo_id = ${sijoitteluajoId}
-           and j.hakemus_oid = ${hakemusOid} and j.valintatapajono_oid = ${valintatapajonoOid}
          """.as[PistetietoRecord]).toList
   }
 }

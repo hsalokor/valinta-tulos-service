@@ -27,7 +27,7 @@ abstract class ValintarekisteriResultExtractors {
     hakijaOid = r.nextString))
 
   protected implicit val getHakutoiveResult = GetResult(r => HakutoiveRecord(
-    jonosijaId = r.nextInt,
+    jonosijaId = r.nextLong,
     hakutoive = r.nextInt,
     hakukohdeOid = r.nextString,
     tarjoajaOid = r.nextString,
@@ -35,11 +35,13 @@ abstract class ValintarekisteriResultExtractors {
     kaikkiJonotsijoiteltu = r.nextBoolean))
 
   protected implicit val getPistetiedotResult = GetResult(r => PistetietoRecord(
-    jonosijaId = r.nextInt,
+    valintatapajonoOid = r.nextString,
+    hakemusOid = r.nextString,
     tunniste = r.nextString,
     arvo = r.nextString,
     laskennallinenArvo = r.nextString,
-    osallistuminen = r.nextString))
+    osallistuminen = r.nextString,
+    jonosijaId = r.nextLong))
 
   protected implicit val getSijoitteluajoResult = GetResult(r => SijoitteluajoRecord(
     sijoitteluajoId = r.nextLong,
@@ -94,6 +96,8 @@ abstract class ValintarekisteriResultExtractors {
     valintatapajonoOid = r.nextString))
 
   protected implicit val getHakemuksenTilahistoriaResult = GetResult(r => TilaHistoriaRecord(
+    valintatapajonoOid = r.nextString,
+    hakemusOid = r.nextString,
     tila = Valinnantila(r.nextString),
     luotu = r.nextTimestamp))
 

@@ -3,12 +3,12 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu
 import java.util
 
 import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatulos}
-import fi.vm.sade.sijoittelu.tulos.dto.SijoitteluajoDTO
+import fi.vm.sade.sijoittelu.tulos.dto.{HakemusDTO, SijoitteluajoDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.ValintarekisteriAppConfig
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.{SijoitteluRepository, ValintarekisteriDb}
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{SijoitteluRecordToDTO, SijoitteluWrapper}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{PistetietoRecord, SijoitteluRecordToDTO, SijoitteluWrapper}
 import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 
 import scala.collection.JavaConverters._
@@ -59,29 +59,36 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
   }
 
   private def getSijoitteluajonValintatapajonotGroupedByHakukohde(latestId:Long) = {
-    val valintatapajonotByHakukohde = sijoitteluRepository.getValintatapajonot(latestId).groupBy(_.hakukohdeOid).map({
-      case (x, y) => (x, y.map(valintatapajonoRecordToDTO))
+    val kaikkiValintatapajonoHakemukset = getSijoitteluajonHakemukset(latestId)
+    sijoitteluRepository.getValintatapajonot(latestId).groupBy(_.hakukohdeOid).map({
+      case (x, y) => (x, y.map(jono => {
+        val valintatapajononHakemukset = kaikkiValintatapajonoHakemukset.filter(_.getValintatapajonoOid.equals(jono.oid))
+        valintatapajonoRecordToDTO(jono, valintatapajononHakemukset)
+      }))
     })
+  }
 
-    val valintatapajonoOidit = valintatapajonotByHakukohde.values.flatten.map(_.getOid).toList
+  private def getSijoitteluajonHakemukset(sijoitteluajoId:Long) = {
+    val sijoitteluajonHakemukset = sijoitteluRepository.getHakemukset(sijoitteluajoId)
+    val tilankuvaukset = sijoitteluRepository.getTilankuvaukset(sijoitteluajonHakemukset.map(_.tilankuvausId).distinct)
+    val tilahistoriat = sijoitteluRepository.getSijoitteluajonTilahistoriat(sijoitteluajoId)
+    val pistetiedot = sijoitteluRepository.getSijoitteluajonPistetiedot(sijoitteluajoId)
 
-    val kaikkiValintatapajonoHakemukset = sijoitteluRepository.getHakemuksetForValintatapajonos(latestId, valintatapajonoOidit).map(hakemus => {
-      val tilankuvaukset = sijoitteluRepository.getHakemuksenTilankuvaukset(hakemus.tilankuvausId, hakemus.tarkenteenLisatieto)
-      hakemusRecordToDTO(hakemus, tilankuvaukset)
-    })
-    kaikkiValintatapajonoHakemukset.foreach(h => {
-      h.setTilaHistoria(
-        sijoitteluRepository.getHakemuksenTilahistoria(h.getValintatapajonoOid, h.getHakemusOid).map(tilaHistoriaRecordToDTO).asJava
-      )
-      h.getPistetiedot().addAll(sijoitteluRepository.getPistetiedot(h.getHakemusOid, latestId, h.getValintatapajonoOid).map(pistetietoRecordToTDO).asJava)
-    })
+    sijoitteluajonHakemukset.map(hakemus => {
+      def kuuluuHakemukselle(hakemusOid:String, valintatapajonoOid:String) = {
+        hakemus.hakemusOid.equals(hakemusOid) && hakemus.valintatapajonoOid.equals(valintatapajonoOid)
+      }
+      val hakemuksenTilankuvaukset: Map[String, String] = tilankuvaukset.get(hakemus.tilankuvausId).getOrElse(Map()).mapValues(
+        teksti => hakemus.tarkenteenLisatieto match {
+          case None => teksti
+          case Some(lisatieto) => teksti.replace("<lisatieto>", lisatieto)
+        })
+      val hakemuksenTilahistoria = tilahistoriat.filter(h => kuuluuHakemukselle(h.hakemusOid, h.valintatapajonoOid)).map(
+        tilaHistoriaRecordToDTO).sortBy(_.getLuotu.getTime).reverse
+      val hakemuksenPistetiedot = pistetiedot.filter(h => kuuluuHakemukselle(h.hakemusOid, h.valintatapajonoOid)).map(pistetietoRecordToTDO)
 
-    valintatapajonotByHakukohde.values.flatten.foreach(j => {
-      val valintatapajononHakemukset = kaikkiValintatapajonoHakemukset.filter(_.getValintatapajonoOid.equals(j.getOid)).asJava
-      j.setHakemukset(valintatapajononHakemukset)
-      j.setHakeneet(valintatapajononHakemukset.size)
+      hakemusRecordToDTO(hakemus, hakemuksenTilankuvaukset, hakemuksenTilahistoria, hakemuksenPistetiedot)
     })
-    valintatapajonotByHakukohde
   }
 
   def getHakemusBySijoitteluajo(hakuOid:String, sijoitteluajoId:String, hakemusOid:String): HakijaDTO = {
