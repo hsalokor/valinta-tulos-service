@@ -646,18 +646,20 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   override def getHakemukset(sijoitteluajoId:Long): List[HakemusRecord] = {
     runBlocking(
-      sql"""SELECT j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
+      sql"""with sijoitteluajon_hakijaryhmat as (
+            select hh.hakemus_oid, array_to_string(array_agg(hr.oid), ',') as hakijaryhmat
+            from  hakijaryhman_hakemukset AS hh
+            inner join hakijaryhmat AS hr ON hr.id = hh.hakijaryhma_id
+            where hr.sijoitteluajo_id = ${sijoitteluajoId}
+            group by hh.hakemus_oid)
+              SELECT j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
               j.tasasijajonosija, v.tila, v.tilankuvaus_id, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
-              j.onko_muuttunut_viime_sijoittelussa, array_to_string(array_agg(hr.oid), ','),
+              j.onko_muuttunut_viime_sijoittelussa, sh.hakijaryhmat,
               j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
               FROM jonosijat AS j
               INNER JOIN valinnantulokset AS v ON v.jonosija_id = j.id AND v.hakemus_oid = j.hakemus_oid AND v.deleted IS NULL
-              LEFT JOIN hakijaryhman_hakemukset AS hh ON j.hakemus_oid = hh.hakemus_oid
-              LEFT JOIN hakijaryhmat AS hr ON hr.id = hh.hakijaryhma_id
-              WHERE j.sijoitteluajo_id = ${sijoitteluajoId}
-              GROUP BY j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
-              j.tasasijajonosija, v.tila, v.tilankuvaus_id, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
-              j.onko_muuttunut_viime_sijoittelussa, j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid""".as[HakemusRecord]).toList
+              LEFT JOIN sijoitteluajon_hakijaryhmat as sh ON sh.hakemus_oid = v.hakemus_oid
+              WHERE j.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakemusRecord]).toList
   }
 
   override def getSijoitteluajonTilahistoriat(sijoitteluajoId:Long): List[TilaHistoriaRecord] = {
