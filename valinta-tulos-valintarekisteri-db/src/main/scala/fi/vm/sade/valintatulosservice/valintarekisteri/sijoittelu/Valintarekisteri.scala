@@ -44,7 +44,7 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
       logger.info(s"Sijoitteluajon ${sijoitteluajo.getId} tallennus onnistui haulle: ${sijoitteluajo.getHakuOid}")
     } catch {
       case e: Exception => {
-        logger.error(s"Sijoittelajo ${sijoitteluajo.getId} takkennus haulle ${sijoitteluajo.getHakuOid} epäonnistui: ${e.getMessage}")
+        logger.error(s"Sijoittelajon ${sijoitteluajo.getId} tallennus haulle ${sijoitteluajo.getHakuOid} epäonnistui: ${e.getMessage}")
         throw new Exception(e)
       }
     }
