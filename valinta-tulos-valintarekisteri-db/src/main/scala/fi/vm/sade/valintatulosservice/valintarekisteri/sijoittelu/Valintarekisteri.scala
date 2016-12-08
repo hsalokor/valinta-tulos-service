@@ -8,7 +8,7 @@ import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.ValintarekisteriAppConfig
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.{SijoitteluRepository, ValintarekisteriDb}
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{PistetietoRecord, SijoitteluRecordToDTO, SijoitteluWrapper}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{TilaHistoriaRecord, PistetietoRecord, SijoitteluRecordToDTO, SijoitteluWrapper}
 import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 
 import scala.collection.JavaConverters._
@@ -60,45 +60,43 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
         ).groupBy(_.getHakukohdeOid)
 
       val hakukohteet = sijoitteluRepository.getSijoitteluajoHakukohteet(latestId).map(sijoittelunHakukohdeRecordToDTO)
+
       hakukohteet.foreach(h => {
         h.setValintatapajonot(valintatapajonotByHakukohde.get(h.getOid).getOrElse(List()).asJava)
         h.setHakijaryhmat(hakijaryhmatByHakukohde.get(h.getOid).getOrElse(List()).asJava)
       })
-
       (sijoitteluajoRecordToDto(sijoitteluajo, hakukohteet))
     }).getOrElse(throw new IllegalArgumentException(s"Sijoitteluajoa $sijoitteluajoId ei löytynyt haulle $hakuOid"))
   }
 
   private def getSijoitteluajonValintatapajonotGroupedByHakukohde(latestId:Long) = {
-    val kaikkiValintatapajonoHakemukset = getSijoitteluajonHakemukset(latestId)
-    sijoitteluRepository.getValintatapajonot(latestId).groupBy(_.hakukohdeOid).map({
-      case (x, y) => (x, y.map(jono => {
-        val valintatapajononHakemukset = kaikkiValintatapajonoHakemukset.filter(_.getValintatapajonoOid.equals(jono.oid))
-        valintatapajonoRecordToDTO(jono, valintatapajononHakemukset)
-      }))
+    val kaikkiValintatapajonoHakemukset = getSijoitteluajonHakemukset(latestId).groupBy(_.getValintatapajonoOid)
+    sijoitteluRepository.getValintatapajonot(latestId).groupBy(_.hakukohdeOid).mapValues(jonot => {
+       jonot.map(jono => valintatapajonoRecordToDTO(jono, kaikkiValintatapajonoHakemukset.get(jono.oid).getOrElse(List())))
     })
   }
 
   private def getSijoitteluajonHakemukset(sijoitteluajoId:Long) = {
     val sijoitteluajonHakemukset = sijoitteluRepository.getHakemukset(sijoitteluajoId)
     val tilankuvaukset = sijoitteluRepository.getTilankuvaukset(sijoitteluajonHakemukset.map(_.tilankuvausId).distinct)
-    val tilahistoriat = sijoitteluRepository.getSijoitteluajonTilahistoriat(sijoitteluajoId)
-    val pistetiedot = sijoitteluRepository.getSijoitteluajonPistetiedot(sijoitteluajoId)
+
+    val tilahistoriat = sijoitteluRepository.getSijoitteluajonTilahistoriat(sijoitteluajoId).groupBy(
+      tilahistoria => (tilahistoria.hakemusOid, tilahistoria.valintatapajonoOid)
+    ).mapValues(_.map(tilaHistoriaRecordToDTO).sortBy(_.getLuotu.getTime).reverse)
+
+    val pistetiedot = sijoitteluRepository.getSijoitteluajonPistetiedot(sijoitteluajoId).groupBy(
+      pistetieto => (pistetieto.hakemusOid, pistetieto.valintatapajonoOid)
+    ).mapValues(_.map(pistetietoRecordToTDO))
 
     sijoitteluajonHakemukset.map(hakemus => {
-      def kuuluuHakemukselle(hakemusOid:String, valintatapajonoOid:String) = {
-        hakemus.hakemusOid.equals(hakemusOid) && hakemus.valintatapajonoOid.equals(valintatapajonoOid)
-      }
       val hakemuksenTilankuvaukset: Map[String, String] = tilankuvaukset.get(hakemus.tilankuvausId).getOrElse(Map()).mapValues(
         teksti => hakemus.tarkenteenLisatieto match {
           case None => teksti
           case Some(lisatieto) => teksti.replace("<lisatieto>", lisatieto)
         })
-      val hakemuksenTilahistoria = tilahistoriat.filter(h => kuuluuHakemukselle(h.hakemusOid, h.valintatapajonoOid)).map(
-        tilaHistoriaRecordToDTO).sortBy(_.getLuotu.getTime).reverse
-      val hakemuksenPistetiedot = pistetiedot.filter(h => kuuluuHakemukselle(h.hakemusOid, h.valintatapajonoOid)).map(pistetietoRecordToTDO)
-
-      hakemusRecordToDTO(hakemus, hakemuksenTilankuvaukset, hakemuksenTilahistoria, hakemuksenPistetiedot)
+      hakemusRecordToDTO(hakemus, hakemuksenTilankuvaukset,
+        tilahistoriat.get((hakemus.hakemusOid, hakemus.valintatapajonoOid)).getOrElse(List()),
+        pistetiedot.get((hakemus.hakemusOid, hakemus.valintatapajonoOid)).getOrElse(List()))
     })
   }
 
