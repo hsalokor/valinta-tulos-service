@@ -130,14 +130,14 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
       .getHakemukset.asScala.find(_.getHakemusOid.equals(hakemusOid)).get.getTilaHistoria
 
     tallennettuTilahistoria.size mustEqual 4
-    tallennettuTilahistoria.get(0).getLuotu.getTime mustEqual sijoitteluajo5Ajat._1
-    tallennettuTilahistoria.get(0).getTila mustEqual HakemuksenTila.VARALLA.toString
-    tallennettuTilahistoria.get(1).getLuotu.getTime mustEqual sijoitteluajo3Ajat._1
-    tallennettuTilahistoria.get(1).getTila mustEqual HakemuksenTila.VARASIJALTA_HYVAKSYTTY.toString
-    tallennettuTilahistoria.get(2).getLuotu.getTime mustEqual sijoitteluajo2Ajat._1
-    tallennettuTilahistoria.get(2).getTila mustEqual HakemuksenTila.VARALLA.toString
-    tallennettuTilahistoria.get(3).getLuotu.getTime mustEqual sijoitteluajo1Ajat._1
-    tallennettuTilahistoria.get(3).getTila mustEqual HakemuksenTila.HYVAKSYTTY.toString
+    tallennettuTilahistoria.get(3).getLuotu.getTime mustEqual sijoitteluajo5Ajat._1
+    tallennettuTilahistoria.get(3).getTila mustEqual HakemuksenTila.VARALLA.toString
+    tallennettuTilahistoria.get(2).getLuotu.getTime mustEqual sijoitteluajo3Ajat._1
+    tallennettuTilahistoria.get(2).getTila mustEqual HakemuksenTila.VARASIJALTA_HYVAKSYTTY.toString
+    tallennettuTilahistoria.get(1).getLuotu.getTime mustEqual sijoitteluajo2Ajat._1
+    tallennettuTilahistoria.get(1).getTila mustEqual HakemuksenTila.VARALLA.toString
+    tallennettuTilahistoria.get(0).getLuotu.getTime mustEqual sijoitteluajo1Ajat._1
+    tallennettuTilahistoria.get(0).getTila mustEqual HakemuksenTila.HYVAKSYTTY.toString
   }
 
   override protected def before: Unit = {
