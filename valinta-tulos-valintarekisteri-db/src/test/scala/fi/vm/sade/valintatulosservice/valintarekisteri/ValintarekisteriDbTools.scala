@@ -314,25 +314,36 @@ trait ValintarekisteriDbTools extends Specification {
 
   private implicit val getSijoitteluajonJonosijaResult = GetResult(r => {
     SijoitteluajonHakemusWrapper(r.nextString, r.nextStringOption, r.nextStringOption, r.nextStringOption, r.nextInt,
-      r.nextInt,r.nextIntOption, r.nextBoolean, r.nextBigDecimalOption, r.nextInt, r.nextBoolean, r.nextBoolean,
-      Valinnantila(r.nextString), singleConnectionValintarekisteriDb.getHakemuksenTilankuvaukset(r.nextLong, r.nextStringOption),
-      r.nextString, r.nextStringOption, hakijaryhmaOidsToSet(r.nextStringOption), List()).hakemus
+      r.nextInt, r.nextIntOption, r.nextBoolean, r.nextBigDecimalOption, r.nextInt, r.nextBoolean, r.nextBoolean,
+      Valinnantila(r.nextString), getHakemuksenTilankuvaukset(r.nextInt, r.nextStringOption), r.nextString, r.nextStringOption, hakijaryhmaOidsToSet(r.nextStringOption), List()).hakemus
   })
 
-  def findValintatapajononJonosijat(valintatapajonoOid:String): Seq[Hakemus] = {
+  private def getHakemuksenTilankuvaukset(hash:Int, tarkenteenLisatieto:Option[String]): Option[Map[String,String]] = {
+    Option(
+      singleConnectionValintarekisteriDb.getTilankuvaukset(List(hash)).get(hash) match {
+        case Some(kuvaukset: TilankuvausRecord) if tarkenteenLisatieto.isDefined => {
+          kuvaukset.tilankuvaukset.mapValues(_.replace("<lisatieto>", tarkenteenLisatieto.get))
+        }
+        case Some(kuvaukset: TilankuvausRecord) => kuvaukset.tilankuvaukset
+        case _ => Map()
+      }
+    )
+  }
+
+  private def findValintatapajononJonosijat(valintatapajonoOid:String): Seq[Hakemus] = {
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select j.hakemus_oid, j.hakija_oid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, j.pisteet, j.tasasijajonosija, j.hyvaksytty_harkinnanvaraisesti,
-            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_id, v.tarkenteen_lisatieto, t.tilankuvauksen_tarkenne, v.tarkenteen_lisatieto, array_to_string(array_agg(hr.oid) , ',')
+            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, t.tilankuvauksen_tarkenne, v.tarkenteen_lisatieto, array_to_string(array_agg(hr.oid) , ',')
             from jonosijat j
             left join hakijaryhman_hakemukset as hh on hh.hakemus_oid = j.hakemus_oid
             left join hakijaryhmat as hr on hr.id = hh.hakijaryhma_id
             left join valinnantulokset v on j.valintatapajono_oid = v.valintatapajono_oid and j.hakemus_oid = v.hakemus_oid
-            left join tilankuvaukset as t on t.id = v.tilankuvaus_id
+            left join tilankuvaukset as t on t.hash = v.tilankuvaus_hash
             where j.valintatapajono_oid = ${valintatapajonoOid}
             group by j.hakemus_oid, j.hakija_oid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, j.pisteet, j.tasasijajonosija, j.hyvaksytty_harkinnanvaraisesti,
-            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_id, t.tilankuvauksen_tarkenne, v.tarkenteen_lisatieto
+            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_hash, t.tilankuvauksen_tarkenne, v.tarkenteen_lisatieto
          """.as[Hakemus])
   }
 

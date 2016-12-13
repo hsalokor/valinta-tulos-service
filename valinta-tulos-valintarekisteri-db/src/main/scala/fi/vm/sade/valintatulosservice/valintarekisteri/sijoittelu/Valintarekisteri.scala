@@ -3,12 +3,12 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu
 import java.util
 
 import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatulos}
-import fi.vm.sade.sijoittelu.tulos.dto.{HakemusDTO, SijoitteluajoDTO}
+import fi.vm.sade.sijoittelu.tulos.dto.SijoitteluajoDTO
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.ValintarekisteriAppConfig
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.{SijoitteluRepository, ValintarekisteriDb}
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{TilaHistoriaRecord, PistetietoRecord, SijoitteluRecordToDTO, SijoitteluWrapper}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{SijoitteluRecordToDTO, SijoitteluWrapper, TilankuvausRecord}
 import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 
 import scala.collection.JavaConverters._
@@ -34,17 +34,17 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
   val hakukohdeRecordService: HakukohdeRecordService
 
   def tallennaSijoittelu(sijoitteluajo:SijoitteluAjo, hakukohteet:java.util.List[Hakukohde], valintatulokset:java.util.List[Valintatulos]) = {
-    logger.info(s"Tallennetaan sijoitteluajo ${sijoitteluajo.getId} haulle: ${sijoitteluajo.getHakuOid}")
+    logger.info(s"Tallennetaan sijoitteluajo haulle: ${sijoitteluajo.getHakuOid}")
     try {
       val sijoittelu = SijoitteluWrapper(sijoitteluajo, hakukohteet, valintatulokset)
       logger.info(s"Tallennetaan hakukohteet haulle")
       sijoittelu.hakukohteet.map(_.getOid).foreach(hakukohdeRecordService.getHakukohdeRecord(_))
       logger.info(s"Tallennetaan sijoittelu")
       sijoitteluRepository.storeSijoittelu(sijoittelu)
-      logger.info(s"Sijoitteluajon ${sijoitteluajo.getId} tallennus onnistui haulle: ${sijoitteluajo.getHakuOid}")
+      logger.info(s"Sijoitteluajon tallennus onnistui haulle: ${sijoitteluajo.getHakuOid}")
     } catch {
       case e: Exception => {
-        logger.error(s"Sijoittelajon ${sijoitteluajo.getId} tallennus haulle ${sijoitteluajo.getHakuOid} epäonnistui: ${e.getMessage}")
+        logger.error(s"Sijoittelajon tallennus haulle ${sijoitteluajo.getHakuOid} epäonnistui: ${e.getMessage}")
         throw new Exception(e)
       }
     }
@@ -78,7 +78,7 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
 
   private def getSijoitteluajonHakemukset(sijoitteluajoId:Long) = {
     val sijoitteluajonHakemukset = sijoitteluRepository.getHakemukset(sijoitteluajoId)
-    val tilankuvaukset = sijoitteluRepository.getTilankuvaukset(sijoitteluajonHakemukset.map(_.tilankuvausId).distinct)
+    val tilankuvaukset = sijoitteluRepository.getTilankuvaukset(sijoitteluajonHakemukset.map(_.tilankuvausHash).distinct)
 
     val tilahistoriat = sijoitteluRepository.getSijoitteluajonTilahistoriat(sijoitteluajoId).groupBy(
       tilahistoria => (tilahistoria.hakemusOid, tilahistoria.valintatapajonoOid)
@@ -89,14 +89,36 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
     ).mapValues(_.map(pistetietoRecordToTDO))
 
     sijoitteluajonHakemukset.map(hakemus => {
-      val hakemuksenTilankuvaukset: Map[String, String] = tilankuvaukset.get(hakemus.tilankuvausId).getOrElse(Map()).mapValues(
-        teksti => hakemus.tarkenteenLisatieto match {
-          case None => teksti
-          case Some(lisatieto) => teksti.replace("<lisatieto>", lisatieto)
-        })
+      val hakemuksenTilankuvaukset: Map[String, String] = tilankuvaukset.get(hakemus.tilankuvausHash)match {
+        case Some(kuvaukset:TilankuvausRecord) if hakemus.tarkenteenLisatieto.isDefined => {
+          kuvaukset.tilankuvaukset.mapValues(_.replace("<lisatieto>", hakemus.tarkenteenLisatieto.get))
+        }
+        case Some(kuvaukset:TilankuvausRecord) => kuvaukset.tilankuvaukset
+        case _ => Map()
+      }
       hakemusRecordToDTO(hakemus, hakemuksenTilankuvaukset,
         tilahistoriat.get((hakemus.hakemusOid, hakemus.valintatapajonoOid)).getOrElse(List()),
         pistetiedot.get((hakemus.hakemusOid, hakemus.valintatapajonoOid)).getOrElse(List()))
+
+//    val tilahistoriat = sijoitteluRepository.getSijoitteluajonTilahistoriat(sijoitteluajoId)
+//    val pistetiedot = sijoitteluRepository.getSijoitteluajonPistetiedot(sijoitteluajoId)
+//
+//    sijoitteluajonHakemukset.map(hakemus => {
+//      def kuuluuHakemukselle(hakemusOid:String, valintatapajonoOid:String) = {
+//        hakemus.hakemusOid.equals(hakemusOid) && hakemus.valintatapajonoOid.equals(valintatapajonoOid)
+//      }
+//      val hakemuksenTilankuvaukset: Map[String, String] = tilankuvaukset.get(hakemus.tilankuvausHash) match {
+//        case Some(kuvaukset:TilankuvausRecord) if hakemus.tarkenteenLisatieto.isDefined => {
+//          kuvaukset.tilankuvaukset.mapValues(_.replace("<lisatieto>", hakemus.tarkenteenLisatieto.get))
+//        }
+//        case Some(kuvaukset:TilankuvausRecord) => kuvaukset.tilankuvaukset
+//        case _ => Map()
+//      }
+//      val hakemuksenTilahistoria = tilahistoriat.filter(h => kuuluuHakemukselle(h.hakemusOid, h.valintatapajonoOid)).map(
+//        tilaHistoriaRecordToDTO).sortBy(_.getLuotu.getTime).reverse
+//      val hakemuksenPistetiedot = pistetiedot.filter(h => kuuluuHakemukselle(h.hakemusOid, h.valintatapajonoOid)).map(pistetietoRecordToTDO)
+//
+//      hakemusRecordToDTO(hakemus, hakemuksenTilankuvaukset, hakemuksenTilahistoria, hakemuksenPistetiedot)
     })
   }
 

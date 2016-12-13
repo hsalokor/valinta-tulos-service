@@ -2,6 +2,7 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.domain
 
 import java.util.Date
 
+import fi.vm.sade.sijoittelu.domain.TilankuvauksenTarkenne
 import fi.vm.sade.sijoittelu.tulos.dto._
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 
@@ -29,7 +30,7 @@ case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String,
                                  tayttoJono:Option[String], hakukohdeOid:String)
 
 case class HakemusRecord(hakijaOid:Option[String], hakemusOid:String, pisteet:Option[BigDecimal], etunimi:Option[String], sukunimi:Option[String],
-                         prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila, tilankuvausId:Long,
+                         prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila, tilankuvausHash:Int,
                          tarkenteenLisatieto:Option[String], hyvaksyttyHarkinnanvaraisesti:Boolean, varasijaNumero:Option[Int],
                          onkoMuuttunutviimesijoittelusta:Boolean, hakijaryhmaOids:Set[String],
                          siirtynytToisestaValintatapaJonosta:Boolean, valintatapajonoOid:String)
@@ -39,6 +40,13 @@ case class TilaHistoriaRecord(valintatapajonoOid:String, hakemusOid:String, tila
 case class HakijaryhmaRecord(id:Long, prioriteetti:Int, oid:String, nimi:String, hakukohdeOid:String,
                              kiintio:Int, kaytaKaikki:Boolean, tarkkaKiintio:Boolean, kaytetaanRyhmaanKuuluvia:Boolean,
                              valintatapajonoOid:String, hakijaryhmatyyppikoodiUri:String)
+
+case class TilankuvausRecord(hash:Int, tilankuvauksenTarkenne:ValinnantilanTarkenne, textFi:Option[String],
+                             textSv:Option[String], textEn:Option[String]) {
+  val tilankuvaukset:Map[String,String] = {
+    Map("FI" -> textFi, "SV" -> textSv, "EN" -> textEn).filter(_._2.isDefined).mapValues(_.get)
+  }
+}
 
 abstract class SijoitteluRecordToDTO {
   def hakijaRecordToDTO(hakija: HakijaRecord): HakijaDTO = {

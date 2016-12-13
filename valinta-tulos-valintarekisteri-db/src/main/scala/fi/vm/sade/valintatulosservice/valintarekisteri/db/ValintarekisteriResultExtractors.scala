@@ -86,7 +86,7 @@ abstract class ValintarekisteriResultExtractors {
     jonosija = r.nextInt,
     tasasijaJonosija = r.nextInt,
     tila = Valinnantila(r.nextString),
-    tilankuvausId = r.nextLong,
+    tilankuvausHash = r.nextInt,
     tarkenteenLisatieto = r.nextStringOption,
     hyvaksyttyHarkinnanvaraisesti = r.nextBoolean,
     varasijaNumero = r.nextIntOption,
@@ -113,6 +113,14 @@ abstract class ValintarekisteriResultExtractors {
     kaytetaanRyhmaanKuuluvia = r.nextBoolean,
     valintatapajonoOid = r.nextString,
     hakijaryhmatyyppikoodiUri = r.nextString))
+
+  protected implicit val getTilankuvauksetResult = GetResult(r => TilankuvausRecord(
+    hash = r.nextInt,
+    tilankuvauksenTarkenne = ValinnantilanTarkenne(r.nextString),
+    textFi = r.nextStringOption,
+    textSv = r.nextStringOption,
+    textEn = r.nextStringOption
+  ))
 
   protected def hakijaryhmaOidsToSet(hakijaryhmaOids:Option[String]): Set[String] = {
     hakijaryhmaOids match {

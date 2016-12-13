@@ -91,19 +91,19 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
       hakemus.previousCheck mustEqual dateStringToTimestamp("2016-10-30T06:39:44.246+0000")
       hakemus.sent mustEqual dateStringToTimestamp("2016-10-30T06:44:22.402+0000")
       hakemus.done mustEqual null
-      hakemus.message mustEqual  "Lähetetty [\"email\"]"
+      hakemus.message mustEqual "Lähetetty [\"email\"]"
     }
   }
 
   private implicit val getHakemusResult = GetResult(r => HakemusRecord(r.nextStringOption, r.nextString, r.nextBigDecimalOption,
-    r.nextStringOption, r.nextStringOption, r.nextInt, r.nextInt, r.nextInt, Valinnantila(r.nextString), r.nextLong,
+    r.nextStringOption, r.nextStringOption, r.nextInt, r.nextInt, r.nextInt, Valinnantila(r.nextString), r.nextInt,
     r.nextStringOption(), r.nextBoolean, r.nextIntOption, r.nextBoolean, r.nextStringOption().getOrElse("").split(",").toSet,
     r.nextBoolean, r.nextString))
 
   def getHakemus(hakemusOid: String): Option[HakemusRecord] = {
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
-            j.tasasijajonosija, v.tila, v.tilankuvaus_id, v.kuvauksen_lisatieto, j.hyvaksytty_harkinnanvaraisesti,
+            j.tasasijajonosija, v.tila, v.tilankuvaus_hash, v.kuvauksen_lisatieto, j.hyvaksytty_harkinnanvaraisesti,
             j.varasijan_numero, j.onko_muuttunut_viime_sijoittelussa, hh.hyvaksytty_hakijaryhmasta, hh.hakijaryhma_id,
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
             from jonosijat as j
