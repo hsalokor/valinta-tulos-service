@@ -27,7 +27,7 @@ abstract class ValintarekisteriResultExtractors {
     hakijaOid = r.nextString))
 
   protected implicit val getHakutoiveResult = GetResult(r => HakutoiveRecord(
-    jonosijaId = r.nextLong,
+    hakemusOid = r.nextString,
     hakutoive = r.nextInt,
     hakukohdeOid = r.nextString,
     tarjoajaOid = r.nextString,
@@ -40,8 +40,7 @@ abstract class ValintarekisteriResultExtractors {
     tunniste = r.nextString,
     arvo = r.nextString,
     laskennallinenArvo = r.nextString,
-    osallistuminen = r.nextString,
-    jonosijaId = r.nextLong))
+    osallistuminen = r.nextString))
 
   protected implicit val getSijoitteluajoResult = GetResult(r => SijoitteluajoRecord(
     sijoitteluajoId = r.nextLong,

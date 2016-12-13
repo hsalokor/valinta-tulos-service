@@ -35,8 +35,7 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
     }
 
     "get hakijan pistetiedot" in {
-      val jonosijaIds = singleConnectionValintarekisteriDb.getHakutoiveet("1.2.246.562.11.00006926939", 1476936450191L).map(h => h.jonosijaId)
-      val res = singleConnectionValintarekisteriDb.getPistetiedot(jonosijaIds)
+      val res = singleConnectionValintarekisteriDb.getPistetiedot("1.2.246.562.11.00006926939", 1476936450191L)
       res.size mustEqual 1
       res.head.tunniste mustEqual "85e2d263-d57d-46e3-3069-651c733c64d8"
     }

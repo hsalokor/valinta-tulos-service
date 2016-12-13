@@ -2,7 +2,6 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.domain
 
 import java.util.Date
 
-import fi.vm.sade.sijoittelu.domain.TilankuvauksenTarkenne
 import fi.vm.sade.sijoittelu.tulos.dto._
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 
@@ -12,12 +11,11 @@ case class SijoitteluajoRecord(sijoitteluajoId:Long, hakuOid:String, startMils:L
 
 case class HakijaRecord(etunimi:String, sukunimi:String, hakemusOid:String, hakijaOid:String)
 
-case class HakutoiveRecord(jonosijaId:Long, hakutoive:Int, hakukohdeOid:String, tarjoajaOid:String,
-                           valintatuloksenTila:String, kaikkiJonotsijoiteltu:Boolean)
+case class HakutoiveRecord(hakemusOid:String, hakutoive:Int, hakukohdeOid:String,
+                           tarjoajaOid:String, valintatuloksenTila:String, kaikkiJonotsijoiteltu:Boolean)
 
 case class PistetietoRecord(valintatapajonoOid:String, hakemusOid:String, tunniste:String,
-                            arvo:String, laskennallinenArvo:String, osallistuminen:String,
-                            jonosijaId:Long)
+                            arvo:String, laskennallinenArvo:String, osallistuminen:String)
 
 case class SijoittelunHakukohdeRecord(sijoitteluajoId:Long, oid:String, tarjoajaOid:String, kaikkiJonotsijoiteltu:Boolean)
 

@@ -387,41 +387,40 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
   private def storeSijoittelunJonosija(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos]) = {
-    insertJonosija(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus).flatMap(jonosijaId => {
-      storeValinnantulosAndtilankuvaukset(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId.get)
-    })
+    insertJonosija(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus).andThen(
+      storeValinnantulosAndtilankuvaukset(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos))
   }
 
-  private def storeValinnantulosAndtilankuvaukset(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos], jonosijaId:Long) = {
+  private def storeValinnantulosAndtilankuvaukset(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos]) = {
       val tilankuvaukset: Map[String, String] = hakemus.getTilanKuvaukset.asScala.toMap
       hakemus.getTarkenteenLisatieto match {
         case lisatieto:String => tilankuvaukset.mapValues(_.replace(lisatieto, "<lisatieto>"))
         case _ =>
       }
-      val tilankuvauksestWithTarkenne = tilankuvaukset + ("tilankuvauksenTarkenne" -> hakemus.getTilankuvauksenTarkenne.toString)
+      val tilankuvauksetWithTarkenne = tilankuvaukset + ("tilankuvauksenTarkenne" -> hakemus.getTilankuvauksenTarkenne.toString)
 
-      val hash = tilankuvauksestWithTarkenne.hashCode
+      val hash = tilankuvauksetWithTarkenne.hashCode
 
-      DBIO.sequence(List(storeTilankuvaukset(tilankuvauksestWithTarkenne, hash),
-        storeValinnantulos(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, jonosijaId, hash)))
+      DBIO.sequence(List(storeTilankuvaukset(tilankuvauksetWithTarkenne, hash),
+        storeValinnantulos(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, valintatulos, hash)))
   }
 
-  private def storeValinnantulos(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos], jonosijaId:Long, tilankuvausHash:Int) = {
+  private def storeValinnantulos(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos], tilankuvausHash:Int) = {
     if(!valintatulos.isDefined) {
       val valintatulos = SijoitteluajonValinnantulosWrapper(
         valintatapajonoOid, hakemus.getHakemusOid, hakukohdeOid, false, false, false, false, None, Option(List()), null).valintatulos
       valintatulos.setMailStatus(new ValintatulosMailStatus)
       DBIO.sequence(
         List(
-          insertValinnantulos(sijoitteluajoId, jonosijaId, valintatulos, hakemus, tilankuvausHash)) ++
-          hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(jonosijaId, pistetieto)).toList
+          insertValinnantulos(sijoitteluajoId, valintatulos, hakemus, tilankuvausHash)) ++
+          hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(pistetieto, sijoitteluajoId, hakemus.getHakemusOid, valintatapajonoOid)).toList
       )
     } else {
       DBIO.sequence(
         List(
-          insertValinnantulos(sijoitteluajoId, jonosijaId, valintatulos.get, hakemus, tilankuvausHash),
+          insertValinnantulos(sijoitteluajoId, valintatulos.get, hakemus, tilankuvausHash),
           insertIlmoittautuminen(valintatulos.get, hakemus.getHakijaOid)) ++
-          hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(jonosijaId, pistetieto)).toList
+          hakemus.getPistetiedot.asScala.map(pistetieto => insertPistetieto(pistetieto, sijoitteluajoId, hakemus.getHakemusOid, valintatapajonoOid)).toList
       )
     }
   }
@@ -464,12 +463,12 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     valinnantila, tilanKuvaukset, tilankuvauksenTarkenne, tarkenteenLisatieto, hyvaksyttyHakijaryhmista, _)
     = SijoitteluajonHakemusWrapper(hakemus)
 
-    sql"""insert into jonosijat (valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
+    sqlu"""insert into jonosijat (valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
           jonosija, varasijan_numero, onko_muuttunut_viime_sijoittelussa, pisteet, tasasijajonosija, hyvaksytty_harkinnanvaraisesti,
           siirtynyt_toisesta_valintatapajonosta)
           values (${valintatapajonoOid}, ${sijoittaluajoId}, ${hakukohdeOid}, ${hakemusOid}, ${hakijaOid}, ${etunimi}, ${sukunimi}, ${prioriteetti},
           ${jonosija}, ${varasijanNumero}, ${onkoMuuttunutViimeSijoittelussa}, ${pisteet}, ${tasasijaJonosija},
-          ${hyvaksyttyHarkinnanvaraisesti}, ${siirtynytToisestaValintatapajonosta}) RETURNING id""".as[Long].headOption
+          ${hyvaksyttyHarkinnanvaraisesti}, ${siirtynytToisestaValintatapajonosta})"""
   }
 
   private def dateToTimestamp(date:Option[Date]): Timestamp = date match {
@@ -477,7 +476,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     case None => null
   }
 
-  private def insertValinnantulos(sijoitteluajoId:Long, jonosijaId:Long, valintatulos:Valintatulos, hakemus:SijoitteluHakemus, tilankuvausHash:Int) = {
+  private def insertValinnantulos(sijoitteluajoId:Long, valintatulos:Valintatulos, hakemus:SijoitteluHakemus, tilankuvausHash:Int) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, _, _, _, _, _, _, _, _, _, _, _, valinnantila, _, _, tarkenteenLisatieto, _, tilahistoria)
     = SijoitteluajonHakemusWrapper(hakemus)
     val SijoitteluajonValinnantulosWrapper(valintatapajonoOid, _, hakukohdeOid, ehdollisestiHyvaksyttavissa,
@@ -490,10 +489,10 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
     val (ilmoittaja, selite) = ("System", "Sijoittelun tallennus")
 
-    sqlu"""insert into valinnantulokset (hakukohde_oid, valintatapajono_oid, hakemus_oid, sijoitteluajo_id, jonosija_id,
+    sqlu"""insert into valinnantulokset (valintatapajono_oid, hakemus_oid, sijoitteluajo_id, hakukohde_oid,
            tila, tilankuvaus_hash, tarkenteen_lisatieto, julkaistavissa, ehdollisesti_hyvaksyttavissa, hyvaksytty_varasijalta,
            hyvaksy_peruuntunut, ilmoittaja, selite, tilan_viimeisin_muutos, previous_check, sent, done, message)
-           values (${hakukohdeOid}, ${valintatapajonoOid}, ${hakemusOid}, ${sijoitteluajoId}, ${jonosijaId},
+           values (${valintatapajonoOid}, ${hakemusOid}, ${sijoitteluajoId}, ${hakukohdeOid},
            ${valinnantila.toString}::valinnantila, ${tilankuvausHash}, ${tarkenteenLisatieto}, ${julkaistavissa}, ${ehdollisestiHyvaksyttavissa},
            ${hyvaksyttyVarasijalta}, ${hyvaksyPeruuntunut}, ${ilmoittaja}, ${selite}, ${new java.sql.Timestamp(tilanViimeisinMuutos.getTime)},
            ${dateToTimestamp(previousCheck)}, ${dateToTimestamp(sent)}, ${dateToTimestamp(done)}, ${message})"""
@@ -517,12 +516,12 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            values (${hakijaOid}, ${hakukohdeOid}, ${ilmoittautumistila.get.toString}::ilmoittautumistila, ${ilmoittaja}, ${selite})"""
   }
 
-  private def insertPistetieto(jonosijaId:Long, pistetieto: Pistetieto) = {
+  private def insertPistetieto(pistetieto: Pistetieto, sijoitteluajoId:Long, hakemusOid:String, valintatapajonoOid:String) = {
     val SijoitteluajonPistetietoWrapper(tunniste, arvo, laskennallinenArvo, osallistuminen)
     = SijoitteluajonPistetietoWrapper(pistetieto)
 
-    sqlu"""insert into pistetiedot (jonosija_id, tunniste, arvo, laskennallinen_arvo, osallistuminen)
-           values (${jonosijaId}, ${tunniste}, ${arvo}, ${laskennallinenArvo}, ${osallistuminen})"""
+    sqlu"""insert into pistetiedot (sijoitteluajo_id, hakemus_oid, valintatapajono_oid, tunniste, arvo, laskennallinen_arvo, osallistuminen)
+           values ($sijoitteluajoId, $hakemusOid, $valintatapajonoOid, ${tunniste}, ${arvo}, ${laskennallinenArvo}, ${osallistuminen})"""
   }
 
   private def insertHakijaryhma(sijoitteluajoId:Long, hakukohdeOid:String, hakijaryhma:Hakijaryhma) = {
@@ -581,16 +580,17 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     case _ => {
       val inParameter = valintatapajonoOids.map(oid => s"'$oid'").mkString(",")
       runBlocking(
-        sql"""SELECT j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
+        sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
               j.tasasijajonosija, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
               j.onko_muuttunut_viime_sijoittelussa, array_to_string(array_agg(hr.oid), ','),
               j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
-              FROM jonosijat AS j
-              INNER JOIN valinnantulokset AS v ON v.jonosija_id = j.id AND v.hakemus_oid = j.hakemus_oid AND v.deleted IS NULL
-              LEFT JOIN hakijaryhman_hakemukset AS hh ON j.hakemus_oid = hh.hakemus_oid
-              LEFT JOIN hakijaryhmat AS hr ON hr.id = hh.hakijaryhma_id
-              WHERE j.valintatapajono_oid IN (#${inParameter}) AND j.sijoitteluajo_id = ${sijoitteluajoId}
-              GROUP BY j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
+              from jonosijat as j
+              inner join valinnantulokset as v on v.sijoitteluajo_id = j.sijoitteluajo_id
+                and v.hakemus_oid = j.hakemus_oid and v.valintatapajono_oid = j.valintatapajono_oid and v.deleted is null
+              left join hakijaryhman_hakemukset as hh on j.hakemus_oid = hh.hakemus_oid
+              left join hakijaryhmat as hr on hr.id = hh.hakijaryhma_id
+              where j.valintatapajono_oid in (#${inParameter}) and j.sijoitteluajo_id = ${sijoitteluajoId}
+              group by j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
               j.tasasijajonosija, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
               j.onko_muuttunut_viime_sijoittelussa, j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid""".as[HakemusRecord]).toList
     }
@@ -600,18 +600,19 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     runBlocking(
       sql"""with sijoitteluajon_hakijaryhmat as (
               select hh.hakemus_oid, array_to_string(array_agg(hr.oid), ',') as hakijaryhmat
-              from  hakijaryhman_hakemukset AS hh
-              inner join hakijaryhmat AS hr ON hr.id = hh.hakijaryhma_id
+              from  hakijaryhman_hakemukset as hh
+              inner join hakijaryhmat as hr on hr.id = hh.hakijaryhma_id
               where hr.sijoitteluajo_id = ${sijoitteluajoId}
               group by hh.hakemus_oid)
-            SELECT j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
+            select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
             j.tasasijajonosija, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, sh.hakijaryhmat,
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
-            FROM jonosijat AS j
-            INNER JOIN valinnantulokset AS v ON v.jonosija_id = j.id AND v.hakemus_oid = j.hakemus_oid AND v.deleted IS NULL
-            LEFT JOIN sijoitteluajon_hakijaryhmat as sh ON sh.hakemus_oid = v.hakemus_oid
-            WHERE j.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakemusRecord]).toList
+            from jonosijat as j
+            inner join valinnantulokset as v on v.sijoitteluajo_id = j.sijoitteluajo_id
+             and v.hakemus_oid = j.hakemus_oid and v.valintatapajono_oid = j.valintatapajono_oid and v.deleted is null
+            left join sijoitteluajon_hakijaryhmat as sh on sh.hakemus_oid = v.hakemus_oid
+            where j.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakemusRecord]).toList
   }
 
   override def getSijoitteluajonTilahistoriat(sijoitteluajoId:Long): List[TilaHistoriaRecord] = {
@@ -657,32 +658,33 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   override def getHakutoiveet(hakemusOid: String, sijoitteluajoId: Long): List[HakutoiveRecord] = {
     runBlocking(
-      sql"""select j.id, j.prioriteetti, vt.hakukohde_oid, sh.tarjoaja_oid, vt.tila, sh.kaikki_jonot_sijoiteltu
+      sql"""select j.hakemus_oid, j.prioriteetti, j.hakukohde_oid, sh.tarjoaja_oid, vt.tila, sh.kaikki_jonot_sijoiteltu
             from jonosijat as j
-            left join valinnantulokset as vt on vt.jonosija_id = j.id and vt.hakemus_oid = j.hakemus_oid
+            left join valinnantulokset as vt on vt.sijoitteluajo_id = j.sijoitteluajo_id
+              and vt.hakemus_oid = j.hakemus_oid and vt.valintatapajono_oid = j.valintatapajono_oid
             left join sijoitteluajon_hakukohteet as sh on sh.sijoitteluajo_id = vt.sijoitteluajo_id and sh.hakukohde_oid = vt.hakukohde_oid
             where j.hakemus_oid = ${hakemusOid} and j.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakutoiveRecord]).toList
   }
 
-  override def getPistetiedot(jonosijaIds: List[Long]): List[PistetietoRecord] = jonosijaIds match {
-    case x if 0 == x.size => List()
-    case _ => {
-      val inParameter = jonosijaIds.distinct.map(id => s"'$id'").mkString(",")
-      runBlocking(
-        sql"""
-           select j.valintatapajono_oid, j.hakemus_oid, p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen, p.jonosija_id
-           from pistetiedot p
-           inner join jonosijat j on j.id = p.jonosija_id and j.id IN (#${inParameter})
-         """.as[PistetietoRecord]).toList
-    }
+  override def getPistetiedot(hakemusOid:String, sijoitteluajoId:Long): List[PistetietoRecord] = {
+    runBlocking(
+      sql"""
+         select j.valintatapajono_oid, j.hakemus_oid, p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen
+         from pistetiedot p
+         inner join jonosijat j on j.sijoitteluajo_id = p.sijoitteluajo_id and j.valintatapajono_oid = p.valintatapajono_oid
+          and j.hakemus_oid = p.hakemus_oid
+         where j.sijoitteluajo_id = $sijoitteluajoId and j.hakemus_oid = $hakemusOid
+       """.as[PistetietoRecord]).toList
   }
 
   override def getSijoitteluajonPistetiedot(sijoitteluajoId:Long): List[PistetietoRecord] = {
     runBlocking(
       sql"""
-           select j.valintatapajono_oid, j.hakemus_oid, p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen, p.jonosija_id
+           select j.valintatapajono_oid, j.hakemus_oid, p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen
            from pistetiedot p
-           inner join jonosijat j on j.id = p.jonosija_id and j.sijoitteluajo_id = ${sijoitteluajoId}
+           inner join jonosijat j on j.sijoitteluajo_id = p.sijoitteluajo_id and j.valintatapajono_oid = p.valintatapajono_oid
+            and j.hakemus_oid = p.hakemus_oid
+           where j.sijoitteluajo_id = ${sijoitteluajoId}
          """.as[PistetietoRecord]).toList
   }
 }

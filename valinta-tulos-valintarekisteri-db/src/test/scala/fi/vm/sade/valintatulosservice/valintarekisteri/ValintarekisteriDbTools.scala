@@ -355,7 +355,8 @@ trait ValintarekisteriDbTools extends Specification {
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen
             from pistetiedot p
-            inner join jonosijat j on j.id = p.jonosija_id
+            inner join jonosijat j on j.sijoitteluajo_id = p.sijoitteluajo_id and
+             j.valintatapajono_oid = p.valintatapajono_oid and j.hakemus_oid = p.hakemus_oid
             where j.hakemus_oid = ${hakemusOid}""".as[Pistetieto])
   }
 

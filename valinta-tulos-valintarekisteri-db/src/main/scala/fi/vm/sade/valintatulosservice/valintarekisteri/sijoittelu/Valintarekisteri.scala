@@ -99,26 +99,6 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
       hakemusRecordToDTO(hakemus, hakemuksenTilankuvaukset,
         tilahistoriat.get((hakemus.hakemusOid, hakemus.valintatapajonoOid)).getOrElse(List()),
         pistetiedot.get((hakemus.hakemusOid, hakemus.valintatapajonoOid)).getOrElse(List()))
-
-//    val tilahistoriat = sijoitteluRepository.getSijoitteluajonTilahistoriat(sijoitteluajoId)
-//    val pistetiedot = sijoitteluRepository.getSijoitteluajonPistetiedot(sijoitteluajoId)
-//
-//    sijoitteluajonHakemukset.map(hakemus => {
-//      def kuuluuHakemukselle(hakemusOid:String, valintatapajonoOid:String) = {
-//        hakemus.hakemusOid.equals(hakemusOid) && hakemus.valintatapajonoOid.equals(valintatapajonoOid)
-//      }
-//      val hakemuksenTilankuvaukset: Map[String, String] = tilankuvaukset.get(hakemus.tilankuvausHash) match {
-//        case Some(kuvaukset:TilankuvausRecord) if hakemus.tarkenteenLisatieto.isDefined => {
-//          kuvaukset.tilankuvaukset.mapValues(_.replace("<lisatieto>", hakemus.tarkenteenLisatieto.get))
-//        }
-//        case Some(kuvaukset:TilankuvausRecord) => kuvaukset.tilankuvaukset
-//        case _ => Map()
-//      }
-//      val hakemuksenTilahistoria = tilahistoriat.filter(h => kuuluuHakemukselle(h.hakemusOid, h.valintatapajonoOid)).map(
-//        tilaHistoriaRecordToDTO).sortBy(_.getLuotu.getTime).reverse
-//      val hakemuksenPistetiedot = pistetiedot.filter(h => kuuluuHakemukselle(h.hakemusOid, h.valintatapajonoOid)).map(pistetietoRecordToTDO)
-//
-//      hakemusRecordToDTO(hakemus, hakemuksenTilankuvaukset, hakemuksenTilahistoria, hakemuksenPistetiedot)
     })
   }
 
@@ -129,9 +109,9 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
       .map(hakijaRecordToDTO).get
 
     val hakutoiveet = sijoitteluRepository.getHakutoiveet(hakemusOid, latestId)
-    val pistetiedot = sijoitteluRepository.getPistetiedot(hakutoiveet.map(_.jonosijaId))
+    val pistetiedot = sijoitteluRepository.getPistetiedot(hakemusOid, latestId)
 
-    val hakutoiveDTOs = hakutoiveet.map(h => hakutoiveRecordToDTO(h, pistetiedot.filter(_.jonosijaId == h.jonosijaId)))
+    val hakutoiveDTOs = hakutoiveet.map(h => hakutoiveRecordToDTO(h, pistetiedot.filter(_.hakemusOid == h.hakemusOid)))
     hakutoiveDTOs.sortBy(_.getHakutoive)
 
     hakija.setHakutoiveet(hakutoiveDTOs.asInstanceOf[util.SortedSet[HakutoiveDTO]])
