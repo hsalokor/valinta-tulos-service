@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
-import java.sql.{Timestamp, Types}
+import java.sql.{PreparedStatement, Timestamp, Types}
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
@@ -393,72 +393,74 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       (h, valintatulos)
     })
     SimpleDBIO { session =>
-      insertJonosijat(session, hakemukset, sijoitteluajoId, hakukohdeOid, valintatapajonoOid)
-      insertPistetiedot(session, hakemukset, sijoitteluajoId, hakukohdeOid, valintatapajonoOid)
+      insertJonosijatAndPistetiedot(session, hakemukset, sijoitteluajoId, hakukohdeOid, valintatapajonoOid)
       insertIlmoittautumiset(session, valintatulokset, hakemukset)
       insertValinnantulokset(session, hakemuksetWithValintatulokset, sijoitteluajoId, hakukohdeOid, valintatapajonoOid)
     }
   }
 
-  private def insertJonosijat(session:JdbcBackend#JdbcActionContext, hakemukset:List[SijoitteluHakemus], sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String) = {
-    val sql = """insert into jonosijat (valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
+  private def insertJonosijatAndPistetiedot(session:JdbcBackend#JdbcActionContext, hakemukset:List[SijoitteluHakemus], sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String) = {
+    val jonosijaSql = """insert into jonosijat (valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
           jonosija, varasijan_numero, onko_muuttunut_viime_sijoittelussa, pisteet, tasasijajonosija, hyvaksytty_harkinnanvaraisesti,
           siirtynyt_toisesta_valintatapajonosta) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
-
-      val statement = session.connection.prepareStatement(sql)
-      hakemukset.foreach(h => {
-        val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
-        onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti, siirtynytToisestaValintatapajonosta,
-        valinnantila, tilanKuvaukset, tilankuvauksenTarkenne, tarkenteenLisatieto, hyvaksyttyHakijaryhmista, _)
-        = SijoitteluajonHakemusWrapper(h)
-
-        statement.setString(1, valintatapajonoOid)
-        statement.setLong(2, sijoitteluajoId)
-        statement.setString(3, hakukohdeOid)
-        statement.setString(4, hakemusOid)
-        statement.setString(5, hakijaOid.orNull)
-        statement.setString(6, etunimi.orNull)
-        statement.setString(7, sukunimi.orNull)
-        statement.setInt(8, prioriteetti)
-        statement.setInt(9, jonosija)
-        varasijanNumero match {
-          case Some(x) => statement.setInt(10, x)
-          case _ => statement.setNull(10, Types.INTEGER)
-        }
-        statement.setBoolean(11, onkoMuuttunutViimeSijoittelussa)
-        statement.setBigDecimal(12, pisteet match {
-          case Some(x) => x.bigDecimal
-          case _ => null
-        })
-        statement.setInt(13, tasasijaJonosija)
-        statement.setBoolean(14, hyvaksyttyHarkinnanvaraisesti)
-        statement.setBoolean(15, siirtynytToisestaValintatapajonosta)
-        statement.addBatch
-      })
-      statement.executeBatch
-}
-
-  private def insertPistetiedot(session:JdbcBackend#JdbcActionContext, hakemukset:List[SijoitteluHakemus], sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String) = {
-    val sql = """insert into pistetiedot (sijoitteluajo_id, hakemus_oid, valintatapajono_oid, tunniste, arvo, laskennallinen_arvo, osallistuminen)
+    val pistetietoSql = """insert into pistetiedot (sijoitteluajo_id, hakemus_oid, valintatapajono_oid, tunniste, arvo, laskennallinen_arvo, osallistuminen)
            values (?, ?, ?, ?, ?, ?, ?)"""
 
-      val statement = session.connection.prepareStatement(sql)
-      hakemukset.foreach(h => {
-        h.getPistetiedot.asScala.foreach(p => {
-          val SijoitteluajonPistetietoWrapper(tunniste, arvo, laskennallinenArvo, osallistuminen)
-          = SijoitteluajonPistetietoWrapper(p)
-
-          statement.setLong(1, sijoitteluajoId)
-          statement.setString(2, h.getHakemusOid)
-          statement.setString(3, valintatapajonoOid)
-          statement.setString(4, tunniste)
-          statement.setString(5, arvo.orNull)
-          statement.setString(6, laskennallinenArvo.orNull)
-          statement.setString(7, osallistuminen.orNull)
-          statement.addBatch
-        })
+    val jonosijaStatement = session.connection.prepareStatement(jonosijaSql)
+    val pistetietoStatement = session.connection.prepareStatement(pistetietoSql)
+    hakemukset.foreach(hakemus => {
+      createJonosijaInsertRow(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, jonosijaStatement, hakemus)
+      hakemus.getPistetiedot.asScala.foreach(pistetieto => {
+        createPistetietoInsertRow(sijoitteluajoId, valintatapajonoOid, pistetietoStatement, hakemus, pistetieto)
       })
-      statement.executeBatch
+    })
+    jonosijaStatement.executeBatch
+    pistetietoStatement.executeBatch
+  }
+
+  def createJonosijaInsertRow(sijoitteluajoId: Long, hakukohdeOid: String, valintatapajonoOid: String, statement: PreparedStatement, h: SijoitteluHakemus): Unit = {
+    val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
+    onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti, siirtynytToisestaValintatapajonosta,
+    valinnantila, tilanKuvaukset, tilankuvauksenTarkenne, tarkenteenLisatieto, hyvaksyttyHakijaryhmista, _)
+    = SijoitteluajonHakemusWrapper(h)
+
+    statement.setString(1, valintatapajonoOid)
+    statement.setLong(2, sijoitteluajoId)
+    statement.setString(3, hakukohdeOid)
+    statement.setString(4, hakemusOid)
+    statement.setString(5, hakijaOid.orNull)
+    statement.setString(6, etunimi.orNull)
+    statement.setString(7, sukunimi.orNull)
+    statement.setInt(8, prioriteetti)
+    statement.setInt(9, jonosija)
+    varasijanNumero match {
+      case Some(x) => statement.setInt(10, x)
+      case _ => statement.setNull(10, Types.INTEGER)
+    }
+    statement.setBoolean(11, onkoMuuttunutViimeSijoittelussa)
+    statement.setBigDecimal(12, pisteet match {
+      case Some(x) => x.bigDecimal
+      case _ => null
+    })
+    statement.setInt(13, tasasijaJonosija)
+    statement.setBoolean(14, hyvaksyttyHarkinnanvaraisesti)
+    statement.setBoolean(15, siirtynytToisestaValintatapajonosta)
+    statement.addBatch
+  }
+
+
+  def createPistetietoInsertRow(sijoitteluajoId: Long, valintatapajonoOid: String, statement: PreparedStatement, h: SijoitteluHakemus, p: Pistetieto): Unit = {
+    val SijoitteluajonPistetietoWrapper(tunniste, arvo, laskennallinenArvo, osallistuminen)
+    = SijoitteluajonPistetietoWrapper(p)
+
+    statement.setLong(1, sijoitteluajoId)
+    statement.setString(2, h.getHakemusOid)
+    statement.setString(3, valintatapajonoOid)
+    statement.setString(4, tunniste)
+    statement.setString(5, arvo.orNull)
+    statement.setString(6, laskennallinenArvo.orNull)
+    statement.setString(7, osallistuminen.orNull)
+    statement.addBatch
   }
 
   private def insertValinnantulokset(session:JdbcBackend#JdbcActionContext, hakemuksetWithValinnantulos: List[(SijoitteluHakemus,Valintatulos)], sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String) = {
