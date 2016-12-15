@@ -17,6 +17,7 @@ import slick.driver.PostgresDriver.api._
 import slick.jdbc.GetResult
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.IndexedSeq
 
 trait ValintarekisteriDbTools extends Specification {
 
@@ -410,5 +411,44 @@ trait ValintarekisteriDbTools extends Specification {
       storedValintatapajonot.length mustEqual hakukohde.getValintatapajonot.size
     })
     storedHakukohteet.length mustEqual wrapper.hakukohteet.length
+  }
+
+  def createHugeSijoittelu(sijoitteluajoId:Long, hakuOid:String, size:Int = 50) = {
+    val sijoitteluajo = SijoitteluajoWrapper(sijoitteluajoId, hakuOid, System.currentTimeMillis(), System.currentTimeMillis())
+    var valinnantulokset:IndexedSeq[SijoitteluajonValinnantulosWrapper] = IndexedSeq()
+    val hakukohteet = (1 to size par).map(i => {
+      val hakukohdeOid = hakuOid + "." + i
+      insertHakukohde(hakukohdeOid, hakuOid)
+      val hakukohde = SijoitteluajonHakukohdeWrapper(sijoitteluajoId, hakukohdeOid, hakukohdeOid, true).hakukohde
+      hakukohde.setValintatapajonot(
+      (1 to size par).map( k => {
+        val valintatapajonoOid = hakukohdeOid + "." + k
+        val valintatapajono = SijoitteluajonValintatapajonoWrapper( valintatapajonoOid, "nimi" + k, k, Arvonta, Some(k), Some(k), false, false,
+          false, Some(k), Some(k), Some(new Date(System.currentTimeMillis)), Some(new Date(System.currentTimeMillis)),
+          None, k, k, Some(k), Some(false)).valintatapajono
+        valintatapajono.getHakemukset.addAll(
+          (1 to (size*2) par).map( j => {
+            val hakemus = SijoitteluajonHakemusWrapper(valintatapajonoOid + "." + j, Some(valintatapajonoOid), Some("Etunimi"), Some("Sukunimi"),
+              j, j, None, false, Some(j), j, false, false, Hylatty, Some(Map("FI" -> ("fi" + j), "SV" -> ("sv" + j), "EN" -> ("en" + j))),
+              "EI_TILANKUVAUKSEN_TARKENNETTA", None, Set(""), List()).hakemus
+            hakemus.setPistetiedot(List(SijoitteluajonPistetietoWrapper("moi", Some("123"), Some("123"), Some("Osallistui")).pistetieto).asJava)
+            valinnantulokset = valinnantulokset ++ IndexedSeq(SijoitteluajonValinnantulosWrapper(valintatapajonoOid, hakemus.getHakemusOid, hakukohdeOid,
+              false, false, false, false, None, None, MailStatusWrapper(None, None, None, None).status))
+            hakemus
+          }).seq.asJava
+        )
+        valintatapajono
+      }).seq.asJava
+      )
+      /*hakukohde.setHakijaryhmat(
+        (1 to (size/10)).map( i => {
+          val hakijaryhmaOid = hakuOid + "." + i
+          SijoitteluajonHakijaryhmaWrapper(hakijaryhmaOid, "nimi" + i, i, i, false, false, false,
+            hakukohde.getValintatapajonot.get(0).getHakemukset.asScala.map(_.getHakemusOid).toList, Some(hakijaryhmaOid), Some("myUri" + i)).hakijaryhma
+        }).asJava
+      )*/
+      hakukohde
+    }).seq.asJava
+    SijoitteluWrapper(sijoitteluajo.sijoitteluajo, hakukohteet, valinnantulokset.map(_.valintatulos).asJava)
   }
 }
