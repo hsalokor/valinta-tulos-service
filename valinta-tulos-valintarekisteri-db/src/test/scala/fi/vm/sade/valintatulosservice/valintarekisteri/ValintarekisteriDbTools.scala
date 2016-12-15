@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri
 
 import java.text.SimpleDateFormat
-import java.util.{Comparator, Date}
+import java.util.Date
 
 import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.sijoittelu.tulos.dto.SijoitteluajoDTO
@@ -59,24 +59,24 @@ trait ValintarekisteriDbTools extends Specification {
   }
 
   private val deleteFromVastaanotot = DBIO.seq(
-    sqlu"delete from vastaanotot",
+    sqlu"truncate table vastaanotot cascade",
     sqlu"delete from deleted_vastaanotot where id <> overriden_vastaanotto_deleted_id()",
-    sqlu"delete from henkiloviitteet")
+    sqlu"truncate table henkiloviitteet cascade")
 
   def deleteAll(): Unit = {
     singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
       deleteFromVastaanotot,
-      sqlu"delete from hakijaryhman_hakemukset",
-      sqlu"delete from hakijaryhmat",
-      sqlu"delete from ilmoittautumiset",
-      sqlu"delete from pistetiedot",
-      sqlu"delete from valinnantulokset",
-      sqlu"delete from jonosijat",
-      sqlu"delete from valintatapajonot",
-      sqlu"delete from sijoitteluajon_hakukohteet",
-      sqlu"delete from hakukohteet",
-      sqlu"delete from sijoitteluajot",
-      sqlu"delete from vanhat_vastaanotot"
+      sqlu"truncate table hakijaryhman_hakemukset cascade",
+      sqlu"truncate table hakijaryhmat cascade",
+      sqlu"truncate table ilmoittautumiset cascade",
+      sqlu"truncate table pistetiedot cascade",
+      sqlu"truncate table valinnantulokset cascade",
+      sqlu"truncate table jonosijat cascade",
+      sqlu"truncate table valintatapajonot cascade",
+      sqlu"truncate table sijoitteluajon_hakukohteet cascade",
+      sqlu"truncate table hakukohteet cascade",
+      sqlu"truncate table sijoitteluajot cascade",
+      sqlu"truncate table vanhat_vastaanotot cascade"
       ).transactionally)
   }
 
