@@ -12,7 +12,7 @@ import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
 import slick.dbio.{DBIO => _, _}
 import slick.driver.PostgresDriver.api.{Database, _}
-import slick.jdbc.{JdbcBackend, PositionedParameters, SetParameter, TransactionIsolation}
+import slick.jdbc.TransactionIsolation
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -383,46 +383,40 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
   private def storeValintatapajononHakemukset(hakemukset:List[SijoitteluHakemus], sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, valintatulokset: List[Valintatulos]) = {
-    val hakemuksetWithValintatulokset = hakemukset.map(h => {
-      val valintatulos = valintatulokset.find(_.getHakemusOid == h.getHakemusOid).getOrElse({
-        val valintatulos = SijoitteluajonValinnantulosWrapper(
-          valintatapajonoOid, h.getHakemusOid, hakukohdeOid, false, false, false, false, None, Option(List()), null).valintatulos
-        valintatulos.setMailStatus(new ValintatulosMailStatus)
-        valintatulos
-      })
-      (h, valintatulos)
-    })
     SimpleDBIO { session =>
-      insertJonosijatAndPistetiedot(session, hakemukset, sijoitteluajoId, hakukohdeOid, valintatapajonoOid)
-      insertIlmoittautumiset(session, valintatulokset, hakemukset)
-      insertValinnantulokset(session, hakemuksetWithValintatulokset, sijoitteluajoId, hakukohdeOid, valintatapajonoOid)
+      val jonosijaStatement = createJonosijaStatement(session.connection)
+      val pistetietoStatement = createPistetietoStatement(session.connection)
+      val valinnantulosStatement = createValinnantulosStatement(session.connection)
+      val tilankuvausStatement = createTilankuvausStatement(session.connection)
+      hakemukset.foreach( hakemus => {
+        createJonosijaInsertRow(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemus, jonosijaStatement)
+        hakemus.getPistetiedot.asScala.foreach(createPistetietoInsertRow(sijoitteluajoId, valintatapajonoOid, hakemus.getHakemusOid, _, pistetietoStatement))
+
+        val tilankuvauksetWithTarkenne = getTilankuvauksetWithTarkenne(hakemus)
+        val hash = tilankuvauksetWithTarkenne.hashCode
+        createTilankuvausInsertRow(hash, tilankuvauksetWithTarkenne, tilankuvausStatement)
+        createValinnantulosInsertRow(hakemus, valintatulokset.find(_.getHakemusOid == hakemus.getHakemusOid), hash, sijoitteluajoId, hakukohdeOid, valintatapajonoOid, valinnantulosStatement)
+
+      })
+      jonosijaStatement.executeBatch
+      pistetietoStatement.executeBatch
+      tilankuvausStatement.executeBatch
+      valinnantulosStatement.executeBatch
+      insertIlmoittautumiset(session.connection, valintatulokset, hakemukset)
     }
   }
 
-  private def insertJonosijatAndPistetiedot(session:JdbcBackend#JdbcActionContext, hakemukset:List[SijoitteluHakemus], sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String) = {
-    val jonosijaSql = """insert into jonosijat (valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
+  private def createStatement(sql:String) = (connection:java.sql.Connection) => connection.prepareStatement(sql)
+
+  private def createJonosijaStatement = createStatement("""insert into jonosijat (valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
           jonosija, varasijan_numero, onko_muuttunut_viime_sijoittelussa, pisteet, tasasijajonosija, hyvaksytty_harkinnanvaraisesti,
-          siirtynyt_toisesta_valintatapajonosta) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
-    val pistetietoSql = """insert into pistetiedot (sijoitteluajo_id, hakemus_oid, valintatapajono_oid, tunniste, arvo, laskennallinen_arvo, osallistuminen)
-           values (?, ?, ?, ?, ?, ?, ?)"""
+          siirtynyt_toisesta_valintatapajonosta) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""")
 
-    val jonosijaStatement = session.connection.prepareStatement(jonosijaSql)
-    val pistetietoStatement = session.connection.prepareStatement(pistetietoSql)
-    hakemukset.foreach(hakemus => {
-      createJonosijaInsertRow(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, jonosijaStatement, hakemus)
-      hakemus.getPistetiedot.asScala.foreach(pistetieto => {
-        createPistetietoInsertRow(sijoitteluajoId, valintatapajonoOid, pistetietoStatement, hakemus, pistetieto)
-      })
-    })
-    jonosijaStatement.executeBatch
-    pistetietoStatement.executeBatch
-  }
-
-  def createJonosijaInsertRow(sijoitteluajoId: Long, hakukohdeOid: String, valintatapajonoOid: String, statement: PreparedStatement, h: SijoitteluHakemus): Unit = {
+  private def createJonosijaInsertRow(sijoitteluajoId: Long, hakukohdeOid: String, valintatapajonoOid: String, hakemus: SijoitteluHakemus, statement: PreparedStatement) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
     onkoMuuttunutViimeSijoittelussa, pisteet, tasasijaJonosija, hyvaksyttyHarkinnanvaraisesti, siirtynytToisestaValintatapajonosta,
     valinnantila, tilanKuvaukset, tilankuvauksenTarkenne, tarkenteenLisatieto, hyvaksyttyHakijaryhmista, _)
-    = SijoitteluajonHakemusWrapper(h)
+    = SijoitteluajonHakemusWrapper(hakemus)
 
     statement.setString(1, valintatapajonoOid)
     statement.setLong(2, sijoitteluajoId)
@@ -438,23 +432,22 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       case _ => statement.setNull(10, Types.INTEGER)
     }
     statement.setBoolean(11, onkoMuuttunutViimeSijoittelussa)
-    statement.setBigDecimal(12, pisteet match {
-      case Some(x) => x.bigDecimal
-      case _ => null
-    })
+    statement.setBigDecimal(12, pisteet.map(_.bigDecimal).getOrElse(null))
     statement.setInt(13, tasasijaJonosija)
     statement.setBoolean(14, hyvaksyttyHarkinnanvaraisesti)
     statement.setBoolean(15, siirtynytToisestaValintatapajonosta)
     statement.addBatch
   }
 
+  private def createPistetietoStatement = createStatement("""insert into pistetiedot (sijoitteluajo_id, hakemus_oid, valintatapajono_oid,
+    tunniste, arvo, laskennallinen_arvo, osallistuminen) values (?, ?, ?, ?, ?, ?, ?)""")
 
-  def createPistetietoInsertRow(sijoitteluajoId: Long, valintatapajonoOid: String, statement: PreparedStatement, h: SijoitteluHakemus, p: Pistetieto): Unit = {
+  private def createPistetietoInsertRow(sijoitteluajoId: Long, valintatapajonoOid: String, hakemusOid:String, pistetieto: Pistetieto, statement: PreparedStatement) = {
     val SijoitteluajonPistetietoWrapper(tunniste, arvo, laskennallinenArvo, osallistuminen)
-    = SijoitteluajonPistetietoWrapper(p)
+    = SijoitteluajonPistetietoWrapper(pistetieto)
 
     statement.setLong(1, sijoitteluajoId)
-    statement.setString(2, h.getHakemusOid)
+    statement.setString(2, hakemusOid)
     statement.setString(3, valintatapajonoOid)
     statement.setString(4, tunniste)
     statement.setString(5, arvo.orNull)
@@ -463,66 +456,63 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     statement.addBatch
   }
 
-  private def insertValinnantulokset(session:JdbcBackend#JdbcActionContext, hakemuksetWithValinnantulos: List[(SijoitteluHakemus,Valintatulos)], sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String) = {
-    val valinnantulosSql = """insert into valinnantulokset (valintatapajono_oid, hakemus_oid, sijoitteluajo_id, hakukohde_oid,
+  private def createValinnantulosStatement = createStatement("""insert into valinnantulokset (valintatapajono_oid, hakemus_oid, sijoitteluajo_id, hakukohde_oid,
       tila, tilankuvaus_hash, tarkenteen_lisatieto, julkaistavissa, ehdollisesti_hyvaksyttavissa, hyvaksytty_varasijalta,
       hyvaksy_peruuntunut, ilmoittaja, selite, tilan_viimeisin_muutos, previous_check, sent, done, message)
-      values (?, ?, ?, ?, ?::valinnantila, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
-    val tilankuvausSql = """insert into tilankuvaukset (hash, tilankuvauksen_tarkenne, text_fi, text_sv, text_en)
-      values (?, ?, ?, ?, ?) on conflict do nothing"""
-      val valinnantulosStatement = session.connection.prepareStatement(valinnantulosSql)
-      val tilankuvausStatement = session.connection.prepareStatement(tilankuvausSql)
+      values (?, ?, ?, ?, ?::valinnantila, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""")
 
-      hakemuksetWithValinnantulos.foreach(hv => {
-        val SijoitteluajonHakemusWrapper(hakemusOid, _, _, _, _, _, _, _, _, _, _, _, valinnantila, _, _, tarkenteenLisatieto, _, tilahistoria)
-        = SijoitteluajonHakemusWrapper(hv._1)
-        val SijoitteluajonValinnantulosWrapper(valintatapajonoOid, _, hakukohdeOid, ehdollisestiHyvaksyttavissa,
-        julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, _, _, _)
-        = SijoitteluajonValinnantulosWrapper(hv._2)
-        val MailStatusWrapper(previousCheck, sent, done, message) = MailStatusWrapper(hv._2.getMailStatus)
+  private def createValinnantulosInsertRow(hakemus:SijoitteluHakemus, valintatulos:Option[Valintatulos],
+      hash:Int, sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, valinnantulosStatement:PreparedStatement) = {
 
-        val tilanViimeisinMuutos = tilahistoria
-          .filter(_.tila.equals(valinnantila))
-          .map(_.luotu)
-          .sortWith(_.after(_))
-          .headOption.getOrElse(new Date())
+      lazy val defaultValintatulos = SijoitteluajonValinnantulosWrapper(
+          valintatapajonoOid, hakemus.getHakemusOid, hakukohdeOid, false, false, false, false, None, Option(List()), new ValintatulosMailStatus).valintatulos
 
-        val (ilmoittaja, selite) = ("System", "Sijoittelun tallennus")
+      val SijoitteluajonHakemusWrapper(hakemusOid, _, _, _, _, _, _, _, _, _, _, _, valinnantila, _, _, tarkenteenLisatieto, _, tilahistoria)
+      = SijoitteluajonHakemusWrapper(hakemus)
+      val SijoitteluajonValinnantulosWrapper(_, _, _, ehdollisestiHyvaksyttavissa,
+      julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, _, _, _)
+      = SijoitteluajonValinnantulosWrapper(valintatulos.getOrElse(defaultValintatulos))
+      val MailStatusWrapper(previousCheck, sent, done, message) = MailStatusWrapper(valintatulos.getOrElse(defaultValintatulos).getMailStatus)
 
-        val tilankuvauksetWithTarkenne: Map[String, String] = getTilankuvauksetWithTarkenne(hv._1)
+      val tilanViimeisinMuutos = tilahistoria
+        .filter(_.tila.equals(valinnantila))
+        .map(_.luotu)
+        .sortWith(_.after(_))
+        .headOption.getOrElse(new Date())
 
-        val hash = tilankuvauksetWithTarkenne.hashCode
+      val (ilmoittaja, selite) = ("System", "Sijoittelun tallennus")
 
-        valinnantulosStatement.setString(1, valintatapajonoOid)
-        valinnantulosStatement.setString(2, hakemusOid)
-        valinnantulosStatement.setLong(3, sijoitteluajoId)
-        valinnantulosStatement.setString(4, hakukohdeOid)
-        valinnantulosStatement.setString(5, valinnantila.toString)
-        valinnantulosStatement.setInt(6, hash)
-        valinnantulosStatement.setString(7, tarkenteenLisatieto.orNull)
-        valinnantulosStatement.setBoolean(8, julkaistavissa)
-        valinnantulosStatement.setBoolean(9, ehdollisestiHyvaksyttavissa)
-        valinnantulosStatement.setBoolean(10, hyvaksyttyVarasijalta)
-        valinnantulosStatement.setBoolean(11, hyvaksyPeruuntunut)
-        valinnantulosStatement.setString(12, ilmoittaja)
-        valinnantulosStatement.setString(13, selite)
-        valinnantulosStatement.setTimestamp(14, new java.sql.Timestamp(tilanViimeisinMuutos.getTime))
-        valinnantulosStatement.setTimestamp(15, newJavaSqlDateOrNull(previousCheck))
-        valinnantulosStatement.setTimestamp(16, newJavaSqlDateOrNull(sent))
-        valinnantulosStatement.setTimestamp(17, newJavaSqlDateOrNull(done))
-        valinnantulosStatement.setString(18, message.orNull)
-        valinnantulosStatement.addBatch
+      valinnantulosStatement.setString(1, valintatapajonoOid)
+      valinnantulosStatement.setString(2, hakemusOid)
+      valinnantulosStatement.setLong(3, sijoitteluajoId)
+      valinnantulosStatement.setString(4, hakukohdeOid)
+      valinnantulosStatement.setString(5, valinnantila.toString)
+      valinnantulosStatement.setInt(6, hash)
+      valinnantulosStatement.setString(7, tarkenteenLisatieto.orNull)
+      valinnantulosStatement.setBoolean(8, julkaistavissa)
+      valinnantulosStatement.setBoolean(9, ehdollisestiHyvaksyttavissa)
+      valinnantulosStatement.setBoolean(10, hyvaksyttyVarasijalta)
+      valinnantulosStatement.setBoolean(11, hyvaksyPeruuntunut)
+      valinnantulosStatement.setString(12, ilmoittaja)
+      valinnantulosStatement.setString(13, selite)
+      valinnantulosStatement.setTimestamp(14, new java.sql.Timestamp(tilanViimeisinMuutos.getTime))
+      valinnantulosStatement.setTimestamp(15, newJavaSqlDateOrNull(previousCheck))
+      valinnantulosStatement.setTimestamp(16, newJavaSqlDateOrNull(sent))
+      valinnantulosStatement.setTimestamp(17, newJavaSqlDateOrNull(done))
+      valinnantulosStatement.setString(18, message.orNull)
+      valinnantulosStatement.addBatch
+  }
 
+  private def createTilankuvausStatement = createStatement("""insert into tilankuvaukset (hash, tilankuvauksen_tarkenne, text_fi, text_sv, text_en)
+      values (?, ?, ?, ?, ?) on conflict do nothing""")
+
+  private def createTilankuvausInsertRow(hash:Int, tilankuvauksetWithTarkenne: Map[String, String], tilankuvausStatement:PreparedStatement) = {
         tilankuvausStatement.setInt(1, hash)
         tilankuvausStatement.setString(2, tilankuvauksetWithTarkenne.getOrElse("tilankuvauksenTarkenne", null))
         tilankuvausStatement.setString(3, tilankuvauksetWithTarkenne.getOrElse("FI", null))
         tilankuvausStatement.setString(4, tilankuvauksetWithTarkenne.getOrElse("SV", null))
         tilankuvausStatement.setString(5, tilankuvauksetWithTarkenne.getOrElse("EN", null))
         tilankuvausStatement.addBatch
-
-      })
-      tilankuvausStatement.executeBatch
-      valinnantulosStatement.executeBatch
   }
 
   private def newJavaSqlDateOrNull(date:Option[Date]) = date match {
@@ -530,11 +520,11 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     case _ => null
   }
 
-  private def insertIlmoittautumiset(session:JdbcBackend#JdbcActionContext, valintatulokset:List[Valintatulos], hakemukset:List[SijoitteluHakemus]) = {
+  private def insertIlmoittautumiset(connection:java.sql.Connection, valintatulokset:List[Valintatulos], hakemukset:List[SijoitteluHakemus]) = {
     val sql =  """insert into ilmoittautumiset (henkilo, hakukohde, tila, ilmoittaja, selite)
            values (?, ?, ?::ilmoittautumistila, ?, ?)"""
 
-      val statement = session.connection.prepareStatement(sql)
+      val statement = createStatement(sql)(connection)
       valintatulokset.foreach(v => {
         val SijoitteluajonValinnantulosWrapper(_, _, hakukohdeOid, _, _, _, _, ilmoittautumistila, logEntries, mailStatus)
         = SijoitteluajonValinnantulosWrapper(v)
@@ -556,7 +546,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       statement.executeBatch
   }
 
-  def getTilankuvauksetWithTarkenne(hakemus:SijoitteluHakemus): Map[String, String] = {
+  private def getTilankuvauksetWithTarkenne(hakemus:SijoitteluHakemus): Map[String, String] = {
     val tilankuvaukset: Map[String, String] = hakemus.getTilanKuvaukset.asScala.toMap
     hakemus.getTarkenteenLisatieto match {
       case lisatieto: String => tilankuvaukset.mapValues(_.replace(lisatieto, "<lisatieto>"))
