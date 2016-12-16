@@ -234,76 +234,76 @@ object Valinnantila {
 }
 
 sealed trait ValinnantilanTarkenne {
-  def valinnantilanTarkenne: TilankuvauksenTarkenne
+  def tilankuvauksenTarkenne: TilankuvauksenTarkenne
 }
 
-case object peruuntunutHyvaksyttyYlemmalleHakutoiveelle extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_HYVAKSYTTY_YLEMMALLE_HAKUTOIVEELLE
+case object PeruuntunutHyvaksyttyYlemmalleHakutoiveelle extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_HYVAKSYTTY_YLEMMALLE_HAKUTOIVEELLE
 }
 
-case object peruuntunutAloituspaikatTaynna extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_ALOITUSPAIKAT_TAYNNA
+case object PeruuntunutAloituspaikatTaynna extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_ALOITUSPAIKAT_TAYNNA
 }
 
-case object peruuntunutHyvaksyttyToisessaJonossa extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_HYVAKSYTTY_TOISESSA_JONOSSA
+case object PeruuntunutHyvaksyttyToisessaJonossa extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_HYVAKSYTTY_TOISESSA_JONOSSA
 }
 
-case object hyvaksyttyVarasijalta extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.HYVAKSYTTY_VARASIJALTA
+case object HyvaksyttyVarasijalta extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.HYVAKSYTTY_VARASIJALTA
 }
 
-case object peruuntunutEiVastaanottanutMaaraaikana extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_EI_VASTAANOTTANUT_MAARAAIKANA
+case object PeruuntunutEiVastaanottanutMaaraaikana extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_EI_VASTAANOTTANUT_MAARAAIKANA
 }
 
-case object peruuntunutVastaanottanutToisenPaikan extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN
+case object PeruuntunutVastaanottanutToisenPaikan extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN
 }
 
-case object peruuntunutEiMahduVarasijojenMaaraan extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_EI_MAHDU_VARASIJOJEN_MAARAAN
+case object PeruuntunutEiMahduVarasijojenMaaraan extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_EI_MAHDU_VARASIJOJEN_MAARAAN
 }
 
-case object peruuntunutHakukierrosPaattynyt extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_HAKUKIERROS_PAATTYNYT
+case object PeruuntunutHakukierrosPaattynyt extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_HAKUKIERROS_PAATTYNYT
 }
 
-case object peruuntunutEiVarasijatayttoa extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_EI_VARASIJATAYTTOA
+case object PeruuntunutEiVarasijatayttoa extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_EI_VARASIJATAYTTOA
 }
 
-case object hyvaksyttyTayttojonoSaannolla extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.HYVAKSYTTY_TAYTTOJONO_SAANNOLLA
+case object HyvaksyttyTayttojonoSaannolla extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.HYVAKSYTTY_TAYTTOJONO_SAANNOLLA
 }
 
-case object hylattyHakijaryhmaanKuulumattomana extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.HYLATTY_HAKIJARYHMAAN_KUULUMATTOMANA
+case object HylattyHakijaryhmaanKuulumattomana extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.HYLATTY_HAKIJARYHMAAN_KUULUMATTOMANA
 }
 
-case object peruuntunutVastaanottanutToisenPaikanYhdenSaannonPaikanPiirissa extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN_YHDEN_SAANNON_PAIKAN_PIIRISSA
+case object PeruuntunutVastaanottanutToisenPaikanYhdenSaannonPaikanPiirissa extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN_YHDEN_SAANNON_PAIKAN_PIIRISSA
 }
 
-case object eiTilankuvauksenTarkennetta extends ValinnantilanTarkenne {
-  val valinnantilanTarkenne = TilankuvauksenTarkenne.EI_TILANKUVAUKSEN_TARKENNETTA
+case object EiTilankuvauksenTarkennetta extends ValinnantilanTarkenne {
+  val tilankuvauksenTarkenne = TilankuvauksenTarkenne.EI_TILANKUVAUKSEN_TARKENNETTA
 }
 
 object ValinnantilanTarkenne {
   private val valueMapping = Map(
-    "PERUUNTUNUT_HYVAKSYTTY_YLEMMALLE_HAKUTOIVEELLE" -> peruuntunutHyvaksyttyYlemmalleHakutoiveelle,
-    "PERUUNTUNUT_ALOITUSPAIKAT_TAYNNA" -> peruuntunutAloituspaikatTaynna,
-    "PERUUNTUNUT_HYVAKSYTTY_TOISESSA_JONOSSA" -> peruuntunutHyvaksyttyToisessaJonossa,
-    "HYVAKSYTTY_VARASIJALTA" -> hyvaksyttyVarasijalta,
-    "PERUUNTUNUT_EI_VASTAANOTTANUT_MAARAAIKANA" -> peruuntunutEiVastaanottanutMaaraaikana,
-    "PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN" -> peruuntunutVastaanottanutToisenPaikan,
-    "PERUUNTUNUT_EI_MAHDU_VARASIJOJEN_MAARAAN" -> peruuntunutEiMahduVarasijojenMaaraan,
-    "PERUUNTUNUT_HAKUKIERROS_PAATTYNYT" -> peruuntunutHakukierrosPaattynyt,
-    "PERUUNTUNUT_EI_VARASIJATAYTTOA" -> peruuntunutEiVarasijatayttoa,
-    "HYVAKSYTTY_TAYTTOJONO_SAANNOLLA" -> hyvaksyttyTayttojonoSaannolla,
-    "HYLATTY_HAKIJARYHMAAN_KUULUMATTOMANA" -> hylattyHakijaryhmaanKuulumattomana,
-    "PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN_YHDEN_SAANNON_PAIKAN_PIIRISSA" -> peruuntunutVastaanottanutToisenPaikanYhdenSaannonPaikanPiirissa,
-    "EI_TILANKUVAUKSEN_TARKENNETTA" -> eiTilankuvauksenTarkennetta
+    "PeruuntunutHyvaksyttyYlemmalleHakutoiveelle" -> PeruuntunutHyvaksyttyYlemmalleHakutoiveelle,
+    "PeruuntunutAloituspaikatTaynna" -> PeruuntunutAloituspaikatTaynna,
+    "PeruuntunutHyvaksyttyToisessaJonossa" -> PeruuntunutHyvaksyttyToisessaJonossa,
+    "HyvaksyttyVarasijalta" -> HyvaksyttyVarasijalta,
+    "PeruuntunutEiVastaanottanutMaaraaikana" -> PeruuntunutEiVastaanottanutMaaraaikana,
+    "PeruuntunutVastaanottanutToisenPaikan" -> PeruuntunutVastaanottanutToisenPaikan,
+    "PeruuntunutEiMahduVarasijojenMaaraan" -> PeruuntunutEiMahduVarasijojenMaaraan,
+    "PeruuntunutHakukierrosPaattynyt" -> PeruuntunutHakukierrosPaattynyt,
+    "PeruuntunutEiVarasijatayttoa" -> PeruuntunutEiVarasijatayttoa,
+    "HyvaksyttyTayttojonoSaannolla" -> HyvaksyttyTayttojonoSaannolla,
+    "HylattyHakijaryhmaanKuulumattomana" -> HylattyHakijaryhmaanKuulumattomana,
+    "PeruuntunutVastaanottanutToisenPaikanYhdenSaannonPaikanPiirissa" -> PeruuntunutVastaanottanutToisenPaikanYhdenSaannonPaikanPiirissa,
+    "EiTilankuvauksenTarkennetta" -> EiTilankuvauksenTarkennetta
   )
   val values: List[String] = valueMapping.keysIterator.toList
 
@@ -311,20 +311,20 @@ object ValinnantilanTarkenne {
     throw new IllegalArgumentException(s"Unknown valinnantilantarkenne '$value', expected one of $values")
   })
 
-  def getValinnantilanTArkenne(valinnantilantarkenne: TilankuvauksenTarkenne) = valinnantilantarkenne match {
-    case TilankuvauksenTarkenne.PERUUNTUNUT_HYVAKSYTTY_YLEMMALLE_HAKUTOIVEELLE => peruuntunutHyvaksyttyYlemmalleHakutoiveelle
-    case TilankuvauksenTarkenne.PERUUNTUNUT_ALOITUSPAIKAT_TAYNNA => peruuntunutAloituspaikatTaynna
-    case TilankuvauksenTarkenne.PERUUNTUNUT_HYVAKSYTTY_TOISESSA_JONOSSA => peruuntunutHyvaksyttyToisessaJonossa
-    case TilankuvauksenTarkenne.HYVAKSYTTY_VARASIJALTA => hyvaksyttyVarasijalta
-    case TilankuvauksenTarkenne.PERUUNTUNUT_EI_VASTAANOTTANUT_MAARAAIKANA => peruuntunutEiVastaanottanutMaaraaikana
-    case TilankuvauksenTarkenne.PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN => peruuntunutVastaanottanutToisenPaikan
-    case TilankuvauksenTarkenne.PERUUNTUNUT_EI_MAHDU_VARASIJOJEN_MAARAAN => peruuntunutEiMahduVarasijojenMaaraan
-    case TilankuvauksenTarkenne.PERUUNTUNUT_HAKUKIERROS_PAATTYNYT => peruuntunutHakukierrosPaattynyt
-    case TilankuvauksenTarkenne.PERUUNTUNUT_EI_VARASIJATAYTTOA => peruuntunutEiVarasijatayttoa
-    case TilankuvauksenTarkenne.HYVAKSYTTY_TAYTTOJONO_SAANNOLLA => hyvaksyttyTayttojonoSaannolla
-    case TilankuvauksenTarkenne.HYLATTY_HAKIJARYHMAAN_KUULUMATTOMANA => hylattyHakijaryhmaanKuulumattomana
-    case TilankuvauksenTarkenne.PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN_YHDEN_SAANNON_PAIKAN_PIIRISSA => peruuntunutVastaanottanutToisenPaikanYhdenSaannonPaikanPiirissa
-    case TilankuvauksenTarkenne.EI_TILANKUVAUKSEN_TARKENNETTA => eiTilankuvauksenTarkennetta
+  def getValinnantilanTarkenne(tilankuvauksenTarkenne: TilankuvauksenTarkenne) = tilankuvauksenTarkenne match {
+    case TilankuvauksenTarkenne.PERUUNTUNUT_HYVAKSYTTY_YLEMMALLE_HAKUTOIVEELLE => PeruuntunutHyvaksyttyYlemmalleHakutoiveelle
+    case TilankuvauksenTarkenne.PERUUNTUNUT_ALOITUSPAIKAT_TAYNNA => PeruuntunutAloituspaikatTaynna
+    case TilankuvauksenTarkenne.PERUUNTUNUT_HYVAKSYTTY_TOISESSA_JONOSSA => PeruuntunutHyvaksyttyToisessaJonossa
+    case TilankuvauksenTarkenne.HYVAKSYTTY_VARASIJALTA => HyvaksyttyVarasijalta
+    case TilankuvauksenTarkenne.PERUUNTUNUT_EI_VASTAANOTTANUT_MAARAAIKANA => PeruuntunutEiVastaanottanutMaaraaikana
+    case TilankuvauksenTarkenne.PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN => PeruuntunutVastaanottanutToisenPaikan
+    case TilankuvauksenTarkenne.PERUUNTUNUT_EI_MAHDU_VARASIJOJEN_MAARAAN => PeruuntunutEiMahduVarasijojenMaaraan
+    case TilankuvauksenTarkenne.PERUUNTUNUT_HAKUKIERROS_PAATTYNYT => PeruuntunutHakukierrosPaattynyt
+    case TilankuvauksenTarkenne.PERUUNTUNUT_EI_VARASIJATAYTTOA => PeruuntunutEiVarasijatayttoa
+    case TilankuvauksenTarkenne.HYVAKSYTTY_TAYTTOJONO_SAANNOLLA => HyvaksyttyTayttojonoSaannolla
+    case TilankuvauksenTarkenne.HYLATTY_HAKIJARYHMAAN_KUULUMATTOMANA => HylattyHakijaryhmaanKuulumattomana
+    case TilankuvauksenTarkenne.PERUUNTUNUT_VASTAANOTTANUT_TOISEN_PAIKAN_YHDEN_SAANNON_PAIKAN_PIIRISSA => PeruuntunutVastaanottanutToisenPaikanYhdenSaannonPaikanPiirissa
+    case TilankuvauksenTarkenne.EI_TILANKUVAUKSEN_TARKENNETTA => EiTilankuvauksenTarkennetta
   }
 }
 
@@ -344,10 +344,15 @@ case class SijoitteluajonHakemusWrapper(
                                          siirtynytToisestaValintatapajonosta: Boolean = false,
                                          tila: Valinnantila,
                                          tilanKuvaukset: Option[Map[String, String]],
-                                         tilankuvauksenTarkenne: String,
+                                         tilankuvauksenTarkenne: ValinnantilanTarkenne,
                                          tarkenteenLisatieto: Option[String],
                                          hyvaksyttyHakijaryhmista: Set[String],
                                          tilaHistoria: List[TilahistoriaWrapper]) {
+  val tilankuvauksetWithTarkenne =
+    tilanKuvaukset.getOrElse(Map()).mapValues(v => tarkenteenLisatieto.map(v.replace(_, "<lisatieto>")).getOrElse(v)) +
+      ("tilankuvauksenTarkenne" -> tilankuvauksenTarkenne.toString)
+
+  val tilankuvauksenHash = tilankuvauksetWithTarkenne.hashCode
 
   import scala.collection.JavaConverters._
 
@@ -367,7 +372,7 @@ case class SijoitteluajonHakemusWrapper(
     hakemus.setSiirtynytToisestaValintatapajonosta(siirtynytToisestaValintatapajonosta)
     hakemus.setTila(tila.valinnantila)
     hakemus.setTilanKuvaukset(tilanKuvaukset.getOrElse(Map()).asJava)
-    hakemus.setTilankuvauksenTarkenne(TilankuvauksenTarkenne.valueOf(tilankuvauksenTarkenne))
+    hakemus.setTilankuvauksenTarkenne(tilankuvauksenTarkenne.tilankuvauksenTarkenne)
     tarkenteenLisatieto.foreach(hakemus.setTarkenteenLisatieto(_))
     hakemus.setHyvaksyttyHakijaryhmista(hyvaksyttyHakijaryhmista.asJava)
     hakemus.setTilaHistoria(tilaHistoria.map(_.tilahistoria).asJava)
@@ -395,7 +400,7 @@ object SijoitteluajonHakemusWrapper extends OptionConverter {
       hakemus.getSiirtynytToisestaValintatapajonosta,
       Valinnantila.getValinnantila(hakemus.getTila),
       Option(hakemus.getTilanKuvaukset.asScala.toMap),
-      hakemus.getTilankuvauksenTarkenne.toString,
+      ValinnantilanTarkenne.getValinnantilanTarkenne(hakemus.getTilankuvauksenTarkenne),
       convert[javaString, String](hakemus.getTarkenteenLisatieto, string),
       hakemus.getHyvaksyttyHakijaryhmista.asScala.toSet,
       hakemus.getTilaHistoria.asScala.map(TilahistoriaWrapper(_)).toList

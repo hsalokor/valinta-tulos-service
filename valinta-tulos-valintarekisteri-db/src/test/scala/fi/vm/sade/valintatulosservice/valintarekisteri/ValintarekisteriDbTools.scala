@@ -50,7 +50,13 @@ trait ValintarekisteriDbTools extends Specification {
     case x: Valinnantila => JString(x.valinnantila.toString)
   }))
 
-  implicit val formats = DefaultFormats ++ List(new NumberLongSerializer, new TasasijasaantoSerializer, new ValinnantilaSerializer, new DateSerializer)
+  class TilankuvauksenTarkenneSerializer extends CustomSerializer[ValinnantilanTarkenne](format => ({
+    case JString(tarkenneValue) => ValinnantilanTarkenne.getValinnantilanTarkenne(fi.vm.sade.sijoittelu.domain.TilankuvauksenTarkenne.valueOf(tarkenneValue))
+  }, {
+    case x: ValinnantilanTarkenne => JString(x.tilankuvauksenTarkenne.toString)
+  }))
+
+  implicit val formats = DefaultFormats ++ List(new NumberLongSerializer, new TasasijasaantoSerializer, new ValinnantilaSerializer, new DateSerializer, new TilankuvauksenTarkenneSerializer)
 
   def hakijaryhmaOidsToSet(hakijaryhmaOids:Option[String]): Set[String] = {
     hakijaryhmaOids match {
@@ -317,12 +323,13 @@ trait ValintarekisteriDbTools extends Specification {
   private implicit val getSijoitteluajonJonosijaResult = GetResult(r => {
     SijoitteluajonHakemusWrapper(r.nextString, r.nextStringOption, r.nextStringOption, r.nextStringOption, r.nextInt,
       r.nextInt, r.nextIntOption, r.nextBoolean, r.nextBigDecimalOption, r.nextInt, r.nextBoolean, r.nextBoolean,
-      Valinnantila(r.nextString), getHakemuksenTilankuvaukset(r.nextInt, r.nextStringOption), r.nextString, r.nextStringOption, hakijaryhmaOidsToSet(r.nextStringOption), List()).hakemus
+      Valinnantila(r.nextString), getHakemuksenTilankuvaukset(r.nextInt, r.nextStringOption), ValinnantilanTarkenne(r.nextString),
+      r.nextStringOption, hakijaryhmaOidsToSet(r.nextStringOption), List()).hakemus
   })
 
   private def getHakemuksenTilankuvaukset(hash:Int, tarkenteenLisatieto:Option[String]): Option[Map[String,String]] = {
     Option(
-      singleConnectionValintarekisteriDb.getTilankuvaukset(List(hash)).get(hash) match {
+      singleConnectionValintarekisteriDb.getValinnantilanKuvaukset(List(hash)).get(hash) match {
         case Some(kuvaukset: TilankuvausRecord) if tarkenteenLisatieto.isDefined => {
           kuvaukset.tilankuvaukset.mapValues(_.replace("<lisatieto>", tarkenteenLisatieto.get))
         }
@@ -336,16 +343,16 @@ trait ValintarekisteriDbTools extends Specification {
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select j.hakemus_oid, j.hakija_oid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, j.pisteet, j.tasasijajonosija, j.hyvaksytty_harkinnanvaraisesti,
-            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, t.tilankuvauksen_tarkenne, v.tarkenteen_lisatieto, array_to_string(array_agg(hr.oid) , ',')
+            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, t.tilan_tarkenne, v.tarkenteen_lisatieto, array_to_string(array_agg(hr.oid) , ',')
             from jonosijat j
             left join hakijaryhman_hakemukset as hh on hh.hakemus_oid = j.hakemus_oid
             left join hakijaryhmat as hr on hr.oid = hh.hakijaryhma_oid and hr.sijoitteluajo_id = hh.sijoitteluajo_id
             left join valinnantulokset v on j.valintatapajono_oid = v.valintatapajono_oid and j.hakemus_oid = v.hakemus_oid
-            left join tilankuvaukset as t on t.hash = v.tilankuvaus_hash
+            left join valinnantilan_kuvaukset as t on t.hash = v.tilankuvaus_hash
             where j.valintatapajono_oid = ${valintatapajonoOid}
             group by j.hakemus_oid, j.hakija_oid, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, j.pisteet, j.tasasijajonosija, j.hyvaksytty_harkinnanvaraisesti,
-            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_hash, t.tilankuvauksen_tarkenne, v.tarkenteen_lisatieto
+            j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_hash, t.tilan_tarkenne, v.tarkenteen_lisatieto
          """.as[Hakemus])
   }
 
@@ -431,7 +438,7 @@ trait ValintarekisteriDbTools extends Specification {
           (1 to (size*2) par).map( j => {
             val hakemus = SijoitteluajonHakemusWrapper(valintatapajonoOid + "." + j, Some(valintatapajonoOid), Some("Etunimi"), Some("Sukunimi"),
               j, j, None, false, Some(j), j, false, false, Hylatty, Some(Map("FI" -> ("fi" + j), "SV" -> ("sv" + j), "EN" -> ("en" + j))),
-              "EI_TILANKUVAUKSEN_TARKENNETTA", None, Set(""), List()).hakemus
+              EiTilankuvauksenTarkennetta, None, Set(""), List()).hakemus
             hakemus.setPistetiedot(List(SijoitteluajonPistetietoWrapper("moi", Some("123"), Some("123"), Some("Osallistui")).pistetieto).asJava)
             valinnantulokset = valinnantulokset ++ IndexedSeq(SijoitteluajonValinnantulosWrapper(valintatapajonoOid, hakemus.getHakemusOid, hakukohdeOid,
               false, false, false, false, None, None, MailStatusWrapper(None, None, None, None).status))
