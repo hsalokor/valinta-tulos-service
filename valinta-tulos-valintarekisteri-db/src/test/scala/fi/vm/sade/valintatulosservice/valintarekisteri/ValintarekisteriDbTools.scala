@@ -307,8 +307,9 @@ trait ValintarekisteriDbTools extends Specification {
 
   def findHakijaryhmanHakemukset(hakijaryhmaOid:String): Seq[String] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select hh.hakemus_oid from hakijaryhman_hakemukset hh
-            inner join hakijaryhmat h ON hh.hakijaryhma_id = h.id
+      sql"""select hh.hakemus_oid
+            from hakijaryhman_hakemukset hh
+            inner join hakijaryhmat h ON hh.hakijaryhma_oid = h.oid and hh.sijoitteluajo_id = h.sijoitteluajo_id
             where h.oid = ${hakijaryhmaOid}""".as[String]
     )
   }
@@ -338,7 +339,7 @@ trait ValintarekisteriDbTools extends Specification {
             j.siirtynyt_toisesta_valintatapajonosta, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, t.tilankuvauksen_tarkenne, v.tarkenteen_lisatieto, array_to_string(array_agg(hr.oid) , ',')
             from jonosijat j
             left join hakijaryhman_hakemukset as hh on hh.hakemus_oid = j.hakemus_oid
-            left join hakijaryhmat as hr on hr.id = hh.hakijaryhma_id
+            left join hakijaryhmat as hr on hr.oid = hh.hakijaryhma_oid and hr.sijoitteluajo_id = hh.sijoitteluajo_id
             left join valinnantulokset v on j.valintatapajono_oid = v.valintatapajono_oid and j.hakemus_oid = v.hakemus_oid
             left join tilankuvaukset as t on t.hash = v.tilankuvaus_hash
             where j.valintatapajono_oid = ${valintatapajonoOid}

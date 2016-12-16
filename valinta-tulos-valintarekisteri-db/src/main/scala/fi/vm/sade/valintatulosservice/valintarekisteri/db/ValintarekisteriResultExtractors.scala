@@ -101,13 +101,13 @@ abstract class ValintarekisteriResultExtractors {
     luotu = r.nextTimestamp))
 
   protected implicit val getHakijaryhmatResult = GetResult(r => HakijaryhmaRecord(
-    id = r.nextLong,
     prioriteetti = r.nextInt,
     oid = r.nextString,
     nimi = r.nextString,
     hakukohdeOid = r.nextString,
     kiintio = r.nextInt,
     kaytaKaikki = r.nextBoolean,
+    sijoitteluajoId = r.nextLong,
     tarkkaKiintio = r.nextBoolean,
     kaytetaanRyhmaanKuuluvia = r.nextBoolean,
     valintatapajonoOid = r.nextString,

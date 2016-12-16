@@ -35,8 +35,8 @@ case class HakemusRecord(hakijaOid:Option[String], hakemusOid:String, pisteet:Op
 
 case class TilaHistoriaRecord(valintatapajonoOid:String, hakemusOid:String, tila:Valinnantila, luotu:Date)
 
-case class HakijaryhmaRecord(id:Long, prioriteetti:Int, oid:String, nimi:String, hakukohdeOid:String,
-                             kiintio:Int, kaytaKaikki:Boolean, tarkkaKiintio:Boolean, kaytetaanRyhmaanKuuluvia:Boolean,
+case class HakijaryhmaRecord(prioriteetti:Int, oid:String, nimi:String, hakukohdeOid:String, kiintio:Int,
+                             kaytaKaikki:Boolean, sijoitteluajoId:Long, tarkkaKiintio:Boolean, kaytetaanRyhmaanKuuluvia:Boolean,
                              valintatapajonoOid:String, hakijaryhmatyyppikoodiUri:String)
 
 case class TilankuvausRecord(hash:Int, tilankuvauksenTarkenne:ValinnantilanTarkenne, textFi:Option[String],

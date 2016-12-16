@@ -369,10 +369,10 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
   private def storeSijoittelunHakijaryhma(sijoitteluajoId:Long, hakukohdeOid:String, hakijaryhma: Hakijaryhma, hakemukset: List[SijoitteluHakemus]) = {
-    insertHakijaryhma(sijoitteluajoId, hakukohdeOid, hakijaryhma).flatMap(hakijaryhmaId =>
+    insertHakijaryhma(sijoitteluajoId, hakukohdeOid, hakijaryhma).andThen(
       DBIO.sequence(hakijaryhma.getHakemusOid.asScala.map(hakemusOid => {
         val hakemusExists = hakemukset.exists(h => h.getHakemusOid == hakemusOid && h.getHyvaksyttyHakijaryhmista.contains(hakijaryhma.getOid))
-        insertHakijaryhmanHakemus(hakijaryhmaId.get, hakemusOid, hakemusExists)
+        insertHakijaryhmanHakemus(hakijaryhma.getOid, sijoitteluajoId, hakukohdeOid, hakemusOid, hakemusExists)
       }).toList)
     )
   }
@@ -597,16 +597,17 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     kaytetaanRyhmaanKuuluvia, _, valintatapajonoOid, hakijaryhmatyyppikoodiUri)
     = SijoitteluajonHakijaryhmaWrapper(hakijaryhma)
 
-    sql"""insert into hakijaryhmat (oid, sijoitteluajo_id, hakukohde_oid, nimi, prioriteetti,
+    sqlu"""insert into hakijaryhmat (oid, sijoitteluajo_id, hakukohde_oid, nimi, prioriteetti,
            kiintio, kayta_kaikki, tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia,
            valintatapajono_oid, hakijaryhmatyyppikoodi_uri)
            values (${oid}, ${sijoitteluajoId}, ${hakukohdeOid}, ${nimi}, ${prioriteetti}, ${kiintio}, ${kaytaKaikki},
-      ${tarkkaKiintio}, ${kaytetaanRyhmaanKuuluvia}, ${valintatapajonoOid}, ${hakijaryhmatyyppikoodiUri})
-           RETURNING id""".as[Long].headOption
+      ${tarkkaKiintio}, ${kaytetaanRyhmaanKuuluvia}, ${valintatapajonoOid}, ${hakijaryhmatyyppikoodiUri})"""
   }
 
-  private def insertHakijaryhmanHakemus(hakijaryhmaId:Long, hakemusOid:String, hyvaksyttyHakijaryhmasta:Boolean) = {
-    sqlu"""insert into hakijaryhman_hakemukset (hakijaryhma_id, hakemus_oid) values (${hakijaryhmaId}, ${hakemusOid})"""
+  private def insertHakijaryhmanHakemus(hakijaryhmaOid:String, sijoitteluajoId:Long, hakukohdeOid:String,
+                                        hakemusOid:String, hyvaksyttyHakijaryhmasta:Boolean) = {
+    sqlu"""insert into hakijaryhman_hakemukset (hakijaryhma_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hyvaksytty_hakijaryhmasta)
+           values (${hakijaryhmaOid}, ${sijoitteluajoId}, ${hakukohdeOid}, ${hakemusOid}, ${hyvaksyttyHakijaryhmasta})"""
   }
 
   override def getLatestSijoitteluajoId(hakuOid:String): Option[Long] = {
@@ -656,7 +657,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
               inner join valinnantulokset as v on v.sijoitteluajo_id = j.sijoitteluajo_id
                 and v.hakemus_oid = j.hakemus_oid and v.valintatapajono_oid = j.valintatapajono_oid and v.deleted is null
               left join hakijaryhman_hakemukset as hh on j.hakemus_oid = hh.hakemus_oid
-              left join hakijaryhmat as hr on hr.id = hh.hakijaryhma_id
+              left join hakijaryhmat as hr on hr.oid = hh.hakijaryhma_oid and hr.sijoitteluajo_id = hh.sijoitteluajo_id
               where j.valintatapajono_oid in (#${inParameter}) and j.sijoitteluajo_id = ${sijoitteluajoId}
               group by j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
               j.tasasijajonosija, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
@@ -669,7 +670,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       sql"""with sijoitteluajon_hakijaryhmat as (
               select hh.hakemus_oid, array_to_string(array_agg(hr.oid), ',') as hakijaryhmat
               from  hakijaryhman_hakemukset as hh
-              inner join hakijaryhmat as hr on hr.id = hh.hakijaryhma_id
+              inner join hakijaryhmat as hr on hr.oid = hh.hakijaryhma_oid and hr.sijoitteluajo_id = hh.sijoitteluajo_id
               where hr.sijoitteluajo_id = ${sijoitteluajoId}
               group by hh.hakemus_oid)
             select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
@@ -704,17 +705,17 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   override def getHakijaryhmat(sijoitteluajoId: Long): List[HakijaryhmaRecord] = {
     runBlocking(
-      sql"""select id, prioriteetti, oid, nimi, hakukohde_oid, kiintio, kayta_kaikki,
+      sql"""select prioriteetti, oid, nimi, hakukohde_oid, kiintio, kayta_kaikki, sijoitteluajo_id,
             tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia, valintatapajono_oid, hakijaryhmatyyppikoodi_uri
             from hakijaryhmat
             where sijoitteluajo_id = ${sijoitteluajoId}""".as[HakijaryhmaRecord]).toList
   }
 
-  override def getHakijaryhmanHakemukset(hakijaryhmaId: Long): List[String] = {
+  override def getHakijaryhmanHakemukset(hakijaryhmaOid: String, sijoitteluajoId:Long): List[String] = {
     runBlocking(
       sql"""select hakemus_oid
             from hakijaryhman_hakemukset
-            where hakijaryhma_id = ${hakijaryhmaId}""".as[String]).toList
+            where hakijaryhma_oid = ${hakijaryhmaOid} and sijoitteluajo_id = ${sijoitteluajoId}""".as[String]).toList
   }
 
   override def getHakija(hakemusOid: String, sijoitteluajoId: Long): Option[HakijaRecord] = {

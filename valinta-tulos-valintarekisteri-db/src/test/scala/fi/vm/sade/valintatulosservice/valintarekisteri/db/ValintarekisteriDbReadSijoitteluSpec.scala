@@ -69,8 +69,8 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
     }
 
     "get hakijaryhman hakemukset" in {
-      val hakijaryhmaId = singleConnectionValintarekisteriDb.getHakijaryhmat(1476936450191L).last.id
-      singleConnectionValintarekisteriDb.getHakijaryhmanHakemukset(hakijaryhmaId).size mustEqual 14
+      val hakijaryhmaOid = singleConnectionValintarekisteriDb.getHakijaryhmat(1476936450191L).last.oid
+      singleConnectionValintarekisteriDb.getHakijaryhmanHakemukset(hakijaryhmaOid, 1476936450191L).size mustEqual 14
     }
 
     "get hakemuksen ilmoittaja, selite and viimeksiMuokattu" in {
@@ -103,7 +103,7 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
             j.tasasijajonosija, v.tila, v.tilankuvaus_hash, v.kuvauksen_lisatieto, j.hyvaksytty_harkinnanvaraisesti,
-            j.varasijan_numero, j.onko_muuttunut_viime_sijoittelussa, hh.hyvaksytty_hakijaryhmasta, hh.hakijaryhma_id,
+            j.varasijan_numero, j.onko_muuttunut_viime_sijoittelussa, hh.hyvaksytty_hakijaryhmasta, hh.hakijaryhma_oid,
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
             from jonosijat as j
             inner join valinnantulokset as v on v.jonosija_id = j.id and v.hakemus_oid = j.hakemus_oid

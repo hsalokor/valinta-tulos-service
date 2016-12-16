@@ -60,7 +60,7 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
       val valintatapajonotByHakukohde = getSijoitteluajonValintatapajonotGroupedByHakukohde(latestId)
 
       val hakijaryhmatByHakukohde = sijoitteluRepository.getHakijaryhmat(latestId)
-        .map(h => hakijaryhmaRecordToDTO(h, sijoitteluRepository.getHakijaryhmanHakemukset(h.id))
+        .map(h => hakijaryhmaRecordToDTO(h, sijoitteluRepository.getHakijaryhmanHakemukset(h.oid, h.sijoitteluajoId))
         ).groupBy(_.getHakukohdeOid)
 
       val hakukohteet = sijoitteluRepository.getSijoitteluajoHakukohteet(latestId).map(sijoittelunHakukohdeRecordToDTO)
