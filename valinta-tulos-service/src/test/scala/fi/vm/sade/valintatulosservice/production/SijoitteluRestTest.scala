@@ -20,12 +20,11 @@ import scalaz.concurrent.Task
 
 import scala.language.experimental.macros
 
-@Ignore
 @RunWith(classOf[JUnitRunner])
 class SijoitteluRestTest extends Specification with MatcherMacros with Logging with PerformanceTimer {
   val host = "https://itest-virkailija.oph.ware.fi"
-  val cas_user = "xxxx"
-  val cas_password = "xxxx"
+  val cas_user = System.getProperty("cas_user")
+  val cas_password = System.getProperty("cas_password")
   val cas_url = host + "/cas"
   val haku_oid = "1.2.246.562.29.10152859822"
   //val haku_oid = "1.2.246.562.29.14662042044"

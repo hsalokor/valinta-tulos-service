@@ -26,5 +26,6 @@ Voit testata vastaako sijoitteludb:n ja valintarekisterin sijoitteludata toisiaa
 
 1. Aja sijoittelu haluamassasi ympäristössä (esim. luokka)
 2. Aja testi `fi.vm.sade.valintatulosservice.production.SijoitteluRestTest` (poista @Ignore-annotaatio)
-  * Vaihda testiin oikean ympäristön host sekä käyttäjätunnus ja salasana CAS-autentikointia varten
+  * Vaihda testiin oikean ympäristön host 
+  * Lisää käyttäjätunnus ja salasana CAS-autentikointia varten ajoparametreihin `-Dcas_user=username -Dcas_password=password`
   * Vaihda myös hakuOid
