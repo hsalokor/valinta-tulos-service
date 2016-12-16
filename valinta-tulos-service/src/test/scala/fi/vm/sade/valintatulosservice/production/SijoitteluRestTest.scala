@@ -20,6 +20,7 @@ import scalaz.concurrent.Task
 
 import scala.language.experimental.macros
 
+@Ignore
 @RunWith(classOf[JUnitRunner])
 class SijoitteluRestTest extends Specification with MatcherMacros with Logging with PerformanceTimer {
   val host = "https://itest-virkailija.oph.ware.fi"
