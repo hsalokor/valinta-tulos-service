@@ -68,11 +68,13 @@ trait ValintarekisteriDbTools extends Specification {
   private val deleteFromVastaanotot = DBIO.seq(
     sqlu"truncate table vastaanotot cascade",
     sqlu"delete from deleted_vastaanotot where id <> overriden_vastaanotto_deleted_id()",
-    sqlu"truncate table henkiloviitteet cascade")
+    sqlu"truncate table henkiloviitteet cascade",
+    sqlu"truncate table vanhat_vastaanotot cascade")
 
   def deleteAll(): Unit = {
     singleConnectionValintarekisteriDb.runBlocking(DBIO.seq(
       deleteFromVastaanotot,
+      sqlu"truncate table valinnantilan_kuvaukset cascade",
       sqlu"truncate table hakijaryhman_hakemukset cascade",
       sqlu"truncate table hakijaryhmat cascade",
       sqlu"truncate table ilmoittautumiset cascade",
@@ -82,8 +84,7 @@ trait ValintarekisteriDbTools extends Specification {
       sqlu"truncate table valintatapajonot cascade",
       sqlu"truncate table sijoitteluajon_hakukohteet cascade",
       sqlu"truncate table hakukohteet cascade",
-      sqlu"truncate table sijoitteluajot cascade",
-      sqlu"truncate table vanhat_vastaanotot cascade"
+      sqlu"truncate table sijoitteluajot cascade"
       ).transactionally)
   }
 
