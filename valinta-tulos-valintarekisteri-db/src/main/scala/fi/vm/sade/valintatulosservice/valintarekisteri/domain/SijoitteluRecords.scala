@@ -35,9 +35,9 @@ case class HakemusRecord(hakijaOid:Option[String], hakemusOid:String, pisteet:Op
 
 case class TilaHistoriaRecord(valintatapajonoOid:String, hakemusOid:String, tila:Valinnantila, luotu:Date)
 
-case class HakijaryhmaRecord(prioriteetti:Int, oid:String, nimi:String, hakukohdeOid:String, kiintio:Int,
+case class HakijaryhmaRecord(prioriteetti:Int, oid:String, nimi:String, hakukohdeOid:Option[String], kiintio:Int,
                              kaytaKaikki:Boolean, sijoitteluajoId:Long, tarkkaKiintio:Boolean, kaytetaanRyhmaanKuuluvia:Boolean,
-                             valintatapajonoOid:String, hakijaryhmatyyppikoodiUri:String)
+                             valintatapajonoOid:Option[String], hakijaryhmatyyppikoodiUri:String)
 
 case class TilankuvausRecord(hash:Int, tilankuvauksenTarkenne:ValinnantilanTarkenne, textFi:Option[String],
                              textSv:Option[String], textEn:Option[String]) {
@@ -164,12 +164,12 @@ abstract class SijoitteluRecordToDTO {
     ryhmaDTO.setPrioriteetti(hakijaRyhma.prioriteetti)
     ryhmaDTO.setOid(hakijaRyhma.oid)
     ryhmaDTO.setNimi(hakijaRyhma.nimi)
-    ryhmaDTO.setHakukohdeOid(hakijaRyhma.hakukohdeOid)
+    hakijaRyhma.hakukohdeOid.foreach(ryhmaDTO.setHakukohdeOid(_))
     ryhmaDTO.setKiintio(hakijaRyhma.kiintio)
     ryhmaDTO.setKaytaKaikki(hakijaRyhma.kaytaKaikki)
     ryhmaDTO.setTarkkaKiintio(hakijaRyhma.tarkkaKiintio)
     ryhmaDTO.setKaytetaanRyhmaanKuuluvia(hakijaRyhma.kaytetaanRyhmaanKuuluvia)
-    ryhmaDTO.setValintatapajonoOid(hakijaRyhma.valintatapajonoOid)
+    hakijaRyhma.valintatapajonoOid.foreach(ryhmaDTO.setValintatapajonoOid(_))
     ryhmaDTO.setHakijaryhmatyyppikoodiUri(hakijaRyhma.hakijaryhmatyyppikoodiUri)
     ryhmaDTO
   }

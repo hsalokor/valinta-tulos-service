@@ -363,16 +363,16 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
         hakukohde.getValintatapajonot.asScala.map(valintatapajono =>
           storeSijoittelunValintatapajono(sijoitteluajoId, hakukohde.getOid, valintatapajono,
             valintatulokset.filter(_.getValintatapajonoOid == valintatapajono.getOid))).toList ++
-          hakukohde.getHakijaryhmat.asScala.map(hakijaryhma => storeSijoittelunHakijaryhma(sijoitteluajoId, hakukohde.getOid, hakijaryhma,
+          hakukohde.getHakijaryhmat.asScala.map(hakijaryhma => storeSijoittelunHakijaryhma(sijoitteluajoId, hakijaryhma,
             hakukohde.getValintatapajonot.asScala.flatMap(_.getHakemukset.asScala).toList)).toList)
     )
   }
 
-  private def storeSijoittelunHakijaryhma(sijoitteluajoId:Long, hakukohdeOid:String, hakijaryhma: Hakijaryhma, hakemukset: List[SijoitteluHakemus]) = {
-    insertHakijaryhma(sijoitteluajoId, hakukohdeOid, hakijaryhma).andThen(
+  private def storeSijoittelunHakijaryhma(sijoitteluajoId:Long, hakijaryhma: Hakijaryhma, hakemukset: List[SijoitteluHakemus]) = {
+    insertHakijaryhma(sijoitteluajoId, hakijaryhma).andThen(
       DBIO.sequence(hakijaryhma.getHakemusOid.asScala.map(hakemusOid => {
         val hakemusExists = hakemukset.exists(h => h.getHakemusOid == hakemusOid && h.getHyvaksyttyHakijaryhmista.contains(hakijaryhma.getOid))
-        insertHakijaryhmanHakemus(hakijaryhma.getOid, sijoitteluajoId, hakukohdeOid, hakemusOid, hakemusExists)
+        insertHakijaryhmanHakemus(hakijaryhma.getOid, sijoitteluajoId, hakemusOid, hakemusExists)
       }).toList)
     )
   }
@@ -580,9 +580,9 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     case None => null
   }
 
-  private def insertHakijaryhma(sijoitteluajoId:Long, hakukohdeOid:String, hakijaryhma:Hakijaryhma) = {
+  private def insertHakijaryhma(sijoitteluajoId:Long, hakijaryhma:Hakijaryhma) = {
     val SijoitteluajonHakijaryhmaWrapper(oid, nimi, prioriteetti, kiintio, kaytaKaikki, tarkkaKiintio,
-    kaytetaanRyhmaanKuuluvia, _, valintatapajonoOid, hakijaryhmatyyppikoodiUri)
+    kaytetaanRyhmaanKuuluvia, _, valintatapajonoOid, hakukohdeOid, hakijaryhmatyyppikoodiUri)
     = SijoitteluajonHakijaryhmaWrapper(hakijaryhma)
 
     sqlu"""insert into hakijaryhmat (oid, sijoitteluajo_id, hakukohde_oid, nimi, prioriteetti,
@@ -592,10 +592,9 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       ${tarkkaKiintio}, ${kaytetaanRyhmaanKuuluvia}, ${valintatapajonoOid}, ${hakijaryhmatyyppikoodiUri})"""
   }
 
-  private def insertHakijaryhmanHakemus(hakijaryhmaOid:String, sijoitteluajoId:Long, hakukohdeOid:String,
-                                        hakemusOid:String, hyvaksyttyHakijaryhmasta:Boolean) = {
-    sqlu"""insert into hakijaryhman_hakemukset (hakijaryhma_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hyvaksytty_hakijaryhmasta)
-           values (${hakijaryhmaOid}, ${sijoitteluajoId}, ${hakukohdeOid}, ${hakemusOid}, ${hyvaksyttyHakijaryhmasta})"""
+  private def insertHakijaryhmanHakemus(hakijaryhmaOid:String, sijoitteluajoId:Long, hakemusOid:String, hyvaksyttyHakijaryhmasta:Boolean) = {
+    sqlu"""insert into hakijaryhman_hakemukset (hakijaryhma_oid, sijoitteluajo_id, hakemus_oid, hyvaksytty_hakijaryhmasta)
+           values (${hakijaryhmaOid}, ${sijoitteluajoId}, ${hakemusOid}, ${hyvaksyttyHakijaryhmasta})"""
   }
 
   override def getLatestSijoitteluajoId(hakuOid:String): Option[Long] = {

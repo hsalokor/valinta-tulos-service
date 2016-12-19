@@ -300,13 +300,13 @@ trait ValintarekisteriDbTools extends Specification {
 
   private implicit val getSijoitteluajonHakijaryhmaResult = GetResult(r => {
     SijoitteluajonHakijaryhmaWrapper(r.nextString, r.nextString, r.nextInt, r.nextInt, r.nextBoolean, r.nextBoolean,
-      r.nextBoolean, List(), r.nextStringOption, r.nextStringOption).hakijaryhma
+      r.nextBoolean, List(), r.nextStringOption, r.nextStringOption, r.nextStringOption).hakijaryhma
   })
 
   def findHakukohteenHakijaryhmat(hakukohdeOid:String): Seq[Hakijaryhma] = {
     singleConnectionValintarekisteriDb.runBlocking(
       sql"""select oid, nimi, prioriteetti, kiintio, kayta_kaikki, tarkka_kiintio, kaytetaan_ryhmaan_kuuluvia,
-            valintatapajono_oid, hakijaryhmatyyppikoodi_uri
+            valintatapajono_oid, hakukohde_oid, hakijaryhmatyyppikoodi_uri
             from hakijaryhmat
             where hakukohde_oid = ${hakukohdeOid}""".as[Hakijaryhma]
     )

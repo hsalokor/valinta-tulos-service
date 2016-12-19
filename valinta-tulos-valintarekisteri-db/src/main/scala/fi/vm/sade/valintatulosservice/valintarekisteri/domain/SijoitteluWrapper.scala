@@ -611,6 +611,7 @@ case class SijoitteluajonHakijaryhmaWrapper(
                                              kaytetaanRyhmaanKuuluvia: Boolean,
                                              hakemusOid: List[String],
                                              valintatapajonoOid: Option[String],
+                                             hakukohdeOid: Option[String],
                                              hakijaryhmatyyppikoodiUri: Option[String]
                                            ) {
   val hakijaryhma: Hakijaryhma = {
@@ -625,6 +626,7 @@ case class SijoitteluajonHakijaryhmaWrapper(
     hakijaryhma.setKaytetaanRyhmaanKuuluvia(kaytetaanRyhmaanKuuluvia)
     hakijaryhma.getHakemusOid.addAll(hakemusOid.asJava)
     valintatapajonoOid.foreach(hakijaryhma.setValintatapajonoOid(_))
+    hakukohdeOid.foreach(hakijaryhma.setHakukohdeOid(_))
     hakijaryhmatyyppikoodiUri.foreach(hakijaryhma.setHakijaryhmatyyppikoodiUri(_))
     hakijaryhma
   }
@@ -645,6 +647,7 @@ object SijoitteluajonHakijaryhmaWrapper extends OptionConverter {
       hakijaryhma.isKaytetaanRyhmaanKuuluvia,
       hakijaryhma.getHakemusOid.asScala.toList,
       convert[javaString, String](hakijaryhma.getValintatapajonoOid, string),
+      convert[javaString, String](hakijaryhma.getHakukohdeOid, string),
       convert[javaString, String](hakijaryhma.getHakijaryhmatyyppikoodiUri, string)
     )
   }

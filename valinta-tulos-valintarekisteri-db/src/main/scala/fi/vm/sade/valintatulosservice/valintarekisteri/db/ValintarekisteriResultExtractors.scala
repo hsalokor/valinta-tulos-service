@@ -104,13 +104,13 @@ abstract class ValintarekisteriResultExtractors {
     prioriteetti = r.nextInt,
     oid = r.nextString,
     nimi = r.nextString,
-    hakukohdeOid = r.nextString,
+    hakukohdeOid = r.nextStringOption,
     kiintio = r.nextInt,
     kaytaKaikki = r.nextBoolean,
     sijoitteluajoId = r.nextLong,
     tarkkaKiintio = r.nextBoolean,
     kaytetaanRyhmaanKuuluvia = r.nextBoolean,
-    valintatapajonoOid = r.nextString,
+    valintatapajonoOid = r.nextStringOption,
     hakijaryhmatyyppikoodiUri = r.nextString))
 
   protected implicit val getTilankuvauksetResult = GetResult(r => TilankuvausRecord(
