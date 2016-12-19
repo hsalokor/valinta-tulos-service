@@ -449,13 +449,14 @@ trait ValintarekisteriDbTools extends Specification {
         valintatapajono
       }).seq.asJava
       )
-      /*hakukohde.setHakijaryhmat(
-        (1 to (size/10)).map( i => {
-          val hakijaryhmaOid = hakuOid + "." + i
-          SijoitteluajonHakijaryhmaWrapper(hakijaryhmaOid, "nimi" + i, i, i, false, false, false,
-            hakukohde.getValintatapajonot.get(0).getHakemukset.asScala.map(_.getHakemusOid).toList, Some(hakijaryhmaOid), Some("myUri" + i)).hakijaryhma
+      hakukohde.setHakijaryhmat(
+        (1 to (size/10)).map( j => {
+          val hakijaryhmaOid = hakukohdeOid + "." + j
+          SijoitteluajonHakijaryhmaWrapper(hakijaryhmaOid, "nimi" + j, j, j, false, false, false,
+            hakukohde.getValintatapajonot.get(0).getHakemukset.asScala.map(_.getHakemusOid).toList, None,
+            Some(hakukohdeOid), Some("myUri" + j)).hakijaryhma
         }).asJava
-      )*/
+      )
       hakukohde
     }).seq.asJava
     SijoitteluWrapper(sijoitteluajo.sijoitteluajo, hakukohteet, valinnantulokset.map(_.valintatulos).asJava)
