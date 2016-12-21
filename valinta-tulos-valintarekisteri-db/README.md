@@ -29,3 +29,23 @@ Voit testata vastaako sijoitteludb:n ja valintarekisterin sijoitteludata toisiaa
   * Vaihda testiin oikean ympäristön host 
   * Lisää käyttäjätunnus ja salasana CAS-autentikointia varten ajoparametreihin `-Dcas_user=username -Dcas_password=password`
   * Vaihda myös hakuOid
+
+## ValintarekisteriDb:n jonosijojen, valinnantulosten ja pistetietojen autovacuumin poistaminen
+
+Autovacuumin rajat asetettiin tauluille jotta kyselyt eivät kestäisi minuutteja isojen inserttejen jälkeen.
+Rajat on asetettu migraatiossa db/migration/V34__set_smaller_vacuum_tresholds_for_hakemus_tables.sql.
+
+Rajojen asetuksia voi tutkia kyselyllä:
+```
+select relname, reloptions from pg_class where relname in ('jonosijat', 'valinnantulokset', 'pistetiedot');
+```
+
+Rajat voi poistaa komennoilla:
+```
+alter table jonosijat reset (autovacuum_enabled, autovacuum_vacuum_scale_factor,
+  autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
+alter table valinnantulokset reset (autovacuum_enabled, autovacuum_vacuum_scale_factor, 
+  autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
+alter table pistetiedot reset (autovacuum_enabled, autovacuum_vacuum_scale_factor,
+  autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
+```
