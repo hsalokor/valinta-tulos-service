@@ -636,16 +636,16 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     case _ => {
       val inParameter = valintatapajonoOids.map(oid => s"'$oid'").mkString(",")
       runBlocking(
-        sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
+        sql"""with j as (select * from jonosijat where valintatapajono_oid in (#${inParameter}) and sijoitteluajo_id = ${sijoitteluajoId})
+              select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
               j.tasasijajonosija, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
               j.onko_muuttunut_viime_sijoittelussa, array_to_string(array_agg(hr.oid), ','),
               j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
-              from jonosijat as j
+              from j
               inner join valinnantulokset as v on v.sijoitteluajo_id = j.sijoitteluajo_id
                 and v.hakemus_oid = j.hakemus_oid and v.valintatapajono_oid = j.valintatapajono_oid and v.deleted is null
               left join hakijaryhman_hakemukset as hh on j.hakemus_oid = hh.hakemus_oid
               left join hakijaryhmat as hr on hr.oid = hh.hakijaryhma_oid and hr.sijoitteluajo_id = hh.sijoitteluajo_id
-              where j.valintatapajono_oid in (#${inParameter}) and j.sijoitteluajo_id = ${sijoitteluajoId}
               group by j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
               j.tasasijajonosija, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
               j.onko_muuttunut_viime_sijoittelussa, j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid""".as[HakemusRecord]).toList
@@ -659,16 +659,16 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
               from  hakijaryhman_hakemukset as hh
               inner join hakijaryhmat as hr on hr.oid = hh.hakijaryhma_oid and hr.sijoitteluajo_id = hh.sijoitteluajo_id
               where hr.sijoitteluajo_id = ${sijoitteluajoId}
-              group by hh.hakemus_oid)
+              group by hh.hakemus_oid),
+            j as (select * from jonosijat where sijoitteluajo_id = ${sijoitteluajoId})
             select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
             j.tasasijajonosija, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, sh.hakijaryhmat,
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
-            from jonosijat as j
+            from j
             inner join valinnantulokset as v on v.sijoitteluajo_id = j.sijoitteluajo_id
              and v.hakemus_oid = j.hakemus_oid and v.valintatapajono_oid = j.valintatapajono_oid and v.deleted is null
-            left join sijoitteluajon_hakijaryhmat as sh on sh.hakemus_oid = v.hakemus_oid
-            where j.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakemusRecord]).toList
+            left join sijoitteluajon_hakijaryhmat as sh on sh.hakemus_oid = v.hakemus_oid""".as[HakemusRecord]).toList
   }
 
   override def getSijoitteluajonTilahistoriat(sijoitteluajoId:Long): List[TilaHistoriaRecord] = {
@@ -714,12 +714,13 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   override def getHakutoiveet(hakemusOid: String, sijoitteluajoId: Long): List[HakutoiveRecord] = {
     runBlocking(
-      sql"""select j.hakemus_oid, j.prioriteetti, vt.hakukohde_oid, sh.tarjoaja_oid, vt.tila, sh.kaikki_jonot_sijoiteltu
-            from jonosijat as j
+      sql"""with j as (select * from jonosijat where hakemus_oid = ${hakemusOid} and sijoitteluajo_id = ${sijoitteluajoId})
+            select j.hakemus_oid, j.prioriteetti, vt.hakukohde_oid, sh.tarjoaja_oid, vt.tila, sh.kaikki_jonot_sijoiteltu
+            from j
             left join valinnantulokset as vt on vt.sijoitteluajo_id = j.sijoitteluajo_id
               and vt.hakemus_oid = j.hakemus_oid and vt.valintatapajono_oid = j.valintatapajono_oid
-            left join sijoitteluajon_hakukohteet as sh on sh.sijoitteluajo_id = vt.sijoitteluajo_id and sh.hakukohde_oid = vt.hakukohde_oid
-            where j.hakemus_oid = ${hakemusOid} and j.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakutoiveRecord]).toList
+            left join sijoitteluajon_hakukohteet as sh on sh.sijoitteluajo_id = vt.sijoitteluajo_id
+              and sh.hakukohde_oid = vt.hakukohde_oid""".as[HakutoiveRecord]).toList
   }
 
   override def getPistetiedot(hakemusOid:String, sijoitteluajoId:Long): List[PistetietoRecord] = {
