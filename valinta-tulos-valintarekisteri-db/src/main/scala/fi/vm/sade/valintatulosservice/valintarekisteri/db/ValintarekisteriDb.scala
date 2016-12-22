@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
 import java.sql.{PreparedStatement, Timestamp, Types}
+import java.time.Instant
 import java.util.{Date, UUID}
 import java.util.concurrent.TimeUnit
 
@@ -651,6 +652,33 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
               j.tasasijajonosija, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
               j.onko_muuttunut_viime_sijoittelussa, j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid""".as[HakemusRecord]).toList
     }
+  }
+
+  override def getValinnanTuloksetForValintatapajono(valintatapajonoOid: String): DBIO[List[(Instant, ValinnanTulos)]] = {
+    sql"""select valinnantulokset.timestamp,
+                 newest_vastaanotot.timestamp,
+                 ilmoittautumiset.timestamp,
+                 sijoitteluajot.haku_oid,
+                 valinnantulokset.hakukohde_oid,
+                 valinnantulokset.valintatapajono_oid,
+                 valinnantulokset.hakemus_oid,
+                 valinnantulokset.tila,
+                 valinnantulokset.ehdollisesti_hyvaksyttavissa,
+                 valinnantulokset.julkaistavissa,
+                 newest_vastaanotot.action,
+                 ilmoittautumiset.tila
+          from valinnantulokset
+          join sijoitteluajot on sijoitteluajot.id = valinnantulokset.sijoitteluajo_id
+          join jonosijat on jonosijat.sijoitteluajo_id = valinnantulokset.sijoitteluajo_id
+                            and jonosijat.valintatapajono_oid = valinnantulokset.valintatapajono_oid
+                            and jonosijat.hakemus_oid = valinnantulokset.hakemus_oid
+          left join newest_vastaanotot on newest_vastaanotot.hakukohde = valinnantulokset.hakukohde_oid
+                                          and newest_vastaanotot.henkilo = jonosijat.hakija_oid
+          left join ilmoittautumiset on ilmoittautumiset.hakukohde = valinnantulokset.hakukohde_oid
+                                        and ilmoittautumiset.henkilo = jonosijat.hakija_oid
+                                        and ilmoittautumiset.deleted is null
+          where valinnantulokset.valintatapajono_oid = ${valintatapajonoOid}
+                and valinnantulokset.deleted is null""".as[(Instant, ValinnanTulos)].map(_.toList)
   }
 
   override def getHakemukset(sijoitteluajoId:Long): List[HakemusRecord] = {

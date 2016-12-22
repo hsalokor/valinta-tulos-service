@@ -1,6 +1,9 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.db
 
+import java.time.Instant
+
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
+import slick.dbio.DBIO
 import slick.driver.PostgresDriver.backend.Database
 
 trait SijoitteluRepository {
@@ -11,6 +14,7 @@ trait SijoitteluRepository {
   def getSijoitteluajoHakukohteet(sijoitteluajoId:Long): List[SijoittelunHakukohdeRecord]
   def getValintatapajonot(sijoitteluajoId:Long): List[ValintatapajonoRecord]
   def getHakemuksetForValintatapajonos(sijoitteluajoId:Long, valintatapajonoOids:List[String]): List[HakemusRecord]
+  def getValinnanTuloksetForValintatapajono(valintatapajonoOid: String): DBIO[List[(Instant, ValinnanTulos)]]
   def getHakemukset(sijoitteluajoId:Long): List[HakemusRecord]
   def getSijoitteluajonTilahistoriat(sijoitteluajoId:Long): List[TilaHistoriaRecord]
   def getValinnantilanKuvaukset(tilankuvausHashes:List[Int]): Map[Int,TilankuvausRecord]
