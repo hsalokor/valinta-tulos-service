@@ -659,16 +659,17 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
               from  hakijaryhman_hakemukset as hh
               inner join hakijaryhmat as hr on hr.oid = hh.hakijaryhma_oid and hr.sijoitteluajo_id = hh.sijoitteluajo_id
               where hr.sijoitteluajo_id = ${sijoitteluajoId}
-              group by hh.hakemus_oid),
-            j as (select * from jonosijat where sijoitteluajo_id = ${sijoitteluajoId})
+              group by hh.hakemus_oid)
             select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
             j.tasasijajonosija, v.tila, v.tilankuvaus_hash, v.tarkenteen_lisatieto, j.hyvaksytty_harkinnanvaraisesti, j.varasijan_numero,
             j.onko_muuttunut_viime_sijoittelussa, sh.hakijaryhmat,
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
-            from j
-            inner join valinnantulokset as v on v.sijoitteluajo_id = j.sijoitteluajo_id
-             and v.hakemus_oid = j.hakemus_oid and v.valintatapajono_oid = j.valintatapajono_oid and v.deleted is null
-            left join sijoitteluajon_hakijaryhmat as sh on sh.hakemus_oid = v.hakemus_oid""".as[HakemusRecord]).toList
+            from jonosijat as j
+            join valinnantulokset as v
+            on v.valintatapajono_oid = j.valintatapajono_oid and v.hakemus_oid = j.hakemus_oid
+              and v.sijoitteluajo_id = j.sijoitteluajo_id and v.hakukohde_oid = j.hakukohde_oid
+            left join sijoitteluajon_hakijaryhmat as sh on sh.hakemus_oid = v.hakemus_oid
+            where j.sijoitteluajo_id = ${sijoitteluajoId} and v.deleted is null;""".as[HakemusRecord]).toList
   }
 
   override def getSijoitteluajonTilahistoriat(sijoitteluajoId:Long): List[TilaHistoriaRecord] = {
