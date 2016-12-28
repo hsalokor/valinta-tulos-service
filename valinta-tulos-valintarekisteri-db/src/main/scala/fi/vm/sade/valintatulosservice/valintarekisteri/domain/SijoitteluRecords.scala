@@ -30,7 +30,7 @@ case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String,
 case class HakemusRecord(hakijaOid:Option[String], hakemusOid:String, pisteet:Option[BigDecimal], etunimi:Option[String], sukunimi:Option[String],
                          prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila, tilankuvausHash:Int,
                          tarkenteenLisatieto:Option[String], hyvaksyttyHarkinnanvaraisesti:Boolean, varasijaNumero:Option[Int],
-                         onkoMuuttunutviimesijoittelusta:Boolean, hakijaryhmaOids:Set[String],
+                         onkoMuuttunutviimesijoittelusta:Boolean,
                          siirtynytToisestaValintatapaJonosta:Boolean, valintatapajonoOid:String)
 
 case class TilaHistoriaRecord(valintatapajonoOid:String, hakemusOid:String, tila:Valinnantila, luotu:Date)
@@ -129,7 +129,11 @@ abstract class SijoitteluRecordToDTO {
     jonoDTO
   }
 
-  def hakemusRecordToDTO(hakemus:HakemusRecord, tilanKuvaukset:Map[String,String], tilahistoria:List[TilaHistoriaDTO], pistetiedot:List[PistetietoDTO]): HakemusDTO = {
+  def hakemusRecordToDTO(hakemus:HakemusRecord,
+                         hakijaryhmaOids:Set[String],
+                         tilanKuvaukset:Map[String,String],
+                         tilahistoria:List[TilaHistoriaDTO],
+                         pistetiedot:List[PistetietoDTO]): HakemusDTO = {
     val hakemusDTO = new HakemusDTO
     hakemus.hakijaOid.foreach(hakemusDTO.setHakijaOid(_))
     hakemusDTO.setHakemusOid(hakemus.hakemusOid)
@@ -144,7 +148,7 @@ abstract class SijoitteluRecordToDTO {
     hakemusDTO.setHyvaksyttyHarkinnanvaraisesti(hakemus.hyvaksyttyHarkinnanvaraisesti)
     hakemus.varasijaNumero.foreach(hakemusDTO.setVarasijanNumero(_))
     hakemusDTO.setOnkoMuuttunutViimeSijoittelussa(hakemus.onkoMuuttunutviimesijoittelusta)
-    hakemusDTO.setHyvaksyttyHakijaryhmista(hakemus.hakijaryhmaOids.asJava)
+    hakemusDTO.setHyvaksyttyHakijaryhmista(hakijaryhmaOids.asJava)
     hakemusDTO.setSiirtynytToisestaValintatapajonosta(hakemus.siirtynytToisestaValintatapaJonosta)
     hakemusDTO.setValintatapajonoOid(hakemus.valintatapajonoOid)
     hakemusDTO.setTilaHistoria(tilahistoria.asJava)

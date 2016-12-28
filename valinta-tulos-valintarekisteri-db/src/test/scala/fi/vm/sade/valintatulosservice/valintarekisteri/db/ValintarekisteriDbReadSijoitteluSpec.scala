@@ -94,23 +94,6 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
     }
   }
 
-  private implicit val getHakemusResult = GetResult(r => HakemusRecord(r.nextStringOption, r.nextString, r.nextBigDecimalOption,
-    r.nextStringOption, r.nextStringOption, r.nextInt, r.nextInt, r.nextInt, Valinnantila(r.nextString), r.nextInt,
-    r.nextStringOption(), r.nextBoolean, r.nextIntOption, r.nextBoolean, r.nextStringOption().getOrElse("").split(",").toSet,
-    r.nextBoolean, r.nextString))
-
-  def getHakemus(hakemusOid: String): Option[HakemusRecord] = {
-    singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select j.hakija_oid, j.hakemus_oid, j.pisteet, j.etunimi, j.sukunimi, j.prioriteetti, j.jonosija,
-            j.tasasijajonosija, v.tila, v.tilankuvaus_hash, v.kuvauksen_lisatieto, j.hyvaksytty_harkinnanvaraisesti,
-            j.varasijan_numero, j.onko_muuttunut_viime_sijoittelussa, hh.hyvaksytty_hakijaryhmasta, hh.hakijaryhma_oid,
-            j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
-            from jonosijat as j
-            inner join valinnantulokset as v on v.jonosija_id = j.id and v.hakemus_oid = j.hakemus_oid
-            inner join hakijaryhman_hakemukset as hh on j.hakemus_oid = hh.hakemus_oid
-            where v.hakemus_oid = ${hakemusOid} and deleted is null""".as[HakemusRecord]).headOption
-  }
-
   case class HakemusInfoRecord(selite:String, ilmoittaja:String, tilanViimeisinMuutos:Timestamp,
                                previousCheck:Timestamp, sent:Timestamp, done:Timestamp, message:String)
 

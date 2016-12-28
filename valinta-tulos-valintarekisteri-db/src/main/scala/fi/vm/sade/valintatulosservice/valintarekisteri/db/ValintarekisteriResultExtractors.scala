@@ -90,7 +90,6 @@ abstract class ValintarekisteriResultExtractors {
     hyvaksyttyHarkinnanvaraisesti = r.nextBoolean,
     varasijaNumero = r.nextIntOption,
     onkoMuuttunutviimesijoittelusta = r.nextBoolean,
-    hakijaryhmaOids = hakijaryhmaOidsToSet(r.nextStringOption),
     siirtynytToisestaValintatapaJonosta = r.nextBoolean,
     valintatapajonoOid = r.nextString))
 
@@ -120,11 +119,4 @@ abstract class ValintarekisteriResultExtractors {
     textSv = r.nextStringOption,
     textEn = r.nextStringOption
   ))
-
-  protected def hakijaryhmaOidsToSet(hakijaryhmaOids:Option[String]): Set[String] = {
-    hakijaryhmaOids match {
-      case Some(oids) if !oids.isEmpty => oids.split(",").toSet
-      case _ => Set()
-    }
-  }
 }

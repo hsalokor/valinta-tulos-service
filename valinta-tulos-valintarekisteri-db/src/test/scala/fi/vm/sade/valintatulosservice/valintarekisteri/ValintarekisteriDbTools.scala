@@ -176,7 +176,7 @@ trait ValintarekisteriDbTools extends Specification {
           dhakemus.getVarasijanNumero mustEqual whakemus.getVarasijanNumero
           dhakemus.getValintatapajonoOid mustEqual wvalintatapajono.getOid
           dhakemus.isOnkoMuuttunutViimeSijoittelussa mustEqual whakemus.isOnkoMuuttunutViimeSijoittelussa
-          dhakemus.getHyvaksyttyHakijaryhmista mustEqual whakemus.getHyvaksyttyHakijaryhmista
+          dhakemus.getHyvaksyttyHakijaryhmista.asScala.diff(whakemus.getHyvaksyttyHakijaryhmista.asScala) mustEqual List()
           dhakemus.getSiirtynytToisestaValintatapajonosta mustEqual whakemus.getSiirtynytToisestaValintatapajonosta
           //TODO: ?? dhakemus.getTodellinenJonosija mustEqual whakemus.getJonosija
 
@@ -457,6 +457,8 @@ trait ValintarekisteriDbTools extends Specification {
             Some(hakukohdeOid), Some("myUri" + j)).hakijaryhma
         }).asJava
       )
+      val hakijaryhmaOids = hakukohde.getHakijaryhmat.asScala.map(_.getOid).toSet.asJava
+      hakukohde.getValintatapajonot.get(0).getHakemukset().asScala.foreach(h => h.setHyvaksyttyHakijaryhmista(hakijaryhmaOids))
       hakukohde
     }).seq.asJava
     SijoitteluWrapper(sijoitteluajo.sijoitteluajo, hakukohteet, valinnantulokset.map(_.valintatulos).asJava)

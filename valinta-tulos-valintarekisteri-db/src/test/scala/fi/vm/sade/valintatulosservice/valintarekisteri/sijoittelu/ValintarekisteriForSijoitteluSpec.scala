@@ -139,6 +139,15 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
     tallennettuTilahistoria.get(0).getLuotu.getTime mustEqual sijoitteluajo1Ajat._1
     tallennettuTilahistoria.get(0).getTila mustEqual HakemuksenTila.HYVAKSYTTY.toString
   }
+  "Reading huge sijoittelu is not timing out" in pending("Use this test only locally for performance tuning") {
+    val wrapper = time("create test data") { createHugeSijoittelu(12345l, "11.22.33.44.55.66", 40) }
+    time("store data") {singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)}
+    compareSijoitteluWrapperToDTO(
+      wrapper,
+      time("Get sijoitteluajo") { valintarekisteri.getSijoitteluajo("11.22.33.44.55.66", "latest") }
+    )
+    true must beTrue
+  }
 
   override protected def before: Unit = {
     deleteAll()

@@ -84,6 +84,7 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
   private def getSijoitteluajonHakemukset(sijoitteluajoId:Long) = {
     val sijoitteluajonHakemukset = sijoitteluRepository.getHakemukset(sijoitteluajoId)
     val tilankuvaukset = sijoitteluRepository.getValinnantilanKuvaukset(sijoitteluajonHakemukset.map(_.tilankuvausHash).distinct)
+    val hakijaryhmat = sijoitteluRepository.getHakemustenHakijaryhmat(sijoitteluajoId)
 
     val tilahistoriat = sijoitteluRepository.getSijoitteluajonTilahistoriat(sijoitteluajoId).groupBy(
       tilahistoria => (tilahistoria.hakemusOid, tilahistoria.valintatapajonoOid)
@@ -101,7 +102,7 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
         case Some(kuvaukset:TilankuvausRecord) => kuvaukset.tilankuvaukset
         case _ => Map()
       }
-      hakemusRecordToDTO(hakemus, hakemuksenTilankuvaukset,
+      hakemusRecordToDTO(hakemus, hakijaryhmat.getOrElse(hakemus.hakemusOid, Set()), hakemuksenTilankuvaukset,
         tilahistoriat.get((hakemus.hakemusOid, hakemus.valintatapajonoOid)).getOrElse(List()),
         pistetiedot.get((hakemus.hakemusOid, hakemus.valintatapajonoOid)).getOrElse(List()))
     })
