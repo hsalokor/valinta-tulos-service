@@ -138,6 +138,20 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
     tallennettuTilahistoria.get(1).getTila mustEqual HakemuksenTila.VARALLA.toString
     tallennettuTilahistoria.get(0).getLuotu.getTime mustEqual sijoitteluajo1Ajat._1
     tallennettuTilahistoria.get(0).getTila mustEqual HakemuksenTila.HYVAKSYTTY.toString
+
+    val aikaisempiSijoitteluajo = valintarekisteri.getSijoitteluajo("1.2.246.562.29.75203638285", "333456")
+
+    val aikaisemminTallennetunTilahistoria = aikaisempiSijoitteluajo.getHakukohteet.asScala.find(_.getOid.equals(hakukohdeOid)).get
+      .getValintatapajonot.asScala.find(_.getOid.equals(valintatapajonoOid)).get
+      .getHakemukset.asScala.find(_.getHakemusOid.equals(hakemusOid)).get.getTilaHistoria
+
+    aikaisemminTallennetunTilahistoria.size mustEqual 3
+    aikaisemminTallennetunTilahistoria.get(2).getLuotu.getTime mustEqual sijoitteluajo3Ajat._1
+    aikaisemminTallennetunTilahistoria.get(2).getTila mustEqual HakemuksenTila.VARASIJALTA_HYVAKSYTTY.toString
+    aikaisemminTallennetunTilahistoria.get(1).getLuotu.getTime mustEqual sijoitteluajo2Ajat._1
+    aikaisemminTallennetunTilahistoria.get(1).getTila mustEqual HakemuksenTila.VARALLA.toString
+    aikaisemminTallennetunTilahistoria.get(0).getLuotu.getTime mustEqual sijoitteluajo1Ajat._1
+    aikaisemminTallennetunTilahistoria.get(0).getTila mustEqual HakemuksenTila.HYVAKSYTTY.toString
   }
   "Reading huge sijoittelu is not timing out" in pending("Use this test only locally for performance tuning") {
     val wrapper = time("create test data") { createHugeSijoittelu(12345l, "11.22.33.44.55.66", 40) }
