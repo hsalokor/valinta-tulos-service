@@ -22,12 +22,12 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
 
   "ValintarekisteriDb" should {
     "get hakija" in {
-      val res = singleConnectionValintarekisteriDb.getHakija("1.2.246.562.11.00006926939", 1476936450191L).get
+      val res = singleConnectionValintarekisteriDb.getHakemuksenHakija("1.2.246.562.11.00006926939", 1476936450191L).get
       res.etunimi mustEqual "Semi Testi"
     }
 
     "get hakijan hakutoiveet" in {
-      val res = singleConnectionValintarekisteriDb.getHakutoiveet("1.2.246.562.11.00006926939", 1476936450191L)
+      val res = singleConnectionValintarekisteriDb.getHakemuksenHakutoiveet("1.2.246.562.11.00006926939", 1476936450191L)
       res.size mustEqual 1
       res.head.hakutoive mustEqual 6
       res.head.valintatuloksenTila mustEqual "Hyvaksytty"
@@ -35,7 +35,7 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
     }
 
     "get hakijan pistetiedot" in {
-      val res = singleConnectionValintarekisteriDb.getPistetiedot("1.2.246.562.11.00006926939", 1476936450191L)
+      val res = singleConnectionValintarekisteriDb.getHakemuksenPistetiedot("1.2.246.562.11.00006926939", 1476936450191L)
       res.size mustEqual 1
       res.head.tunniste mustEqual "85e2d263-d57d-46e3-3069-651c733c64d8"
     }
@@ -45,32 +45,27 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
     }
 
     "get sijoitteluajo" in {
-      singleConnectionValintarekisteriDb.getSijoitteluajo("1.2.246.562.29.75203638285", 1476936450191L).get.sijoitteluajoId mustEqual 1476936450191L
+      singleConnectionValintarekisteriDb.getSijoitteluajo(1476936450191L).get.sijoitteluajoId mustEqual 1476936450191L
     }
 
     "get sijoitteluajon hakukohteet" in {
-      val res = singleConnectionValintarekisteriDb.getSijoitteluajoHakukohteet(1476936450191L)
+      val res = singleConnectionValintarekisteriDb.getSijoitteluajonHakukohteet(1476936450191L)
       res.map(_.oid).diff(List("1.2.246.562.20.26643418986", "1.2.246.562.20.56217166919", "1.2.246.562.20.69766139963")) mustEqual List()
     }
 
     "get valintatapajonot for sijoitteluajo" in {
-      val res = singleConnectionValintarekisteriDb.getValintatapajonot(1476936450191L)
+      val res = singleConnectionValintarekisteriDb.getSijoitteluajonValintatapajonot(1476936450191L)
       res.map(r => r.oid).diff(List("14538080612623056182813241345174", "14539780970882907815262745035155", "14525090029451152170747426429137")) mustEqual List()
     }
 
-    "get hakemukset for valintatapajono" in {
-      val res = singleConnectionValintarekisteriDb.getHakemuksetForValintatapajonos(1476936450191L, List("14538080612623056182813241345174", "14539780970882907815262745035155", "14525090029451152170747426429137"))
-      res.size mustEqual 163
-    }
-
     "get hakijaryhmat" in {
-      singleConnectionValintarekisteriDb.getHakijaryhmat(1476936450191L).size mustEqual 5
-      singleConnectionValintarekisteriDb.getHakijaryhmat(1476936450191L).last.oid mustEqual "14761056762354411505847130564606"
+      singleConnectionValintarekisteriDb.getSijoitteluajonHakijaryhmat(1476936450191L).size mustEqual 5
+      singleConnectionValintarekisteriDb.getSijoitteluajonHakijaryhmat(1476936450191L).last.oid mustEqual "14761056762354411505847130564606"
     }
 
     "get hakijaryhman hakemukset" in {
-      val hakijaryhmaOid = singleConnectionValintarekisteriDb.getHakijaryhmat(1476936450191L).last.oid
-      singleConnectionValintarekisteriDb.getHakijaryhmanHakemukset(hakijaryhmaOid, 1476936450191L).size mustEqual 14
+      val hakijaryhmaOid = singleConnectionValintarekisteriDb.getSijoitteluajonHakijaryhmat(1476936450191L).last.oid
+      singleConnectionValintarekisteriDb.getSijoitteluajonHakijaryhmanHakemukset(hakijaryhmaOid, 1476936450191L).size mustEqual 14
     }
 
     "get hakemuksen ilmoittaja, selite and viimeksiMuokattu" in {

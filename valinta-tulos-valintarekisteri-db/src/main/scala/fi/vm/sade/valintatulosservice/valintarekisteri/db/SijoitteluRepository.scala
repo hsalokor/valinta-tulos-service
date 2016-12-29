@@ -6,19 +6,22 @@ import slick.driver.PostgresDriver.backend.Database
 trait SijoitteluRepository {
   val db: Database
   def storeSijoittelu(sijoittelu:SijoitteluWrapper)
+
   def getLatestSijoitteluajoId(hakuOid:String): Option[Long]
-  def getSijoitteluajo(hakuOid:String, sijoitteluajoId:Long): Option[SijoitteluajoRecord]
-  def getSijoitteluajoHakukohteet(sijoitteluajoId:Long): List[SijoittelunHakukohdeRecord]
-  def getValintatapajonot(sijoitteluajoId:Long): List[ValintatapajonoRecord]
-  def getHakemuksetForValintatapajonos(sijoitteluajoId:Long, valintatapajonoOids:List[String]): List[HakemusRecord]
-  def getHakemukset(sijoitteluajoId:Long): List[HakemusRecord]
-  def getHakemustenHakijaryhmat(sijoitteluajoId:Long): Map[String,Set[String]]
+  def getSijoitteluajo(sijoitteluajoId:Long): Option[SijoitteluajoRecord]
+  def getSijoitteluajonHakukohteet(sijoitteluajoId:Long): List[SijoittelunHakukohdeRecord]
+  def getSijoitteluajonValintatapajonot(sijoitteluajoId:Long): List[ValintatapajonoRecord]
+  def getSijoitteluajonHakemukset(sijoitteluajoId:Long): List[HakemusRecord]
+  def getSijoitteluajonHakemustenHakijaryhmat(sijoitteluajoId:Long): Map[String,Set[String]]
   def getSijoitteluajonTilahistoriat(sijoitteluajoId:Long): List[TilaHistoriaRecord]
-  def getValinnantilanKuvaukset(tilankuvausHashes:List[Int]): Map[Int,TilankuvausRecord]
-  def getHakijaryhmat(sijoitteluajoId:Long): List[HakijaryhmaRecord]
-  def getHakijaryhmanHakemukset(hakijaryhmaOid:String, sijoitteluajoId:Long): List[String]
-  def getHakija(hakemusOid:String, sijoitteluajoId:Long): Option[HakijaRecord]
-  def getHakutoiveet(hakemusOid:String, sijoitteluajoId:Long): List[HakutoiveRecord]
-  def getPistetiedot(hakemusOids:String, sijoitteluajoId:Long): List[PistetietoRecord]
+  def getSijoitteluajonHakijaryhmat(sijoitteluajoId:Long): List[HakijaryhmaRecord]
+  def getSijoitteluajonHakijaryhmanHakemukset(hakijaryhmaOid:String, sijoitteluajoId:Long): List[String]
   def getSijoitteluajonPistetiedot(sijoitteluajoId:Long): List[PistetietoRecord]
+
+  def getValinnantilanKuvaukset(tilankuvausHashes:List[Int]): Map[Int,TilankuvausRecord]
+
+  def getHakemuksenHakija(hakemusOid:String, sijoitteluajoId:Long): Option[HakijaRecord]
+  def getHakemuksenHakutoiveet(hakemusOid:String, sijoitteluajoId:Long): List[HakutoiveRecord]
+  def getHakemuksenPistetiedot(hakemusOid:String, sijoitteluajoId:Long): List[PistetietoRecord]
+
 }
