@@ -729,20 +729,20 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   override def getPistetiedot(hakemusOid:String, sijoitteluajoId:Long): List[PistetietoRecord] = {
     runBlocking(
       sql"""
-         with j as (select * from jonosijat where sijoitteluajo_id = $sijoitteluajoId and hakemus_oid = $hakemusOid)
          select j.valintatapajono_oid, j.hakemus_oid, p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen
-         from j
-         inner join pistetiedot as p on j.sijoitteluajo_id = p.sijoitteluajo_id and j.valintatapajono_oid = p.valintatapajono_oid
-          and j.hakemus_oid = p.hakemus_oid""".as[PistetietoRecord]).toList
+         from pistetiedot p
+         inner join jonosijat j on j.sijoitteluajo_id = p.sijoitteluajo_id
+         and j.valintatapajono_oid = p.valintatapajono_oid and j.hakemus_oid = p.hakemus_oid
+         where j.sijoitteluajo_id = ${$sijoitteluajoId} and j.hakemus_oid = ${$hakemusOid}""".as[PistetietoRecord]).toList
   }
 
   override def getSijoitteluajonPistetiedot(sijoitteluajoId:Long): List[PistetietoRecord] = {
     runBlocking(
       sql"""
-         with j as (select * from jonosijat where sijoitteluajo_id = $sijoitteluajoId)
          select j.valintatapajono_oid, j.hakemus_oid, p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen
-         from j
-         inner join pistetiedot as p on j.sijoitteluajo_id = p.sijoitteluajo_id and j.valintatapajono_oid = p.valintatapajono_oid
-          and j.hakemus_oid = p.hakemus_oid""".as[PistetietoRecord]).toList
+           from jonosijat j
+           inner join pistetiedot p on j.sijoitteluajo_id = p.sijoitteluajo_id
+           and j.valintatapajono_oid = p.valintatapajono_oid and j.hakemus_oid = p.hakemus_oid
+           where j.sijoitteluajo_id = ${sijoitteluajoId}""".as[PistetietoRecord]).toList
   }
 }
