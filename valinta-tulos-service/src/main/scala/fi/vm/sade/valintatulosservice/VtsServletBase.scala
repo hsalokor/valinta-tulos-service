@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice
 import java.text.ParseException
 
 import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.json.JsonFormats.writeJavaObjectToOutputStream
 import fi.vm.sade.valintatulosservice.json.{JsonFormats, StreamingFailureException}
 import org.json4s.MappingException
 import org.scalatra.json.JacksonJsonSupport
@@ -78,4 +79,9 @@ trait VtsServletBase extends ScalatraServlet with Logging with JacksonJsonSuppor
     }
   }
 
+  def streamOk(x: Object):Unit = {
+    response.setStatus(200)
+    response.setContentType("application/json;charset=UTF-8")
+    writeJavaObjectToOutputStream(x, response.getOutputStream)
+  }
 }

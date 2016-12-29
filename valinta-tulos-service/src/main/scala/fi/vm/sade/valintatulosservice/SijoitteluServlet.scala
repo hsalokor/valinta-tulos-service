@@ -45,7 +45,7 @@ class SijoitteluServlet(sijoitteluService: ValintarekisteriService)(implicit val
   get("/:hakuOid/sijoitteluajo/:sijoitteluajoId", operation(getSijoitteluajoSwagger)) {
     val hakuOid = params("hakuOid")
     val sijoitteluajoId = params("sijoitteluajoId")
-    Ok(javaObjectToJsonString(sijoitteluService.getSijoitteluajo(hakuOid, sijoitteluajoId)))
+    streamOk(sijoitteluService.getSijoitteluajo(hakuOid, sijoitteluajoId))
   }
 
   lazy val getHakemusetBySijoitteluajoSwagger: OperationBuilder = (apiOperation[Unit]("getHakemusetBySijoitteluajoSwagger")

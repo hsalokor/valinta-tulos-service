@@ -19,6 +19,8 @@ object JsonFormats {
   }
 
   def javaObjectToJsonString(x: Object): String = new ObjectMapper().writeValueAsString(x)
+
+  def writeJavaObjectToOutputStream(x: Object, s:java.io.OutputStream): Unit = new ObjectMapper().writeValue(s, x)
 }
 
 trait JsonFormats {
