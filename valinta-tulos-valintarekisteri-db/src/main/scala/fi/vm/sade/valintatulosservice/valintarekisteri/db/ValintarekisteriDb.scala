@@ -666,8 +666,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       sql"""select t.valintatapajono_oid, t.hakemus_oid, t.tila, t.tilan_viimeisin_muutos as luotu
             from valinnantulokset t
             inner join valintatapajonot j on t.valintatapajono_oid = j.oid and j.sijoitteluajo_id = ${sijoitteluajoId}
-            where t.sijoitteluajo_id <= ${sijoitteluajoId}
-            group by t.valintatapajono_oid, t.hakemus_oid, t.tila, t.tilan_viimeisin_muutos""".as[TilaHistoriaRecord]).toList
+            where t.sijoitteluajo_id <= ${sijoitteluajoId}""".as[TilaHistoriaRecord]).distinct.toList
   }
 
   override def getValinnantilanKuvaukset(tilankuvausHashes:List[Int]): Map[Int,TilankuvausRecord] = tilankuvausHashes match {
