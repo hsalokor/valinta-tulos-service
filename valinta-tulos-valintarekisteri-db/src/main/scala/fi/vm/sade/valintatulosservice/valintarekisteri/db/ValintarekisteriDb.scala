@@ -352,7 +352,16 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       DBIO.sequence(sijoittelu.hakukohteet.map(hakukohde =>
         storeSijoittelunHakukohde(sijoittelu.sijoitteluajo.getSijoitteluajoId, hakukohde,
           sijoittelu.valintatulokset.filter(vt => vt.getHakukohdeOid == hakukohde.getOid))
-      ))).transactionally), Duration(600, TimeUnit.SECONDS) /* Longer timeout for saving entire sijoittelu in a transaction. */)
+      ))).transactionally),
+      Duration(600, TimeUnit.SECONDS) /* Longer timeout for saving entire sijoittelu in a transaction. */)
+      analyzeLargeTables()
+  }
+
+  private def analyzeLargeTables() = {
+    runBlocking(DBIO.seq(
+      sqlu"""analyze jonosijat""",
+      sqlu"""analyze valinnantulokset""",
+      sqlu"""analyze pistetiedot"""))
   }
 
   import scala.collection.JavaConverters._
@@ -641,7 +650,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
             join valinnantulokset as v
             on v.valintatapajono_oid = j.valintatapajono_oid and v.hakemus_oid = j.hakemus_oid
               and v.sijoitteluajo_id = j.sijoitteluajo_id and v.deleted is null
-            where j.sijoitteluajo_id = ${sijoitteluajoId};""".as[HakemusRecord]).toList
+            where j.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakemusRecord]).toList
   }
 
   def getSijoitteluajonHakemustenHakijaryhmat(sijoitteluajoId:Long): Map[String,Set[String]] = {
