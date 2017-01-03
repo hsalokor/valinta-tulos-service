@@ -649,7 +649,8 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
             from jonosijat as j
             join valinnantulokset as v
             on v.valintatapajono_oid = j.valintatapajono_oid and v.hakemus_oid = j.hakemus_oid
-              and v.sijoitteluajo_id = j.sijoitteluajo_id and v.deleted is null
+              and v.sijoitteluajo_id = j.sijoitteluajo_id and v.hakukohde_oid = j.hakukohde_oid
+              and v.deleted is null
             where j.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakemusRecord]).toList
   }
 
