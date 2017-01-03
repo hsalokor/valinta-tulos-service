@@ -664,10 +664,10 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   override def getSijoitteluajonTilahistoriat(sijoitteluajoId:Long): List[TilaHistoriaRecord] = {
     runBlocking(
-      sql"""select t.valintatapajono_oid, t.hakemus_oid, t.tila, t.tilan_viimeisin_muutos as luotu
+      sql"""select distinct t.valintatapajono_oid, t.hakemus_oid, t.tila, t.tilan_viimeisin_muutos as luotu
             from valinnantulokset t
             inner join valintatapajonot j on t.valintatapajono_oid = j.oid and j.sijoitteluajo_id = ${sijoitteluajoId}
-            where t.sijoitteluajo_id <= ${sijoitteluajoId}""".as[TilaHistoriaRecord]).distinct.toList
+            where t.sijoitteluajo_id <= ${sijoitteluajoId}""".as[TilaHistoriaRecord]).toList
   }
 
   override def getValinnantilanKuvaukset(tilankuvausHashes:List[Int]): Map[Int,TilankuvausRecord] = tilankuvausHashes match {
