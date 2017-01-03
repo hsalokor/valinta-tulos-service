@@ -53,11 +53,6 @@ class ValintarekisteriDbSaveSijoitteluSpec extends Specification with ITSetup wi
       assertTilanViimeisinMuutos("1.2.246.562.11.00006465296", dateFormat.parse("2016-10-17T09:08:11.967+0000"))
       assertTilanViimeisinMuutos("1.2.246.562.11.00004685599", dateFormat.parse("2016-10-12T04:11:20.526+0000"))
     }
-    "store huge sijoittelu fast" in pending("Use this test only locally for performance tuning") {
-      val wrapper = time("create test data") { createHugeSijoittelu(12345l, "11.22.33.44.55.66", 50) }
-      time("store data") {singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)}
-      true must beTrue
-    }
   }
 
   override protected def before: Unit = {
