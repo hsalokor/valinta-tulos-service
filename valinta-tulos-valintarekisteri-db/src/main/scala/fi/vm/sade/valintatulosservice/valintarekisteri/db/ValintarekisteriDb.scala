@@ -725,12 +725,24 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
   override def getSijoitteluajonPistetiedot(sijoitteluajoId:Long): List[PistetietoRecord] = {
-    runBlocking(
-      sql"""
-         select j.valintatapajono_oid, j.hakemus_oid, p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen
-           from jonosijat j
-           inner join pistetiedot p on j.sijoitteluajo_id = p.sijoitteluajo_id
-           and j.valintatapajono_oid = p.valintatapajono_oid and j.hakemus_oid = p.hakemus_oid
-           where j.sijoitteluajo_id = ${sijoitteluajoId}""".as[PistetietoRecord]).toList
+    runBlocking(sql"""
+       select valintatapajono_oid, hakemus_oid, tunniste, arvo, laskennallinen_arvo, osallistuminen
+       from  pistetiedot
+       where sijoitteluajo_id = ${sijoitteluajoId}""".as[PistetietoRecord]).toList
+  }
+
+  override def getSijoitteluajonPistetiedotInChunks(sijoitteluajoId:Long, chunkSize:Int = 500000): List[PistetietoRecord] = {
+    def readPistetiedot(offset:Int = 0): List[PistetietoRecord] = {
+      runBlocking(sql"""
+         select valintatapajono_oid, hakemus_oid, tunniste, arvo, laskennallinen_arvo, osallistuminen
+           from  pistetiedot
+           where sijoitteluajo_id = ${sijoitteluajoId}
+           order by valintatapajono_oid, hakemus_oid
+           limit ${chunkSize} offset ${offset}""".as[PistetietoRecord]).toList match {
+        case result if result.size == chunkSize => result ++ readPistetiedot(offset + chunkSize)
+        case result => result
+      }
+    }
+    readPistetiedot()
   }
 }

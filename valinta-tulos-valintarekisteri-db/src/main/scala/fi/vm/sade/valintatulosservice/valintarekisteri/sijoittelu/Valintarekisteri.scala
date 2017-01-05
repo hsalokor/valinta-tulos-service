@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu
 import java.util
 
 import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatulos}
-import fi.vm.sade.sijoittelu.tulos.dto.SijoitteluajoDTO
+import fi.vm.sade.sijoittelu.tulos.dto.{PistetietoDTO, SijoitteluajoDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.ValintarekisteriAppConfig
@@ -90,7 +90,7 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
       tilahistoria => (tilahistoria.hakemusOid, tilahistoria.valintatapajonoOid)
     ).mapValues(_.map(tilaHistoriaRecordToDTO).sortBy(_.getLuotu.getTime))
 
-    val pistetiedot = sijoitteluRepository.getSijoitteluajonPistetiedot(sijoitteluajoId).groupBy(
+    val pistetiedot = sijoitteluRepository.getSijoitteluajonPistetiedotInChunks(sijoitteluajoId).groupBy(
       pistetieto => (pistetieto.hakemusOid, pistetieto.valintatapajonoOid)
     ).mapValues(_.map(pistetietoRecordToTDO))
 
