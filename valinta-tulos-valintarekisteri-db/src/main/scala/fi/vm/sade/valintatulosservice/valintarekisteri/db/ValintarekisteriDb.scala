@@ -407,20 +407,23 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       val jonosijaStatement = createJonosijaStatement(session.connection)
       val pistetietoStatement = createPistetietoStatement(session.connection)
       val valinnantulosStatement = createValinnantulosStatement(session.connection)
+      val viestinnanOhjausStatement = createViestinnanOhjaus(session.connection)
       val tilankuvausStatement = createTilankuvausStatement(session.connection)
       hakemukset.foreach( hakemus => {
         val hakemusWrapper = SijoitteluajonHakemusWrapper(hakemus)
         val hakemusOid = hakemusWrapper.hakemusOid
+        val valintatulos = valintatulokset.find(_.getHakemusOid == hakemusOid)
         createJonosijaInsertRow(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemusWrapper, jonosijaStatement)
         hakemus.getPistetiedot.asScala.foreach(createPistetietoInsertRow(sijoitteluajoId, valintatapajonoOid, hakemusOid, _, pistetietoStatement))
         createValinnantilanKuvausInsertRow(hakemusWrapper.tilankuvauksenHash, hakemusWrapper.tilankuvauksetWithTarkenne, tilankuvausStatement)
-        createValinnantulosInsertRow(hakemusWrapper, valintatulokset.find(_.getHakemusOid == hakemusOid), sijoitteluajoId, hakukohdeOid, valintatapajonoOid, valinnantulosStatement)
-
+        createValinnantulosInsertRow(hakemusWrapper, valintatulos, sijoitteluajoId, hakukohdeOid, valintatapajonoOid, valinnantulosStatement)
+        createViestinnanOhjausInsertRow(hakukohdeOid, valintatapajonoOid, hakemusOid, valintatulos, viestinnanOhjausStatement)
       })
       jonosijaStatement.executeBatch
       pistetietoStatement.executeBatch
       tilankuvausStatement.executeBatch
       valinnantulosStatement.executeBatch
+      viestinnanOhjausStatement.executeBatch
       insertIlmoittautumiset(session.connection, valintatulokset, hakemukset)
     }
   }
@@ -474,50 +477,97 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     statement.addBatch
   }
 
-  private def createValinnantulosStatement = createStatement("""insert into valinnantulokset (valintatapajono_oid, hakemus_oid, sijoitteluajo_id, hakukohde_oid,
-      tila, tilankuvaus_hash, tarkenteen_lisatieto, julkaistavissa, ehdollisesti_hyvaksyttavissa, hyvaksytty_varasijalta,
-      hyvaksy_peruuntunut, ilmoittaja, selite, tilan_viimeisin_muutos, previous_check, sent, done, message)
-      values (?, ?, ?, ?, ?::valinnantila, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""")
+  private def createValinnantulosStatement = createStatement(
+    """insert into valinnantulokset (
+           valintatapajono_oid,
+           hakemus_oid,
+           hakukohde_oid,
+           sijoitteluajo_id,
+           tila,
+           tilankuvaus_hash,
+           tarkenteen_lisatieto,
+           julkaistavissa,
+           ehdollisesti_hyvaksyttavissa,
+           hyvaksytty_varasijalta,
+           hyvaksy_peruuntunut,
+           tilan_viimeisin_muutos,
+           ilmoittaja,
+           selite
+       ) values (?, ?, ?, ?, ?::valinnantila, ?, ?, ?, ?, ?, ?, ?, 'System', 'Sijoittelun tallennus')
+       on conflict on constraint valinnantulokset_pkey do update set
+           sijoitteluajo_id = excluded.sijoitteluajo_id,
+           tila = excluded.tila,
+           tilankuvaus_hash = excluded.tilankuvaus_hash,
+           tarkenteen_lisatieto = excluded.tarkenteen_lisatieto,
+           julkaistavissa = excluded.julkaistavissa,
+           ehdollisesti_hyvaksyttavissa = excluded.ehdollisesti_hyvaksyttavissa,
+           hyvaksytty_varasijalta = excluded.hyvaksytty_varasijalta,
+           hyvaksy_peruuntunut = excluded.hyvaksy_peruuntunut,
+           tilan_viimeisin_muutos = excluded.tilan_viimeisin_muutos,
+           ilmoittaja = 'System',
+           selite = 'Sijoittelun tallennus'""")
 
-  private def createValinnantulosInsertRow(hakemus:SijoitteluajonHakemusWrapper, valintatulos:Option[Valintatulos],
-      sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, valinnantulosStatement:PreparedStatement) = {
+  private def createValinnantulosInsertRow(hakemus:SijoitteluajonHakemusWrapper,
+                                           valintatulos:Option[Valintatulos],
+                                           sijoitteluajoId:Long,
+                                           hakukohdeOid:String,
+                                           valintatapajonoOid:String,
+                                           valinnantulosStatement:PreparedStatement) = {
+    val valinnantila = hakemus.tila.toString
+    val tilankuvauksenHash = hakemus.tilankuvauksenHash
+    val tarkenteenLisatieto = hakemus.tarkenteenLisatieto.orNull
+    val tilanViimeisinMuutos = hakemus.tilaHistoria
+      .filter(_.tila.equals(hakemus.tila))
+      .map(_.luotu)
+      .sortWith(_.after(_))
+      .headOption.getOrElse(new Date())
 
-      lazy val defaultValintatulos = SijoitteluajonValinnantulosWrapper(
-          valintatapajonoOid, hakemus.hakemusOid, hakukohdeOid, false, false, false, false, None, Option(List()), new ValintatulosMailStatus).valintatulos
+    valinnantulosStatement.setString(1, valintatapajonoOid)
+    valinnantulosStatement.setString(2, hakemus.hakemusOid)
+    valinnantulosStatement.setString(3, hakukohdeOid)
+    valinnantulosStatement.setLong(4, sijoitteluajoId)
+    valinnantulosStatement.setString(5, valinnantila)
+    valinnantulosStatement.setInt(6, tilankuvauksenHash)
+    valinnantulosStatement.setString(7, tarkenteenLisatieto)
+    valinnantulosStatement.setBoolean(8, valintatulos.exists(_.getJulkaistavissa))
+    valinnantulosStatement.setBoolean(9, valintatulos.exists(_.getEhdollisestiHyvaksyttavissa))
+    valinnantulosStatement.setBoolean(10, valintatulos.exists(_.getHyvaksyttyVarasijalta))
+    valinnantulosStatement.setBoolean(11, valintatulos.exists(_.getHyvaksyPeruuntunut))
+    valinnantulosStatement.setTimestamp(12, new Timestamp(tilanViimeisinMuutos.getTime))
 
-      val SijoitteluajonHakemusWrapper(hakemusOid, _, _, _, _, _, _, _, _, _, _, _, valinnantila, _, _, tarkenteenLisatieto, _, tilahistoria) = hakemus
-      val SijoitteluajonValinnantulosWrapper(_, _, _, ehdollisestiHyvaksyttavissa,
-      julkaistavissa, hyvaksyttyVarasijalta, hyvaksyPeruuntunut, _, _, _)
-      = SijoitteluajonValinnantulosWrapper(valintatulos.getOrElse(defaultValintatulos))
-      val MailStatusWrapper(previousCheck, sent, done, message) = MailStatusWrapper(valintatulos.getOrElse(defaultValintatulos).getMailStatus)
+    valinnantulosStatement.addBatch()
+  }
 
-      val tilanViimeisinMuutos = tilahistoria
-        .filter(_.tila.equals(valinnantila))
-        .map(_.luotu)
-        .sortWith(_.after(_))
-        .headOption.getOrElse(new Date())
+  private def createViestinnanOhjaus = createStatement(
+    """insert into viestinnan_ohjaus (
+           hakukohde_oid,
+           valintatapajono_oid,
+           hakemus_oid,
+           previous_check,
+           sent,
+           done,
+           message
+       ) values (?, ?, ?, ?, ?, ?, ?)
+       on conflict on constraint viestinnan_ohjaus_pkey do update set
+           previous_check = excluded.previous_check,
+           sent = excluded.sent,
+           done = excluded.done,
+           message = excluded.message"""
+  )
 
-      val (ilmoittaja, selite) = ("System", "Sijoittelun tallennus")
-
-      valinnantulosStatement.setString(1, valintatapajonoOid)
-      valinnantulosStatement.setString(2, hakemusOid)
-      valinnantulosStatement.setLong(3, sijoitteluajoId)
-      valinnantulosStatement.setString(4, hakukohdeOid)
-      valinnantulosStatement.setString(5, valinnantila.toString)
-      valinnantulosStatement.setInt(6, hakemus.tilankuvauksenHash)
-      valinnantulosStatement.setString(7, tarkenteenLisatieto.orNull)
-      valinnantulosStatement.setBoolean(8, julkaistavissa)
-      valinnantulosStatement.setBoolean(9, ehdollisestiHyvaksyttavissa)
-      valinnantulosStatement.setBoolean(10, hyvaksyttyVarasijalta)
-      valinnantulosStatement.setBoolean(11, hyvaksyPeruuntunut)
-      valinnantulosStatement.setString(12, ilmoittaja)
-      valinnantulosStatement.setString(13, selite)
-      valinnantulosStatement.setTimestamp(14, new java.sql.Timestamp(tilanViimeisinMuutos.getTime))
-      valinnantulosStatement.setTimestamp(15, newJavaSqlDateOrNull(previousCheck))
-      valinnantulosStatement.setTimestamp(16, newJavaSqlDateOrNull(sent))
-      valinnantulosStatement.setTimestamp(17, newJavaSqlDateOrNull(done))
-      valinnantulosStatement.setString(18, message.orNull)
-      valinnantulosStatement.addBatch
+  private def createViestinnanOhjausInsertRow(hakukohdeOid: String,
+                                              valintatapajonoOid:String,
+                                              hakemusOid: String,
+                                              valintatulos: Option[Valintatulos],
+                                              statement: PreparedStatement) = {
+    statement.setString(1, hakukohdeOid)
+    statement.setString(2, valintatapajonoOid)
+    statement.setString(3, hakemusOid)
+    statement.setTimestamp(4, valintatulos.flatMap(v => Option(v.getMailStatus.previousCheck)).map(x => new Timestamp(x.getTime)).orNull)
+    statement.setTimestamp(5, valintatulos.flatMap(v => Option(v.getMailStatus.sent)).map(x => new Timestamp(x.getTime)).orNull)
+    statement.setTimestamp(6, valintatulos.flatMap(v => Option(v.getMailStatus.done)).map(x => new Timestamp(x.getTime)).orNull)
+    statement.setString(7, valintatulos.map(_.getMailStatus.message).orNull)
+    statement.addBatch()
   }
 
   private def createTilankuvausStatement = createStatement("""insert into valinnantilan_kuvaukset (hash, tilan_tarkenne, text_fi, text_sv, text_en)
@@ -659,9 +709,9 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
             from jonosijat as j
             join valinnantulokset as v
-            on v.valintatapajono_oid = j.valintatapajono_oid and v.hakemus_oid = j.hakemus_oid
-              and v.sijoitteluajo_id = j.sijoitteluajo_id and v.hakukohde_oid = j.hakukohde_oid
-              and v.deleted is null
+            on v.valintatapajono_oid = j.valintatapajono_oid
+              and v.hakemus_oid = j.hakemus_oid
+              and v.hakukohde_oid = j.hakukohde_oid
             where j.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakemusRecord], Duration(30, TimeUnit.SECONDS)).toList
   }
 
@@ -677,9 +727,9 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
             j.siirtynyt_toisesta_valintatapajonosta, j.valintatapajono_oid
             from jonosijat as j
             join valinnantulokset as v
-            on v.valintatapajono_oid = j.valintatapajono_oid and v.hakemus_oid = j.hakemus_oid
-              and v.sijoitteluajo_id = j.sijoitteluajo_id and v.hakukohde_oid = j.hakukohde_oid
-              and v.deleted is null
+            on v.valintatapajono_oid = j.valintatapajono_oid
+              and v.hakemus_oid = j.hakemus_oid
+              and v.hakukohde_oid = j.hakukohde_oid
             inner join vj on vj.oid = j.valintatapajono_oid
             where j.sijoitteluajo_id = ${sijoitteluajoId}""".as[HakemusRecord]).toList match {
         case result if result.size == 0 => result
@@ -699,10 +749,25 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   override def getSijoitteluajonTilahistoriat(sijoitteluajoId:Long): List[TilaHistoriaRecord] = {
     runBlocking(
-      sql"""select distinct t.valintatapajono_oid, t.hakemus_oid, t.tila, t.tilan_viimeisin_muutos as luotu
-            from valinnantulokset t
-            inner join valintatapajonot j on t.valintatapajono_oid = j.oid and j.sijoitteluajo_id = ${sijoitteluajoId}
-            where t.sijoitteluajo_id <= ${sijoitteluajoId}""".as[TilaHistoriaRecord]).toList
+      sql"""select t.valintatapajono_oid, t.hakemus_oid, t.tila, t.tilan_viimeisin_muutos as luotu
+            from valinnantulokset as t
+            where t.sijoitteluajo_id = ${sijoitteluajoId}
+            union
+            select th.valintatapajono_oid, th.hakemus_oid, th.tila, th.tilan_viimeisin_muutos as luotu
+            from valinnantulokset_history as th
+            join valinnantulokset as t on t.hakukohde_oid = th.hakukohde_oid
+                and t.valintatapajono_oid = th.valintatapajono_oid
+                and t.hakemus_oid = th.hakemus_oid
+                and t.sijoitteluajo_id = ${sijoitteluajoId}
+            union
+            select th.valintatapajono_oid, th.hakemus_oid, th.tila, th.tilan_viimeisin_muutos as luotu
+            from valinnantulokset_history as th
+            join valinnantulokset_history as thth on thth.hakukohde_oid = th.hakukohde_oid
+                and thth.valintatapajono_oid = th.valintatapajono_oid
+                and thth.hakemus_oid = th.hakemus_oid
+                and thth.tilan_viimeisin_muutos >= th.tilan_viimeisin_muutos
+                and thth.sijoitteluajo_id = ${sijoitteluajoId}
+        """.as[TilaHistoriaRecord]).toList
   }
 
   override def getValinnantilanKuvaukset(tilankuvausHashes:List[Int]): Map[Int,TilankuvausRecord] = tilankuvausHashes match {
@@ -743,10 +808,10 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       sql"""with j as (select * from jonosijat where hakemus_oid = ${hakemusOid} and sijoitteluajo_id = ${sijoitteluajoId})
             select j.hakemus_oid, j.prioriteetti, vt.hakukohde_oid, sh.tarjoaja_oid, vt.tila, sh.kaikki_jonot_sijoiteltu
             from j
-            left join valinnantulokset as vt on vt.sijoitteluajo_id = j.sijoitteluajo_id
-              and vt.hakemus_oid = j.hakemus_oid and vt.valintatapajono_oid = j.valintatapajono_oid
-            left join sijoitteluajon_hakukohteet as sh on sh.sijoitteluajo_id = vt.sijoitteluajo_id
-              and sh.hakukohde_oid = vt.hakukohde_oid""".as[HakutoiveRecord]).toList
+            left join valinnantulokset as vt on vt.hakemus_oid = j.hakemus_oid
+                and vt.valintatapajono_oid = j.valintatapajono_oid
+            left join sijoitteluajon_hakukohteet as sh on sh.hakukohde_oid = vt.hakukohde_oid
+        """.as[HakutoiveRecord]).toList
   }
 
   override def getHakemuksenPistetiedot(hakemusOid:String, sijoitteluajoId:Long): List[PistetietoRecord] = {
