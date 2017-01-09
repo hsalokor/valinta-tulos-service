@@ -740,7 +740,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
        where sijoitteluajo_id = ${sijoitteluajoId} and deleted = false""".as[PistetietoRecord]).toList
   }
 
-  override def getSijoitteluajonPistetiedotInChunks(sijoitteluajoId:Long, chunkSize:Int = 500000): List[PistetietoRecord] = {
+  override def getSijoitteluajonPistetiedotInChunks(sijoitteluajoId:Long, chunkSize:Int = 200000): List[PistetietoRecord] = {
     def readPistetiedot(offset:Int = 0): List[PistetietoRecord] = {
       runBlocking(sql"""
          select valintatapajono_oid, hakemus_oid, tunniste, arvo, laskennallinen_arvo, osallistuminen
