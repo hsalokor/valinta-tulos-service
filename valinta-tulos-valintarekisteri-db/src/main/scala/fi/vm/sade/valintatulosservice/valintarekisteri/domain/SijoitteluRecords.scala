@@ -116,7 +116,6 @@ abstract class SijoitteluRecordToDTO {
     jonoDTO.setKaikkiEhdonTayttavatHyvaksytaan(jono.kaikkiEhdonTayttavatHyvaksytaan)
     jonoDTO.setPoissaOlevaTaytto(jono.poissaOlevaTaytto)
     jono.valintaesitysHyvaksytty.foreach(jonoDTO.setValintaesitysHyvaksytty(_))
-    jonoDTO.setHakeneet(jono.hakeneet)
     jonoDTO.setHyvaksytty(jono.hyvaksytty)
     jonoDTO.setVaralla(jono.varalla)
     jono.varasijat.foreach(jonoDTO.setVarasijat(_))

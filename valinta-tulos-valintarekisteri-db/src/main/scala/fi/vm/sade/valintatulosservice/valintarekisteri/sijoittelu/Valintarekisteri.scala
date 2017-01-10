@@ -7,12 +7,13 @@ import fi.vm.sade.sijoittelu.tulos.dto.{PistetietoDTO, SijoitteluajoDTO}
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.config.ValintarekisteriAppConfig
+import fi.vm.sade.valintatulosservice.logging.PerformanceLogger
 import fi.vm.sade.valintatulosservice.valintarekisteri.db.{SijoitteluRepository, ValintarekisteriDb}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{SijoitteluRecordToDTO, SijoitteluWrapper, TilankuvausRecord}
 import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 
 import scala.collection.JavaConverters._
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class ValintarekisteriForSijoittelu(appConfig:ValintarekisteriAppConfig.ValintarekisteriAppConfig) extends Valintarekisteri {
 
@@ -28,7 +29,7 @@ class ValintarekisteriService(override val sijoitteluRepository:SijoitteluReposi
                               override val hakukohdeRecordService: HakukohdeRecordService) extends Valintarekisteri {
 }
 
-abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
+abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging with PerformanceLogger {
 
   val sijoitteluRepository:SijoitteluRepository
   val hakukohdeRecordService: HakukohdeRecordService
@@ -58,13 +59,14 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
   def getSijoitteluajo(hakuOid:String, sijoitteluajoId:String): SijoitteluajoDTO = {
     val latestId = getLatestSijoitteluajoId(sijoitteluajoId, hakuOid)
     sijoitteluRepository.getSijoitteluajo(latestId).map(sijoitteluajo => {
+      logger.info(s"Haetaan sijoitteluajo ${latestId}")
       val valintatapajonotByHakukohde = getSijoitteluajonValintatapajonotGroupedByHakukohde(latestId)
 
-      val hakijaryhmatByHakukohde = sijoitteluRepository.getSijoitteluajonHakijaryhmat(latestId)
+      val hakijaryhmatByHakukohde = time (s"${latestId} hakijaryhmien haku") {sijoitteluRepository.getSijoitteluajonHakijaryhmat(latestId)
         .map(h => hakijaryhmaRecordToDTO(h, sijoitteluRepository.getSijoitteluajonHakijaryhmanHakemukset(h.oid, h.sijoitteluajoId))
-        ).groupBy(_.getHakukohdeOid)
+        ).groupBy(_.getHakukohdeOid) }
 
-      val hakukohteet = sijoitteluRepository.getSijoitteluajonHakukohteet(latestId).map(sijoittelunHakukohdeRecordToDTO)
+      val hakukohteet = time (s"${latestId} hakukohteiden haku") { sijoitteluRepository.getSijoitteluajonHakukohteet(latestId).map(sijoittelunHakukohdeRecordToDTO) }
 
       hakukohteet.foreach(h => {
         h.setValintatapajonot(valintatapajonotByHakukohde.get(h.getOid).getOrElse(List()).asJava)
@@ -76,21 +78,21 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging {
 
   private def getSijoitteluajonValintatapajonotGroupedByHakukohde(latestId:Long) = {
     val kaikkiValintatapajonoHakemukset = getSijoitteluajonHakemukset(latestId).groupBy(_.getValintatapajonoOid)
-    sijoitteluRepository.getSijoitteluajonValintatapajonot(latestId).groupBy(_.hakukohdeOid).mapValues(jonot => {
+    time (s"${latestId} valintatapajonojen haku") { sijoitteluRepository.getSijoitteluajonValintatapajonot(latestId) }.groupBy(_.hakukohdeOid).mapValues(jonot => {
        jonot.map(jono => valintatapajonoRecordToDTO(jono, kaikkiValintatapajonoHakemukset.get(jono.oid).getOrElse(List())))
     })
   }
 
   private def getSijoitteluajonHakemukset(sijoitteluajoId:Long) = {
-    val sijoitteluajonHakemukset = sijoitteluRepository.getSijoitteluajonHakemukset(sijoitteluajoId)
-    val tilankuvaukset = sijoitteluRepository.getValinnantilanKuvaukset(sijoitteluajonHakemukset.map(_.tilankuvausHash).distinct)
-    val hakijaryhmat = sijoitteluRepository.getSijoitteluajonHakemustenHakijaryhmat(sijoitteluajoId)
+    val sijoitteluajonHakemukset = time (s"${sijoitteluajoId} hakemuksien haku" ) { sijoitteluRepository.getSijoitteluajonHakemuksetInChunks(sijoitteluajoId) }
+    val tilankuvaukset = time (s"${sijoitteluajoId} tilankuvausten haku") { sijoitteluRepository.getValinnantilanKuvaukset(sijoitteluajonHakemukset.map(_.tilankuvausHash).distinct) }
+    val hakijaryhmat = time (s"${sijoitteluajoId} hakijaryhmien haku") { sijoitteluRepository.getSijoitteluajonHakemustenHakijaryhmat(sijoitteluajoId) }
 
-    val tilahistoriat = sijoitteluRepository.getSijoitteluajonTilahistoriat(sijoitteluajoId).groupBy(
+    val tilahistoriat = time (s"${sijoitteluajoId} tilahistorioiden haku") { sijoitteluRepository.getSijoitteluajonTilahistoriat(sijoitteluajoId) }.groupBy(
       tilahistoria => (tilahistoria.hakemusOid, tilahistoria.valintatapajonoOid)
     ).mapValues(_.map(tilaHistoriaRecordToDTO).sortBy(_.getLuotu.getTime))
 
-    val pistetiedot = sijoitteluRepository.getSijoitteluajonPistetiedotInChunks(sijoitteluajoId).groupBy(
+    val pistetiedot = time (s"${sijoitteluajoId} pistetietojen haku") { sijoitteluRepository.getSijoitteluajonPistetiedotInChunks(sijoitteluajoId) }.groupBy(
       pistetieto => (pistetieto.hakemusOid, pistetieto.valintatapajonoOid)
     ).mapValues(_.map(pistetietoRecordToTDO))
 
