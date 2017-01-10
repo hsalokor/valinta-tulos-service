@@ -361,7 +361,8 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     runBlocking(DBIO.seq(
       sqlu"""analyze jonosijat""",
       sqlu"""analyze valinnantulokset""",
-      sqlu"""analyze pistetiedot"""))
+      sqlu"""analyze pistetiedot"""),
+      Duration(60, TimeUnit.SECONDS))
   }
 
   import scala.collection.JavaConverters._
