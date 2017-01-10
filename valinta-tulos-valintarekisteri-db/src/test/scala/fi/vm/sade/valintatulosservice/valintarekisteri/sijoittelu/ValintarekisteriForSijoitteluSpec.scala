@@ -1,20 +1,22 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu
 
-import fi.vm.sade.sijoittelu.domain.{Hakemus, HakemuksenTila}
+import fi.vm.sade.sijoittelu.domain.{HakemuksenTila, Hakemus}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{TilahistoriaWrapper, SijoitteluWrapper}
-import fi.vm.sade.valintatulosservice.valintarekisteri.{PerformanceTimer, ITSetup, ValintarekisteriDbTools}
+import fi.vm.sade.valintatulosservice.logging.PerformanceLogger
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{SijoitteluWrapper, TilahistoriaWrapper}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriDbTools}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterExample
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Valinnantila
+
 import scala.collection.JavaConverters._
 import scala.util.Try
 
 
 @RunWith(classOf[JUnitRunner])
-class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with ValintarekisteriDbTools with BeforeAfterExample with Logging with PerformanceTimer {
+class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with ValintarekisteriDbTools with BeforeAfterExample with Logging with PerformanceLogger {
   sequential
   step(appConfig.start)
   step(deleteAll())

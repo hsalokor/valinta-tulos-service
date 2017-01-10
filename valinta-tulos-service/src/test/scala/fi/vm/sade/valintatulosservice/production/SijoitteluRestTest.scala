@@ -3,7 +3,7 @@ package fi.vm.sade.valintatulosservice.production
 import fi.vm.sade.utils.cas.{CasAuthenticatingClient, CasClient, CasParams}
 import fi.vm.sade.utils.http.{DefaultHttpClient, DefaultHttpRequest}
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.valintarekisteri.PerformanceTimer
+import fi.vm.sade.valintatulosservice.logging.PerformanceLogger
 import org.http4s.client.Client
 import org.http4s.{Method, Request, Uri}
 import org.json4s.DefaultFormats
@@ -14,15 +14,13 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.matcher.MatcherMacros
 
-import scala.util.Try
 import scalaj.http.{HttpOptions, Http}
 import scalaz.concurrent.Task
-
 import scala.language.experimental.macros
 
 @Ignore
 @RunWith(classOf[JUnitRunner])
-class SijoitteluRestTest extends Specification with MatcherMacros with Logging with PerformanceTimer {
+class SijoitteluRestTest extends Specification with MatcherMacros with Logging with PerformanceLogger {
   val host = "https://testi.virkailija.opintopolku.fi"
   val cas_user = System.getProperty("cas_user")
   val cas_password = System.getProperty("cas_password")

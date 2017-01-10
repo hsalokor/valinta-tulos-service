@@ -5,17 +5,18 @@ import java.text.SimpleDateFormat
 
 import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.valintarekisteri.{PerformanceTimer, ITSetup, ValintarekisteriDbTools}
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriDbTools}
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import jdk.nashorn.internal.ir.annotations.Ignore
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterExample
+import fi.vm.sade.valintatulosservice.logging.PerformanceLogger
 
 @RunWith(classOf[JUnitRunner])
 class ValintarekisteriDbSaveSijoitteluSpec extends Specification with ITSetup with ValintarekisteriDbTools with BeforeAfterExample
-  with Logging with PerformanceTimer {
+  with Logging with PerformanceLogger {
   sequential
   private val hakuOid = "1.2.246.561.29.00000000001"
 

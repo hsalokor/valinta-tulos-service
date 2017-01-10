@@ -1,7 +1,8 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu
 
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, PerformanceTimer, ValintarekisteriDbTools}
+import fi.vm.sade.valintatulosservice.logging.PerformanceLogger
+import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriDbTools}
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import org.junit.Ignore
@@ -10,7 +11,7 @@ import org.specs2.specification.BeforeAfterExample
 
 @RunWith(classOf[JUnitRunner])
 @Ignore
-class SijoitteluPerformanceSpec extends Specification with ITSetup with ValintarekisteriDbTools with BeforeAfterExample with Logging with PerformanceTimer {
+class SijoitteluPerformanceSpec extends Specification with ITSetup with ValintarekisteriDbTools with BeforeAfterExample with Logging with PerformanceLogger {
   sequential
   step(appConfig.start)
   step(deleteAll())
