@@ -11,6 +11,10 @@ create table viestinnan_ohjaus (
 
 alter table viestinnan_ohjaus owner to oph;
 
+insert into deleted_valinnantulokset (poistaja, selite) values ('', 'Uudempi sijoitteluajo tallennettu');
+update valinnantulokset set deleted = currval('deleted_valinnantulokset_id')
+where sijoitteluajo_id not in (select max(id) from sijoitteluajot group by haku_oid);
+
 insert into viestinnan_ohjaus (
     hakukohde_oid,
     valintatapajono_oid,
