@@ -444,7 +444,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     statement.setLong(2, sijoitteluajoId)
     statement.setString(3, hakukohdeOid)
     statement.setString(4, hakemusOid)
-    statement.setString(5, hakijaOid.orNull)
+    statement.setString(5, hakijaOid)
     statement.setString(6, etunimi.orNull)
     statement.setString(7, sukunimi.orNull)
     statement.setInt(8, prioriteetti)
@@ -483,6 +483,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            valintatapajono_oid,
            hakemus_oid,
            hakukohde_oid,
+           henkilo_oid,
            sijoitteluajo_id,
            tila,
            tilankuvaus_hash,
@@ -494,7 +495,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            tilan_viimeisin_muutos,
            ilmoittaja,
            selite
-       ) values (?, ?, ?, ?, ?::valinnantila, ?, ?, ?, ?, ?, ?, ?, 'System', 'Sijoittelun tallennus')
+       ) values (?, ?, ?, ?, ?, ?::valinnantila, ?, ?, ?, ?, ?, ?, ?, 'System', 'Sijoittelun tallennus')
        on conflict on constraint valinnantulokset_pkey do update set
            sijoitteluajo_id = excluded.sijoitteluajo_id,
            tila = excluded.tila,
@@ -526,15 +527,16 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     valinnantulosStatement.setString(1, valintatapajonoOid)
     valinnantulosStatement.setString(2, hakemus.hakemusOid)
     valinnantulosStatement.setString(3, hakukohdeOid)
-    valinnantulosStatement.setLong(4, sijoitteluajoId)
-    valinnantulosStatement.setString(5, valinnantila)
-    valinnantulosStatement.setInt(6, tilankuvauksenHash)
-    valinnantulosStatement.setString(7, tarkenteenLisatieto)
-    valinnantulosStatement.setBoolean(8, valintatulos.exists(_.getJulkaistavissa))
-    valinnantulosStatement.setBoolean(9, valintatulos.exists(_.getEhdollisestiHyvaksyttavissa))
-    valinnantulosStatement.setBoolean(10, valintatulos.exists(_.getHyvaksyttyVarasijalta))
-    valinnantulosStatement.setBoolean(11, valintatulos.exists(_.getHyvaksyPeruuntunut))
-    valinnantulosStatement.setTimestamp(12, new Timestamp(tilanViimeisinMuutos.getTime))
+    valinnantulosStatement.setString(4, hakemus.hakijaOid)
+    valinnantulosStatement.setLong(5, sijoitteluajoId)
+    valinnantulosStatement.setString(6, valinnantila)
+    valinnantulosStatement.setInt(7, tilankuvauksenHash)
+    valinnantulosStatement.setString(8, tarkenteenLisatieto)
+    valinnantulosStatement.setBoolean(9, valintatulos.exists(_.getJulkaistavissa))
+    valinnantulosStatement.setBoolean(10, valintatulos.exists(_.getEhdollisestiHyvaksyttavissa))
+    valinnantulosStatement.setBoolean(11, valintatulos.exists(_.getHyvaksyttyVarasijalta))
+    valinnantulosStatement.setBoolean(12, valintatulos.exists(_.getHyvaksyPeruuntunut))
+    valinnantulosStatement.setTimestamp(13, new Timestamp(tilanViimeisinMuutos.getTime))
 
     valinnantulosStatement.addBatch()
   }

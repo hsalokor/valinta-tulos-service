@@ -76,7 +76,7 @@ abstract class ValintarekisteriResultExtractors {
     hakukohdeOid = r.nextString))
 
   protected implicit val getHakemuksetForValintatapajonosResult = GetResult(r => HakemusRecord(
-    hakijaOid = r.nextStringOption,
+    hakijaOid = r.nextString,
     hakemusOid = r.nextString,
     pisteet = r.nextBigDecimalOption,
     etunimi = r.nextStringOption,
