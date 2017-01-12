@@ -27,7 +27,7 @@ case class ValintatapajonoRecord(tasasijasaanto:String, oid:String, nimi:String,
                                  varasijojaKaytetaanAlkaen:Option[java.sql.Date], varasijojaKaytetaanAsti:Option[java.sql.Date],
                                  tayttoJono:Option[String], hakukohdeOid:String)
 
-case class HakemusRecord(hakijaOid: String, hakemusOid:String, pisteet:Option[BigDecimal], etunimi:Option[String], sukunimi:Option[String],
+case class HakemusRecord(hakijaOid:Option[String], hakemusOid:String, pisteet:Option[BigDecimal], etunimi:Option[String], sukunimi:Option[String],
                          prioriteetti:Int, jonosija:Int, tasasijaJonosija:Int, tila:Valinnantila, tilankuvausHash:Int,
                          tarkenteenLisatieto:Option[String], hyvaksyttyHarkinnanvaraisesti:Boolean, varasijaNumero:Option[Int],
                          onkoMuuttunutviimesijoittelusta:Boolean,
@@ -134,7 +134,7 @@ abstract class SijoitteluRecordToDTO {
                          tilahistoria:List[TilaHistoriaDTO],
                          pistetiedot:List[PistetietoDTO]): HakemusDTO = {
     val hakemusDTO = new HakemusDTO
-    hakemusDTO.setHakijaOid(hakemus.hakijaOid)
+    hakemus.hakijaOid.foreach(hakemusDTO.setHakijaOid(_))
     hakemusDTO.setHakemusOid(hakemus.hakemusOid)
     hakemus.pisteet.foreach(p => hakemusDTO.setPisteet(p.bigDecimal))
     hakemus.etunimi.foreach(hakemusDTO.setEtunimi(_))

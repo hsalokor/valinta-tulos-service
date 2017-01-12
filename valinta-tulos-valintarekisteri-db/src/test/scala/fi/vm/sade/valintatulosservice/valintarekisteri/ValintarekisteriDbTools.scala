@@ -322,7 +322,7 @@ trait ValintarekisteriDbTools extends Specification {
   }
 
   private implicit val getSijoitteluajonJonosijaResult = GetResult(r => {
-    SijoitteluajonHakemusWrapper(r.nextString, r.nextString, r.nextStringOption, r.nextStringOption, r.nextInt,
+    SijoitteluajonHakemusWrapper(r.nextString, r.nextStringOption, r.nextStringOption, r.nextStringOption, r.nextInt,
       r.nextInt, r.nextIntOption, r.nextBoolean, r.nextBigDecimalOption, r.nextInt, r.nextBoolean, r.nextBoolean,
       Valinnantila(r.nextString), getHakemuksenTilankuvaukset(r.nextInt, r.nextStringOption), ValinnantilanTarkenne(r.nextString),
       r.nextStringOption, hakijaryhmaOidsToSet(r.nextStringOption), List()).hakemus
@@ -437,7 +437,7 @@ trait ValintarekisteriDbTools extends Specification {
           None, k, k, Some(k), Some(false)).valintatapajono
         valintatapajono.getHakemukset.addAll(
           (1 to (size*2) par).map( j => {
-            val hakemus = SijoitteluajonHakemusWrapper(valintatapajonoOid + "." + j, valintatapajonoOid + "." + j, Some("Etunimi"), Some("Sukunimi"),
+            val hakemus = SijoitteluajonHakemusWrapper(valintatapajonoOid + "." + j, Some(valintatapajonoOid), Some("Etunimi"), Some("Sukunimi"),
               j, j, None, false, Some(j), j, false, false, Hylatty, Some(Map("FI" -> ("fi" + j), "SV" -> ("sv" + j), "EN" -> ("en" + j))),
               EiTilankuvauksenTarkennetta, None, Set(""), List()).hakemus
             hakemus.setPistetiedot(List(SijoitteluajonPistetietoWrapper("moi", Some("123"), Some("123"), Some("Osallistui")).pistetieto).asJava)
