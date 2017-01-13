@@ -350,7 +350,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   override def storeSijoittelu(sijoittelu: SijoitteluWrapper) = {
     runBlocking(handleSijoitteluHistory(sijoittelu).andThen(insertSijoitteluajo(sijoittelu.sijoitteluajo).andThen(
       DBIO.sequence(sijoittelu.hakukohteet.map(hakukohde =>
-        storeSijoittelunHakukohde(sijoittelu.sijoitteluajo.getSijoitteluajoId, hakukohde,
+        storeSijoittelunHakukohde(sijoittelu.sijoitteluajo.getSijoitteluajoId, sijoittelu.sijoitteluajo.getHakuOid, hakukohde,
           sijoittelu.valintatulokset.filter(vt => vt.getHakukohdeOid == hakukohde.getOid))
       ))).transactionally),
       Duration(600, TimeUnit.SECONDS) /* Longer timeout for saving entire sijoittelu in a transaction. */)
@@ -378,8 +378,8 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
           where p.sijoitteluajo_id = s.id and p.deleted = false and s.haku_oid = ${hakuOid}"""
   }
 
-  private def storeSijoittelunHakukohde(sijoitteluajoId:Long, hakukohde: Hakukohde, valintatulokset: List[Valintatulos]) = {
-    insertHakukohde(hakukohde).andThen(
+  private def storeSijoittelunHakukohde(sijoitteluajoId:Long, hakuOid: String, hakukohde: Hakukohde, valintatulokset: List[Valintatulos]) = {
+    insertHakukohde(hakuOid, hakukohde).andThen(
       DBIO.sequence(
         hakukohde.getValintatapajonot.asScala.map(valintatapajono =>
           storeSijoittelunValintatapajono(sijoitteluajoId, hakukohde.getOid, valintatapajono,
@@ -622,10 +622,10 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
              values (${sijoitteluajoId}, ${hakuOid},${new Timestamp(startMils)},${new Timestamp(endMils)})"""
   }
 
-  private def insertHakukohde(hakukohde:Hakukohde) = {
+  private def insertHakukohde(hakuOid: String, hakukohde:Hakukohde) = {
     val SijoitteluajonHakukohdeWrapper(sijoitteluajoId, oid, tarjoajaOid, kaikkiJonotSijoiteltu) = SijoitteluajonHakukohdeWrapper(hakukohde)
-    sqlu"""insert into sijoitteluajon_hakukohteet (sijoitteluajo_id, hakukohde_oid, tarjoaja_oid, kaikki_jonot_sijoiteltu)
-             values (${sijoitteluajoId}, ${oid}, ${tarjoajaOid}, ${kaikkiJonotSijoiteltu})"""
+    sqlu"""insert into sijoitteluajon_hakukohteet (sijoitteluajo_id, haku_oid, hakukohde_oid, tarjoaja_oid, kaikki_jonot_sijoiteltu)
+             values (${sijoitteluajoId}, ${hakuOid}, ${oid}, ${tarjoajaOid}, ${kaikkiJonotSijoiteltu})"""
   }
 
   private def insertValintatapajono(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajono:Valintatapajono) = {

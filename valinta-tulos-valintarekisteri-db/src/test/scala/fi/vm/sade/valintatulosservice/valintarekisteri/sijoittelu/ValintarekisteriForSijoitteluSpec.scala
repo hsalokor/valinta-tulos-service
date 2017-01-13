@@ -50,7 +50,7 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
     assertSijoittelu(wrapper)
   }
   "Sijoitteluajo should be stored in transaction" in {
-    val wrapper = loadSijoitteluFromFixture("valintatapajono_hakijaryhma_pistetiedot", "sijoittelu/", false)
+    val wrapper = loadSijoitteluFromFixture("valintatapajono_hakijaryhma_pistetiedot", "sijoittelu/")
     wrapper.hakukohteet(0).getValintatapajonot.get(0).getHakemukset.get(0).setHakemusOid(null)
     (valintarekisteri.tallennaSijoittelu(wrapper.sijoitteluajo, wrapper.hakukohteet.asJava, wrapper.valintatulokset.asJava) must throwA[Exception]).message.replace("Got the exception java.lang.Exception: ", "") mustEqual "Batch entry 0 insert into jonosijat (valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,\n          jonosija, varasijan_numero, onko_muuttunut_viime_sijoittelussa, pisteet, tasasijajonosija, hyvaksytty_harkinnanvaraisesti,\n          siirtynyt_toisesta_valintatapajonosta) values ('14507702432714954928588511164948', 1464957466474, '1.2.246.562.20.96062693534', NULL, '1.2.246.562.24.71711513035', 'Milla', 'Magia', 2, 1, 1, '1', NULL, 1, '0', '0') was aborted.  Call getNextException to see the cause.\nERROR: null value in column \"hakemus_oid\" violates not-null constraint\n  Detail: Failing row contains (14507702432714954928588511164948, null, 1.2.246.562.24.71711513035, Milla, Magia, 2, 1, 1, t, null, 1, f, f, 1464957466474, 1.2.246.562.20.96062693534)."
     findSijoitteluajo(wrapper.sijoitteluajo.getSijoitteluajoId) mustEqual None
