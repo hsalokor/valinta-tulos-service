@@ -420,9 +420,9 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
         createValinnantulosInsertRow(hakemusWrapper, valintatulos, sijoitteluajoId, hakukohdeOid, valintatapajonoOid, valinnantulosStatement)
         createViestinnanOhjausInsertRow(hakukohdeOid, valintatapajonoOid, hakemusOid, valintatulos, viestinnanOhjausStatement)
       })
+      tilankuvausStatement.executeBatch
       jonosijaStatement.executeBatch
       pistetietoStatement.executeBatch
-      tilankuvausStatement.executeBatch
       valinnantulosStatement.executeBatch
       viestinnanOhjausStatement.executeBatch
       insertIlmoittautumiset(session.connection, valintatulokset, hakemukset)
@@ -433,7 +433,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   private def createJonosijaStatement = createStatement("""insert into jonosijat (valintatapajono_oid, sijoitteluajo_id, hakukohde_oid, hakemus_oid, hakija_oid, etunimi, sukunimi, prioriteetti,
           jonosija, varasijan_numero, onko_muuttunut_viime_sijoittelussa, pisteet, tasasijajonosija, hyvaksytty_harkinnanvaraisesti,
-          siirtynyt_toisesta_valintatapajonosta) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""")
+          siirtynyt_toisesta_valintatapajonosta, tila, tarkenteen_lisatieto, tilankuvaus_hash) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::valinnantila, ?, ?)""")
 
   private def createJonosijaInsertRow(sijoitteluajoId: Long, hakukohdeOid: String, valintatapajonoOid: String, hakemus: SijoitteluajonHakemusWrapper, statement: PreparedStatement) = {
     val SijoitteluajonHakemusWrapper(hakemusOid, hakijaOid, etunimi, sukunimi, prioriteetti, jonosija, varasijanNumero,
@@ -458,6 +458,9 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     statement.setInt(13, tasasijaJonosija)
     statement.setBoolean(14, hyvaksyttyHarkinnanvaraisesti)
     statement.setBoolean(15, siirtynytToisestaValintatapajonosta)
+    statement.setString(16, valinnantila.toString)
+    statement.setString(17, tarkenteenLisatieto.orNull)
+    statement.setInt(18, hakemus.tilankuvauksenHash)
     statement.addBatch
   }
 

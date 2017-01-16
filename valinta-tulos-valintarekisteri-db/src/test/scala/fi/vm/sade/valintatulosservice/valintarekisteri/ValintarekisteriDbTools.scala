@@ -357,6 +357,20 @@ trait ValintarekisteriDbTools extends Specification {
          """.as[Hakemus])
   }
 
+  case class JonosijanTilankuvauksetResult(tila:Valinnantila, tilankuvausHash:Long, tarkenteenLisatieto:Option[String])
+
+  private implicit val findJonosijanTilaAndtilankuvauksetResult = GetResult(r => {
+    JonosijanTilankuvauksetResult(Valinnantila(r.nextString), r.nextLong, r.nextStringOption)
+  })
+
+  private def findJonosijanTilaAndtilankuvaukset(hakemusOid:String, sijoitteluajoId:Long, valintatapajonoOid:String) = {
+    singleConnectionValintarekisteriDb.runBlocking(
+      sql"""select tila, tilankuvaus_hash, tarkenteen_lisatieto
+            from jonosijat
+            where hakemus_oid = ${hakemusOid} and sijoitteluajo_id = ${sijoitteluajoId} and valintatapajono_oid = ${valintatapajonoOid}
+         """.as[JonosijanTilankuvauksetResult]).head
+  }
+
   private implicit val getSijoitteluajonPistetietoResult = GetResult(r => {
     SijoitteluajonPistetietoWrapper(r.nextString, r.nextStringOption, r.nextStringOption, r.nextStringOption).pistetieto
   })
@@ -395,7 +409,15 @@ trait ValintarekisteriDbTools extends Specification {
         valintatapajono.getHakemukset.asScala.toList.foreach(hakemus => {
           val storedJonosija = storedJonosijat.find(_.getHakemusOid.equals(hakemus.getHakemusOid))
           storedJonosija.isDefined must beTrue
-          SijoitteluajonHakemusWrapper(hakemus).copy(tilaHistoria = List()) mustEqual SijoitteluajonHakemusWrapper(storedJonosija.get)
+          val jonosijaWrapper = SijoitteluajonHakemusWrapper(storedJonosija.get)
+          val hakemusWrapper = SijoitteluajonHakemusWrapper(hakemus).copy(tilaHistoria = List())
+          hakemusWrapper mustEqual jonosijaWrapper
+
+          val jonosijanTilankuvaukset = findJonosijanTilaAndtilankuvaukset(hakemus.getHakemusOid, wrapper.sijoitteluajo.getSijoitteluajoId, valintatapajono.getOid)
+          hakemusWrapper.tila mustEqual jonosijanTilankuvaukset.tila
+          hakemusWrapper.tilankuvauksenHash mustEqual jonosijanTilankuvaukset.tilankuvausHash
+          hakemusWrapper.tarkenteenLisatieto mustEqual jonosijanTilankuvaukset.tarkenteenLisatieto
+
           val storedPistetiedot = findHakemuksenPistetiedot(hakemus.getHakemusOid)
           hakemus.getPistetiedot.size mustEqual storedPistetiedot.size
           hakemus.getPistetiedot.asScala.foreach(pistetieto => {
