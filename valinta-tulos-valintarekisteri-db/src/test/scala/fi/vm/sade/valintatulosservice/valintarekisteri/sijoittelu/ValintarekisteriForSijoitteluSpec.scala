@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu
 
 import fi.vm.sade.sijoittelu.domain.{HakemuksenTila, Hakemus}
+import fi.vm.sade.sijoittelu.tulos.dto.{SijoitteluDTO, SijoitteluajoDTO}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.logging.PerformanceLogger
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{SijoitteluWrapper, TilahistoriaWrapper}
@@ -84,52 +85,30 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
     val sijoitteluajo4Ajat = (1480406134614l, 1480506134614l)
     val sijoitteluajo5Ajat = (1580406134614l, 1580506134614l)
 
-    def updateSijoitteluajo(sijoitteluajoId:Long, ajat:(Long,Long), wrapper:SijoitteluWrapper) = {
-      wrapper.sijoitteluajo.setSijoitteluajoId(sijoitteluajoId)
-      wrapper.sijoitteluajo.setStartMils(ajat._1)
-      wrapper.hakukohteet.foreach(_.setSijoitteluajoId(sijoitteluajoId))
-      wrapper.sijoitteluajo.setEndMils(ajat._2)
-    }
-
-    def updateTila(tila:HakemuksenTila, aika:Long, hakemus:Hakemus) = {
-        hakemus.setTila(tila)
-        val newTilahistoria = new java.util.ArrayList(hakemus.getTilaHistoria)
-        val valinnantila = Valinnantila.getValinnantila(tila)
-        newTilahistoria.add(TilahistoriaWrapper(valinnantila, new java.util.Date(aika)).tilahistoria)
-        hakemus.setTilaHistoria(newTilahistoria)
-    }
-
-    def findHakemus(wrapper:SijoitteluWrapper): Hakemus = {
-      wrapper.hakukohteet.find(_.getOid.equals(hakukohdeOid)).get.getValintatapajonot.asScala.find(
-        _.getOid.equals(valintatapajonoOid)).get.getHakemukset.asScala.find(_.getHakemusOid.equals(hakemusOid)).get
-    }
-
     val wrapper = loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/")
 
     updateSijoitteluajo(123456l, sijoitteluajo1Ajat, wrapper)
-    updateTila(HakemuksenTila.HYVAKSYTTY, sijoitteluajo1Ajat._1, findHakemus(wrapper))
+    updateTila(HakemuksenTila.HYVAKSYTTY, sijoitteluajo1Ajat._1, findHakemus(wrapper, hakukohdeOid, valintatapajonoOid, hakemusOid))
     time("Store sijoittelu") { singleConnectionValintarekisteriDb.storeSijoittelu(wrapper) }
 
     updateSijoitteluajo(223456l, sijoitteluajo2Ajat, wrapper)
-    updateTila(HakemuksenTila.VARALLA, sijoitteluajo2Ajat._1, findHakemus(wrapper))
+    updateTila(HakemuksenTila.VARALLA, sijoitteluajo2Ajat._1, findHakemus(wrapper, hakukohdeOid, valintatapajonoOid, hakemusOid))
     time("Store sijoittelu") { singleConnectionValintarekisteriDb.storeSijoittelu(wrapper) }
 
     updateSijoitteluajo(333456l, sijoitteluajo3Ajat, wrapper)
-    updateTila(HakemuksenTila.VARASIJALTA_HYVAKSYTTY, sijoitteluajo3Ajat._1, findHakemus(wrapper))
+    updateTila(HakemuksenTila.VARASIJALTA_HYVAKSYTTY, sijoitteluajo3Ajat._1, findHakemus(wrapper, hakukohdeOid, valintatapajonoOid, hakemusOid))
     time("Store sijoittelu") { singleConnectionValintarekisteriDb.storeSijoittelu(wrapper) }
 
     updateSijoitteluajo(444456l, sijoitteluajo4Ajat, wrapper)
     time("Store sijoittelu") { singleConnectionValintarekisteriDb.storeSijoittelu(wrapper) }
 
     updateSijoitteluajo(555556l, sijoitteluajo5Ajat, wrapper)
-    updateTila(HakemuksenTila.VARALLA, sijoitteluajo5Ajat._1, findHakemus(wrapper))
+    updateTila(HakemuksenTila.VARALLA, sijoitteluajo5Ajat._1, findHakemus(wrapper, hakukohdeOid, valintatapajonoOid, hakemusOid))
     time("Store sijoittelu") { singleConnectionValintarekisteriDb.storeSijoittelu(wrapper) }
 
     val tallennettuSijoitteluajo = valintarekisteri.getSijoitteluajo("1.2.246.562.29.75203638285", "latest")
 
-    val tallennettuTilahistoria = tallennettuSijoitteluajo.getHakukohteet.asScala.find(_.getOid.equals(hakukohdeOid)).get
-      .getValintatapajonot.asScala.find(_.getOid.equals(valintatapajonoOid)).get
-      .getHakemukset.asScala.find(_.getHakemusOid.equals(hakemusOid)).get.getTilaHistoria
+    val tallennettuTilahistoria = findTilahistoria(tallennettuSijoitteluajo, hakukohdeOid, valintatapajonoOid, hakemusOid)
 
     tallennettuTilahistoria.size mustEqual 4
     tallennettuTilahistoria.get(3).getLuotu.getTime mustEqual sijoitteluajo5Ajat._1
@@ -143,9 +122,7 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
 
     val aikaisempiSijoitteluajo = valintarekisteri.getSijoitteluajo("1.2.246.562.29.75203638285", "333456")
 
-    val aikaisemminTallennetunTilahistoria = aikaisempiSijoitteluajo.getHakukohteet.asScala.find(_.getOid.equals(hakukohdeOid)).get
-      .getValintatapajonot.asScala.find(_.getOid.equals(valintatapajonoOid)).get
-      .getHakemukset.asScala.find(_.getHakemusOid.equals(hakemusOid)).get.getTilaHistoria
+    val aikaisemminTallennetunTilahistoria = findTilahistoria(aikaisempiSijoitteluajo, hakukohdeOid, valintatapajonoOid,hakemusOid)
 
     aikaisemminTallennetunTilahistoria.size mustEqual 3
     aikaisemminTallennetunTilahistoria.get(2).getLuotu.getTime mustEqual sijoitteluajo3Ajat._1
@@ -154,6 +131,34 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
     aikaisemminTallennetunTilahistoria.get(1).getTila mustEqual HakemuksenTila.VARALLA.toString
     aikaisemminTallennetunTilahistoria.get(0).getLuotu.getTime mustEqual sijoitteluajo1Ajat._1
     aikaisemminTallennetunTilahistoria.get(0).getTila mustEqual HakemuksenTila.HYVAKSYTTY.toString
+  }
+  "Tilahistoria is read for hakemukset that have not changed in requested sijoitteluajo" in {
+    val hakukohdeOid = "1.2.246.562.20.56217166919"
+    val valintatapajonoOid = "14539780970882907815262745035155"
+    val hakemusOid1 = "1.2.246.562.11.00006550693"
+    val hakemusOid2 = "1.2.246.562.11.00006654858"
+
+    val sijoitteluajo1Ajat = (1180406134614l, 1180506134614l)
+    val sijoitteluajo2Ajat = (1280406134614l, 1280506134614l)
+
+    val wrapper = loadSijoitteluFromFixture("haku-1.2.246.562.29.75203638285", "QA-import/")
+
+    updateSijoitteluajo(123456l, sijoitteluajo1Ajat, wrapper)
+    updateTila(HakemuksenTila.HYVAKSYTTY, sijoitteluajo1Ajat._1, findHakemus(wrapper, hakukohdeOid, valintatapajonoOid, hakemusOid1))
+    updateTila(HakemuksenTila.HYVAKSYTTY, sijoitteluajo1Ajat._1, findHakemus(wrapper, hakukohdeOid, valintatapajonoOid, hakemusOid2))
+    time("Store sijoittelu") { singleConnectionValintarekisteriDb.storeSijoittelu(wrapper) }
+
+    updateSijoitteluajo(223456l, sijoitteluajo2Ajat, wrapper)
+    updateTila(HakemuksenTila.VARALLA, sijoitteluajo2Ajat._1, findHakemus(wrapper, hakukohdeOid, valintatapajonoOid, hakemusOid1))
+    time("Store sijoittelu") { singleConnectionValintarekisteriDb.storeSijoittelu(wrapper) }
+
+    val ensimmainen = valintarekisteri.getSijoitteluajo("1.2.246.562.29.75203638285", "123456")
+    val toinen = valintarekisteri.getSijoitteluajo("1.2.246.562.29.75203638285", "latest")
+
+    findTilahistoria(ensimmainen, hakukohdeOid, valintatapajonoOid, hakemusOid1).size mustEqual 1
+    findTilahistoria(ensimmainen, hakukohdeOid, valintatapajonoOid, hakemusOid2).size mustEqual 1
+    findTilahistoria(toinen, hakukohdeOid, valintatapajonoOid, hakemusOid1).size mustEqual 2
+    findTilahistoria(toinen, hakukohdeOid, valintatapajonoOid, hakemusOid2).size mustEqual 1
   }
 
   override protected def before: Unit = {
@@ -164,4 +169,30 @@ class ValintarekisteriForSijoitteluSpec extends Specification with ITSetup with 
   }
 
   step(deleteAll())
+
+  private def updateTila(tila:HakemuksenTila, aika:Long, hakemus:Hakemus) = {
+    hakemus.setTila(tila)
+    val newTilahistoria = new java.util.ArrayList(hakemus.getTilaHistoria)
+    val valinnantila = Valinnantila.getValinnantila(tila)
+    newTilahistoria.add(TilahistoriaWrapper(valinnantila, new java.util.Date(aika)).tilahistoria)
+    hakemus.setTilaHistoria(newTilahistoria)
+  }
+
+  private def findHakemus(wrapper:SijoitteluWrapper, hakukohdeOid: String, valintatapajonoOid: String, hakemusOid: String): Hakemus = {
+    wrapper.hakukohteet.find(_.getOid.equals(hakukohdeOid)).get.getValintatapajonot.asScala.find(
+      _.getOid.equals(valintatapajonoOid)).get.getHakemukset.asScala.find(_.getHakemusOid.equals(hakemusOid)).get
+  }
+
+  private def findTilahistoria(sijoitteluajo: SijoitteluajoDTO, hakukohdeOid: String, valintatapajonoOid: String, hakemusOid: String) = {
+    sijoitteluajo.getHakukohteet.asScala.find(_.getOid.equals(hakukohdeOid)).get
+      .getValintatapajonot.asScala.find(_.getOid.equals(valintatapajonoOid)).get
+      .getHakemukset.asScala.find(_.getHakemusOid.equals(hakemusOid)).get.getTilaHistoria
+  }
+
+  private def updateSijoitteluajo(sijoitteluajoId:Long, ajat:(Long,Long), wrapper:SijoitteluWrapper) = {
+    wrapper.sijoitteluajo.setSijoitteluajoId(sijoitteluajoId)
+    wrapper.sijoitteluajo.setStartMils(ajat._1)
+    wrapper.hakukohteet.foreach(_.setSijoitteluajoId(sijoitteluajoId))
+    wrapper.sijoitteluajo.setEndMils(ajat._2)
+  }
 }

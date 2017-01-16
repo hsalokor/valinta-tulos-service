@@ -97,8 +97,11 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
 
   def getHakemusInfo(hakemusOid: String): Option[HakemusInfoRecord] = {
     singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select v.selite, v.ilmoittaja, v.tilan_viimeisin_muutos, o.previous_check, o.sent, o.done, o.message
+      sql"""select v.selite, v.ilmoittaja, vt.tilan_viimeisin_muutos, o.previous_check, o.sent, o.done, o.message
             from valinnantulokset as v
+            join valinnantilat as vt on vt.hakukohde_oid = v.hakukohde_oid
+                and vt.valintatapajono_oid = v.valintatapajono_oid
+                and vt.hakemus_oid = v.hakemus_oid
             left join viestinnan_ohjaus as o on o.hakukohde_oid = v.hakukohde_oid
                 and o.valintatapajono_oid = v.valintatapajono_oid
                 and o.hakemus_oid = v.hakemus_oid
