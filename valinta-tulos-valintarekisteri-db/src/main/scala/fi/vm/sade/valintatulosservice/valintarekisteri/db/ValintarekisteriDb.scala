@@ -799,7 +799,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
                 and j.hakemus_oid = vt.hakemus_oid
             join sijoitteluajot as s on s.id = j.sijoitteluajo_id
             where s.id = ${sijoitteluajoId}
-                and lower(s.system_time) >= lower(vt.system_time)
+                and s.system_time <@ vt.system_time
             union all
             select th.valintatapajono_oid, th.hakemus_oid, th.tila, th.tilan_viimeisin_muutos as luotu
             from valinnantilat_history as th
@@ -808,7 +808,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
                 and j.hakemus_oid = th.hakemus_oid
             join sijoitteluajot as s on s.id = j.sijoitteluajo_id
             where s.id = ${sijoitteluajoId}
-                and lower(s.system_time) >= lower(th.system_time)
+                and s.system_time &> th.system_time
         """.as[TilaHistoriaRecord]).toList
   }
 
