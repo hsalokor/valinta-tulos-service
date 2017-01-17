@@ -507,7 +507,13 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            hyvaksytty_varasijalta = excluded.hyvaksytty_varasijalta,
            hyvaksy_peruuntunut = excluded.hyvaksy_peruuntunut,
            ilmoittaja = excluded.ilmoittaja,
-           selite = excluded.selite""")
+           selite = excluded.selite
+       where valinnantulokset.tilankuvaus_hash <> excluded.tilankuvaus_hash
+           or valinnantulokset.tarkenteen_lisatieto <> excluded.tarkenteen_lisatieto
+           or valinnantulokset.julkaistavissa <> excluded.julkaistavissa
+           or valinnantulokset.ehdollisesti_hyvaksyttavissa <> excluded.ehdollisesti_hyvaksyttavissa
+           or valinnantulokset.hyvaksytty_varasijalta <> excluded.hyvaksytty_varasijalta
+           or valinnantulokset.hyvaksy_peruuntunut <> excluded.hyvaksy_peruuntunut""")
 
   private def createValinnantulosInsertRow(hakemus:SijoitteluajonHakemusWrapper,
                                            valintatulos:Option[Valintatulos],
