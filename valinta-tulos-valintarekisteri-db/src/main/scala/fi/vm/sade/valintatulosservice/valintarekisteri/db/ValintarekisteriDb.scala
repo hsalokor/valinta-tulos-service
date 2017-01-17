@@ -809,7 +809,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
             join sijoitteluajot as s on s.id = j.sijoitteluajo_id
             where s.id = ${sijoitteluajoId}
                 and s.system_time &> th.system_time
-        """.as[TilaHistoriaRecord]).toList
+        """.as[TilaHistoriaRecord], Duration(1, TimeUnit.MINUTES)).toList
   }
 
   override def getValinnantilanKuvaukset(tilankuvausHashes:List[Int]): Map[Int,TilankuvausRecord] = tilankuvausHashes match {
