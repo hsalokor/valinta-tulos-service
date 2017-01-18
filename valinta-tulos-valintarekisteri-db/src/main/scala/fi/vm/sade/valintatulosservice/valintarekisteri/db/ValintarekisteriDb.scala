@@ -500,6 +500,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            selite
        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::text, 'Sijoittelun tallennus')
        on conflict on constraint valinnantulokset_pkey do update set
+           henkilo_oid = excluded.henkilo_oid,
            tilankuvaus_hash = excluded.tilankuvaus_hash,
            tarkenteen_lisatieto = excluded.tarkenteen_lisatieto,
            julkaistavissa = excluded.julkaistavissa,
@@ -508,7 +509,12 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            hyvaksy_peruuntunut = excluded.hyvaksy_peruuntunut,
            ilmoittaja = excluded.ilmoittaja,
            selite = excluded.selite
-       where valinnantulokset.tilankuvaus_hash <> excluded.tilankuvaus_hash
+       where (valinnantulokset.henkilo_oid is null and excluded.henkilo_oid is not null)
+           or (valinnantulokset.tilankuvaus_hash is null and excluded.tilankuvaus_hash is not null)
+           or (valinnantulokset.tilankuvaus_hash is not null and excluded.tilankuvaus_hash is null)
+           or valinnantulokset.tilankuvaus_hash <> excluded.tilankuvaus_hash
+           or (valinnantulokset.tarkenteen_lisatieto is null and excluded.tarkenteen_lisatieto is not null)
+           or (valinnantulokset.tarkenteen_lisatieto is not null and excluded.tarkenteen_lisatieto is null)
            or valinnantulokset.tarkenteen_lisatieto <> excluded.tarkenteen_lisatieto
            or valinnantulokset.julkaistavissa <> excluded.julkaistavissa
            or valinnantulokset.ehdollisesti_hyvaksyttavissa <> excluded.ehdollisesti_hyvaksyttavissa
