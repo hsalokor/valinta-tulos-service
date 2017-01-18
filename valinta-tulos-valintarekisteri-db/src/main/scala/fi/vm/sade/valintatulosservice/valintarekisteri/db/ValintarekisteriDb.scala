@@ -792,24 +792,23 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
 
   override def getSijoitteluajonTilahistoriat(sijoitteluajoId:Long): List[TilaHistoriaRecord] = {
     runBlocking(
-      sql"""select vt.valintatapajono_oid, vt.hakemus_oid, vt.tila, vt.tilan_viimeisin_muutos as luotu
-            from valinnantilat as vt
-            join jonosijat as j on j.hakukohde_oid = vt.hakukohde_oid
-                and j.valintatapajono_oid = vt.valintatapajono_oid
-                and j.hakemus_oid = vt.hakemus_oid
-            join sijoitteluajot as s on s.id = j.sijoitteluajo_id
-            where s.id = ${sijoitteluajoId}
-                and s.system_time <@ vt.system_time
-            union all
-            select th.valintatapajono_oid, th.hakemus_oid, th.tila, th.tilan_viimeisin_muutos as luotu
-            from valinnantilat_history as th
-            join jonosijat as j on j.hakukohde_oid = th.hakukohde_oid
-                and j.valintatapajono_oid = th.valintatapajono_oid
-                and j.hakemus_oid = th.hakemus_oid
-            join sijoitteluajot as s on s.id = j.sijoitteluajo_id
-            where s.id = ${sijoitteluajoId}
-                and s.system_time &> th.system_time
-        """.as[TilaHistoriaRecord], Duration(1, TimeUnit.MINUTES)).toList
+      sql"""select lower(system_time) from sijoitteluajot where id = ${sijoitteluajoId}""".as[Timestamp].map(_.head).flatMap(ts =>
+        sql"""select vt.valintatapajono_oid, vt.hakemus_oid, vt.tila, vt.tilan_viimeisin_muutos as luotu
+              from valinnantilat as vt
+              join jonosijat as j on j.hakukohde_oid = vt.hakukohde_oid
+                  and j.valintatapajono_oid = vt.valintatapajono_oid
+                  and j.hakemus_oid = vt.hakemus_oid
+              where j.sijoitteluajo_id = ${sijoitteluajoId}
+                  and vt.system_time @> ${ts}::timestamptz
+              union all
+              select th.valintatapajono_oid, th.hakemus_oid, th.tila, th.tilan_viimeisin_muutos as luotu
+              from valinnantilat_history as th
+              join jonosijat as j on j.hakukohde_oid = th.hakukohde_oid
+                  and j.valintatapajono_oid = th.valintatapajono_oid
+                  and j.hakemus_oid = th.hakemus_oid
+              where j.sijoitteluajo_id = ${sijoitteluajoId}
+                  and lower(th.system_time) <= ${ts}::timestamptz
+        """.as[TilaHistoriaRecord])).toList
   }
 
   override def getValinnantilanKuvaukset(tilankuvausHashes:List[Int]): Map[Int,TilankuvausRecord] = tilankuvausHashes match {
