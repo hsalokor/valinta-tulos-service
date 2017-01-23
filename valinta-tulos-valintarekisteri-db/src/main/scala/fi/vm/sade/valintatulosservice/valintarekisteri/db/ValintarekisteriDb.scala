@@ -354,15 +354,6 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
           sijoittelu.valintatulokset.filter(vt => vt.getHakukohdeOid == hakukohde.getOid))
       ))).transactionally),
       Duration(600, TimeUnit.SECONDS) /* Longer timeout for saving entire sijoittelu in a transaction. */)
-      analyzeLargeTables()
-  }
-
-  private def analyzeLargeTables() = {
-    runBlocking(DBIO.seq(
-      sqlu"""analyze jonosijat""",
-      sqlu"""analyze valinnantulokset""",
-      sqlu"""analyze pistetiedot"""),
-      Duration(60, TimeUnit.SECONDS))
   }
 
   import scala.collection.JavaConverters._
