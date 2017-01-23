@@ -18,13 +18,9 @@ class SijoitteluPerformanceSpec extends Specification with ITSetup with Valintar
 
   lazy val valintarekisteri = new ValintarekisteriService(singleConnectionValintarekisteriDb, hakukohdeRecordService)
 
-  "Store huge sijoittelu fast" in pending("Use this test only locally for performance tuning") {
+  "Store and read huge sijoittelu fast" in pending("Use this test only locally for performance tuning") {
     val wrapper = time("create test data") { createHugeSijoittelu(12345l, "11.22.33.44.55.66", 50) }
-    time("store data") {singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)}
-    true must beTrue
-  }
-  "Read huge sijoittelu fast" in pending("Use this test only locally for performance tuning") {
-    val wrapper = time("create test data") { createHugeSijoittelu(12345l, "11.22.33.44.55.66", 50) }
+    time("Store sijoittelu") {singleConnectionValintarekisteriDb.storeSijoittelu(wrapper)}
     time("Get sijoittelu") { valintarekisteri.getSijoitteluajo("11.22.33.44.55.66", "12345") }
     true must beTrue
   }
