@@ -400,7 +400,6 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       val pistetietoStatement = createPistetietoStatement(session.connection)
       val valinnantulosStatement = createValinnantulosStatement(session.connection)
       val valinnantilaStatement = createValinnantilaStatement(session.connection)
-      val viestinnanOhjausStatement = createViestinnanOhjaus(session.connection)
       val tilankuvausStatement = createTilankuvausStatement(session.connection)
       hakemukset.foreach( hakemus => {
         val hakemusWrapper = SijoitteluajonHakemusWrapper(hakemus)
@@ -411,14 +410,12 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
         createValinnantilanKuvausInsertRow(hakemusWrapper.tilankuvauksenHash, hakemusWrapper.tilankuvauksetWithTarkenne, tilankuvausStatement)
         createValinnantilaInsertRow(hakukohdeOid, valintatapajonoOid, sijoitteluajoId, hakemusWrapper, valinnantilaStatement)
         createValinnantulosInsertRow(hakemusWrapper, valintatulos, sijoitteluajoId, hakukohdeOid, valintatapajonoOid, valinnantulosStatement)
-        createViestinnanOhjausInsertRow(hakukohdeOid, valintatapajonoOid, hakemusOid, valintatulos, viestinnanOhjausStatement)
       })
       tilankuvausStatement.executeBatch
       jonosijaStatement.executeBatch
       pistetietoStatement.executeBatch
       valinnantilaStatement.executeBatch
       valinnantulosStatement.executeBatch
-      viestinnanOhjausStatement.executeBatch
     }
   }
 
@@ -564,38 +561,6 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     statement.setLong(6, sijoitteluajoId)
     statement.setString(7, hakemus.hakijaOid.orNull)
 
-    statement.addBatch()
-  }
-
-  private def createViestinnanOhjaus = createStatement(
-    """insert into viestinnan_ohjaus (
-           hakukohde_oid,
-           valintatapajono_oid,
-           hakemus_oid,
-           previous_check,
-           sent,
-           done,
-           message
-       ) values (?, ?, ?, ?, ?, ?, ?)
-       on conflict on constraint viestinnan_ohjaus_pkey do update set
-           previous_check = excluded.previous_check,
-           sent = excluded.sent,
-           done = excluded.done,
-           message = excluded.message"""
-  )
-
-  private def createViestinnanOhjausInsertRow(hakukohdeOid: String,
-                                              valintatapajonoOid:String,
-                                              hakemusOid: String,
-                                              valintatulos: Option[Valintatulos],
-                                              statement: PreparedStatement) = {
-    statement.setString(1, hakukohdeOid)
-    statement.setString(2, valintatapajonoOid)
-    statement.setString(3, hakemusOid)
-    statement.setTimestamp(4, valintatulos.flatMap(v => Option(v.getMailStatus.previousCheck)).map(x => new Timestamp(x.getTime)).orNull)
-    statement.setTimestamp(5, valintatulos.flatMap(v => Option(v.getMailStatus.sent)).map(x => new Timestamp(x.getTime)).orNull)
-    statement.setTimestamp(6, valintatulos.flatMap(v => Option(v.getMailStatus.done)).map(x => new Timestamp(x.getTime)).orNull)
-    statement.setString(7, valintatulos.map(_.getMailStatus.message).orNull)
     statement.addBatch()
   }
 
