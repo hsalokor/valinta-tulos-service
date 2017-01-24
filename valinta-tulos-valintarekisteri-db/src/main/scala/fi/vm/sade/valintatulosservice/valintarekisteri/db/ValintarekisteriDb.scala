@@ -419,7 +419,6 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       valinnantilaStatement.executeBatch
       valinnantulosStatement.executeBatch
       viestinnanOhjausStatement.executeBatch
-      insertIlmoittautumiset(session.connection, valintatulokset, hakemukset)
     }
   }
 
@@ -615,32 +614,6 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   private def newJavaSqlDateOrNull(date:Option[Date]) = date match {
     case Some(x) => new java.sql.Timestamp(x.getTime)
     case _ => null
-  }
-
-  private def insertIlmoittautumiset(connection:java.sql.Connection, valintatulokset:List[Valintatulos], hakemukset:List[SijoitteluHakemus]) = {
-    val sql =  """insert into ilmoittautumiset (henkilo, hakukohde, tila, ilmoittaja, selite)
-           values (?, ?, ?::ilmoittautumistila, ?, ?)"""
-
-      val statement = createStatement(sql)(connection)
-      valintatulokset.foreach(v => {
-        val SijoitteluajonValinnantulosWrapper(_, _, hakukohdeOid, _, _, _, _, ilmoittautumistila, logEntries, mailStatus)
-        = SijoitteluajonValinnantulosWrapper(v)
-
-        val (ilmoittaja, selite) = v.getOriginalLogEntries.asScala.filter(e => e.getLuotu != null).sortBy(_.getLuotu).reverse.headOption match {
-          case Some(entry) => (entry.getMuokkaaja, entry.getSelite)
-          case None => ("System", "")
-        }
-
-        val hakijaOid = hakemukset.find(_.getHakemusOid == v.getHakemusOid).head.getHakijaOid
-
-        statement.setString(1, hakijaOid)
-        statement.setString(2, hakukohdeOid)
-        statement.setString(3, ilmoittautumistila.get.toString)
-        statement.setString(4, ilmoittaja)
-        statement.setString(5, selite)
-        statement.addBatch
-      })
-      statement.executeBatch
   }
 
   private def insertSijoitteluajo(sijoitteluajo:SijoitteluAjo) = {
