@@ -409,15 +409,15 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
         createJonosijaInsertRow(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemusWrapper, jonosijaStatement)
         hakemus.getPistetiedot.asScala.foreach(createPistetietoInsertRow(sijoitteluajoId, valintatapajonoOid, hakemusOid, _, pistetietoStatement))
         createValinnantilanKuvausInsertRow(hakemusWrapper.tilankuvauksenHash, hakemusWrapper.tilankuvauksetWithTarkenne, tilankuvausStatement)
-        createValinnantulosInsertRow(hakemusWrapper, valintatulos, sijoitteluajoId, hakukohdeOid, valintatapajonoOid, valinnantulosStatement)
         createValinnantilaInsertRow(hakukohdeOid, valintatapajonoOid, sijoitteluajoId, hakemusWrapper, valinnantilaStatement)
+        createValinnantulosInsertRow(hakemusWrapper, valintatulos, sijoitteluajoId, hakukohdeOid, valintatapajonoOid, valinnantulosStatement)
         createViestinnanOhjausInsertRow(hakukohdeOid, valintatapajonoOid, hakemusOid, valintatulos, viestinnanOhjausStatement)
       })
       tilankuvausStatement.executeBatch
       jonosijaStatement.executeBatch
       pistetietoStatement.executeBatch
-      valinnantulosStatement.executeBatch
       valinnantilaStatement.executeBatch
+      valinnantulosStatement.executeBatch
       viestinnanOhjausStatement.executeBatch
       insertIlmoittautumiset(session.connection, valintatulokset, hakemukset)
     }
@@ -480,7 +480,6 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            valintatapajono_oid,
            hakemus_oid,
            hakukohde_oid,
-           henkilo_oid,
            tilankuvaus_hash,
            tarkenteen_lisatieto,
            julkaistavissa,
@@ -489,9 +488,8 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            hyvaksy_peruuntunut,
            ilmoittaja,
            selite
-       ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::text, 'Sijoittelun tallennus')
+       ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?::text, 'Sijoittelun tallennus')
        on conflict on constraint valinnantulokset_pkey do update set
-           henkilo_oid = excluded.henkilo_oid,
            tilankuvaus_hash = excluded.tilankuvaus_hash,
            tarkenteen_lisatieto = excluded.tarkenteen_lisatieto,
            julkaistavissa = excluded.julkaistavissa,
@@ -500,8 +498,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            hyvaksy_peruuntunut = excluded.hyvaksy_peruuntunut,
            ilmoittaja = excluded.ilmoittaja,
            selite = excluded.selite
-       where (valinnantulokset.henkilo_oid is null and excluded.henkilo_oid is not null)
-           or (valinnantulokset.tilankuvaus_hash is null and excluded.tilankuvaus_hash is not null)
+       where (valinnantulokset.tilankuvaus_hash is null and excluded.tilankuvaus_hash is not null)
            or (valinnantulokset.tilankuvaus_hash is not null and excluded.tilankuvaus_hash is null)
            or valinnantulokset.tilankuvaus_hash <> excluded.tilankuvaus_hash
            or (valinnantulokset.tarkenteen_lisatieto is null and excluded.tarkenteen_lisatieto is not null)
@@ -521,14 +518,13 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     valinnantulosStatement.setString(1, valintatapajonoOid)
     valinnantulosStatement.setString(2, hakemus.hakemusOid)
     valinnantulosStatement.setString(3, hakukohdeOid)
-    valinnantulosStatement.setString(4, hakemus.hakijaOid.orNull)
-    valinnantulosStatement.setInt(5, hakemus.tilankuvauksenHash)
-    valinnantulosStatement.setString(6, hakemus.tarkenteenLisatieto.orNull)
-    valinnantulosStatement.setBoolean(7, valintatulos.exists(_.getJulkaistavissa))
-    valinnantulosStatement.setBoolean(8, valintatulos.exists(_.getEhdollisestiHyvaksyttavissa))
-    valinnantulosStatement.setBoolean(9, valintatulos.exists(_.getHyvaksyttyVarasijalta))
-    valinnantulosStatement.setBoolean(10, valintatulos.exists(_.getHyvaksyPeruuntunut))
-    valinnantulosStatement.setLong(11, sijoitteluajoId)
+    valinnantulosStatement.setInt(4, hakemus.tilankuvauksenHash)
+    valinnantulosStatement.setString(5, hakemus.tarkenteenLisatieto.orNull)
+    valinnantulosStatement.setBoolean(6, valintatulos.exists(_.getJulkaistavissa))
+    valinnantulosStatement.setBoolean(7, valintatulos.exists(_.getEhdollisestiHyvaksyttavissa))
+    valinnantulosStatement.setBoolean(8, valintatulos.exists(_.getHyvaksyttyVarasijalta))
+    valinnantulosStatement.setBoolean(9, valintatulos.exists(_.getHyvaksyPeruuntunut))
+    valinnantulosStatement.setLong(10, sijoitteluajoId)
 
     valinnantulosStatement.addBatch()
   }
@@ -540,8 +536,9 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
            hakemus_oid,
            tila,
            tilan_viimeisin_muutos,
-           ilmoittaja
-       ) values (?, ?, ?, ?::valinnantila, ?, ?::text)
+           ilmoittaja,
+           henkilo_oid
+       ) values (?, ?, ?, ?::valinnantila, ?, ?::text, ?)
        on conflict on constraint valinnantilat_pkey do update set
            tila = excluded.tila,
            tilan_viimeisin_muutos = excluded.tilan_viimeisin_muutos,
@@ -550,10 +547,10 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     """)
 
   private def createValinnantilaInsertRow(hakukohdeOid: String,
-                                                  valintatapajonoOid: String,
-                                                  sijoitteluajoId: Long,
-                                                  hakemus: SijoitteluajonHakemusWrapper,
-                                                  statement: PreparedStatement) = {
+                                          valintatapajonoOid: String,
+                                          sijoitteluajoId: Long,
+                                          hakemus: SijoitteluajonHakemusWrapper,
+                                          statement: PreparedStatement) = {
     val tilanViimeisinMuutos = hakemus.tilaHistoria
       .filter(_.tila.equals(hakemus.tila))
       .map(_.luotu)
@@ -566,6 +563,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     statement.setString(4, hakemus.tila.toString)
     statement.setTimestamp(5, new Timestamp(tilanViimeisinMuutos.getTime))
     statement.setLong(6, sijoitteluajoId)
+    statement.setString(7, hakemus.hakijaOid.orNull)
 
     statement.addBatch()
   }
