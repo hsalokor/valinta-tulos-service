@@ -370,14 +370,43 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   }
 
   private def storeSijoittelunHakukohde(sijoitteluajoId:Long, hakuOid: String, hakukohde: Hakukohde, valintatulokset: List[Valintatulos]) = {
-    insertHakukohde(hakuOid, hakukohde).andThen(
-      DBIO.sequence(
-        hakukohde.getValintatapajonot.asScala.map(valintatapajono =>
-          storeSijoittelunValintatapajono(sijoitteluajoId, hakukohde.getOid, valintatapajono,
-            valintatulokset.filter(_.getValintatapajonoOid == valintatapajono.getOid))).toList ++
-          hakukohde.getHakijaryhmat.asScala.map(hakijaryhma => storeSijoittelunHakijaryhma(sijoitteluajoId, hakijaryhma,
-            hakukohde.getValintatapajonot.asScala.flatMap(_.getHakemukset.asScala).toList)).toList)
-    )
+    val vts = valintatulokset.map(v => (v.getValintatapajonoOid, v.getHakemusOid) -> v).toMap
+    insertHakukohde(hakuOid, hakukohde)
+      .andThen(DBIO.sequence(
+        hakukohde.getValintatapajonot.asScala.map(valintatapajono => {
+          insertValintatapajono(sijoitteluajoId, hakukohde.getOid, valintatapajono)
+        }).toSeq))
+      .andThen(SimpleDBIO { session =>
+        val jonosijaStatement = createJonosijaStatement(session.connection)
+        val pistetietoStatement = createPistetietoStatement(session.connection)
+        val valinnantulosStatement = createValinnantulosStatement(session.connection)
+        val valinnantilaStatement = createValinnantilaStatement(session.connection)
+        val tilankuvausStatement = createTilankuvausStatement(session.connection)
+        hakukohde.getValintatapajonot.asScala.foreach(valintatapajono => {
+          valintatapajono.getHakemukset.asScala.foreach(hakemus => {
+            storeValintatapajononHakemus(
+              hakemus,
+              vts.get((valintatapajono.getOid, hakemus.getHakemusOid)),
+              sijoitteluajoId,
+              hakukohde.getOid,
+              valintatapajono.getOid,
+              jonosijaStatement,
+              pistetietoStatement,
+              valinnantulosStatement,
+              valinnantilaStatement,
+              tilankuvausStatement
+            )
+          })
+        })
+        tilankuvausStatement.executeBatch
+        jonosijaStatement.executeBatch
+        pistetietoStatement.executeBatch
+        valinnantilaStatement.executeBatch
+        valinnantulosStatement.executeBatch
+      })
+      .andThen(DBIO.sequence(
+        hakukohde.getHakijaryhmat.asScala.map(hakijaryhma => storeSijoittelunHakijaryhma(sijoitteluajoId, hakijaryhma,
+          hakukohde.getValintatapajonot.asScala.flatMap(_.getHakemukset.asScala).toList)).toList))
   }
 
   private def storeSijoittelunHakijaryhma(sijoitteluajoId:Long, hakijaryhma: Hakijaryhma, hakemukset: List[SijoitteluHakemus]) = {
@@ -389,34 +418,22 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     )
   }
 
-  private def storeSijoittelunValintatapajono(sijoitteluajoId:Long, hakukohdeOid:String, valintatapajono:Valintatapajono, valintatulokset: List[Valintatulos]) = {
-    insertValintatapajono(sijoitteluajoId, hakukohdeOid, valintatapajono).andThen(
-      storeValintatapajononHakemukset(valintatapajono.getHakemukset.asScala.toList, sijoitteluajoId, hakukohdeOid, valintatapajono.getOid, valintatulokset))
-  }
-
-  private def storeValintatapajononHakemukset(hakemukset:List[SijoitteluHakemus], sijoitteluajoId:Long, hakukohdeOid:String, valintatapajonoOid:String, valintatulokset: List[Valintatulos]) = {
-    SimpleDBIO { session =>
-      val jonosijaStatement = createJonosijaStatement(session.connection)
-      val pistetietoStatement = createPistetietoStatement(session.connection)
-      val valinnantulosStatement = createValinnantulosStatement(session.connection)
-      val valinnantilaStatement = createValinnantilaStatement(session.connection)
-      val tilankuvausStatement = createTilankuvausStatement(session.connection)
-      hakemukset.foreach( hakemus => {
-        val hakemusWrapper = SijoitteluajonHakemusWrapper(hakemus)
-        val hakemusOid = hakemusWrapper.hakemusOid
-        val valintatulos = valintatulokset.find(_.getHakemusOid == hakemusOid)
-        createJonosijaInsertRow(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemusWrapper, jonosijaStatement)
-        hakemus.getPistetiedot.asScala.foreach(createPistetietoInsertRow(sijoitteluajoId, valintatapajonoOid, hakemusOid, _, pistetietoStatement))
-        createValinnantilanKuvausInsertRow(hakemusWrapper.tilankuvauksenHash, hakemusWrapper.tilankuvauksetWithTarkenne, tilankuvausStatement)
-        createValinnantilaInsertRow(hakukohdeOid, valintatapajonoOid, sijoitteluajoId, hakemusWrapper, valinnantilaStatement)
-        createValinnantulosInsertRow(hakemusWrapper, valintatulos, sijoitteluajoId, hakukohdeOid, valintatapajonoOid, valinnantulosStatement)
-      })
-      tilankuvausStatement.executeBatch
-      jonosijaStatement.executeBatch
-      pistetietoStatement.executeBatch
-      valinnantilaStatement.executeBatch
-      valinnantulosStatement.executeBatch
-    }
+  private def storeValintatapajononHakemus(hakemus: SijoitteluHakemus,
+                                           valintatulos: Option[Valintatulos],
+                                           sijoitteluajoId:Long,
+                                           hakukohdeOid:String,
+                                           valintatapajonoOid:String,
+                                           jonosijaStatement: PreparedStatement,
+                                           pistetietoStatement: PreparedStatement,
+                                           valinnantulosStatement: PreparedStatement,
+                                           valinnantilaStatement: PreparedStatement,
+                                           tilankuvausStatement: PreparedStatement) = {
+    val hakemusWrapper = SijoitteluajonHakemusWrapper(hakemus)
+    createJonosijaInsertRow(sijoitteluajoId, hakukohdeOid, valintatapajonoOid, hakemusWrapper, jonosijaStatement)
+    hakemus.getPistetiedot.asScala.foreach(createPistetietoInsertRow(sijoitteluajoId, valintatapajonoOid, hakemus.getHakemusOid, _, pistetietoStatement))
+    createValinnantilanKuvausInsertRow(hakemusWrapper, tilankuvausStatement)
+    createValinnantilaInsertRow(hakukohdeOid, valintatapajonoOid, sijoitteluajoId, hakemusWrapper, valinnantilaStatement)
+    createValinnantulosInsertRow(hakemusWrapper, valintatulos, sijoitteluajoId, hakukohdeOid, valintatapajonoOid, valinnantulosStatement)
   }
 
   private def createStatement(sql:String) = (connection:java.sql.Connection) => connection.prepareStatement(sql)
@@ -567,13 +584,13 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   private def createTilankuvausStatement = createStatement("""insert into valinnantilan_kuvaukset (hash, tilan_tarkenne, text_fi, text_sv, text_en)
       values (?, ?::valinnantilanTarkenne, ?, ?, ?) on conflict do nothing""")
 
-  private def createValinnantilanKuvausInsertRow(hash:Int, tilankuvauksetWithTarkenne: Map[String, String], tilankuvausStatement:PreparedStatement) = {
-        tilankuvausStatement.setInt(1, hash)
-        tilankuvausStatement.setString(2, tilankuvauksetWithTarkenne("tilankuvauksenTarkenne"))
-        tilankuvausStatement.setString(3, tilankuvauksetWithTarkenne.getOrElse("FI", null))
-        tilankuvausStatement.setString(4, tilankuvauksetWithTarkenne.getOrElse("SV", null))
-        tilankuvausStatement.setString(5, tilankuvauksetWithTarkenne.getOrElse("EN", null))
-        tilankuvausStatement.addBatch
+  private def createValinnantilanKuvausInsertRow(h: SijoitteluajonHakemusWrapper, s: PreparedStatement) = {
+    s.setInt(1, h.tilankuvauksenHash)
+    s.setString(2, h.tilankuvauksetWithTarkenne("tilankuvauksenTarkenne"))
+    s.setString(3, h.tilankuvauksetWithTarkenne.getOrElse("FI", null))
+    s.setString(4, h.tilankuvauksetWithTarkenne.getOrElse("SV", null))
+    s.setString(5, h.tilankuvauksetWithTarkenne.getOrElse("EN", null))
+    s.addBatch()
   }
 
   private def newJavaSqlDateOrNull(date:Option[Date]) = date match {
