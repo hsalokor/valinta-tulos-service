@@ -453,16 +453,15 @@ trait ValintarekisteriDbTools extends Specification {
     var valinnantulokset:IndexedSeq[SijoitteluajonValinnantulosWrapper] = IndexedSeq()
     val hakukohteet = (1 to size par).map(i => {
       val hakukohdeOid = hakuOid + "." + i
-      insertHakukohde(hakukohdeOid, hakuOid)
       val hakukohde = SijoitteluajonHakukohdeWrapper(sijoitteluajoId, hakukohdeOid, hakukohdeOid, true).hakukohde
       hakukohde.setValintatapajonot(
-      (1 to size par).map( k => {
+      (1 to 4 par).map( k => {
         val valintatapajonoOid = hakukohdeOid + "." + k
         val valintatapajono = SijoitteluajonValintatapajonoWrapper( valintatapajonoOid, "nimi" + k, k, Arvonta, Some(k), Some(k), false, false,
           false, Some(k), Some(k), Some(new Date(System.currentTimeMillis)), Some(new Date(System.currentTimeMillis)),
           None, k, k, Some(k), Some(false)).valintatapajono
         valintatapajono.getHakemukset.addAll(
-          (1 to (size*2) par).map( j => {
+          (1 to size par).map( j => {
             val hakemus = SijoitteluajonHakemusWrapper(valintatapajonoOid + "." + j, Some(valintatapajonoOid), Some("Etunimi"), Some("Sukunimi"),
               j, j, None, false, Some(j), j, false, false, Hylatty, Some(Map("FI" -> ("fi" + j), "SV" -> ("sv" + j), "EN" -> ("en" + j))),
               EiTilankuvauksenTarkennetta, None, Set(""), List()).hakemus
@@ -486,7 +485,8 @@ trait ValintarekisteriDbTools extends Specification {
       val hakijaryhmaOids = hakukohde.getHakijaryhmat.asScala.map(_.getOid).toSet.asJava
       hakukohde.getValintatapajonot.get(0).getHakemukset().asScala.foreach(h => h.setHyvaksyttyHakijaryhmista(hakijaryhmaOids))
       hakukohde
-    }).seq.asJava
-    SijoitteluWrapper(sijoitteluajo.sijoitteluajo, hakukohteet, valinnantulokset.map(_.valintatulos).asJava)
+    })
+    hakukohteet.foreach(h => insertHakukohde(h.getOid, hakuOid))
+    SijoitteluWrapper(sijoitteluajo.sijoitteluajo, hakukohteet.seq.asJava, valinnantulokset.map(_.valintatulos).asJava)
   }
 }
