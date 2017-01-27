@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.config.{Config, ConfigValueFactory}
 import fi.vm.sade.sijoittelu.domain.{Hakukohde, SijoitteluAjo, Valintatapajono, Hakemus => SijoitteluHakemus, _}
 import fi.vm.sade.utils.slf4j.Logging
+import fi.vm.sade.valintatulosservice.logging.PerformanceLogger
 import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PSQLException
@@ -20,7 +21,7 @@ import scala.util.control.NonFatal
 
 class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends ValintarekisteriResultExtractors
   with HakijaVastaanottoRepository with SijoitteluRepository with HakukohdeRepository
-  with VirkailijaVastaanottoRepository with ValintarekisteriService with Logging {
+  with VirkailijaVastaanottoRepository with ValintarekisteriService with Logging with PerformanceLogger {
 
   val user = if (dbConfig.hasPath("user")) dbConfig.getString("user") else null
   val password = if (dbConfig.hasPath("password")) dbConfig.getString("password") else null
@@ -347,15 +348,73 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
     sql"""select linked_oid from henkiloviitteet where person_oid = ${henkiloOid}""".as[String].map(_.toSet)
   }
 
+  import scala.collection.JavaConverters._
+
   override def storeSijoittelu(sijoittelu: SijoitteluWrapper) = {
-    runBlocking(handleSijoitteluHistory(sijoittelu).andThen(insertSijoitteluajo(sijoittelu.sijoitteluajo).andThen(
-      DBIO.sequence(sijoittelu.hakukohteet.map(hakukohde =>
-        storeSijoittelunHakukohde(sijoittelu.sijoitteluajo.getSijoitteluajoId, sijoittelu.sijoitteluajo.getHakuOid, hakukohde)
-      ))).transactionally),
+    val sijoitteluajoId = sijoittelu.sijoitteluajo.getSijoitteluajoId
+    val hakuOid = sijoittelu.sijoitteluajo.getHakuOid
+    runBlocking(handleSijoitteluHistory(sijoittelu)
+      .andThen(insertSijoitteluajo(sijoittelu.sijoitteluajo))
+      .andThen(DBIO.sequence(
+        sijoittelu.hakukohteet.map(insertHakukohde(hakuOid, _))))
+      .andThen(DBIO.sequence(
+        sijoittelu.hakukohteet.flatMap(hakukohde =>
+          hakukohde.getValintatapajonot.asScala.map(insertValintatapajono(sijoitteluajoId, hakukohde.getOid, _)))))
+      .andThen(SimpleDBIO { session =>
+        val jonosijaStatement = createJonosijaStatement(session.connection)
+        val pistetietoStatement = createPistetietoStatement(session.connection)
+        val valinnantulosStatement = createValinnantulosStatement(session.connection)
+        val valinnantilaStatement = createValinnantilaStatement(session.connection)
+        val tilankuvausStatement = createTilankuvausStatement(session.connection)
+        sijoittelu.hakukohteet.foreach(hakukohde => {
+          hakukohde.getValintatapajonot.asScala.foreach(valintatapajono => {
+            valintatapajono.getHakemukset.asScala.foreach(hakemus => {
+              storeValintatapajononHakemus(
+                hakemus,
+                sijoitteluajoId,
+                hakukohde.getOid,
+                valintatapajono.getOid,
+                jonosijaStatement,
+                pistetietoStatement,
+                valinnantulosStatement,
+                valinnantilaStatement,
+                tilankuvausStatement
+              )
+            })
+          })
+        })
+        time(s"Haun $hakuOid tilankuvauksien tallennus") { tilankuvausStatement.executeBatch() }
+        time(s"Haun $hakuOid jonosijojen tallennus") { jonosijaStatement.executeBatch }
+        time(s"Haun $hakuOid pistetietojen tallennus") { pistetietoStatement.executeBatch }
+        time(s"Haun $hakuOid valinnantilojen tallennus") { valinnantilaStatement.executeBatch }
+        time(s"Haun $hakuOid valinnantulosten tallennus") { valinnantulosStatement.executeBatch }
+        tilankuvausStatement.close()
+        jonosijaStatement.close()
+        pistetietoStatement.close()
+        valinnantilaStatement.close()
+        valinnantulosStatement.close()
+      })
+      .andThen(DBIO.sequence(sijoittelu.hakukohteet.flatMap(_.getHakijaryhmat.asScala.map(insertHakijaryhma(sijoitteluajoId, _)))))
+      .andThen(SimpleDBIO { session =>
+        val statement = prepareInsertHakijaryhmanHakemus(session.connection)
+        sijoittelu.hakukohteet.foreach(hakukohde => {
+          hakukohde.getHakijaryhmat.asScala.foreach(hakijaryhma => {
+            val hyvaksytyt = hakukohde.getValintatapajonot.asScala.flatMap(valintatapajono => {
+              valintatapajono.getHakemukset.asScala
+                .filter(_.getHyvaksyttyHakijaryhmista.contains(hakijaryhma.getOid))
+                .map(_.getHakemusOid)
+            }).toSet
+            hakijaryhma.getHakemusOid.asScala.foreach(hakemusOid => {
+              insertHakijaryhmanHakemus(hakijaryhma.getOid, sijoitteluajoId, hakemusOid, hyvaksytyt.contains(hakemusOid), statement)
+            })
+          })
+        })
+        time(s"Haun $hakuOid hakijaryhmien hakemusten tallennus") { statement.executeBatch() }
+        statement.close()
+      })
+      .transactionally,
       Duration(600, TimeUnit.SECONDS) /* Longer timeout for saving entire sijoittelu in a transaction. */)
   }
-
-  import scala.collection.JavaConverters._
 
   private def handleSijoitteluHistory(sijoittelu: SijoitteluWrapper) = {
     pistetietoHistoryUpdate(sijoittelu.sijoitteluajo.getHakuOid)
@@ -366,53 +425,6 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
           update pistetiedot p set deleted = true
           from sijoitteluajot s
           where p.sijoitteluajo_id = s.id and p.deleted = false and s.haku_oid = ${hakuOid}"""
-  }
-
-  private def storeSijoittelunHakukohde(sijoitteluajoId:Long, hakuOid: String, hakukohde: Hakukohde) = {
-    insertHakukohde(hakuOid, hakukohde)
-      .andThen(DBIO.sequence(
-        hakukohde.getValintatapajonot.asScala.map(valintatapajono => {
-          insertValintatapajono(sijoitteluajoId, hakukohde.getOid, valintatapajono)
-        }).toSeq))
-      .andThen(SimpleDBIO { session =>
-        val jonosijaStatement = createJonosijaStatement(session.connection)
-        val pistetietoStatement = createPistetietoStatement(session.connection)
-        val valinnantulosStatement = createValinnantulosStatement(session.connection)
-        val valinnantilaStatement = createValinnantilaStatement(session.connection)
-        val tilankuvausStatement = createTilankuvausStatement(session.connection)
-        hakukohde.getValintatapajonot.asScala.foreach(valintatapajono => {
-          valintatapajono.getHakemukset.asScala.foreach(hakemus => {
-            storeValintatapajononHakemus(
-              hakemus,
-              sijoitteluajoId,
-              hakukohde.getOid,
-              valintatapajono.getOid,
-              jonosijaStatement,
-              pistetietoStatement,
-              valinnantulosStatement,
-              valinnantilaStatement,
-              tilankuvausStatement
-            )
-          })
-        })
-        tilankuvausStatement.executeBatch
-        jonosijaStatement.executeBatch
-        pistetietoStatement.executeBatch
-        valinnantilaStatement.executeBatch
-        valinnantulosStatement.executeBatch
-      })
-      .andThen(DBIO.sequence(
-        hakukohde.getHakijaryhmat.asScala.map(hakijaryhma => storeSijoittelunHakijaryhma(sijoitteluajoId, hakijaryhma,
-          hakukohde.getValintatapajonot.asScala.flatMap(_.getHakemukset.asScala).toList)).toList))
-  }
-
-  private def storeSijoittelunHakijaryhma(sijoitteluajoId:Long, hakijaryhma: Hakijaryhma, hakemukset: List[SijoitteluHakemus]) = {
-    insertHakijaryhma(sijoitteluajoId, hakijaryhma).andThen(
-      DBIO.sequence(hakijaryhma.getHakemusOid.asScala.map(hakemusOid => {
-        val hakemusExists = hakemukset.exists(h => h.getHakemusOid == hakemusOid && h.getHyvaksyttyHakijaryhmista.contains(hakijaryhma.getOid))
-        insertHakijaryhmanHakemus(hakijaryhma.getOid, sijoitteluajoId, hakemusOid, hakemusExists)
-      }).toList)
-    )
   }
 
   private def storeValintatapajononHakemus(hakemus: SijoitteluHakemus,
@@ -625,9 +637,22 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       ${tarkkaKiintio}, ${kaytetaanRyhmaanKuuluvia}, ${valintatapajonoOid}, ${hakijaryhmatyyppikoodiUri})"""
   }
 
-  private def insertHakijaryhmanHakemus(hakijaryhmaOid:String, sijoitteluajoId:Long, hakemusOid:String, hyvaksyttyHakijaryhmasta:Boolean) = {
-    sqlu"""insert into hakijaryhman_hakemukset (hakijaryhma_oid, sijoitteluajo_id, hakemus_oid, hyvaksytty_hakijaryhmasta)
-           values (${hakijaryhmaOid}, ${sijoitteluajoId}, ${hakemusOid}, ${hyvaksyttyHakijaryhmasta})"""
+  private def prepareInsertHakijaryhmanHakemus(c: java.sql.Connection) = c.prepareStatement(
+    """insert into hakijaryhman_hakemukset (hakijaryhma_oid, sijoitteluajo_id, hakemus_oid, hyvaksytty_hakijaryhmasta)
+       values (?, ?, ?, ?)"""
+  )
+
+  private def insertHakijaryhmanHakemus(hakijaryhmaOid:String,
+                                        sijoitteluajoId:Long,
+                                        hakemusOid:String,
+                                        hyvaksyttyHakijaryhmasta:Boolean,
+                                        statement: PreparedStatement) = {
+    var i = 1
+    statement.setString(i, hakijaryhmaOid); i += 1
+    statement.setLong(i, sijoitteluajoId); i += 1
+    statement.setString(i, hakemusOid); i += 1
+    statement.setBoolean(i, hyvaksyttyHakijaryhmasta); i += 1
+    statement.addBatch()
   }
 
   override def getLatestSijoitteluajoId(hakuOid:String): Option[Long] = {
