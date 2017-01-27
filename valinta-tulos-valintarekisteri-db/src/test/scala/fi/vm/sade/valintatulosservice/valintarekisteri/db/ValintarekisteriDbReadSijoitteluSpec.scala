@@ -3,7 +3,6 @@ package fi.vm.sade.valintatulosservice.valintarekisteri.db
 import java.sql.Timestamp
 
 import fi.vm.sade.sijoittelu.domain.{Hakemus => SijoitteluHakemus}
-import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import fi.vm.sade.valintatulosservice.valintarekisteri.{ITSetup, ValintarekisteriDbTools}
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -73,20 +72,6 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
       hakemus.selite mustEqual "Sijoittelun tallennus"
       hakemus.tilanViimeisinMuutos mustEqual dateStringToTimestamp("2016-10-12T04:11:20.527+0000")
     }
-
-    "get ilmoittautumisen ilmoittaja and selite" in {
-      val hakemus = getIlmoittautumistiedot("1.2.246.562.24.33442275509").get
-      hakemus.selite mustEqual "muokkaus testi"
-      hakemus.ilmoittaja mustEqual "testi ilmoittaja"
-    }
-
-    "get hakemuksen mailStatus" in {
-      val hakemus = getHakemusInfo("1.2.246.562.11.00005820159").get
-      hakemus.previousCheck mustEqual dateStringToTimestamp("2016-10-30T06:39:44.246+0000")
-      hakemus.sent mustEqual dateStringToTimestamp("2016-10-30T06:44:22.402+0000")
-      hakemus.done mustEqual null
-      hakemus.message mustEqual "Lähetetty [\"email\"]"
-    }
   }
 
   case class HakemusInfoRecord(selite:String, ilmoittaja:String, tilanViimeisinMuutos:Timestamp,
@@ -106,17 +91,6 @@ class ValintarekisteriDbReadSijoitteluSpec extends Specification with ITSetup wi
                 and o.valintatapajono_oid = v.valintatapajono_oid
                 and o.hakemus_oid = v.hakemus_oid
             where v.hakemus_oid = ${hakemusOid}""".as[HakemusInfoRecord]).headOption
-  }
-
-  case class IlmoittautumisRecord(ilmoittaja:String, selite:String)
-
-  private implicit val getIlmoittautumistiedotResult = GetResult(r => IlmoittautumisRecord(r.nextString, r.nextString))
-
-  def getIlmoittautumistiedot(hakijaOid: String): Option[IlmoittautumisRecord] = {
-    singleConnectionValintarekisteriDb.runBlocking(
-      sql"""select ilmoittaja, selite
-            from ilmoittautumiset
-            where henkilo = ${hakijaOid} and deleted is null""".as[IlmoittautumisRecord]).headOption
   }
 
   step(deleteAll())
