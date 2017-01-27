@@ -413,7 +413,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
         statement.close()
       })
       .transactionally,
-      Duration(600, TimeUnit.SECONDS) /* Longer timeout for saving entire sijoittelu in a transaction. */)
+      Duration(30, TimeUnit.MINUTES) /* Longer timeout for saving entire sijoittelu in a transaction. */)
   }
 
   private def handleSijoitteluHistory(sijoittelu: SijoitteluWrapper) = {
