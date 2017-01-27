@@ -475,7 +475,7 @@ trait ValintarekisteriDbTools extends Specification {
       }).seq.asJava
       )
       hakukohde.setHakijaryhmat(
-        (1 to (size/10)).map( j => {
+        (1 to 4).map( j => {
           val hakijaryhmaOid = hakukohdeOid + "." + j
           SijoitteluajonHakijaryhmaWrapper(hakijaryhmaOid, "nimi" + j, j, j, false, false, false,
             hakukohde.getValintatapajonot.get(0).getHakemukset.asScala.map(_.getHakemusOid).toList, None,
