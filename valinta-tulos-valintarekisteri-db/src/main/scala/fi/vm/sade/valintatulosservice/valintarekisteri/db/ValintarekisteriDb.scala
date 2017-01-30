@@ -394,16 +394,17 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
         valinnantilaStatement.close()
         valinnantulosStatement.close()
       })
-      .andThen(DBIO.sequence(sijoittelu.hakukohteet.flatMap(_.getHakijaryhmat.asScala.map(insertHakijaryhma(sijoitteluajoId, _)))))
+      .andThen(DBIO.sequence(
+        sijoittelu.hakukohteet.flatMap(_.getHakijaryhmat.asScala).map(insertHakijaryhma(sijoitteluajoId, _))))
       .andThen(SimpleDBIO { session =>
         val statement = prepareInsertHakijaryhmanHakemus(session.connection)
         sijoittelu.hakukohteet.foreach(hakukohde => {
           hakukohde.getHakijaryhmat.asScala.foreach(hakijaryhma => {
-            val hyvaksytyt = hakukohde.getValintatapajonot.asScala.flatMap(valintatapajono => {
-              valintatapajono.getHakemukset.asScala
-                .filter(_.getHyvaksyttyHakijaryhmista.contains(hakijaryhma.getOid))
-                .map(_.getHakemusOid)
-            }).toSet
+            val hyvaksytyt = hakukohde.getValintatapajonot.asScala
+              .flatMap(_.getHakemukset.asScala)
+              .filter(_.getHyvaksyttyHakijaryhmista.contains(hakijaryhma.getOid))
+              .map(_.getHakemusOid)
+              .toSet
             hakijaryhma.getHakemusOid.asScala.foreach(hakemusOid => {
               insertHakijaryhmanHakemus(hakijaryhma.getOid, sijoitteluajoId, hakemusOid, hyvaksytyt.contains(hakemusOid), statement)
             })
