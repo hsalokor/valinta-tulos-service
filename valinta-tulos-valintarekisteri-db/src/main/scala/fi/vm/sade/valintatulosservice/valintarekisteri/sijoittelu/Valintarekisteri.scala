@@ -92,7 +92,7 @@ abstract class Valintarekisteri extends SijoitteluRecordToDTO with Logging with 
       tilahistoria => (tilahistoria.hakemusOid, tilahistoria.valintatapajonoOid)
     ).mapValues(_.map(tilaHistoriaRecordToDTO).sortBy(_.getLuotu.getTime))
 
-    val pistetiedot = time (s"${sijoitteluajoId} pistetietojen haku") { sijoitteluRepository.getSijoitteluajonPistetiedotInChunks(sijoitteluajoId) }.groupBy(
+    val pistetiedot = time (s"${sijoitteluajoId} pistetietojen haku") { sijoitteluRepository.getSijoitteluajonPistetiedot(sijoitteluajoId) }.groupBy(
       pistetieto => (pistetieto.hakemusOid, pistetieto.valintatapajonoOid)
     ).mapValues(_.map(pistetietoRecordToTDO))
 

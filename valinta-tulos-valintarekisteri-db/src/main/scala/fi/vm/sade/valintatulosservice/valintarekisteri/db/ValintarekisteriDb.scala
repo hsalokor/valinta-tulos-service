@@ -353,8 +353,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
   override def storeSijoittelu(sijoittelu: SijoitteluWrapper) = {
     val sijoitteluajoId = sijoittelu.sijoitteluajo.getSijoitteluajoId
     val hakuOid = sijoittelu.sijoitteluajo.getHakuOid
-    runBlocking(handleSijoitteluHistory(sijoittelu)
-      .andThen(insertSijoitteluajo(sijoittelu.sijoitteluajo))
+    runBlocking(insertSijoitteluajo(sijoittelu.sijoitteluajo)
       .andThen(DBIO.sequence(
         sijoittelu.hakukohteet.map(insertHakukohde(hakuOid, _))))
       .andThen(DBIO.sequence(
@@ -422,17 +421,6 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
         sqlu"""analyze valinnantulokset"""),
         Duration(15, TimeUnit.MINUTES))
     }
-  }
-
-  private def handleSijoitteluHistory(sijoittelu: SijoitteluWrapper) = {
-    pistetietoHistoryUpdate(sijoittelu.sijoitteluajo.getHakuOid)
-  }
-
-  private def pistetietoHistoryUpdate(hakuOid:String) = {
-    sqlu"""
-          update pistetiedot p set deleted = true
-          from sijoitteluajot s
-          where p.sijoitteluajo_id = s.id and p.deleted = false and s.haku_oid = ${hakuOid}"""
   }
 
   private def storeValintatapajononHakemus(hakemus: SijoitteluHakemus,
@@ -826,14 +814,16 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
       sql"""
          select valintatapajono_oid, hakemus_oid, tunniste, arvo, laskennallinen_arvo, osallistuminen
          from pistetiedot
-         where sijoitteluajo_id = ${sijoitteluajoId} and hakemus_oid = ${hakemusOid} and deleted = false""".as[PistetietoRecord]).toList
+         where sijoitteluajo_id = ${sijoitteluajoId} and hakemus_oid = ${hakemusOid}""".as[PistetietoRecord]).toList
   }
 
   override def getSijoitteluajonPistetiedot(sijoitteluajoId:Long): List[PistetietoRecord] = {
     runBlocking(sql"""
        select valintatapajono_oid, hakemus_oid, tunniste, arvo, laskennallinen_arvo, osallistuminen
        from  pistetiedot
-       where sijoitteluajo_id = ${sijoitteluajoId} and deleted = false""".as[PistetietoRecord]).toList
+       where sijoitteluajo_id = ${sijoitteluajoId}""".as[PistetietoRecord],
+      Duration(1, TimeUnit.MINUTES)
+    ).toList
   }
 
   override def getSijoitteluajonPistetiedotInChunks(sijoitteluajoId:Long, chunkSize:Int = 200): List[PistetietoRecord] = {
@@ -845,7 +835,7 @@ class ValintarekisteriDb(dbConfig: Config, isItProfile:Boolean = false) extends 
                        select p.valintatapajono_oid, p.hakemus_oid, p.tunniste, p.arvo, p.laskennallinen_arvo, p.osallistuminen
                                 from  pistetiedot p
                                 inner join v on p.valintatapajono_oid = v.oid
-                                where p.sijoitteluajo_id = ${sijoitteluajoId} and p.deleted = false""".as[PistetietoRecord]).toList match {
+                                where p.sijoitteluajo_id = ${sijoitteluajoId}""".as[PistetietoRecord]).toList match {
         case result if result.size == 0 => result
         case result => result ++ readPistetiedot(offset + chunkSize)
       }
