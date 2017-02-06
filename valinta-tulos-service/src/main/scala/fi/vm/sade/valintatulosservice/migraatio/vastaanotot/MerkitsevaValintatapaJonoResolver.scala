@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.migraatio
+package fi.vm.sade.valintatulosservice.migraatio.vastaanotot
 
 import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakutoiveDTO}

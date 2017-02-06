@@ -1,4 +1,4 @@
-package fi.vm.sade.valintatulosservice.migraatio
+package fi.vm.sade.valintatulosservice.migraatio.vastaanotot
 
 import java.util.Date
 
