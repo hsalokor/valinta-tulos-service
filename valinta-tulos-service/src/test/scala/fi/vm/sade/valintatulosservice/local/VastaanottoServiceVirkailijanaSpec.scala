@@ -1,12 +1,14 @@
 package fi.vm.sade.valintatulosservice.local
 
 import fi.vm.sade.valintatulosservice._
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
+import Vastaanottotila.Vastaanottotila
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.sijoittelu.{DirectMongoSijoittelunTulosRestClient, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
+import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.specs2.execute.{FailureException, Result}
@@ -385,7 +387,7 @@ class VastaanottoServiceVirkailijanaSpec extends ITSpecification with TimeWarp w
 
   step(valintarekisteriDb.db.shutdown)
 
-  lazy val hakuService = HakuService(null, appConfig)
+  lazy val hakuService = HakuService(appConfig)
   lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
   lazy val hakukohdeRecordService = new HakukohdeRecordService(hakuService, valintarekisteriDb, true)
   lazy val sijoittelunTulosRestClient = new DirectMongoSijoittelunTulosRestClient(appConfig)

@@ -6,12 +6,11 @@ import java.util.concurrent.TimeUnit
 import fi.vm.sade.utils.cas.{CasAuthenticatingClient, CasClient, CasParams}
 import org.http4s.Status.ResponseClass.Successful
 import org.http4s.client.Client
-import org.http4s.{Method, Request}
 import org.http4s.json4s.native.jsonOf
-import org.json4s.DefaultReaders.StringReader
+import org.http4s.{Method, Request}
+import org.json4s.DefaultReaders.{StringReader, arrayReader}
 import org.json4s.JsonAST.JValue
 import org.json4s.Reader
-import org.json4s.DefaultReaders.arrayReader
 
 import scala.concurrent.duration.Duration
 import scala.util.Try

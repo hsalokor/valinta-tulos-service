@@ -4,14 +4,16 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.TypeImports._
 import fi.vm.sade.sijoittelu.domain.HakemuksenTila
 import fi.vm.sade.valintatulosservice._
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.generatedfixtures._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.mongo.MongoFactory
 import fi.vm.sade.valintatulosservice.sijoittelu.{DirectMongoSijoittelunTulosRestClient, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.{HakuFixtures, HakuService}
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila._
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{VastaanottoEventDto, Vastaanottotila}
+import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 import fi.vm.sade.valintatulosservice.vastaanottomeili._
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
@@ -19,7 +21,7 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class MailPollerSpec extends ITSpecification with TimeWarp {
-  lazy val hakuService = HakuService(null, appConfig)
+  lazy val hakuService = HakuService(appConfig)
   lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
   lazy val sijoittelunTulosRestClient = new DirectMongoSijoittelunTulosRestClient(appConfig)
   lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService,

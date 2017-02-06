@@ -1,19 +1,17 @@
 package fi.vm.sade.valintatulosservice
 
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.Vastaanottotila
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats.javaObjectToJsonString
-import fi.vm.sade.valintatulosservice.valintarekisteri.VastaanottoRecord
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.VastaanottoRecord
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{PriorAcceptanceException, VastaanottoEventDto, Vastaanottotila}
 import org.joda.time.DateTime
 import org.json4s.jackson.Serialization._
 import org.scalatra.swagger.SwaggerSupportSyntax.OperationBuilder
 import org.scalatra.swagger._
 import org.scalatra.{Forbidden, Ok}
 
-import scala.util.Try
-
-class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, vastaanottoService: VastaanottoService)(implicit val swagger: Swagger, appConfig: AppConfig) extends VtsServletBase {
+class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, vastaanottoService: VastaanottoService)(implicit val swagger: Swagger, appConfig: VtsAppConfig) extends VtsServletBase {
 
   override val applicationName = Some("virkailija")
 
@@ -149,12 +147,5 @@ class VirkailijanVastaanottoServlet(valintatulosService: ValintatulosService, va
 
 case class Result(status: Int, message: Option[String])
 case class VastaanottoResult(henkiloOid: String, hakemusOid: String, hakukohdeOid: String, result: Result)
-case class VastaanottoEventDto(valintatapajonoOid: String, henkiloOid: String, hakemusOid: String, hakukohdeOid: String, hakuOid: String,
-                               tila: Vastaanottotila, ilmoittaja: String, selite: String) {
-  val fieldsWithNames = List((valintatapajonoOid, "valintatapajonoOid"), (henkiloOid, "henkiloOid"), (hakemusOid, "hakemusOid"),
-    (hakukohdeOid, "hakukohdeOid"), (hakuOid, "hakuOid"), (tila, "tila"), (ilmoittaja, "ilmoittaja"), (selite, "selite"))
-  val errorMessages = fieldsWithNames.filter(_._1 == null).map(_._2 + " was null")
-  assert(errorMessages.isEmpty, errorMessages.mkString(", "))
-}
 case class VastaanottoAikarajaMennyt(hakemusOid: String, mennyt: Boolean, vastaanottoDeadline: Option[DateTime])
 case class TilaHakijalle(hakemusOid: String, hakukohdeOid: String, valintatapajonoOid: String, tilaHakijalle: String)

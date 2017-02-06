@@ -5,7 +5,8 @@ import java.util.Date
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila._
 import fi.vm.sade.valintatulosservice.domain.Valintatila._
 import fi.vm.sade.valintatulosservice.domain.Vastaanotettavuustila._
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila._
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila._
 
 case class HakemuksenSijoitteluntulos (
   hakemusOid: String,

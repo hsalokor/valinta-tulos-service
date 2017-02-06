@@ -2,15 +2,16 @@ import java.util
 import javax.servlet.{DispatcherType, ServletContext}
 
 import fi.vm.sade.valintatulosservice._
-import fi.vm.sade.valintatulosservice.config.AppConfig
-import fi.vm.sade.valintatulosservice.config.AppConfig._
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.{Dev, IT, VtsAppConfig}
 import fi.vm.sade.valintatulosservice.ensikertalaisuus.EnsikertalaisuusServlet
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
-import fi.vm.sade.valintatulosservice.koodisto.KoodistoService
-import fi.vm.sade.valintatulosservice.migraatio.MigraatioServlet
+import fi.vm.sade.valintatulosservice.migraatio.vastaanotot.MigraatioServlet
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoitteluFixtures, SijoittelunTulosRestClient, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakukohdeRecordService, ValintarekisteriDb}
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
+import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
+import fi.vm.sade.valintatulosservice.valintarekisteri.sijoittelu.ValintarekisteriService
 import fi.vm.sade.valintatulosservice.vastaanottomeili.{MailDecorator, MailPoller, ValintatulosMongoCollection}
 import org.scalatra._
 
@@ -18,19 +19,18 @@ class ScalatraBootstrap extends LifeCycle {
 
   implicit val swagger = new ValintatulosSwagger
 
-  var globalConfig: Option[AppConfig] = None
+  var globalConfig: Option[VtsAppConfig] = None
 
   override def init(context: ServletContext) {
-    implicit val appConfig: AppConfig = AppConfig.fromOptionalString(Option(context.getAttribute("valintatulos.profile").asInstanceOf[String]))
+    implicit val appConfig: VtsAppConfig = VtsAppConfig.fromOptionalString(Option(context.getAttribute("valintatulos.profile").asInstanceOf[String]))
     globalConfig = Some(appConfig)
     appConfig.start
     if (appConfig.isInstanceOf[IT] || appConfig.isInstanceOf[Dev]) {
       context.mount(new FixtureServlet(valintarekisteriDb), "/util")
       SijoitteluFixtures(appConfig.sijoitteluContext.database, valintarekisteriDb).importFixture("hyvaksytty-kesken-julkaistavissa.json")
     }
-    lazy val koodistoService = new KoodistoService(appConfig)
-    lazy val hakuService = HakuService(koodistoService, appConfig)
-    lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
+    lazy val hakuService = HakuService(appConfig)
+    lazy val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig, appConfig.isInstanceOf[IT])
     lazy val hakukohdeRecordService = new HakukohdeRecordService(hakuService, valintarekisteriDb, appConfig.settings.lenientTarjontaDataParsing)
     val sijoittelunTulosRestClient = SijoittelunTulosRestClient(appConfig)
     lazy val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService,
@@ -44,7 +44,7 @@ class ScalatraBootstrap extends LifeCycle {
       appConfig.sijoitteluContext.valintatulosRepository, valintarekisteriDb)
     lazy val valintatulosCollection = new ValintatulosMongoCollection(appConfig.settings.valintatulosMongoConfig)
     lazy val mailPoller = new MailPoller(valintatulosCollection, valintatulosService, valintarekisteriDb, hakuService, appConfig.ohjausparametritService, limit = 100)
-
+    lazy val sijoitteluService = new ValintarekisteriService(valintarekisteriDb, hakukohdeRecordService)
 
 
     val migrationMode = System.getProperty("valinta-rekisteri-migration-mode")
@@ -60,6 +60,7 @@ class ScalatraBootstrap extends LifeCycle {
       context.mount(new EmailStatusServlet(mailPoller, valintatulosCollection, new MailDecorator(new HakemusRepository(), valintatulosCollection, hakuService)), "/vastaanottoposti")
       context.mount(new EnsikertalaisuusServlet(valintarekisteriDb, appConfig.settings.valintaRekisteriEnsikertalaisuusMaxPersonOids), "/ensikertalaisuus")
       context.mount(new HakijanVastaanottoServlet(vastaanottoService), "/vastaanotto")
+      context.mount(new SijoitteluServlet(sijoitteluService), "/sijoittelu")
 
       val securityFilter = appConfig.securityContext.securityFilter
       context.addFilter("cas", securityFilter)

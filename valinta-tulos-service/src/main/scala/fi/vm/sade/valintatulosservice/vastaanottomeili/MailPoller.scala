@@ -2,14 +2,18 @@ package fi.vm.sade.valintatulosservice.vastaanottomeili
 
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.ValintatulosService
-import fi.vm.sade.valintatulosservice.domain.Vastaanottotila.{Vastaanottotila => _}
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.json.JsonFormats._
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoRecord}
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.{HakijaVastaanottoRepository, VastaanottoRecord}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila.{Vastaanottotila => _}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{VastaanotaEhdollisesti, VastaanotaSitovasti}
 
 class MailPoller(valintatulosCollection: ValintatulosMongoCollection, valintatulosService: ValintatulosService, hakijaVastaanottoRepository: HakijaVastaanottoRepository, hakuService: HakuService, ohjausparameteritService: OhjausparametritService, val limit: Integer) extends Logging {
+
+  // TODO Change from Mongo to Postgres!
+
   def etsiHaut: List[String] = {
     val found = (hakuService.kaikkiJulkaistutHaut match {
       case Right(haut) => haut

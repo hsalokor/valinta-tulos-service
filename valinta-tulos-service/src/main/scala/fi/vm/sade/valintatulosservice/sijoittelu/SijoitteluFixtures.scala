@@ -1,12 +1,11 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.SECONDS
 
 import com.mongodb.DB
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
-import fi.vm.sade.valintatulosservice.domain._
-import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriDb
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JArray
 import org.json4s.jackson.JsonMethods._

@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice.ohjausparametrit
 
 import fi.vm.sade.utils.http.DefaultHttpClient
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.domain.Vastaanottoaikataulu
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
@@ -29,7 +29,7 @@ class StubbedOhjausparametritService extends OhjausparametritService {
 }
 
 object CachedRemoteOhjausparametritService {
-  def apply(implicit appConfig: AppConfig): OhjausparametritService = {
+  def apply(implicit appConfig: VtsAppConfig): OhjausparametritService = {
     val service = new RemoteOhjausparametritService()
     val ohjausparametritMemo = TTLOptionalMemoize.memoize[String, Option[Ohjausparametrit]](service.ohjausparametrit, 60 * 60)
 
@@ -39,7 +39,7 @@ object CachedRemoteOhjausparametritService {
   }
 }
 
-class RemoteOhjausparametritService(implicit appConfig: AppConfig) extends OhjausparametritService with JsonFormats {
+class RemoteOhjausparametritService(implicit appConfig: VtsAppConfig) extends OhjausparametritService with JsonFormats {
   import org.json4s.jackson.JsonMethods._
 
   def ohjausparametrit(asId: String): Either[Throwable, Option[Ohjausparametrit]] = {

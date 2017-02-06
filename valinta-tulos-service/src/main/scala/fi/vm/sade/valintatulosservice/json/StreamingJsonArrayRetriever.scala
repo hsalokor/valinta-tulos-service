@@ -9,7 +9,7 @@ import com.google.common.net.HttpHeaders
 import fi.vm.sade.utils.cas.CasClient.JSessionId
 import fi.vm.sade.utils.cas.CasParams
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import org.http4s.Status
 
 import scala.concurrent.duration.Duration
@@ -18,7 +18,7 @@ import scalaz.concurrent.Task
 import scalaz.stream._
 
 
-class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
+class StreamingJsonArrayRetriever(appConfig: VtsAppConfig) extends Logging {
   private val jsonFactory = new JsonFactory()
   private val mapper = new ObjectMapper()
 
@@ -98,7 +98,7 @@ class StreamingJsonArrayRetriever(appConfig: AppConfig) extends Logging {
     }
   }
 
-  private def createCasParams(appConfig: AppConfig, targetService: String): CasParams = {
+  private def createCasParams(appConfig: VtsAppConfig, targetService: String): CasParams = {
     CasParams(targetService, appConfig.settings.securitySettings.casUsername, appConfig.settings.securitySettings.casPassword)
   }
 }

@@ -1,10 +1,10 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.json.StreamingJsonArrayRetriever
 
-class StreamingHakijaDtoClient(appConfig: AppConfig) {
+class StreamingHakijaDtoClient(appConfig: VtsAppConfig) {
   private val retriever = new StreamingJsonArrayRetriever(appConfig)
 
   def processSijoittelunTulokset[T](hakuOid: String, sijoitteluajoId: String, processor: HakijaDTO => T) = {

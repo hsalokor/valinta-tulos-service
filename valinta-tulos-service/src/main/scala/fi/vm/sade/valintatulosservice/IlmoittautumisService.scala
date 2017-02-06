@@ -1,12 +1,12 @@
 package fi.vm.sade.valintatulosservice
 
 import fi.vm.sade.sijoittelu.domain.IlmoittautumisTila
-import fi.vm.sade.valintatulosservice.domain.{Ilmoittautuminen, VastaanotaSitovasti}
+import fi.vm.sade.valintatulosservice.domain.Ilmoittautuminen
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.sijoittelu.ValintatulosRepository
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, VastaanottoRecord}
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.HakijaVastaanottoRepository
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.VastaanotaSitovasti
 import org.json4s.jackson.Serialization
-import slick.dbio.DBIO
 
 class IlmoittautumisService(valintatulosService: ValintatulosService,
                             tulokset: ValintatulosRepository,

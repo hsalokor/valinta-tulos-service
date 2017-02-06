@@ -1,0 +1,1 @@
+create index valinnantulos_tilahistoria on valinnantulokset (valintatapajono_oid, hakemus_oid, tila, tilan_viimeisin_muutos);

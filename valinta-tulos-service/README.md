@@ -41,7 +41,7 @@ Aja vain paikalliset testit (ei tuotantoa tai testiympäristöä vasten):
 
 ### Käynnistä IDEAsta/Eclipsestä
 
-Aja JettyLauncher-luokka.
+Aja JettyLauncher-luokka. IDEA:ssa saattaa joutua asettamaan run configurationsista working directoryksi: `$MODULE_DIR$`
 
 IT-profiililla, eli embedded mongo-kannalla: `-Dvalintatulos.profile=it`
 

@@ -7,19 +7,20 @@ import fi.vm.sade.sijoittelu.tulos.dto
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.{HakijaDTO, HakijaPaginationObject}
 import fi.vm.sade.utils.Timer.timed
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.domain.Valintatila.isHyväksytty
 import fi.vm.sade.valintatulosservice.domain._
 import fi.vm.sade.valintatulosservice.hakemus.HakemusRepository
 import fi.vm.sade.valintatulosservice.ohjausparametrit.{Ohjausparametrit, OhjausparametritService}
 import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelutulosService, StreamingHakijaDtoClient}
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, HakuService}
-import fi.vm.sade.valintatulosservice.valintarekisteri._
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.{HakijaVastaanottoRepository, VastaanottoRecord, VirkailijaVastaanottoRepository}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{HakukohdeRecord, Kausi, MerkitseMyohastyneeksi, Vastaanottotila}
+import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 import org.apache.commons.lang3.StringUtils
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
-import scala.util.{Failure, Success, Try}
 
 private object HakemustenTulosHakuLock
 
@@ -30,21 +31,15 @@ class ValintatulosService(vastaanotettavuusService: VastaanotettavuusService,
                           virkailijaVastaanottoRepository: VirkailijaVastaanottoRepository,
                           hakuService: HakuService,
                           hakijaVastaanottoRepository: HakijaVastaanottoRepository,
-                          hakukohdeRecordService: HakukohdeRecordService)(implicit appConfig: AppConfig) extends Logging {
+                          hakukohdeRecordService: HakukohdeRecordService)(implicit appConfig: VtsAppConfig) extends Logging {
   def this(vastaanotettavuusService: VastaanotettavuusService,
            sijoittelutulosService: SijoittelutulosService,
            virkailijaVastaanottoRepository: VirkailijaVastaanottoRepository,
            hakuService: HakuService,
            hakijaVastaanottoRepository: HakijaVastaanottoRepository,
-           hakukohdeRecordService: HakukohdeRecordService)(implicit appConfig: AppConfig) =
-    this(vastaanotettavuusService,
-      sijoittelutulosService,
-      appConfig.ohjausparametritService,
-      new HakemusRepository(),
-      virkailijaVastaanottoRepository,
-      hakuService,
-      hakijaVastaanottoRepository,
-      hakukohdeRecordService)
+           hakukohdeRecordService: HakukohdeRecordService)(implicit appConfig: VtsAppConfig) =
+    this(vastaanotettavuusService, sijoittelutulosService, appConfig.ohjausparametritService, new HakemusRepository(), virkailijaVastaanottoRepository, hakuService, hakijaVastaanottoRepository, hakukohdeRecordService)
+
 
   val valintatulosDao = appConfig.sijoitteluContext.valintatulosDao
   private val streamingHakijaDtoClient = new StreamingHakijaDtoClient(appConfig)

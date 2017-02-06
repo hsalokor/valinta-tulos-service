@@ -1,14 +1,15 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
-import fi.vm.sade.sijoittelu.domain.{Hakukohde, HakukohdeItem, SijoitteluAjo}
+import fi.vm.sade.sijoittelu.domain.{HakukohdeItem, SijoitteluAjo}
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
 import fi.vm.sade.sijoittelu.tulos.dto.{HakukohdeDTO, SijoitteluajoDTO}
-import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
+import fi.vm.sade.valintatulosservice.config.StubbedExternalDeps
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.json.StreamingJsonArrayRetriever
 
 import scala.collection.JavaConverters._
 
-class SijoittelunTulosRestClient(appConfig: AppConfig) {
+class SijoittelunTulosRestClient(appConfig: VtsAppConfig) {
   private val retriever = new StreamingJsonArrayRetriever(appConfig)
 
   def fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid: String, hakukohdeOid: Option[String]): Option[SijoitteluAjo] = {
@@ -60,7 +61,7 @@ class SijoittelunTulosRestClient(appConfig: AppConfig) {
 }
 
 object SijoittelunTulosRestClient {
-  def apply(appConfig: AppConfig) = appConfig match {
+  def apply(appConfig: VtsAppConfig) = appConfig match {
     case _: StubbedExternalDeps => new DirectMongoSijoittelunTulosRestClient(appConfig)
     case _ => new SijoittelunTulosRestClient(appConfig)
   }

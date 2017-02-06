@@ -4,13 +4,12 @@ import com.mongodb.casbah.WriteConcern
 import fi.vm.sade.sijoittelu.domain._
 import fi.vm.sade.sijoittelu.tulos.testfixtures.MongoMockData
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.hakemus.{HakemusFixture, HakemusFixtures, HakutoiveFixture}
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtureCreator
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
-import org.mongodb.morphia.{AdvancedDatastore, Datastore}
-import shapeless.ops.nat.Min
+import org.mongodb.morphia.AdvancedDatastore
 
 import scala.collection.immutable.Iterable
 
@@ -21,7 +20,7 @@ class GeneratedFixture(haut: List[GeneratedHakuFixture] = List(new GeneratedHaku
 
   def ohjausparametritFixture = OhjausparametritFixtures.vastaanottoLoppuu2100
 
-  def apply(implicit appConfig: AppConfig) {
+  def apply(implicit appConfig: VtsAppConfig) {
     HakuFixtures.useFixture(hakuFixture, haut.map(_.hakuOid))
 
     val hakemusFixtures = HakemusFixtures()

@@ -1,10 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>fi.vm.sade</groupId>
         <artifactId>valinta-tulos-service-parent</artifactId>
-        <version>2.0-SNAPSHOT</version>
+        <version>3.0-SNAPSHOT</version>
     </parent>
     <artifactId>valinta-tulos-service</artifactId>
     <packaging>war</packaging>
@@ -12,535 +14,291 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang.modules</groupId>
-            <artifactId>scala-parser-combinators_2.11</artifactId>
-            <version>1.0.4</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${scala.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scalatra</groupId>
             <artifactId>scalatra_2.11</artifactId>
-            <version>2.3.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${scalatra_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scalatra</groupId>
             <artifactId>scalatra-json_2.11</artifactId>
-            <version>2.3.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                  <groupId>org.json4s</groupId>
-                  <artifactId>json4s-core_2.11</artifactId>
-                </exclusion>
-                  <exclusion>
-                    <groupId>org.json4s</groupId>
-                    <artifactId>json4s-ext_2.11</artifactId>
-                  </exclusion>
-            </exclusions>
+            <version>${scalatra_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scalatra</groupId>
             <artifactId>scalatra-swagger_2.11</artifactId>
-            <version>2.3.0</version>
-            <exclusions>
-              <exclusion>
-                <groupId>org.json4s</groupId>
-                <artifactId>json4s-core_2.11</artifactId>
-              </exclusion>
-                <exclusion>
-                  <groupId>org.json4s</groupId>
-                  <artifactId>json4s-ext_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatra</groupId>
-            <artifactId>scalatra-specs2_2.11</artifactId>
-            <version>2.3.0</version>
-            <scope>test</scope>
-            <exclusions>
-              <exclusion>
-                <groupId>org.specs2</groupId>
-                <artifactId>specs2_2.11</artifactId>
-              </exclusion>
-              <exclusion>
-                <groupId>org.scala-lang</groupId>
-                <artifactId>scala-library</artifactId>
-              </exclusion>
-            </exclusions>
+            <version>${scalatra_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-core_2.11</artifactId>
-            <version>3.2.10</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${FIXME.json4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2_2.11</artifactId>
-            <version>2.4.16</version>
+            <version>${FIXME.specs2_2.11.version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang.modules</groupId>
-                    <artifactId>scala-parser-combinators_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.ow2.asm</groupId>
-                    <artifactId>asm</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
+            <version>${javax.servlet-api.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-core</artifactId>
-            <version>7.0.22</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-logging-juli</artifactId>
-            <version>7.0.22</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-jasper</artifactId>
-            <version>7.0.22</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jms</artifactId>
-            <version>4.3.2.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
-            <version>4.3.2.RELEASE</version>
+            <version>${spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>4.3.2.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aop</artifactId>
-            <version>4.3.2.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-expression</artifactId>
-            <version>4.3.2.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-            <version>4.1.2.RELEASE</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-beans</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-aop</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-            <version>4.1.2.RELEASE</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-beans</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-aop</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>casbah_2.11</artifactId>
-            <version>3.1.0</version>
-            <type>pom</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mongodb.morphia</groupId>
             <artifactId>morphia</artifactId>
-            <version>1.2.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.mongodb</groupId>
-                    <artifactId>mongo-java-driver</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${morphia.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
+            <version>${mongo-java-driver.version}</version>
         </dependency>
         <dependency>
             <groupId>fi.vm.sade.sijoittelu</groupId>
             <artifactId>sijoittelu-tulos-service</artifactId>
-            <version>4.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                  <groupId>com.wordnik</groupId>
-                  <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-web</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-aop</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-beans</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.security</groupId>
-                    <artifactId>spring-security-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.security</groupId>
-                    <artifactId>spring-security-config</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jasig.cas.client</groupId>
-                    <artifactId>cas-client-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-lang</groupId>
-                    <artifactId>commons-lang</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>fi.vm.sade.valintaperusteet</groupId>
-            <artifactId>valintaperusteet</artifactId>
-            <version>3.0-SNAPSHOT</version>
-            <type>pom</type>
+            <version>${sijoittelu.version}</version>
         </dependency>
         <dependency>
             <groupId>fi.vm.sade.sijoittelu</groupId>
             <artifactId>sijoittelu-algoritmi-domain</artifactId>
-            <version>4.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${sijoittelu.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>fi.vm.sade</groupId>
             <artifactId>scala-utils_2.11</artifactId>
-            <version>0.3.1-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang.modules</groupId>
-                    <artifactId>scala-parser-combinators_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>de.flapdoodle.embed</groupId>
-                    <artifactId>de.flapdoodle.embed.mongo</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.dataformat</groupId>
-                    <artifactId>jackson-dataformat-yaml</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${scala-utils_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scalaz.stream</groupId>
             <artifactId>scalaz-stream_2.11</artifactId>
-            <version>0.7.3a</version>
+            <version>${scalaz-stream_2.11.version}</version>
             <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                  <groupId>org.scala-lang</groupId>
-                  <artifactId>scala-library</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-blaze-client_2.11</artifactId>
-            <version>0.10.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.http4s</groupId>
-                    <artifactId>blaze-http_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.log4s</groupId>
-                    <artifactId>log4s_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.http4s</groupId>
-                    <artifactId>http4s-websocket_2.11</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${FIXME.http4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>blaze-http_2.11</artifactId>
-            <version>0.10.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.http4s</groupId>
-            <artifactId>http4s-websocket_2.11</artifactId>
-            <version>0.1.3</version>
+            <version>${FIXME.http4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>fi.vm.sade</groupId>
             <artifactId>scala-ldap-client_2.11</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>${scala-ldap-client_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>fi.vm.sade</groupId>
             <artifactId>scala-cas_2.11</artifactId>
-            <version>0.3.2-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.http4s</groupId>
-                    <artifactId>http4s-client_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.http4s</groupId>
-                    <artifactId>http4s-core_2.11</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-            <version>3.2.1</version>
+            <version>${FIXME.scala-cas_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.slick</groupId>
             <artifactId>slick_2.11</artifactId>
-            <version>3.1.1</version>
-            <exclusions>
-                <exclusion>
-                  <groupId>org.scala-lang</groupId>
-                  <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.slick</groupId>
-            <artifactId>slick-hikaricp_2.11</artifactId>
-            <version>3.1.1</version>
-            <exclusions>
-                <exclusion>
-                  <groupId>org.scala-lang</groupId>
-                  <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>9.4-1201-jdbc41</version>
+            <version>${slick_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
+            <version>${commons-lang.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.http4s</groupId>
             <artifactId>http4s-json4s-native_2.11</artifactId>
-            <version>0.10.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scalap</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.json4s</groupId>
-                    <artifactId>json4s-core_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.json4s</groupId>
-                    <artifactId>json4s-ast_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.scalaz.stream</groupId>
-                    <artifactId>scalaz-stream_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.json4s</groupId>
-                    <artifactId>json4s-native_2.11</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.http4s</groupId>
-                    <artifactId>http4s-core_2.11</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${FIXME.http4s_2.11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-native_2.11</artifactId>
-            <version>3.2.10</version>
+            <version>${FIXME.json4s_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fi.vm.sade</groupId>
+            <artifactId>valinta-tulos-valintarekisteri-db</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fi.vm.sade</groupId>
+            <artifactId>valinta-tulos-valintarekisteri-db</artifactId>
+            <type>test-jar</type>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-ext_2.11</artifactId>
+            <version>${json4s_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${FIXME.jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>casbah-commons_2.11</artifactId>
+            <version>${casbah_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fi.vm.sade.sijoittelu</groupId>
+            <artifactId>sijoittelu-tulos-api</artifactId>
+            <version>${sijoittelu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${apache.httpclient.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra-test_2.11</artifactId>
+            <version>${scalatra_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>${FIXME.jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalaz</groupId>
+            <artifactId>scalaz-core_2.11</artifactId>
+            <version>${FIXME.scalaz_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-xml_2.11</artifactId>
+            <version>${scala-xml_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalaz</groupId>
+            <artifactId>scalaz-concurrent_2.11</artifactId>
+            <version>${scalaz-concurrent_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.clapper</groupId>
+            <artifactId>grizzled-slf4j_2.11</artifactId>
+            <version>${grizzled-slf4j_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-jackson_2.11</artifactId>
+            <version>${FIXME.json4s_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>${joda-time.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.http4s</groupId>
+            <artifactId>http4s-core_2.11</artifactId>
+            <version>${FIXME.http4s_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-webapp</artifactId>
+            <version>${FIXME.jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-ast_2.11</artifactId>
+            <version>${FIXME.json4s_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.scala-logging</groupId>
+            <artifactId>scala-logging_2.11</artifactId>
+            <version>${scala-logging_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <version>${typesafe.config.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>casbah-query_2.11</artifactId>
+            <version>${casbah_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>casbah-core_2.11</artifactId>
+            <version>${casbah_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.http4s</groupId>
+            <artifactId>http4s-client_2.11</artifactId>
+            <version>${FIXME.http4s_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${FIXME.jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalaj</groupId>
+            <artifactId>scalaj-http_2.11</artifactId>
+            <version>${scalaj-http_2.11.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra-common_2.11</artifactId>
+            <version>${scalatra_2.11.version}</version>
         </dependency>
     </dependencies>
     <build>
         <plugins>
-           <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-enforcer-plugin</artifactId>
-              <executions>
-                <execution>
-                  <id>enforce-versions</id>
-                  <goals>
-                    <goal>enforce</goal>
-                  </goals>
-                  <configuration>
-                    <rules>
-                      <requireJavaVersion>
-                        <version>[1.8,)</version>
-                      </requireJavaVersion>
-                      <dependencyConvergence/>
-                    </rules>
-                  </configuration>
-                </execution>
-              </executions>
-            </plugin>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
+                <version>${plugin.scala-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>scala-compile-first</id>
@@ -568,7 +326,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.13</version>
+                <version>${FIXME.plugin.maven-surefire-plugin.version}</version>
                 <configuration>
                     <includes>
                         <exclude>**/*Spec.java</exclude>
@@ -582,7 +340,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.6</version>
+                <version>${plugin.maven-war-plugin.version}</version>
                 <configuration>
                     <packagingExcludes>WEB-INF/lib//javax.servlet-api-*.jar</packagingExcludes>
                 </configuration>
@@ -590,7 +348,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.5.0</version>
+                <version>${plugin.exec-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>local_jetty</id>
@@ -619,14 +377,4 @@
             </plugin>
         </plugins>
     </build>
-    <repositories>
-        <repository>
-            <id>ScalazBintrayRepo</id>
-            <name>Scalaz Bintray Repo</name>
-            <url>http://dl.bintray.com/scalaz/releases/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-    </repositories>
 </project>

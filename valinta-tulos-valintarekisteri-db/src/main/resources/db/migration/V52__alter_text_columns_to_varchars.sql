@@ -1,0 +1,12 @@
+alter table valinnantilat alter column hakukohde_oid type character varying;
+alter table valinnantilat alter column valintatapajono_oid type character varying;
+alter table valinnantilat alter column hakemus_oid type character varying;
+alter table valinnantilat alter column ilmoittaja type character varying;
+alter table valinnantilat_history alter column hakukohde_oid type character varying;
+alter table valinnantilat_history alter column valintatapajono_oid type character varying;
+alter table valinnantilat_history alter column hakemus_oid type character varying;
+alter table valinnantilat_history alter column ilmoittaja type character varying;
+alter table viestinnan_ohjaus alter column hakukohde_oid type character varying;
+alter table viestinnan_ohjaus alter column valintatapajono_oid type character varying;
+alter table viestinnan_ohjaus alter column hakemus_oid type character varying;
+alter table viestinnan_ohjaus alter column message type character varying;

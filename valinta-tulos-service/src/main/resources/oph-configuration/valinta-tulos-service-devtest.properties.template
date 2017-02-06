@@ -16,9 +16,6 @@ valinta-tulos-service.parseleniently.sijoitteluajontulos={{valintatulosservice_p
 sijoittelu-service.hakukohdeCache.populate=false
 sijoittelu-service.hakukohdeDao.batchSize=300
 
-# KOODISTO
-koodisto-service.rest.url=https://{{host_virkailija}}/koodisto-service
-
 # HAKEMUKSET
 hakemus.mongodb.dbname=hakulomake
 hakemus.mongodb.uri=mongodb://{{mongodb_hakemus_auth}}@{{mongodb_hakemus_host}}:{{mongodb_hakemus_port}}

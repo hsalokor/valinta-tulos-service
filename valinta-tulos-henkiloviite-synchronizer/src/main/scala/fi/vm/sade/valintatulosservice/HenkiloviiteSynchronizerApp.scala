@@ -4,7 +4,7 @@ import java.util.Calendar
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
 import ch.qos.logback.access.jetty.RequestLogImpl
-import org.eclipse.jetty.server.handler.{ContextHandler, ContextHandlerCollection, HandlerList, ResourceHandler}
+import org.eclipse.jetty.server.handler.{ContextHandler, ContextHandlerCollection, ResourceHandler}
 import org.eclipse.jetty.server.{RequestLog, Server}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.eclipse.jetty.util.resource.Resource

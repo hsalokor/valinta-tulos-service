@@ -1,0 +1,1 @@
+create index pistetiedot_sijoitteluajo on pistetiedot (sijoitteluajo_id, valintatapajono_oid, hakemus_oid);

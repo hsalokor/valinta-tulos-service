@@ -1,15 +1,15 @@
 package fi.vm.sade.valintatulosservice
 
 import com.typesafe.config.ConfigValueFactory
-import fi.vm.sade.valintatulosservice.config.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig
 import fi.vm.sade.valintatulosservice.hakemus.HakemusFixtures
 import fi.vm.sade.valintatulosservice.ohjausparametrit.OhjausparametritFixtures
 import fi.vm.sade.valintatulosservice.sijoittelu.SijoitteluFixtures
 import fi.vm.sade.valintatulosservice.tarjonta.HakuFixtures
-import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriDb
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
 
 trait ITSetup {
-  implicit val appConfig = new AppConfig.IT
+  implicit val appConfig = new VtsAppConfig.IT
   val dbConfig = appConfig.settings.valintaRekisteriDbConfig
 
   lazy val singleConnectionValintarekisteriDb = new ValintarekisteriDb(

@@ -3,12 +3,12 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 import java.util.Optional
 
 import fi.vm.sade.sijoittelu.domain.SijoitteluAjo
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 
 /**
   * For testing _only_. Goes directly to raportointiservice without invoking sijoittelu-service REST API.
   */
-class DirectMongoSijoittelunTulosRestClient(appConfig: AppConfig) extends SijoittelunTulosRestClient(appConfig) {
+class DirectMongoSijoittelunTulosRestClient(appConfig: VtsAppConfig) extends SijoittelunTulosRestClient(appConfig) {
   private val raportointiService = appConfig.sijoitteluContext.raportointiService
 
   override def fetchLatestSijoitteluAjoFromSijoitteluService(hakuOid: String, hakukohdeOid: Option[String]): Option[SijoitteluAjo] = {

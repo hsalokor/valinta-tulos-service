@@ -1,6 +1,6 @@
 package fi.vm.sade.valintatulosservice
 import org.specs2.mutable.Specification
-import org.specs2.specification.{Step, Fragments}
+import org.specs2.specification.{Fragments, Step}
 
 trait ITSpecification extends Specification with ITSetup {
   sequential

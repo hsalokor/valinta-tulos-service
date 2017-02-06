@@ -6,11 +6,11 @@ import com.typesafe.config.ConfigValueFactory
 import fi.vm.sade.utils.http.{DefaultHttpClient, DefaultHttpRequest}
 import fi.vm.sade.utils.slf4j.Logging
 import fi.vm.sade.valintatulosservice.SharedJetty
-import fi.vm.sade.valintatulosservice.config.AppConfig
-import fi.vm.sade.valintatulosservice.generatedfixtures.{SimpleGeneratedHakuFixture2, GeneratedFixture}
-import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriDb
-import org.json4s.{JValue, DefaultFormats}
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig
+import fi.vm.sade.valintatulosservice.generatedfixtures.{GeneratedFixture, SimpleGeneratedHakuFixture2}
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
 import org.json4s.jackson.Serialization
+import org.json4s.{DefaultFormats, JValue}
 import slick.driver.PostgresDriver.api._
 
 import scala.concurrent.Await
@@ -20,7 +20,7 @@ import scalaj.http.Http
 
 object YhdenPaikanSaantoBatchAPITester extends App with Logging {
   implicit val formats = DefaultFormats
-  implicit val appConfig = new AppConfig.IT
+  implicit val appConfig = new VtsAppConfig.IT
   private val dbConfig = appConfig.settings.valintaRekisteriDbConfig
   lazy val valintarekisteriDb = new ValintarekisteriDb(
     dbConfig.withValue("connectionPool", ConfigValueFactory.fromAnyRef("disabled"))).db

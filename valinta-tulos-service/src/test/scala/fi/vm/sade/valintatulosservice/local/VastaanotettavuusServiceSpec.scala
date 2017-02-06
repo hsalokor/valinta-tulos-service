@@ -2,10 +2,11 @@ package fi.vm.sade.valintatulosservice.local
 
 import java.util.Date
 
-import fi.vm.sade.valintatulosservice.domain._
+import fi.vm.sade.valintatulosservice.VastaanotettavuusService
 import fi.vm.sade.valintatulosservice.tarjonta.{Haku, Hakukohde, YhdenPaikanSaanto}
-import fi.vm.sade.valintatulosservice.valintarekisteri.{HakijaVastaanottoRepository, HakukohdeRecordService, VastaanottoRecord}
-import fi.vm.sade.valintatulosservice.{PriorAcceptanceException, VastaanotettavuusService}
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.{HakijaVastaanottoRepository, VastaanottoRecord}
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain._
+import fi.vm.sade.valintatulosservice.valintarekisteri.hakukohde.HakukohdeRecordService
 import org.junit.runner.RunWith
 import org.mockito.Matchers
 import org.specs2.matcher.MustThrownExpectations
@@ -14,7 +15,7 @@ import org.specs2.mock.mockito.{MockitoMatchers, MockitoStubs}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.Scope
-import slick.dbio.{DBIO, DBIOAction, FailureAction, FlatMapAction, SuccessAction}
+import slick.dbio._
 
 import scala.util.{Failure, Success, Try}
 
@@ -64,7 +65,7 @@ class VastaanotettavuusServiceSpec extends Specification with MockitoMatchers wi
       Some(Kausi("2016S")), YhdenPaikanSaanto(true, "kk haku ilman kohdejoukon tarkennetta"), Map("kieli_fi" -> "Haun nimi"))
     val koulutusOid = "1.2.246.562.17.00000000000"
     val hakukohde = Hakukohde("1.2.246.562.20.00000000000", haku.oid, List(koulutusOid), "KORKEAKOULUTUS", "TUTKINTO",
-      Map("kieli_fi" -> "Hakukohteen nimi"), Map("fi" -> "Tarjoajan nimi"), yhdenPaikanSaanto = haku.yhdenPaikanSaanto)
+      Map("kieli_fi" -> "Hakukohteen nimi"), Map("fi" -> "Tarjoajan nimi"), yhdenPaikanSaanto = haku.yhdenPaikanSaanto, true, "S", 2016)
     val kausi = Syksy(2015)
     val previousVastaanottoRecord = VastaanottoRecord(
       henkiloOid,
@@ -84,7 +85,7 @@ class VastaanotettavuusServiceSpec extends Specification with MockitoMatchers wi
       Some(Kausi("2016S")), YhdenPaikanSaanto(false, "ei kk haku"), Map("kieli_fi" -> "Haun nimi"))
     val koulutusOid = "1.2.246.562.17.00000000001"
     val hakukohde = Hakukohde("1.2.246.562.20.00000000001", haku.oid, List(koulutusOid), "AMMATILLINEN_PERUSKOULUTUS",
-      "TUTKINTO_OHJELMA", Map("kieli_fi" -> "Hakukohteen nimi"), Map("fi" -> "Tarjoajan nimi"), yhdenPaikanSaanto = haku.yhdenPaikanSaanto)
+      "TUTKINTO_OHJELMA", Map("kieli_fi" -> "Hakukohteen nimi"), Map("fi" -> "Tarjoajan nimi"), yhdenPaikanSaanto = haku.yhdenPaikanSaanto, false, "S", 2016)
     val kausi = Syksy(2015)
     val previousVastaanottoRecord = VastaanottoRecord(
       henkiloOid,

@@ -4,9 +4,9 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 import fi.vm.sade.utils.slf4j.Logging
-import fi.vm.sade.valintatulosservice.config.AppConfig
-import fi.vm.sade.valintatulosservice.domain.{HakijanVastaanotto, VastaanotaSitovasti}
-import fi.vm.sade.valintatulosservice.valintarekisteri.ValintarekisteriDb
+import fi.vm.sade.valintatulosservice.config.ValintarekisteriAppConfig
+import fi.vm.sade.valintatulosservice.valintarekisteri.db.ValintarekisteriDb
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.{VastaanotaSitovasti, HakijanVastaanotto}
 import slick.driver.PostgresDriver.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -15,7 +15,7 @@ import scala.concurrent.{Await, Future}
 import scala.util.{Random, Try}
 
 object VastaanottoStoreTester extends App with Logging {
-  val appConfig = new AppConfig.IT
+  val appConfig = new ValintarekisteriAppConfig.IT
   appConfig.start
   val valintarekisteriDb = new ValintarekisteriDb(appConfig.settings.valintaRekisteriDbConfig)
   private val henkiloOid = "1.2.246.562.24.0000000000"

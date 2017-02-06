@@ -1,12 +1,11 @@
 package fi.vm.sade.valintatulosservice.domain
 
-import java.util.Date
-
-import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig.VtsAppConfig
 import fi.vm.sade.valintatulosservice.domain.Ilmoittautumistila.Ilmoittautumistila
 import fi.vm.sade.valintatulosservice.domain.LanguageMap.LanguageMap
 import fi.vm.sade.valintatulosservice.ohjausparametrit.Ohjausparametrit
 import fi.vm.sade.valintatulosservice.tarjonta.Haku
+import fi.vm.sade.valintatulosservice.valintarekisteri.domain.Vastaanottotila
 import org.joda.time.DateTime
 
 case class HakutoiveenIlmoittautumistila(
@@ -32,7 +31,7 @@ object HakutoiveenIlmoittautumistila {
 
   val oili = UlkoinenJärjestelmä(Map(Language.fi -> "Oili", Language.sv -> "Oili", Language.en -> "Oili"), "/oili/")
 
-  def getIlmoittautumistila(sijoitteluTila: HakutoiveenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(implicit appConfig: AppConfig): HakutoiveenIlmoittautumistila = {
+  def getIlmoittautumistila(sijoitteluTila: HakutoiveenSijoitteluntulos, haku: Haku, ohjausparametrit: Option[Ohjausparametrit])(implicit appConfig: VtsAppConfig): HakutoiveenIlmoittautumistila = {
     val ilmoittautumistapa = if(haku.korkeakoulu) {
       Some(oili)
     }

@@ -3,9 +3,9 @@ package fi.vm.sade.valintatulosservice.testenvironment
 import java.io.File
 
 import fi.vm.sade.valintatulosservice.ValintatulosService
-import fi.vm.sade.valintatulosservice.config.AppConfig
+import fi.vm.sade.valintatulosservice.config.VtsAppConfig
 import fi.vm.sade.valintatulosservice.domain.Hakemuksentulos
-import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelunTulosRestClient, SijoittelunTulosRestClient$, SijoittelutulosService}
+import fi.vm.sade.valintatulosservice.sijoittelu.{SijoittelunTulosRestClient, SijoittelutulosService}
 import fi.vm.sade.valintatulosservice.tarjonta.HakuService
 import org.junit.runner.RunWith
 import org.specs2.execute._
@@ -18,9 +18,9 @@ class ValintatulosIntegrationTest extends Specification {
     "return valintatulos for " in {
       val varsFile = "ENVIRONMENT OPHITEST PATH HERE/deploy/ophitest_vars.yml"
       if (new File(varsFile).exists()) {
-        implicit val appConfig = new AppConfig.LocalTestingWithTemplatedVars(varsFile)
+        implicit val appConfig = new VtsAppConfig.LocalTestingWithTemplatedVars(varsFile)
 
-        val hakuService = HakuService(null, appConfig)
+        val hakuService = HakuService(appConfig)
         val sijoittelutulosService = new SijoittelutulosService(appConfig.sijoitteluContext.raportointiService, appConfig.ohjausparametritService, null,
           SijoittelunTulosRestClient(appConfig))
         val valintatulosService = new ValintatulosService(null, sijoittelutulosService, null, hakuService, null, null)
