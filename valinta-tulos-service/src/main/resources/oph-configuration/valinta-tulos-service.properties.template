@@ -16,9 +16,6 @@ valinta-tulos-service.parseleniently.sijoitteluajontulos={{valintatulosservice_p
 sijoittelu-service.hakukohdeCache.populate=false
 sijoittelu-service.hakukohdeDao.batchSize=300
 
-# KOODISTO
-koodisto-service.rest.url=https://{{host_virkailija}}/koodisto-service
-
 # HAKEMUKSET
 hakemus.mongodb.dbname=hakulomake
 hakemus.mongodb.uri=mongodb://{{mongodb_hakemus_auth}}@{{mongodb_hakemus_host}}:{{mongodb_hakemus_port}}
@@ -51,7 +48,3 @@ valinta-tulos-service.valintarekisteri.db.registerMbeans=true
 valinta-tulos-service.valintarekisteri.db.initializationFailFast=true
 valinta-tulos-service.valintarekisteri.db.timeout=20 seconds
 valinta-tulos-service.valintarekisteri.ensikertalaisuus.max.henkilo.oids=1000000
-
-# Valintarekisterin migraatio
-valinta-tulos-service.haku-app-url=https://{{host_virkailija}}/haku-app
-valinta-tulos-service.authentication-service-url=https://{{host_virkailija}}/authentication-service

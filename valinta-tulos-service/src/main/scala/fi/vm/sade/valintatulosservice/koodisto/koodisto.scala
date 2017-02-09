@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice.koodisto
 
 import fi.vm.sade.utils.http.DefaultHttpClient.httpGet
+import fi.vm.sade.valintatulosservice.OphUrlProperties.ophProperties
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import org.json4s.JsonAST.JObject
 import org.json4s.jackson.JsonMethods._
@@ -39,12 +40,12 @@ class KoodistoService(appConfig: AppConfig) {
   implicit val formats = DefaultFormats ++ List(new KoodiSerializer)
 
   def fetchLatest(uri: KoodiUri): Either[Throwable, Koodi] = {
-    val url = appConfig.settings.koodistoUrl + s"/rest/codeelement/latest/$uri"
+    val url = ophProperties.url("koodisto-service.rest.codeelement.latest", uri)
     get(url).right.flatMap(k => fetch(k.uri, k.versio))
   }
 
   def fetch(uri: KoodiUri, versio: Int): Either[Throwable, Koodi] = {
-    val url = appConfig.settings.koodistoUrl + s"/rest/codeelement/$uri/$versio"
+    val url = ophProperties.url("koodisto-service.rest.codeelement", uri, versio)
     get(url)
   }
 
