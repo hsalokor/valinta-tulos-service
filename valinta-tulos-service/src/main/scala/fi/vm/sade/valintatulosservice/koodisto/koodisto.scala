@@ -45,7 +45,7 @@ class KoodistoService(appConfig: AppConfig) {
   }
 
   def fetch(uri: KoodiUri, versio: Int): Either[Throwable, Koodi] = {
-    val url = ophProperties.url("koodisto-service.rest.codeelement", uri, versio)
+    val url = ophProperties.url("koodisto-service.rest.codeelement", uri, versio.toString)
     get(url)
   }
 
