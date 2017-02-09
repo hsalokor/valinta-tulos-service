@@ -1,6 +1,7 @@
 package fi.vm.sade.valintatulosservice.ohjausparametrit
 
 import fi.vm.sade.utils.http.DefaultHttpClient
+import fi.vm.sade.valintatulosservice.OphUrlProperties
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import fi.vm.sade.valintatulosservice.domain.Vastaanottoaikataulu
 import fi.vm.sade.valintatulosservice.json.JsonFormats
@@ -43,7 +44,7 @@ class RemoteOhjausparametritService(implicit appConfig: AppConfig) extends Ohjau
   import org.json4s.jackson.JsonMethods._
 
   def ohjausparametrit(asId: String): Either[Throwable, Option[Ohjausparametrit]] = {
-    val url = appConfig.settings.ohjausparametritUrl + "/" + asId
+    val url = OphUrlProperties.ophProperties.url("ohjausparametrit-service.url",asId)
     Try(DefaultHttpClient.httpGet(url).responseWithHeaders match {
       case (200, _, body) =>
         Try(Right(Some(OhjausparametritParser.parseOhjausparametrit(parse(body))))).recover {

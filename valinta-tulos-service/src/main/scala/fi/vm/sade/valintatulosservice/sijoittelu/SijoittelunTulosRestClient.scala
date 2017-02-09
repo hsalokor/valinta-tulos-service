@@ -3,6 +3,7 @@ package fi.vm.sade.valintatulosservice.sijoittelu
 import fi.vm.sade.sijoittelu.domain.{Hakukohde, HakukohdeItem, SijoitteluAjo}
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
 import fi.vm.sade.sijoittelu.tulos.dto.{HakukohdeDTO, SijoitteluajoDTO}
+import fi.vm.sade.valintatulosservice.OphUrlProperties
 import fi.vm.sade.valintatulosservice.config.AppConfig.{AppConfig, StubbedExternalDeps}
 import fi.vm.sade.valintatulosservice.json.StreamingJsonArrayRetriever
 
@@ -39,7 +40,7 @@ class SijoittelunTulosRestClient(appConfig: AppConfig) {
   }
 
   private def latestSijoitteluAjoUrl(hakuOid: String, hakukohdeOidOption: Option[String]): String = {
-    val latestUrlForHaku = s"${appConfig.settings.sijoitteluServiceRestUrl}/resources/sijoittelu/$hakuOid/sijoitteluajo/latest"
+    val latestUrlForHaku = OphUrlProperties.ophProperties.url("sijoittelu-service.latest.url.for.haku", hakuOid)
     hakukohdeOidOption match {
       case Some(hakukohdeOid) => latestUrlForHaku + "?hakukohdeOid=" + hakukohdeOid
       case None => latestUrlForHaku
@@ -48,7 +49,7 @@ class SijoittelunTulosRestClient(appConfig: AppConfig) {
 
   def fetchHakemuksenTulos(sijoitteluAjo: SijoitteluAjo, hakemusOid: String): Option[HakijaDTO] = {
     val hakuOid = sijoitteluAjo.getHakuOid
-    val url = s"${appConfig.settings.sijoitteluServiceRestUrl}/resources/sijoittelu/$hakuOid/sijoitteluajo/${sijoitteluAjo.getSijoitteluajoId}/hakemus/$hakemusOid"
+    val url = OphUrlProperties.ophProperties.url("sijoittelu-service.hakemus.for.sijoittelu", hakuOid, sijoitteluAjo.getSijoitteluajoId, hakemusOid)
     var result: HakijaDTO = null
     val processor: HakijaDTO => HakijaDTO = { h =>
       result = h
