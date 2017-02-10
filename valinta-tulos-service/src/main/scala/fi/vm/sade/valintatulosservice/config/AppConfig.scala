@@ -47,20 +47,21 @@ object AppConfig extends Logging {
   /**
    * Default profile, uses ~/oph-configuration/valinta-tulos-service.properties
    */
-  class Default extends AppConfig with ExternalProps with CasLdapSecurity {
+  class Default private[config] extends AppConfig with ExternalProps with CasLdapSecurity {
   }
 
   /**
    * Templated profile, uses config template with vars file located by system property valintatulos.vars
    */
-  class LocalTestingWithTemplatedVars(val templateAttributesFile: String = System.getProperty("valintatulos.vars")) extends AppConfig with TemplatedProps with CasLdapSecurity {
+  class LocalTestingWithTemplatedVars private[config] (val templateAttributesFile: String = System.getProperty("valintatulos.vars"))
+    extends AppConfig with TemplatedProps with CasLdapSecurity {
     override def templateAttributesURL = new File(templateAttributesFile).toURI.toURL
   }
 
   /**
    * Dev profile, uses local mongo db
    */
-  class Dev extends AppConfig with ExampleTemplatedProps with CasLdapSecurity with StubbedExternalDeps {
+  class Dev private[config] extends AppConfig with ExampleTemplatedProps with CasLdapSecurity with StubbedExternalDeps {
     override lazy val settings = loadSettings
       .withOverride(("hakemus.mongodb.uri", "mongodb://localhost:27017"))
       .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:27017"))
@@ -70,7 +71,7 @@ object AppConfig extends Logging {
   /**
    *  IT (integration test) profiles. Uses embedded mongo and PostgreSQL databases, and stubbed external deps
    */
-  class IT extends ExampleTemplatedProps with StubbedExternalDeps with MockSecurity {
+  class IT private[config] extends ExampleTemplatedProps with StubbedExternalDeps with MockSecurity {
     private lazy val itPostgres = new ItPostgres(itPostgresPortChooser)
 
     override def start {
@@ -106,7 +107,7 @@ object AppConfig extends Logging {
   /**
    * IT profile, uses embedded mongo for sijoittelu, external mongo for Hakemus and stubbed external deps
    */
-  class IT_externalHakemus extends IT {
+  class IT_externalHakemus private[config] extends IT {
     override lazy val settings = loadSettings
       .withOverride("hakemus.mongodb.uri", "mongodb://localhost:" + System.getProperty("hakemus.embeddedmongo.port", "28018"))
       .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
@@ -119,7 +120,7 @@ object AppConfig extends Logging {
     override def importFixturesToHakemusDatabase { /* Don't import initial fixtures, as database is considered external */ }
   }
 
-  class IT_disabledIlmoittautuminen extends IT {
+  class IT_disabledIlmoittautuminen private[config] extends IT {
     override lazy val settings = loadSettings.withOverride("valinta-tulos-service.ilmoittautuminen.enabled", "")
   }
 
