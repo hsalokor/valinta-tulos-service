@@ -2,7 +2,9 @@ package fi.vm.sade.valintatulosservice.config
 
 import java.io.File
 import java.net.URL
+import java.nio.file.Paths
 
+import fi.vm.sade.properties.OphProperties
 import fi.vm.sade.security.ldap.LdapUser
 import fi.vm.sade.security.mock.MockSecurityContext
 import fi.vm.sade.security.{ProductionSecurityContext, SecurityContext}
@@ -31,7 +33,7 @@ object AppConfig extends Logging {
 
   def fromString(profile: String) = {
     logger.info("Using valintatulos.profile=" + profile)
-    val config = profile match {
+    profile match {
       case "default" => new Default
       case "templated" => new LocalTestingWithTemplatedVars
       case "dev" => new Dev
@@ -39,21 +41,18 @@ object AppConfig extends Logging {
       case "it-externalHakemus" => new IT_externalHakemus
       case name => throw new IllegalArgumentException("Unknown value for valintatulos.profile: " + name);
     }
-    val virkailijaUrl = config.properties.getOrElse("host.virkailija", "")
-    OphUrlProperties.ophProperties.addOverride("host.virkailija", virkailijaUrl)
-    config
   }
 
   /**
    * Default profile, uses ~/oph-configuration/valinta-tulos-service.properties
    */
-  class Default private[config] extends AppConfig with ExternalProps with CasLdapSecurity {
+  class Default extends AppConfig with ExternalProps with CasLdapSecurity {
   }
 
   /**
    * Templated profile, uses config template with vars file located by system property valintatulos.vars
    */
-  class LocalTestingWithTemplatedVars private[config] (val templateAttributesFile: String = System.getProperty("valintatulos.vars"))
+  class LocalTestingWithTemplatedVars (val templateAttributesFile: String = System.getProperty("valintatulos.vars"))
     extends AppConfig with TemplatedProps with CasLdapSecurity {
     override def templateAttributesURL = new File(templateAttributesFile).toURI.toURL
   }
@@ -61,7 +60,7 @@ object AppConfig extends Logging {
   /**
    * Dev profile, uses local mongo db
    */
-  class Dev private[config] extends AppConfig with ExampleTemplatedProps with CasLdapSecurity with StubbedExternalDeps {
+  class Dev extends AppConfig with ExampleTemplatedProps with CasLdapSecurity with StubbedExternalDeps {
     override lazy val settings = loadSettings
       .withOverride(("hakemus.mongodb.uri", "mongodb://localhost:27017"))
       .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:27017"))
@@ -71,7 +70,7 @@ object AppConfig extends Logging {
   /**
    *  IT (integration test) profiles. Uses embedded mongo and PostgreSQL databases, and stubbed external deps
    */
-  class IT private[config] extends ExampleTemplatedProps with StubbedExternalDeps with MockSecurity {
+  class IT extends ExampleTemplatedProps with StubbedExternalDeps with MockSecurity {
     private lazy val itPostgres = new ItPostgres(itPostgresPortChooser)
 
     override def start {
@@ -107,7 +106,7 @@ object AppConfig extends Logging {
   /**
    * IT profile, uses embedded mongo for sijoittelu, external mongo for Hakemus and stubbed external deps
    */
-  class IT_externalHakemus private[config] extends IT {
+  class IT_externalHakemus extends IT {
     override lazy val settings = loadSettings
       .withOverride("hakemus.mongodb.uri", "mongodb://localhost:" + System.getProperty("hakemus.embeddedmongo.port", "28018"))
       .withOverride(("sijoittelu-service.mongodb.uri", "mongodb://localhost:" + embeddedMongoPortChooser.chosenPort))
@@ -120,7 +119,7 @@ object AppConfig extends Logging {
     override def importFixturesToHakemusDatabase { /* Don't import initial fixtures, as database is considered external */ }
   }
 
-  class IT_disabledIlmoittautuminen private[config] extends IT {
+  class IT_disabledIlmoittautuminen extends IT {
     override lazy val settings = loadSettings.withOverride("valinta-tulos-service.ilmoittautuminen.enabled", "")
   }
 
@@ -136,10 +135,11 @@ object AppConfig extends Logging {
   trait TemplatedProps {
     logger.info("Using template variables from " + templateAttributesURL)
     lazy val settings = loadSettings
-    def loadSettings = ConfigTemplateProcessor.createSettings(
-      getClass.getResource("/oph-configuration/valinta-tulos-service-devtest.properties.template"),
-      templateAttributesURL
-    )
+    def loadSettings = {
+      val settings = ConfigTemplateProcessor.createSettings(getClass.getResource("/oph-configuration/valinta-tulos-service-devtest.properties.template"), templateAttributesURL)
+      OphUrlProperties.ophProperties.addOverride("host.virkailija", settings.config.getString("host.virkailija"))
+      settings
+    }
     def templateAttributesURL: URL
   }
 
