@@ -147,7 +147,7 @@ class TarjontaHakuService(koodistoService: KoodistoService, appConfig:AppConfig)
 
   def getHaku(oid: String): Either[Throwable, Haku] = {
     val url = OphUrlProperties.ophProperties.url("tarjonta-service.haku",oid)
-    logger.debug(s"get haku url: $url")
+    logger.info(s"get haku url: $url")
     fetch(url) { response =>
       val hakuTarjonnassa = (parse(response) \ "result").extract[HakuTarjonnassa]
       toHaku(hakuTarjonnassa)
