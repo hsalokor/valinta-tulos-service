@@ -1,8 +1,8 @@
 package fi.vm.sade.valintatulosservice.sijoittelu
 
 import fi.vm.sade.sijoittelu.tulos.dto.raportointi.HakijaDTO
-import fi.vm.sade.valintatulosservice.OphUrlProperties
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.OphUrlProperties
 import fi.vm.sade.valintatulosservice.json.StreamingJsonArrayRetriever
 
 class StreamingHakijaDtoClient(appConfig: AppConfig) {

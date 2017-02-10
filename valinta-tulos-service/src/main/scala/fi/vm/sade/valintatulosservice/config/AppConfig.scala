@@ -31,7 +31,7 @@ object AppConfig extends Logging {
 
   def fromString(profile: String) = {
     logger.info("Using valintatulos.profile=" + profile)
-    profile match {
+    val config = profile match {
       case "default" => new Default
       case "templated" => new LocalTestingWithTemplatedVars
       case "dev" => new Dev
@@ -39,6 +39,9 @@ object AppConfig extends Logging {
       case "it-externalHakemus" => new IT_externalHakemus
       case name => throw new IllegalArgumentException("Unknown value for valintatulos.profile: " + name);
     }
+    val virkailijaUrl = config.properties.getOrElse("host.virkailija", "")
+    OphUrlProperties.ophProperties.addOverride("host.virkailija", virkailijaUrl)
+    config
   }
 
   /**

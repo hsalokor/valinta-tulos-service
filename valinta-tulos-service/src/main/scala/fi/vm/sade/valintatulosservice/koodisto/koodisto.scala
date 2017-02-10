@@ -1,7 +1,7 @@
 package fi.vm.sade.valintatulosservice.koodisto
 
 import fi.vm.sade.utils.http.DefaultHttpClient.httpGet
-import fi.vm.sade.valintatulosservice.OphUrlProperties.ophProperties
+import fi.vm.sade.valintatulosservice.config.OphUrlProperties.ophProperties
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
 import org.json4s.JsonAST.JObject
 import org.json4s.jackson.JsonMethods._

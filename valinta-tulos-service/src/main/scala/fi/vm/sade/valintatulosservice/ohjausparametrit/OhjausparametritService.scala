@@ -1,8 +1,8 @@
 package fi.vm.sade.valintatulosservice.ohjausparametrit
 
 import fi.vm.sade.utils.http.DefaultHttpClient
-import fi.vm.sade.valintatulosservice.OphUrlProperties
 import fi.vm.sade.valintatulosservice.config.AppConfig.AppConfig
+import fi.vm.sade.valintatulosservice.config.OphUrlProperties
 import fi.vm.sade.valintatulosservice.domain.Vastaanottoaikataulu
 import fi.vm.sade.valintatulosservice.json.JsonFormats
 import fi.vm.sade.valintatulosservice.memoize.TTLOptionalMemoize
