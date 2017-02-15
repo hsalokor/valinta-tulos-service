@@ -152,7 +152,8 @@ object VtsAppConfig extends Logging {
         getClass.getResource("/oph-configuration/valinta-tulos-service-devtest.properties.template"),
         templateAttributesURL
       )
-      VtsOphUrlProperties.ophProperties.addOverride("host.virkailija", settings.config.getString("host.virkailija"))
+      val virkailijaHost = if (settings.config.hasPath("host.virkailija")) settings.config.getString("host.virkailija") else ""
+      VtsOphUrlProperties.ophProperties.addOverride("host.virkailija", virkailijaHost)
       settings
     }
     def templateAttributesURL: URL
