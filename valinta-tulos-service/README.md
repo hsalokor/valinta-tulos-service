@@ -82,7 +82,7 @@ ja aseta muuttujat sisältävän tiedoston sijainti system propertyssä, esim. `
 
 ## API-dokumentaatio
 
-Swaggerilla generoitu dokomentaatio.
+Swaggerilla generoitu dokumentaatio.
 
 [http://localhost:8097/valinta-tulos-service/api-docs/index.html](http://localhost:8097/valinta-tulos-service/api-docs/index.html)
 
